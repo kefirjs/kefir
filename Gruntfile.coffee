@@ -15,7 +15,7 @@ module.exports = (grunt) ->
 
     browserify:
       tests:
-        src: 'specs/*.js'
+        src: 'test/specs/*.js'
         dest: 'dist/test/specs.js'
 
     jasmine:
@@ -42,13 +42,13 @@ module.exports = (grunt) ->
     jasmine_node:
       main:
         options:
-          specFolders: ["specs"]
+          specFolders: ["test/specs"]
           matchall: true
 
     jshint:
       options:
         jshintrc: true
-      main: ['kefir.js', 'test-helpers.js', 'specs/*.js']
+      main: ['kefir.js', 'test/test-helpers.js', 'test/specs/*.js']
 
 
     watch:
@@ -70,4 +70,4 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-browser-tests', ['browserify:tests', 'jasmine:main:build']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
-  grunt.registerTask 'default', ['clean', 'build-browser-tests', 'build-kefir']
+  grunt.registerTask 'default', ['clean', 'build-browser-tests', 'build-kefir', 'test']

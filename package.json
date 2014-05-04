@@ -39,7 +39,7 @@
       ".grunt/grunt-contrib-jasmine/jasmine.js",
       ".grunt/grunt-contrib-jasmine/jasmine-html.js",
       ".grunt/grunt-contrib-jasmine/boot.js",
-      "jasmine.tap_reporter.js",
+      "test/jasmine.tap_reporter.js",
       "dist/test/specs.js"
     ],
     "browsers": [
