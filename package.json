@@ -1,0 +1,61 @@
+{
+  "name": "kefir",
+  "version": "0.1.0",
+  "description": "Bacon.js inspired FRP library with less memory consumption",
+  "main": "kefir.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "keywords": [
+    "frp",
+    "bacon",
+    "bacon.js"
+  ],
+  "author": "Roman Pominov <rpominov@gmail.com>",
+  "homepage": "https://github.com/pozadi/kefir",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/pozadi/kefir.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "jasmine-node": "~1.14.3",
+    "coffee-script": "~1.7.1",
+    "grunt": "~0.4.4",
+    "load-grunt-tasks": "~0.4.0",
+    "browserify": "~3.46.0",
+    "grunt-browserify": "~2.0.8",
+    "grunt-contrib-jasmine": "~0.6.4",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-jasmine-node": "~0.2.1",
+    "grunt-cli": "~0.1.13"
+  },
+  "testling": {
+    "scripts": [
+      ".grunt/grunt-contrib-jasmine/jasmine.js",
+      ".grunt/grunt-contrib-jasmine/jasmine-html.js",
+      ".grunt/grunt-contrib-jasmine/boot.js",
+      "jasmine.tap_reporter.js",
+      "dist/test/specs.js"
+    ],
+    "browsers": [
+      "ie/6..latest",
+      "chrome/25",
+      "chrome/latest",
+      "firefox/12",
+      "firefox/17",
+      "firefox/20",
+      "firefox/latest",
+      "safari/latest",
+      "opera/11.0",
+      "opera/latest",
+      "iphone/6..latest",
+      "ipad/6..latest",
+      "android-browser/4.2..latest"
+    ]
+  }
+}
