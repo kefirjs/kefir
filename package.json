@@ -1,5 +1,5 @@
 {
-  "name": "kefir",
+  "name": "Kefir",
   "version": "0.1.0",
   "description": "Bacon.js inspired FRP library with less memory consumption",
   "main": "kefir.js",

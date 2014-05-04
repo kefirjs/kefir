@@ -3,10 +3,8 @@ module.exports = (grunt) ->
   pkg = grunt.file.readJSON('package.json')
 
   banner = """
-    /*! #{pkg.name} - #{pkg.version} - <%= grunt.template.today("yyyy-mm-dd") %>
+    /*! #{pkg.name} - #{pkg.version}
      *  #{pkg.homepage}
-     *  License: #{pkg.license}
-     *  Copyright (c) <%= grunt.template.today("yyyy") %> #{pkg.author}
      */
 
   """

@@ -1,7 +1,5 @@
-/*! kefir - 0.1.0 - 2014-05-04
+/*! Kefir - 0.1.0
  *  https://github.com/pozadi/kefir
- *  License: MIT
- *  Copyright (c) 2014 Roman Pominov <rpominov@gmail.com>
  */
 (function(){
   "use strict";
