@@ -11,11 +11,10 @@ describe("Bus:", function(){
     var bus = new Kefir.Bus;
 
     bus.push('no subscribers – will not be delivered');
-    bus.push(Kefir.END); // will not be delivered either
 
     setTimeout(function(){
       bus.push(2);
-      bus.push(Kefir.END);
+      bus.end();
     }, 0);
 
     helpers.captureOutput(bus, function(values){

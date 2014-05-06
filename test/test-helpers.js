@@ -26,7 +26,7 @@ exports.captureOutput = function(stream, callback, timeout) {
 exports.sampleStream = function(values, timeout){
   timeout = timeout || 0;
   values.reverse();
-  return new Kefir.Stream(function(sink){
+  return Kefir.fromBinder(function(sink){
     var send = function() {
       if (values.length > 0) {
         sink(values.pop());

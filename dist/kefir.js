@@ -8,8 +8,11 @@
   // Class method names convention
   //
   // __foo: can be used only inside class or child class
-  // _foo: can be used only insid Kefir
+  // _foo: can be used only inside Kefir
   // foo: public API
+
+
+
 
 
   var Kefir = {};
@@ -61,97 +64,119 @@
 
   // Base Stream class
 
-  Kefir.Stream = function Stream(generator) {
+  Kefir.Stream = function Stream(onFirstSubscribed, onLastUsubscribed){
 
-    if (!generator) {
-      this._end();
-      return;
+    // __onFirstSubscribed, __onLastUsubscribed can also be added to prototype of child classes
+    if (typeof onFirstSubscribed === "function") {
+      this.__onFirstSubscribed = onFirstSubscribed;
+    }
+    if (typeof onFirstSubscribed === "function") {
+      this.__onLastUsubscribed = onLastUsubscribed;
     }
 
-    this.__generator = generator;
     this.__subscribers = [];
     this.__endSubscribers = [];
-    this.__generatorUsubscriber = null;
+  }
 
-    var _this = this;
-    this.__deliver = function(val) {
-      if (_this.isEnded()) {
-        return;
-      }
-      if (val === Kefir.END) {
-        _this._end();
+  Kefir.Stream.prototype._send = function(value) {
+    if (!this.isEnded()) {
+      if (value === Kefir.END) {
+        this.__end();
       } else {
-        for (var i = 0; i < _this.__subscribers.length; i++) {
-          _this.__subscribers[i](val);
+        for (var i = 0; i < this.__subscribers.length; i++) {
+          this.__subscribers[i](value);
         }
       }
-    };
-
-  };
-
-  Kefir.Stream.prototype.__subToGenerator = function(){
-    if (this.__generatorUsubscriber === null && this.__generator) {
-      this.__generatorUsubscriber = this.__generator(this.__deliver);
     }
-  };
-
-  Kefir.Stream.prototype.__unsubFromGenerator = function(){
-    if (this.__generatorUsubscriber) {
-      this.__generatorUsubscriber();
-      this.__generatorUsubscriber = null;
-    }
-  };
-
-  Kefir.Stream.prototype._end = function(){
-    if (!this.isEnded()) {
-      this.__unsubFromGenerator();
-      this.__subscribers = null;
-      this.__generator = null;
-      this.__deliver = null;
-      for (var i = 0; i < this.__endSubscribers.length; i++) {
-        this.__endSubscribers[i]();
-      }
-      this.__endSubscribers = null;
-    }
-  };
+  }
 
   Kefir.Stream.prototype.subscribe = function(callback) {
-    if (this.__generator) {
-      this.__subToGenerator();
+    if (!this.isEnded()) {
+      if (this.__subscribers.length === 0) {
+        this.__onFirstSubscribed();
+      }
       this.__subscribers.push(callback);
     }
-  };
-
+  }
   Kefir.Stream.prototype.unsubscribe = function(callback) {
-    if (!this.isEnded() && this.__subscribers.length > 0) {
+    if (!this.isEnded()) {
       removeFromArray(this.__subscribers, callback);
       if (this.__subscribers.length === 0) {
-        this.__unsubFromGenerator();
+        this.__onLastUsubscribed();
       }
     }
-  };
-
+  }
   Kefir.Stream.prototype.onEnd = function(callback) {
     if (this.isEnded()) {
       callback();
     } else {
       this.__endSubscribers.push(callback);
     }
-  };
-
+  }
   Kefir.Stream.prototype.offEnd = function(callback) {
     if (!this.isEnded()) {
       removeFromArray(this.__endSubscribers, callback);
     }
-  };
-
+  }
   Kefir.Stream.prototype.isEnded = function() {
-    return this.__generator === null;
-  };
+    return this.__subscribers === null;
+  }
+  Kefir.Stream.prototype.hasSubscribers = function(){
+    return !this.isEnded() && this.__subscribers.length > 0;
+  }
 
-  Kefir.Stream.prototype.hasListeners = function() {
-    return this.__generatorUsubscriber !== null;
-  };
+
+  Kefir.Stream.prototype.__onFirstSubscribed = noop
+  Kefir.Stream.prototype.__onLastUsubscribed = noop
+
+  Kefir.Stream.prototype.__end = function() {
+    if (!this.isEnded()) {
+      this.__onLastUsubscribed();
+      if (this.hasOwnProperty(this.__onFirstSubscribed)) {
+        this.__onFirstSubscribed = null;
+      }
+      if (this.hasOwnProperty(this.__onLastUsubscribed)) {
+        this.__onLastUsubscribed = null;
+      }
+      this.__subscribers = null;
+      for (var i = 0; i < this.__endSubscribers.length; i++) {
+        this.__endSubscribers[i]();
+      }
+      this.__endSubscribers = null;
+    }
+  }
+
+
+
+
+
+  // fromBinder
+
+  Kefir.fromBinder = function(generator){
+    var generatorUsubscriber = null;
+    var send = function(val){
+      stream._send(val)
+    }
+
+    var subToGenerator = function(){
+      generatorUsubscriber = generator(send);
+    }
+    var unsubFromGenerator = function(){
+      if (typeof generatorUsubscriber === "function") {
+        generatorUsubscriber();
+      }
+      generatorUsubscriber = null;
+    }
+
+    var stream = new Kefir.Stream(subToGenerator, unsubFromGenerator);
+    return stream;
+  }
+
+
+
+
+
+
 
 
 
@@ -161,78 +186,59 @@
 
   Kefir.Bus = inherit(function Bus(){
 
+    this.__superConstructor();
+
     this.__plugged = [];
-    this.__listeningToPlugged = false;
 
     var _this = this;
-    this.__superConstructor(function(sink){
-      _this.__sink = sink;
-      return function(){
-        _this.__sink = null;
-      };
-    });
-
-    this.push = function(value){
-      if (_this.__sink) {
-        _this.__sink(value);
-      }
-    };
+    this.push = function(x){  _this._send(x)  }
 
   }, Kefir.Stream);
 
-  Kefir.Bus.prototype.__startListenToPlugged = function(){
-    if (this.__plugged && !this.__listeningToPlugged) {
-      for (var i = 0; i < this.__plugged.length; i++) {
-        this.__plugged[i].subscribe(this.push);
-      }
-      this.__listeningToPlugged = true;
-    }
-  };
-
-  Kefir.Bus.prototype.__stopListenToPlugged = function(){
-    if (this.__plugged && this.__listeningToPlugged) {
-      for (var i = 0; i < this.__plugged.length; i++) {
-        this.__plugged[i].unsubscribe(this.push);
-      }
-      this.__listeningToPlugged = false;
-    }
-  };
-
-  Kefir.Bus.prototype.__subToGenerator = function(){
-    this.__superProto.__subToGenerator.apply(this);
-    this.__startListenToPlugged();
-  };
-
-  Kefir.Bus.prototype.__unsubFromGenerator = function(){
-    this.__superProto.__unsubFromGenerator.apply(this);
-    this.__stopListenToPlugged();
-  };
-
-  Kefir.Bus.prototype._end = function(){
-    this.__superProto._end.apply(this);
-    this.__stopListenToPlugged();
-    this.__plugged = null;
-  };
-
-  Kefir.Bus.prototype.end = function(){
-    this._end();
-  };
-
   Kefir.Bus.prototype.plug = function(stream){
-    this.__plugged.push(stream);
-    if (this.__sink) {
-      stream.subscribe(this.push);
+    if (!this.isEnded()) {
+      this.__plugged.push(stream);
+      if (this.hasSubscribers()) {
+        stream.subscribe(this.push);
+      }
+      var _this = this;
+      stream.onEnd(function(){  _this.unplug(stream)  });
     }
-    var _that = this;
-    stream.onEnd(function(){
-      _that.unplug(stream);
-    });
   };
 
   Kefir.Bus.prototype.unplug = function(stream){
-    stream.unsubscribe(this.push);
-    removeFromArray(this.__plugged, stream);
+    if (!this.isEnded()) {
+      stream.unsubscribe(this.push);
+      removeFromArray(this.__plugged, stream);
+    }
   };
+
+  Kefir.Bus.prototype.end = function(){
+    this._send(Kefir.END);
+  }
+
+  Kefir.Bus.prototype.__onFirstSubscribed = function(){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      this.__plugged[i].subscribe(this.push);
+    }
+  }
+  Kefir.Bus.prototype.__onLastUsubscribed = function(){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      this.__plugged[i].unsubscribe(this.push);
+    }
+  }
+
+  Kefir.Bus.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__plugged = null;
+    this.push = noop;
+  }
+
+
+
+
+
+
 
 
 
@@ -240,28 +246,90 @@
 
   // Map
 
+  Kefir.MappedStream = inherit(function MappedStream(sourceStream, mapFn){
+    this.__superConstructor()
+    this.__sourceStream = sourceStream;
+    var _this = this;
+    this.__deliver = function(x){  _this._send(mapFn(x))  }
+    sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Kefir.Stream);
+
+  Kefir.MappedStream.prototype.__onFirstSubscribed = function(){
+    this.__sourceStream.subscribe(this.__deliver);
+  }
+  Kefir.MappedStream.prototype.__onLastUsubscribed = function(){
+    this.__sourceStream.unsubscribe(this.__deliver);
+  }
+  Kefir.MappedStream.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__sourceStream = null;
+    this.__deliver = null;
+  }
+
   Kefir.map = function(stream, mapFn) {
-    var result = new Kefir.Stream(function(sink){
-      var deliver = function(value){
-        sink(mapFn(value));
-      };
-      stream.subscribe(deliver);
-      return function(){
-        stream.unsubscribe(deliver);
-      };
-    });
-
-    stream.onEnd(function(){
-      result._end();
-    });
-
-    return result;
-  };
+    return new Kefir.MappedStream(stream, mapFn);
+  }
 
   Kefir.Stream.prototype.map = function(fn) {
     return Kefir.map(this, fn);
   };
 
+
+
+
+
+  // FlatMap
+
+  Kefir.FlatMappedStream = inherit(function FlatMappedStream(sourceStream, mapFn){
+    this.__superConstructor()
+    this.__sourceStream = sourceStream;
+    this.__plugged = [];
+    var _this = this;
+    this.__deliver = function(x){ _this._send(x)  }
+    this.__plugResult = function(x){  _this.__plug(mapFn(x))  }
+    sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Kefir.Stream);
+  Kefir.FlatMappedStream.prototype.__onFirstSubscribed = function(){
+    this.__sourceStream.subscribe(this.__plugResult);
+    for (var i = 0; i < this.__plugged.length; i++) {
+      this.__plugged[i].subscribe(this.__deliver);
+    }
+  }
+  Kefir.FlatMappedStream.prototype.__onLastUsubscribed = function(){
+    this.__sourceStream.unsubscribe(this.__plugResult);
+    for (var i = 0; i < this.__plugged.length; i++) {
+      this.__plugged[i].unsubscribe(this.__deliver);
+    }
+  }
+  Kefir.FlatMappedStream.prototype.__plug = function(stream){
+    this.__plugged.push(stream);
+    if (this.hasSubscribers()) {
+      stream.subscribe(this.__deliver);
+    }
+    var _this = this;
+    stream.onEnd(function(){  _this.__unplug(stream)  });
+  };
+  Kefir.FlatMappedStream.prototype.__unplug = function(stream){
+    if (!this.isEnded()) {
+      stream.unsubscribe(this.__deliver);
+      removeFromArray(this.__plugged, stream);
+    }
+  };
+  Kefir.FlatMappedStream.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__sourceStream = null;
+    this.__deliver = null;
+    this.__plugResult = null;
+    this.__plugged = null;
+  }
+
+  Kefir.flatMap = function(stream, mapFn) {
+    return new Kefir.FlatMappedStream(stream, mapFn);
+  }
+
+  Kefir.Stream.prototype.flatMap = function(fn) {
+    return Kefir.flatMap(this, fn);
+  };
 
 
 
@@ -274,7 +342,7 @@
     var sources = firstArrOrToArr(arguments);
     var lastSink = null;
 
-    var result = new Kefir.Stream(function(sink){
+    var result = Kefir.fromBinder(function(sink){
       lastSink = sink;
       for (var i = 0; i < sources.length; i++) {
         sources[i].subscribe(sink);
@@ -287,12 +355,13 @@
       };
     });
 
+    // FIXME: this is sign that it should be class here
     function bindOnEnd(source){
       source.onEnd(function(){
         source.unsubscribe(lastSink);
         removeFromArray(sources, source);
         if (sources.length === 0) {
-          result._end();
+          result._send(Kefir.END);
         }
       });
     }
@@ -313,7 +382,6 @@
 
 
 
-
   // Log
 
   Kefir.Stream.prototype.log = function(text) {
@@ -325,10 +393,6 @@
       }
     });
   };
-
-
-
-
 
 
 

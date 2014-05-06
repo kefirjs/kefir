@@ -42,6 +42,7 @@ module.exports = (grunt) ->
         options:
           specFolders: ["test/specs"]
           matchall: true
+          verbose: true
 
     jshint:
       options:

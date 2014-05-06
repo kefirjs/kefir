@@ -9,7 +9,7 @@ describe("Base stream:", function(){
     var stream = helpers.sampleStream([]);
 
     setTimeout(function(){
-      stream._end();
+      stream._send(Kefir.END);
     }, 0);
 
     var calls = 0;
