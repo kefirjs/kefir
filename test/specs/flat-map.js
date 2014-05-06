@@ -7,9 +7,9 @@ describe("FlatMap:", function(){
 
   it("works", function(done){
 
-    var stream = helpers.sampleStream([4, 2, Kefir.END], 50);
+    var stream = helpers.sampleStream([4, 2, Kefir.END], 100);
     var mapped = stream.flatMap(function(x){
-      return helpers.sampleStream([x, x, Kefir.END], 10 * x);
+      return helpers.sampleStream([x, x, Kefir.END], 20 * x);
     });
 
     // ---------4---------2
@@ -22,7 +22,7 @@ describe("FlatMap:", function(){
       done();
     });
 
-  }, 200);
+  }, 400);
 
 
 });
