@@ -148,7 +148,6 @@
 
 
   // Property
-  // FIXME: property should never end. should it?
 
   Kefir.Property = inherit(function Property(onFirstSubscribed, onLastUsubscribed, initialValue){
     this.__superConstructor(onFirstSubscribed, onLastUsubscribed);
@@ -392,9 +391,7 @@
   }
   Kefir.MergedStream.prototype.__unplugFor = function(stream){
     var _this = this;
-    return function(){
-      _this.__unplug(stream);
-    }
+    return function(){  _this.__unplug(stream)  }
   }
   Kefir.MergedStream.prototype.__end = function(){
     this.__superProto.__end.call(this);
@@ -410,6 +407,113 @@
     return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
   }
 
+
+
+
+
+
+
+
+
+  // Combine
+
+  Kefir.CombinedStream = inherit(function CombinedStream(sourceStreams, mapFn){
+    this.__superConstructor()
+
+    this.__sourceStreams = sourceStreams;
+    this.__cachedValues = new Array(sourceStreams.length);
+    this.__hasCached = new Array(sourceStreams.length);
+    this.__receiveFns = new Array(sourceStreams.length);
+    this.__mapFn = mapFn;
+
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      this.__receiveFns[i] = this.__receiveFor(i);
+      this.__sourceStreams[i].onEnd( this.__unplugFor(i) );
+    }
+
+  }, Kefir.Stream);
+
+  Kefir.CombinedStream.prototype.__onFirstSubscribed = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      if (this.__sourceStreams[i]) {
+        this.__sourceStreams[i].subscribe(this.__receiveFns[i]);
+      }
+    }
+  }
+  Kefir.CombinedStream.prototype.__onLastUsubscribed = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      if (this.__sourceStreams[i]) {
+        this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+      }
+    }
+  }
+
+  Kefir.CombinedStream.prototype.__unplug = function(i){
+    this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+    this.__sourceStreams[i] = null
+    this.__receiveFns[i] = null
+    if (this.__allDead()) {
+      this._send(Kefir.END);
+    }
+  }
+  Kefir.CombinedStream.prototype.__unplugFor = function(i){
+    var _this = this;
+    return function(){  _this.__unplug(i)  }
+  }
+
+  Kefir.CombinedStream.prototype.__receive = function(i, value) {
+    this.__hasCached[i] = true;
+    this.__cachedValues[i] = value;
+    if (this.__allCached()) {
+      if (typeof this.__mapFn === "function") {
+        this._send(this.__mapFn.apply(null, this.__cachedValues));
+      } else {
+        this._send(this.__cachedValues.slice(0));
+      }
+    }
+  }
+
+  Kefir.CombinedStream.prototype.__receiveFor = function(i) {
+    var _this = this;
+    return function(value){
+      _this.__receive(i, value);
+    }
+  }
+
+  Kefir.CombinedStream.prototype.__allCached = function(){
+    for (var i = 0; i < this.__hasCached.length; i++) {
+      if (!this.__hasCached[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Kefir.CombinedStream.prototype.__allDead = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      if (this.__sourceStreams[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Kefir.CombinedStream.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__sourceStreams = null;
+    this.__cachedValues = null;
+    this.__hasCached = null;
+    this.__receiveFns = null;
+    this.__mapFn = null;
+  }
+
+  Kefir.combine = function(streams, mapFn) {
+    return new Kefir.CombinedStream(streams, mapFn);
+  }
+
+  Kefir.Stream.prototype.combine = function(streams, mapFn) {
+    return Kefir.combine([this].concat(streams), mapFn);
+  }
 
 
 
@@ -445,8 +549,5 @@
   } else {
     this.Kefir = Kefir;
   }
-
-
-
 
 }());

@@ -267,9 +267,6 @@
 
 
 
-
-
-
   // Map
 
   Kefir.MappedStream = inherit(function MappedStream(sourceStream, mapFn){
@@ -299,6 +296,7 @@
   Kefir.Stream.prototype.map = function(fn) {
     return Kefir.map(this, fn);
   };
+
 
 
 
@@ -394,9 +392,7 @@
   }
   Kefir.MergedStream.prototype.__unplugFor = function(stream){
     var _this = this;
-    return function(){
-      _this.__unplug(stream);
-    }
+    return function(){  _this.__unplug(stream)  }
   }
   Kefir.MergedStream.prototype.__end = function(){
     this.__superProto.__end.call(this);
@@ -408,46 +404,117 @@
     return new Kefir.MergedStream(firstArrOrToArr(arguments));
   }
 
-  // Kefir.merge = function() {
-
-  //   var sources = firstArrOrToArr(arguments);
-  //   var lastSink = null;
-
-  //   var result = Kefir.fromBinder(function(sink){
-  //     lastSink = sink;
-  //     for (var i = 0; i < sources.length; i++) {
-  //       sources[i].subscribe(sink);
-  //     }
-  //     return function(){
-  //       for (var i = 0; i < sources.length; i++) {
-  //         sources[i].unsubscribe(sink);
-  //       }
-  //       lastSink = null;
-  //     };
-  //   });
-
-  //   // FIXME: this is sign that it should be class here
-  //   function bindOnEnd(source){
-  //     source.onEnd(function(){
-  //       source.unsubscribe(lastSink);
-  //       removeFromArray(sources, source);
-  //       if (sources.length === 0) {
-  //         result._send(Kefir.END);
-  //       }
-  //     });
-  //   }
-
-  //   for (var i = 0; i < sources.length; i++) {
-  //     bindOnEnd(sources[i]);
-  //   }
-
-  //   return result;
-  // };
-
   Kefir.Stream.prototype.merge = function() {
     return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
-  };
+  }
 
+
+
+
+
+
+
+
+
+  // Combine
+
+  Kefir.CombinedStream = inherit(function CombinedStream(sourceStreams, mapFn){
+    this.__superConstructor()
+
+    this.__sourceStreams = sourceStreams;
+    this.__cachedValues = new Array(sourceStreams.length);
+    this.__hasCached = new Array(sourceStreams.length);
+    this.__receiveFns = new Array(sourceStreams.length);
+    this.__mapFn = mapFn;
+
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      this.__receiveFns[i] = this.__receiveFor(i);
+      this.__sourceStreams[i].onEnd( this.__unplugFor(i) );
+    }
+
+  }, Kefir.Stream);
+
+  Kefir.CombinedStream.prototype.__onFirstSubscribed = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      if (this.__sourceStreams[i]) {
+        this.__sourceStreams[i].subscribe(this.__receiveFns[i]);
+      }
+    }
+  }
+  Kefir.CombinedStream.prototype.__onLastUsubscribed = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      if (this.__sourceStreams[i]) {
+        this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+      }
+    }
+  }
+
+  Kefir.CombinedStream.prototype.__unplug = function(i){
+    this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+    this.__sourceStreams[i] = null
+    this.__receiveFns[i] = null
+    if (this.__allDead()) {
+      this._send(Kefir.END);
+    }
+  }
+  Kefir.CombinedStream.prototype.__unplugFor = function(i){
+    var _this = this;
+    return function(){  _this.__unplug(i)  }
+  }
+
+  Kefir.CombinedStream.prototype.__receive = function(i, value) {
+    this.__hasCached[i] = true;
+    this.__cachedValues[i] = value;
+    if (this.__allCached()) {
+      if (typeof this.__mapFn === "function") {
+        this._send(this.__mapFn.apply(null, this.__cachedValues));
+      } else {
+        this._send(this.__cachedValues.slice(0));
+      }
+    }
+  }
+
+  Kefir.CombinedStream.prototype.__receiveFor = function(i) {
+    var _this = this;
+    return function(value){
+      _this.__receive(i, value);
+    }
+  }
+
+  Kefir.CombinedStream.prototype.__allCached = function(){
+    for (var i = 0; i < this.__hasCached.length; i++) {
+      if (!this.__hasCached[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Kefir.CombinedStream.prototype.__allDead = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      if (this.__sourceStreams[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Kefir.CombinedStream.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__sourceStreams = null;
+    this.__cachedValues = null;
+    this.__hasCached = null;
+    this.__receiveFns = null;
+    this.__mapFn = null;
+  }
+
+  Kefir.combine = function(streams, mapFn) {
+    return new Kefir.CombinedStream(streams, mapFn);
+  }
+
+  Kefir.Stream.prototype.combine = function(streams, mapFn) {
+    return Kefir.combine([this].concat(streams), mapFn);
+  }
 
 
 
@@ -587,7 +654,7 @@ describe("Base stream:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":8}],3:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":9}],3:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -687,7 +754,58 @@ describe("Bus:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":8}],4:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":9}],4:[function(require,module,exports){
+var Kefir = require('../../kefir.js');
+var helpers = require('../test-helpers');
+
+
+
+describe("Combine:", function(){
+
+  it("simple case", function(done){
+
+    var stream1 = helpers.sampleStream([1, 3, Kefir.END], 15);
+    var stream2 = helpers.sampleStream([6, 5, Kefir.END], 20);
+
+    // --1--3
+    // ---6---5
+    // ---7-9-8
+
+    var combined = stream1.combine(stream2, function(s1, s2){
+      return s1 + s2;
+    })
+
+    helpers.captureOutput(combined, function(values){
+      expect(values).toEqual([7, 9, 8]);
+      done();
+    });
+
+  }, 100);
+
+
+  it("with property", function(done){
+
+    var stream1 = helpers.sampleStream([1, 3, Kefir.END], 15);
+    var stream2 = helpers.sampleStream([6, 5, Kefir.END], 20).toProperty(0);
+
+    // --1--3
+    // 0--6---5
+    // --17-9-8
+
+    var combined = stream1.combine(stream2, function(s1, s2){
+      return s1 + s2;
+    })
+
+    helpers.captureOutput(combined, function(values){
+      expect(values).toEqual([1, 7, 9, 8]);
+      done();
+    });
+
+  }, 100);
+
+});
+
+},{"../../kefir.js":1,"../test-helpers":9}],5:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -717,7 +835,7 @@ describe("FlatMap:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":8}],5:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":9}],6:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -742,7 +860,7 @@ describe("Map:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":8}],6:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":9}],7:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -772,7 +890,7 @@ describe("Merge:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":8}],7:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":9}],8:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -838,7 +956,7 @@ describe("Property:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":8}],8:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":9}],9:[function(require,module,exports){
 var Kefir = require('../kefir.js');
 
 exports.captureOutput = function(stream, callback, timeout) {
@@ -879,4 +997,4 @@ exports.sampleStream = function(values, timeout){
   });
 }
 
-},{"../kefir.js":1}]},{},[2,3,4,5,6,7])
+},{"../kefir.js":1}]},{},[2,3,4,5,6,7,8])
