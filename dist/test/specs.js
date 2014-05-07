@@ -820,26 +820,23 @@ describe("FlatMap:", function(){
       return x;
     });
 
+    var childA = new Kefir.Bus;
+    var childB = new Kefir.Bus;
+
     helpers.captureOutput(mapped, function(values){
       expect(values).toEqual([1, 2, 3, 4]);
       done();
     });
 
-    // ---1---3
-    //   ---2---4
-    // ---1-2-3-4
+    main.push(childA)
+    childA.push(1)
+    main.push(childB)
+    childB.push(2)
+    childA.push(3)
+    childB.push(4)
+    main.end()
 
-    main.push(helpers.sampleStream([1, 3, Kefir.END], 40))
-
-    setTimeout(function(){
-      main.push(helpers.sampleStream([2, 4, Kefir.END], 40))
-    }, 20)
-
-    setTimeout(function(){
-      main.end()
-    }, 140)
-
-  }, 200);
+  }, 100);
 
 
 });
