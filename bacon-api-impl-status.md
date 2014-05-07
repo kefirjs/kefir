@@ -2,7 +2,7 @@
 
 :rocket: — already implemented
 
-:+1: - will be implemented most likely
+:+1: — will be implemented most likely
 
 :question: — may be will be implemented, may be not
 
