@@ -148,13 +148,48 @@
 
 
 
+  // Property
+
+  Kefir.Property = inherit(function Property(onFirstSubscribed, onLastUsubscribed, initialValue){
+    this.__superConstructor(onFirstSubscribed, onLastUsubscribed);
+    this.__hasCached = (typeof initialValue !== "undefined");
+    this.__cached = initialValue;
+  }, Kefir.Stream);
+  Kefir.Property.prototype.subscribe = function(callback) {
+    if (this.__hasCached) {
+      callback(this.__cached);
+    }
+    this.__superProto.subscribe.call(this, callback);
+  }
+  Kefir.Property.prototype._send = function(value) {
+    this.__hasCached = true;
+    if (!this.isEnded()){
+      this.__cached = value;
+    }
+    this.__superProto._send.call(this, value);
+  }
+  Kefir.toProperty = function(sourceStream, initialValue){
+    var send = function(val){  resultStream._send(val)  }
+    var onFirstIn = function(){  sourceStream.subscribe(send)  }
+    var onLastOut = function(){  sourceStream.unsubscribe(send)  }
+    sourceStream.onEnd(function(){ resultStream._send(Kefir.END) })
+    var resultStream = new Kefir.Property(onFirstIn, onLastOut, initialValue);
+    return resultStream;
+  }
+  Kefir.Stream.prototype.toProperty = function(initialValue){
+    return Kefir.toProperty(this, initialValue);
+  }
+
+
+
+
+
+
   // fromBinder
 
   Kefir.fromBinder = function(generator){
     var generatorUsubscriber = null;
-    var send = function(val){
-      stream._send(val)
-    }
+    var send = function(val){  stream._send(val)  }
 
     var subToGenerator = function(){
       generatorUsubscriber = generator(send);
@@ -177,20 +212,13 @@
 
 
 
-
-
-
   // Bus
 
   Kefir.Bus = inherit(function Bus(){
-
     this.__superConstructor();
-
     this.__plugged = [];
-
     var _this = this;
     this.push = function(x){  _this._send(x)  }
-
   }, Kefir.Stream);
 
   Kefir.Bus.prototype.plug = function(stream){
@@ -335,41 +363,86 @@
 
   // Merge
 
+  Kefir.MergedStream = inherit(function MergedStream(){
+    this.__superConstructor()
+    this.__sourceStreams = firstArrOrToArr(arguments);
+    var _this = this;
+    this.__deliver = function(x){  _this._send(x)  }
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      this.__sourceStreams[i].onEnd(
+        this.__unplugFor(this.__sourceStreams[i])
+      );
+    }
+  }, Kefir.Stream);
+
+  Kefir.MergedStream.prototype.__onFirstSubscribed = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      this.__sourceStreams[i].subscribe(this.__deliver);
+    }
+  }
+  Kefir.MergedStream.prototype.__onLastUsubscribed = function(){
+    for (var i = 0; i < this.__sourceStreams.length; i++) {
+      this.__sourceStreams[i].unsubscribe(this.__deliver);
+    }
+  }
+  Kefir.MergedStream.prototype.__unplug = function(stream){
+    stream.unsubscribe(this.__deliver);
+    removeFromArray(this.__sourceStreams, stream);
+    if (this.__sourceStreams.length === 0) {
+      this._send(Kefir.END);
+    }
+  }
+  Kefir.MergedStream.prototype.__unplugFor = function(stream){
+    var _this = this;
+    return function(){
+      _this.__unplug(stream);
+    }
+  }
+  Kefir.MergedStream.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__sourceStreams = null;
+    this.__deliver = null;
+  }
+
   Kefir.merge = function() {
+    return new Kefir.MergedStream(firstArrOrToArr(arguments));
+  }
 
-    var sources = firstArrOrToArr(arguments);
-    var lastSink = null;
+  // Kefir.merge = function() {
 
-    var result = Kefir.fromBinder(function(sink){
-      lastSink = sink;
-      for (var i = 0; i < sources.length; i++) {
-        sources[i].subscribe(sink);
-      }
-      return function(){
-        for (var i = 0; i < sources.length; i++) {
-          sources[i].unsubscribe(sink);
-        }
-        lastSink = null;
-      };
-    });
+  //   var sources = firstArrOrToArr(arguments);
+  //   var lastSink = null;
 
-    // FIXME: this is sign that it should be class here
-    function bindOnEnd(source){
-      source.onEnd(function(){
-        source.unsubscribe(lastSink);
-        removeFromArray(sources, source);
-        if (sources.length === 0) {
-          result._send(Kefir.END);
-        }
-      });
-    }
+  //   var result = Kefir.fromBinder(function(sink){
+  //     lastSink = sink;
+  //     for (var i = 0; i < sources.length; i++) {
+  //       sources[i].subscribe(sink);
+  //     }
+  //     return function(){
+  //       for (var i = 0; i < sources.length; i++) {
+  //         sources[i].unsubscribe(sink);
+  //       }
+  //       lastSink = null;
+  //     };
+  //   });
 
-    for (var i = 0; i < sources.length; i++) {
-      bindOnEnd(sources[i]);
-    }
+  //   // FIXME: this is sign that it should be class here
+  //   function bindOnEnd(source){
+  //     source.onEnd(function(){
+  //       source.unsubscribe(lastSink);
+  //       removeFromArray(sources, source);
+  //       if (sources.length === 0) {
+  //         result._send(Kefir.END);
+  //       }
+  //     });
+  //   }
 
-    return result;
-  };
+  //   for (var i = 0; i < sources.length; i++) {
+  //     bindOnEnd(sources[i]);
+  //   }
+
+  //   return result;
+  // };
 
   Kefir.Stream.prototype.merge = function() {
     return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
@@ -514,7 +587,7 @@ describe("Base stream:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":7}],3:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":8}],3:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -614,7 +687,7 @@ describe("Bus:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":7}],4:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":8}],4:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -644,7 +717,7 @@ describe("FlatMap:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":7}],5:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":8}],5:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -669,7 +742,7 @@ describe("Map:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":7}],6:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":8}],6:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -699,7 +772,73 @@ describe("Merge:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":7}],7:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":8}],7:[function(require,module,exports){
+var Kefir = require('../../kefir.js');
+var helpers = require('../test-helpers');
+
+
+describe("Property:", function(){
+
+
+
+  it("works", function(done) {
+
+    var bus = new Kefir.Bus;
+    var property = bus.toProperty();
+
+    var result1 = []
+    property.subscribe(function(x){
+      result1.push(x)
+    })
+    expect(result1).toEqual([]);
+
+    bus.push(1);
+
+    var result2 = []
+    property.subscribe(function(x){
+      result2.push(x)
+    })
+    expect(result1).toEqual([1]);
+    expect(result2).toEqual([1]);
+
+    bus.push(2);
+    bus.end();
+
+    property.onEnd(function(){
+      expect(result1).toEqual([1, 2]);
+      expect(result2).toEqual([1, 2]);
+      done()
+    });
+
+  }, 100);
+
+
+  it("initial value works", function(done) {
+
+    var bus = new Kefir.Bus;
+    var property = bus.toProperty(1);
+
+    var result1 = []
+    property.subscribe(function(x){
+      result1.push(x)
+    })
+    expect(result1).toEqual([1]);
+
+    bus.push(2);
+    bus.end();
+
+    property.onEnd(function(){
+      expect(result1).toEqual([1, 2]);
+      done()
+    });
+
+  }, 100);
+
+
+
+});
+
+},{"../../kefir.js":1,"../test-helpers":8}],8:[function(require,module,exports){
 var Kefir = require('../kefir.js');
 
 exports.captureOutput = function(stream, callback, timeout) {
@@ -740,4 +879,4 @@ exports.sampleStream = function(values, timeout){
   });
 }
 
-},{"../kefir.js":1}]},{},[2,3,4,5,6])
+},{"../kefir.js":1}]},{},[2,3,4,5,6,7])
