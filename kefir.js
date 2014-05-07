@@ -1,4 +1,4 @@
-(function(){
+(function(global){
   "use strict";
 
 
@@ -542,12 +542,12 @@
     define([], function() {
       return Kefir;
     });
-    this.Kefir = Kefir;
+    global.Kefir = Kefir;
   } else if (typeof module === "object" && typeof exports === "object") {
     module.exports = Kefir;
     Kefir.Kefir = Kefir;
   } else {
-    this.Kefir = Kefir;
+    global.Kefir = Kefir;
   }
 
-}());
+}(this));

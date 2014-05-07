@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Kefir playground</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="../kefir.js"></script>
+        <script src="bacon.js"></script>
+        <script type="text/javascript">
+
+          // ~ 3.7MB
+          function kefir10000BusMap() {
+            var result = new Array(10000);
+            function noop(){}
+            for (var i = 0; i < result.length; i++) {
+              result[i] = new Kefir.Bus().map(noop)
+            };
+            return result;
+          }
+
+          // ~ 50MB
+          function bacon10000BusMap() {
+            var result = new Array(10000);
+            function noop(){}
+            for (var i = 0; i < result.length; i++) {
+              result[i] = new Bacon.Bus().map(noop)
+            };
+            return result;
+          }
+
+          // ~ 4.6MB
+          function kefir10000BusProperty() {
+            var result = new Array(10000);
+            function noop(){}
+            for (var i = 0; i < result.length; i++) {
+              result[i] = new Kefir.Bus().toProperty(1)
+            };
+            return result;
+          }
+
+          // ~ 50MB
+          function bacon10000BusProperty() {
+            var result = new Array(10000);
+            function noop(){}
+            for (var i = 0; i < result.length; i++) {
+              result[i] = new Bacon.Bus().toProperty(1)
+            };
+            return result;
+          }
+
+
+          // ~ 10MB
+          function kefir10000FromBinderCombine() {
+            var result = new Array(10000);
+            function noop(){}
+            for (var i = 0; i < result.length; i++) {
+              result[i] = Kefir.fromBinder(noop).combine(Kefir.fromBinder(noop), noop);
+            };
+            return result;
+          }
+
+          // ~ 118MB
+          function bacon10000FromBinderCombine() {
+            var result = new Array(10000);
+            function noop(){}
+            for (var i = 0; i < result.length; i++) {
+              result[i] = Bacon.fromBinder(noop).combine(Bacon.fromBinder(noop), noop);
+            };
+            return result;
+          }
+
+        </script>
+    </head>
+    <body></body>
+</html>
