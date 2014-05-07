@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-(function(){
+(function(global){
   "use strict";
 
 
@@ -543,15 +543,15 @@
     define([], function() {
       return Kefir;
     });
-    this.Kefir = Kefir;
+    global.Kefir = Kefir;
   } else if (typeof module === "object" && typeof exports === "object") {
     module.exports = Kefir;
     Kefir.Kefir = Kefir;
   } else {
-    this.Kefir = Kefir;
+    global.Kefir = Kefir;
   }
 
-}());
+}(this));
 
 },{}],2:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
@@ -815,22 +815,31 @@ describe("FlatMap:", function(){
 
   it("works", function(done){
 
-    var stream = helpers.sampleStream([4, 2, Kefir.END], 100);
-    var mapped = stream.flatMap(function(x){
-      return helpers.sampleStream([x, x, Kefir.END], 20 * x);
+    var main = new Kefir.Bus;
+    var mapped = main.flatMap(function(x){
+      return x;
     });
 
-    // ---------4---------2
-    //           -------4-------4
-    //                     ---2---2
-    // -----------------4-----2-4-2
-
     helpers.captureOutput(mapped, function(values){
-      expect(values).toEqual([4, 2, 4, 2]);
+      expect(values).toEqual([1, 2, 3, 4]);
       done();
     });
 
-  }, 400);
+    // ---1---3
+    //   ---2---4
+    // ---1-2-3-4
+
+    main.push(helpers.sampleStream([1, 3, Kefir.END], 20))
+
+    setTimeout(function(){
+      main.push(helpers.sampleStream([2, 4, Kefir.END], 20))
+    }, 10)
+
+    setTimeout(function(){
+      main.end()
+    }, 70)
+
+  }, 100);
 
 
 });

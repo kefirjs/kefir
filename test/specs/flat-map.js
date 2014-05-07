@@ -7,22 +7,31 @@ describe("FlatMap:", function(){
 
   it("works", function(done){
 
-    var stream = helpers.sampleStream([4, 2, Kefir.END], 100);
-    var mapped = stream.flatMap(function(x){
-      return helpers.sampleStream([x, x, Kefir.END], 20 * x);
+    var main = new Kefir.Bus;
+    var mapped = main.flatMap(function(x){
+      return x;
     });
 
-    // ---------4---------2
-    //           -------4-------4
-    //                     ---2---2
-    // -----------------4-----2-4-2
-
     helpers.captureOutput(mapped, function(values){
-      expect(values).toEqual([4, 2, 4, 2]);
+      expect(values).toEqual([1, 2, 3, 4]);
       done();
     });
 
-  }, 400);
+    // ---1---3
+    //   ---2---4
+    // ---1-2-3-4
+
+    main.push(helpers.sampleStream([1, 3, Kefir.END], 20))
+
+    setTimeout(function(){
+      main.push(helpers.sampleStream([2, 4, Kefir.END], 20))
+    }, 10)
+
+    setTimeout(function(){
+      main.end()
+    }, 70)
+
+  }, 100);
 
 
 });
