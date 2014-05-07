@@ -829,17 +829,17 @@ describe("FlatMap:", function(){
     //   ---2---4
     // ---1-2-3-4
 
-    main.push(helpers.sampleStream([1, 3, Kefir.END], 20))
+    main.push(helpers.sampleStream([1, 3, Kefir.END], 40))
 
     setTimeout(function(){
-      main.push(helpers.sampleStream([2, 4, Kefir.END], 20))
-    }, 10)
+      main.push(helpers.sampleStream([2, 4, Kefir.END], 40))
+    }, 20)
 
     setTimeout(function(){
       main.end()
-    }, 70)
+    }, 140)
 
-  }, 100);
+  }, 200);
 
 
 });
