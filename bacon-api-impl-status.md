@@ -12,6 +12,10 @@
 
 
 
+For detailed descriptions of features see
+[Bacon.js documentation](https://github.com/baconjs/bacon.js/blob/master/README.md)
+
+
 ### Create Stream
 
 | Bacon feature | Status | Kefir feature |
@@ -31,7 +35,7 @@
 | `Bacon.repeatedly(interval, values)` | :+1: |  |
 | `Bacon.never()` | :+1: |  |
 | `Bacon.later(delay, value)` | :+1: |  |
-| `new Bacon.EventStream(subscribe)` | :bike: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` |
+| `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` / `new Kefir.FromBinderStream(subscribe)` |
 | `property.changes()` | :+1: |  |
 | `property.toEventStream()` | :question: |  |
 | `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` |
