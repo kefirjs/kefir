@@ -189,22 +189,30 @@
 
   // fromBinder
 
+  Kefir.FromBinderStream = inherit(function FromBinderStream(generator){
+    this.__superConstructor();
+    this.__generator = generator;
+    var _this = this;
+    this.__deliver = function(x){  _this._send(x)  }
+  }, Kefir.Stream)
+
+  Kefir.FromBinderStream.prototype.__onFirstSubscribed = function(){
+    this.__generatorUsubscriber = this.__generator(this.__deliver);
+  }
+  Kefir.FromBinderStream.prototype.__onLastUsubscribed = function(){
+    if (typeof this.__generatorUsubscriber === "function") {
+      this.__generatorUsubscriber();
+    }
+    this.__generatorUsubscriber = null;
+  }
+  Kefir.FromBinderStream.prototype.__end = function(){
+    this.__superProto.__end.call(this);
+    this.__generator = null;
+    this.__deliver = null;
+  }
+
   Kefir.fromBinder = function(generator){
-    var generatorUsubscriber = null;
-    var send = function(val){  stream._send(val)  }
-
-    var subToGenerator = function(){
-      generatorUsubscriber = generator(send);
-    }
-    var unsubFromGenerator = function(){
-      if (typeof generatorUsubscriber === "function") {
-        generatorUsubscriber();
-      }
-      generatorUsubscriber = null;
-    }
-
-    var stream = new Kefir.Stream(subToGenerator, unsubFromGenerator);
-    return stream;
+    return new Kefir.FromBinderStream(generator);
   }
 
 
