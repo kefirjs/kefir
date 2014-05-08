@@ -6,7 +6,7 @@
 
 :+1: — will be implemented most likely
 
-:question: — may be will be implemented, may be not
+:question: — maybe will be implemented, maybe not
 
 :broken_heart: — probably will not be implemented
 
@@ -28,12 +28,12 @@ For detailed descriptions of features see
 | `Bacon.fromNodeCallback(f [, args...])` | :+1: |  |
 | `Bacon.fromNodeCallback(object, methodName [, args...])` | :+1: |  |
 | `Bacon.fromPoll(interval, f)` | :+1: |  |
-| `Bacon.once(value)` | :+1: |  |
+| `Bacon.once(value)` | :rocket: |  |
 | `Bacon.fromArray(values)` | :question: |  |
 | `Bacon.interval(interval, value)` | :+1: |  |
 | `Bacon.sequentially(interval, values)` | :+1: |  |
 | `Bacon.repeatedly(interval, values)` | :+1: |  |
-| `Bacon.never()` | :+1: |  |
+| `Bacon.never()` | :rocket: | `Kefir.never()` |
 | `Bacon.later(delay, value)` | :+1: |  |
 | `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` / `new Kefir.FromBinderStream(subscribe)` |
 | `property.changes()` | :+1: |  |

@@ -89,10 +89,10 @@
 
   Kefir.Stream.prototype.subscribe = function(callback) {
     if (!this.isEnded()) {
-      if (this.__subscribers.length === 0) {
+      this.__subscribers.push(callback);
+      if (this.__subscribers.length === 1) {
         this.__onFirstSubscribed();
       }
-      this.__subscribers.push(callback);
     }
   }
   Kefir.Stream.prototype.unsubscribe = function(callback) {
@@ -143,6 +143,37 @@
     }
   }
 
+
+
+
+  // Never
+
+  Kefir.__neverObj = createObj(Kefir.Stream.prototype);
+  Kefir.__neverObj.__subscribers = null;
+
+  Kefir.never = function() {
+    return Kefir.__neverObj;
+  }
+
+
+
+
+  // Once
+
+  Kefir.Once = inherit(function Once(value){
+    this.__superConstructor();
+    this.__value = value;
+  }, Kefir.Stream);
+
+  Kefir.Once.prototype.__onFirstSubscribed = function(){
+    this._send(this.__value);
+    this.__value = null;
+    this._send(Kefir.END);
+  }
+
+  Kefir.once = function(value) {
+    return new Kefir.Once(value);
+  }
 
 
 
@@ -361,6 +392,7 @@
   Kefir.Stream.prototype.flatMap = function(fn) {
     return Kefir.flatMap(this, fn);
   };
+
 
 
 

@@ -90,10 +90,10 @@
 
   Kefir.Stream.prototype.subscribe = function(callback) {
     if (!this.isEnded()) {
-      if (this.__subscribers.length === 0) {
+      this.__subscribers.push(callback);
+      if (this.__subscribers.length === 1) {
         this.__onFirstSubscribed();
       }
-      this.__subscribers.push(callback);
     }
   }
   Kefir.Stream.prototype.unsubscribe = function(callback) {
@@ -144,6 +144,37 @@
     }
   }
 
+
+
+
+  // Never
+
+  Kefir.__neverObj = createObj(Kefir.Stream.prototype);
+  Kefir.__neverObj.__subscribers = null;
+
+  Kefir.never = function() {
+    return Kefir.__neverObj;
+  }
+
+
+
+
+  // Once
+
+  Kefir.Once = inherit(function Once(value){
+    this.__superConstructor();
+    this.__value = value;
+  }, Kefir.Stream);
+
+  Kefir.Once.prototype.__onFirstSubscribed = function(){
+    this._send(this.__value);
+    this.__value = null;
+    this._send(Kefir.END);
+  }
+
+  Kefir.once = function(value) {
+    return new Kefir.Once(value);
+  }
 
 
 
@@ -362,6 +393,7 @@
   Kefir.Stream.prototype.flatMap = function(fn) {
     return Kefir.flatMap(this, fn);
   };
+
 
 
 
@@ -662,7 +694,7 @@ describe("Base stream:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],3:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],3:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -762,7 +794,7 @@ describe("Bus:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],4:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],4:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -813,7 +845,7 @@ describe("Combine:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],5:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],5:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -849,7 +881,7 @@ describe("FlatMap:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],6:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],6:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -874,7 +906,7 @@ describe("Map:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],7:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],7:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -904,7 +936,53 @@ describe("Merge:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],8:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],8:[function(require,module,exports){
+var Kefir = require('../../kefir.js');
+var helpers = require('../test-helpers');
+
+
+
+describe("Never:", function(){
+
+  it("works", function(done){
+
+    helpers.captureOutput(Kefir.never(), function(values){
+      expect(values).toEqual([]);
+      done();
+    });
+
+  }, 100);
+
+
+});
+
+},{"../../kefir.js":1,"../test-helpers":11}],9:[function(require,module,exports){
+var Kefir = require('../../kefir.js');
+var helpers = require('../test-helpers');
+
+
+
+describe("Once:", function(){
+
+  it("works", function(done){
+
+    var stream = Kefir.once(1);
+
+    helpers.captureOutput(stream, function(values){
+      expect(values).toEqual([1]);
+    });
+
+    helpers.captureOutput(stream, function(values){
+      expect(values).toEqual([]);
+      done();
+    });
+
+  }, 100);
+
+
+});
+
+},{"../../kefir.js":1,"../test-helpers":11}],10:[function(require,module,exports){
 var Kefir = require('../../kefir.js');
 var helpers = require('../test-helpers');
 
@@ -970,7 +1048,7 @@ describe("Property:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":9}],9:[function(require,module,exports){
+},{"../../kefir.js":1,"../test-helpers":11}],11:[function(require,module,exports){
 var Kefir = require('../kefir.js');
 
 exports.captureOutput = function(stream, callback, timeout) {
@@ -1011,4 +1089,4 @@ exports.sampleStream = function(values, timeout){
   });
 }
 
-},{"../kefir.js":1}]},{},[2,3,4,5,6,7,8])
+},{"../kefir.js":1}]},{},[2,3,4,5,6,7,8,9,10])
