@@ -27,7 +27,7 @@ For detailed descriptions of features see
 | `Bacon.fromCallback(object, methodName [, args...])` | :+1: |  |
 | `Bacon.fromNodeCallback(f [, args...])` | :question: |  |
 | `Bacon.fromNodeCallback(object, methodName [, args...])` | :question: |  |
-| `Bacon.fromPoll(interval, f)` | :+1: |  |
+| `Bacon.fromPoll(interval, f)` | :rocket: | `Kefir.fromPoll(interval, f)` |
 | `Bacon.once(value)` | :rocket: | `Kefir.once(value)` |
 | `Bacon.fromArray(values)` | :question: |  |
 | `Bacon.interval(interval, value)` | :+1: |  |

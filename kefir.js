@@ -21,6 +21,8 @@
 
   // Utils
 
+  function noop(){}
+
   function createObj(proto) {
     var F = function(){};
     F.prototype = proto;
@@ -70,8 +72,6 @@
     }
     return true;
   }
-
-  function noop(){}
 
   function firstArrOrToArr(args) {
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
@@ -357,7 +357,35 @@
 
 
 
+  // FromPoll
 
+  Kefir.FromPollStream = inherit(function FromPollStream(interval, sourceFn){
+    Kefir.Stream.call(this);
+    this.__interval = interval;
+    this.__intervalId = null;
+    var _this = this;
+    this.__deliver = function(){  _this._send(sourceFn())  }
+  }, Kefir.Stream, {
+
+    __onFirstSubscribed: function(){
+      this.__intervalId = setInterval(this.__deliver, this.__interval);
+    },
+    __onLastUsubscribed: function(){
+      if (this.__intervalId !== null){
+        clearInterval(this.__intervalId);
+        this.__intervalId = null;
+      }
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__deliver = null;
+    }
+
+  });
+
+  Kefir.fromPoll = function(interval, sourceFn){
+    return new Kefir.FromPollStream(interval, sourceFn);
+  }
 
 
 
@@ -626,7 +654,7 @@
       this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
       this.__sourceStreams[i] = null
       this.__receiveFns[i] = null
-      if (this.__allDead()) {
+      if (isAllDead(this.__sourceStreams)) {
         this._send(Kefir.END);
       }
     },
@@ -654,14 +682,6 @@
     __allCached: function(){
       for (var i = 0; i < this.__hasCached.length; i++) {
         if (!this.__hasCached[i]) {
-          return false;
-        }
-      }
-      return true;
-    },
-    __allDead: function(){
-      for (var i = 0; i < this.__sourceStreams.length; i++) {
-        if (this.__sourceStreams[i]) {
           return false;
         }
       }
