@@ -206,3 +206,10 @@ https://github.com/baconjs/bacon.js/issues/272
 
 :question:
 
+
+
+### Meaningful toString
+
+https://github.com/baconjs/bacon.js/issues/265
+
+:question:

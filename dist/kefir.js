@@ -30,9 +30,20 @@
     return new F();
   }
 
-  function inherit(Child, Parent) {
+  function extend(to, from) {
+    for (var prop in from) {
+      if(from.hasOwnProperty(prop)) {
+        to[prop] = from[prop];
+      }
+    }
+  }
+
+  function inherit(Child, Parent, childPrototype) {
     Child.prototype = createObj(Parent.prototype);
     Child.prototype.constructor = Child;
+    if (childPrototype) {
+      extend(Child.prototype, childPrototype)
+    }
     return Child;
   }
 
@@ -80,7 +91,7 @@
 
   // Base Stream class
 
-  Kefir.Stream = function Stream(onFirstSubscribed, onLastUsubscribed){
+  Kefir.Stream = inherit(function Stream(onFirstSubscribed, onLastUsubscribed){
 
     // __onFirstSubscribed, __onLastUsubscribed can also be added to prototype of child classes
     if (typeof onFirstSubscribed === "function") {
@@ -92,81 +103,81 @@
 
     this.__subscribers = [];
     this.__endSubscribers = [];
-  }
+  }, Object, {
 
-  Kefir.Stream.prototype._send = function(value) {
-    if (!this.isEnded()) {
-      if (value === Kefir.END) {
-        this.__end();
-      } else {
-        for (var i = 0; i < this.__subscribers.length; i++) {
-          var callback = this.__subscribers[i];
-          if (typeof callback === "function") {
-            if(Kefir.NO_MORE === callback(value)) {
-              this.unsubscribe(callback);
+    _send: function(value) {
+      if (!this.isEnded()) {
+        if (value === Kefir.END) {
+          this.__end();
+        } else {
+          for (var i = 0; i < this.__subscribers.length; i++) {
+            var callback = this.__subscribers[i];
+            if (typeof callback === "function") {
+              if(Kefir.NO_MORE === callback(value)) {
+                this.unsubscribe(callback);
+              }
             }
           }
         }
       }
-    }
-  }
-
-  Kefir.Stream.prototype.subscribe = function(callback) {
-    if (!this.isEnded()) {
-      this.__subscribers.push(callback);
-      if (this.__subscribers.length === 1) {
-        this.__onFirstSubscribed();
+    },
+    subscribe: function(callback) {
+      if (!this.isEnded()) {
+        this.__subscribers.push(callback);
+        if (this.__subscribers.length === 1) {
+          this.__onFirstSubscribed();
+        }
       }
-    }
-  }
-  Kefir.Stream.prototype.unsubscribe = function(callback) {
-    if (!this.isEnded()) {
-      killInArray(this.__subscribers, callback);
-      if (isAllDead(this.__subscribers)) {
-        this.__subscribers = [];
+    },
+    unsubscribe: function(callback) {
+      if (!this.isEnded()) {
+        killInArray(this.__subscribers, callback);
+        if (isAllDead(this.__subscribers)) {
+          this.__subscribers = [];
+          this.__onLastUsubscribed();
+        }
+      }
+    },
+    onEnd: function(callback) {
+      if (this.isEnded()) {
+        callback();
+      } else {
+        this.__endSubscribers.push(callback);
+      }
+    },
+    offEnd: function(callback) {
+      if (!this.isEnded()) {
+        removeFromArray(this.__endSubscribers, callback);
+      }
+    },
+    isEnded: function() {
+      return this.__subscribers === null;
+    },
+    hasSubscribers: function(){
+      return !this.isEnded() && this.__subscribers.length > 0;
+    },
+    __onFirstSubscribed: noop,
+    __onLastUsubscribed: noop,
+    __end: function() {
+      if (!this.isEnded()) {
         this.__onLastUsubscribed();
+        if (this.hasOwnProperty(this.__onFirstSubscribed)) {
+          this.__onFirstSubscribed = null;
+        }
+        if (this.hasOwnProperty(this.__onLastUsubscribed)) {
+          this.__onLastUsubscribed = null;
+        }
+        this.__subscribers = null;
+        for (var i = 0; i < this.__endSubscribers.length; i++) {
+          this.__endSubscribers[i]();
+        }
+        this.__endSubscribers = null;
       }
     }
-  }
-  Kefir.Stream.prototype.onEnd = function(callback) {
-    if (this.isEnded()) {
-      callback();
-    } else {
-      this.__endSubscribers.push(callback);
-    }
-  }
-  Kefir.Stream.prototype.offEnd = function(callback) {
-    if (!this.isEnded()) {
-      removeFromArray(this.__endSubscribers, callback);
-    }
-  }
-  Kefir.Stream.prototype.isEnded = function() {
-    return this.__subscribers === null;
-  }
-  Kefir.Stream.prototype.hasSubscribers = function(){
-    return !this.isEnded() && this.__subscribers.length > 0;
-  }
+
+  });
 
 
-  Kefir.Stream.prototype.__onFirstSubscribed = noop
-  Kefir.Stream.prototype.__onLastUsubscribed = noop
-
-  Kefir.Stream.prototype.__end = function() {
-    if (!this.isEnded()) {
-      this.__onLastUsubscribed();
-      if (this.hasOwnProperty(this.__onFirstSubscribed)) {
-        this.__onFirstSubscribed = null;
-      }
-      if (this.hasOwnProperty(this.__onLastUsubscribed)) {
-        this.__onLastUsubscribed = null;
-      }
-      this.__subscribers = null;
-      for (var i = 0; i < this.__endSubscribers.length; i++) {
-        this.__endSubscribers[i]();
-      }
-      this.__endSubscribers = null;
-    }
-  }
 
 
 
@@ -188,13 +199,15 @@
   Kefir.Once = inherit(function Once(value){
     Kefir.Stream.call(this);
     this.__value = value;
-  }, Kefir.Stream);
+  }, Kefir.Stream, {
 
-  Kefir.Once.prototype.__onFirstSubscribed = function(){
-    this._send(this.__value);
-    this.__value = null;
-    this._send(Kefir.END);
-  }
+    __onFirstSubscribed: function(){
+      this._send(this.__value);
+      this.__value = null;
+      this._send(Kefir.END);
+    }
+
+  });
 
   Kefir.once = function(value) {
     return new Kefir.Once(value);
@@ -209,20 +222,24 @@
     Kefir.Stream.call(this, onFirstSubscribed, onLastUsubscribed);
     this.__hasCached = (typeof initialValue !== "undefined");
     this.__cached = initialValue;
-  }, Kefir.Stream);
-  Kefir.Property.prototype.subscribe = function(callback) {
-    if (this.__hasCached) {
-      callback(this.__cached);
+  }, Kefir.Stream, {
+
+    subscribe: function(callback) {
+      if (this.__hasCached) {
+        callback(this.__cached);
+      }
+      Kefir.Stream.prototype.subscribe.call(this, callback);
+    },
+    _send: function(value) {
+      this.__hasCached = true;
+      if (!this.isEnded()){
+        this.__cached = value;
+      }
+      Kefir.Stream.prototype._send.call(this, value);
     }
-    Kefir.Stream.prototype.subscribe.call(this, callback);
-  }
-  Kefir.Property.prototype._send = function(value) {
-    this.__hasCached = true;
-    if (!this.isEnded()){
-      this.__cached = value;
-    }
-    Kefir.Stream.prototype._send.call(this, value);
-  }
+
+  });
+
   Kefir.toProperty = function(sourceStream, initialValue){
     var send = function(val){  resultStream._send(val)  }
     var onFirstIn = function(){  sourceStream.subscribe(send)  }
@@ -247,22 +264,24 @@
     this.__generator = generator;
     var _this = this;
     this.__deliver = function(x){  _this._send(x)  }
-  }, Kefir.Stream)
+  }, Kefir.Stream, {
 
-  Kefir.FromBinderStream.prototype.__onFirstSubscribed = function(){
-    this.__generatorUsubscriber = this.__generator(this.__deliver);
-  }
-  Kefir.FromBinderStream.prototype.__onLastUsubscribed = function(){
-    if (typeof this.__generatorUsubscriber === "function") {
-      this.__generatorUsubscriber();
+    __onFirstSubscribed: function(){
+      this.__generatorUsubscriber = this.__generator(this.__deliver);
+    },
+    __onLastUsubscribed: function(){
+      if (typeof this.__generatorUsubscriber === "function") {
+        this.__generatorUsubscriber();
+      }
+      this.__generatorUsubscriber = null;
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__generator = null;
+      this.__deliver = null;
     }
-    this.__generatorUsubscriber = null;
-  }
-  Kefir.FromBinderStream.prototype.__end = function(){
-    Kefir.Stream.prototype.__end.call(this);
-    this.__generator = null;
-    this.__deliver = null;
-  }
+
+  })
 
   Kefir.fromBinder = function(generator){
     return new Kefir.FromBinderStream(generator);
@@ -282,46 +301,46 @@
     this.__plugged = [];
     var _this = this;
     this.push = function(x){  _this._send(x)  }
-  }, Kefir.Stream);
+  }, Kefir.Stream, {
 
-  Kefir.Bus.prototype.plug = function(stream){
-    if (!this.isEnded()) {
-      this.__plugged.push(stream);
-      if (this.hasSubscribers()) {
-        stream.subscribe(this.push);
+    plug: function(stream){
+      if (!this.isEnded()) {
+        this.__plugged.push(stream);
+        if (this.hasSubscribers()) {
+          stream.subscribe(this.push);
+        }
+        var _this = this;
+        stream.onEnd(function(){  _this.unplug(stream)  });
       }
-      var _this = this;
-      stream.onEnd(function(){  _this.unplug(stream)  });
+    },
+    unplug: function(stream){
+      if (!this.isEnded()) {
+        stream.unsubscribe(this.push);
+        removeFromArray(this.__plugged, stream);
+      }
+    },
+    end: function(){
+      this._send(Kefir.END);
+    },
+    __onFirstSubscribed: function(){
+      for (var i = 0; i < this.__plugged.length; i++) {
+        this.__plugged[i].subscribe(this.push);
+      }
+    },
+    __onLastUsubscribed: function(){
+      for (var i = 0; i < this.__plugged.length; i++) {
+        this.__plugged[i].unsubscribe(this.push);
+      }
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__plugged = null;
+      this.push = noop;
     }
-  };
 
-  Kefir.Bus.prototype.unplug = function(stream){
-    if (!this.isEnded()) {
-      stream.unsubscribe(this.push);
-      removeFromArray(this.__plugged, stream);
-    }
-  };
+  });
 
-  Kefir.Bus.prototype.end = function(){
-    this._send(Kefir.END);
-  }
 
-  Kefir.Bus.prototype.__onFirstSubscribed = function(){
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].subscribe(this.push);
-    }
-  }
-  Kefir.Bus.prototype.__onLastUsubscribed = function(){
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].unsubscribe(this.push);
-    }
-  }
-
-  Kefir.Bus.prototype.__end = function(){
-    Kefir.Stream.prototype.__end.call(this);
-    this.__plugged = null;
-    this.push = noop;
-  }
 
 
 
@@ -338,19 +357,21 @@
     var _this = this;
     this.__deliver = function(x){  _this._send(mapFn(x))  }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.Stream);
+  }, Kefir.Stream, {
 
-  Kefir.MappedStream.prototype.__onFirstSubscribed = function(){
-    this.__sourceStream.subscribe(this.__deliver);
-  }
-  Kefir.MappedStream.prototype.__onLastUsubscribed = function(){
-    this.__sourceStream.unsubscribe(this.__deliver);
-  }
-  Kefir.MappedStream.prototype.__end = function(){
-    Kefir.Stream.prototype.__end.call(this);
-    this.__sourceStream = null;
-    this.__deliver = null;
-  }
+    __onFirstSubscribed: function(){
+      this.__sourceStream.subscribe(this.__deliver);
+    },
+    __onLastUsubscribed: function(){
+      this.__sourceStream.unsubscribe(this.__deliver);
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__sourceStream = null;
+      this.__deliver = null;
+    }
+
+  });
 
   Kefir.map = function(stream, mapFn) {
     return new Kefir.MappedStream(stream, mapFn);
@@ -443,40 +464,43 @@
     this.__deliver = function(x){ _this._send(x)  }
     this.__plugResult = function(x){  _this.__plug(mapFn(x))  }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.Stream);
-  Kefir.FlatMappedStream.prototype.__onFirstSubscribed = function(){
-    this.__sourceStream.subscribe(this.__plugResult);
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].subscribe(this.__deliver);
+  }, Kefir.Stream, {
+
+    __onFirstSubscribed: function(){
+      this.__sourceStream.subscribe(this.__plugResult);
+      for (var i = 0; i < this.__plugged.length; i++) {
+        this.__plugged[i].subscribe(this.__deliver);
+      }
+    },
+    __onLastUsubscribed: function(){
+      this.__sourceStream.unsubscribe(this.__plugResult);
+      for (var i = 0; i < this.__plugged.length; i++) {
+        this.__plugged[i].unsubscribe(this.__deliver);
+      }
+    },
+    __plug: function(stream){
+      this.__plugged.push(stream);
+      if (this.hasSubscribers()) {
+        stream.subscribe(this.__deliver);
+      }
+      var _this = this;
+      stream.onEnd(function(){  _this.__unplug(stream)  });
+    },
+    __unplug: function(stream){
+      if (!this.isEnded()) {
+        stream.unsubscribe(this.__deliver);
+        removeFromArray(this.__plugged, stream);
+      }
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__sourceStream = null;
+      this.__deliver = null;
+      this.__plugResult = null;
+      this.__plugged = null;
     }
-  }
-  Kefir.FlatMappedStream.prototype.__onLastUsubscribed = function(){
-    this.__sourceStream.unsubscribe(this.__plugResult);
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].unsubscribe(this.__deliver);
-    }
-  }
-  Kefir.FlatMappedStream.prototype.__plug = function(stream){
-    this.__plugged.push(stream);
-    if (this.hasSubscribers()) {
-      stream.subscribe(this.__deliver);
-    }
-    var _this = this;
-    stream.onEnd(function(){  _this.__unplug(stream)  });
-  };
-  Kefir.FlatMappedStream.prototype.__unplug = function(stream){
-    if (!this.isEnded()) {
-      stream.unsubscribe(this.__deliver);
-      removeFromArray(this.__plugged, stream);
-    }
-  };
-  Kefir.FlatMappedStream.prototype.__end = function(){
-    Kefir.Stream.prototype.__end.call(this);
-    this.__sourceStream = null;
-    this.__deliver = null;
-    this.__plugResult = null;
-    this.__plugged = null;
-  }
+
+  });
 
   Kefir.flatMap = function(stream, mapFn) {
     return new Kefir.FlatMappedStream(stream, mapFn);
@@ -485,6 +509,8 @@
   Kefir.Stream.prototype.flatMap = function(fn) {
     return Kefir.flatMap(this, fn);
   };
+
+
 
 
 
@@ -503,34 +529,36 @@
         this.__unplugFor(this.__sourceStreams[i])
       );
     }
-  }, Kefir.Stream);
+  }, Kefir.Stream, {
 
-  Kefir.MergedStream.prototype.__onFirstSubscribed = function(){
-    for (var i = 0; i < this.__sourceStreams.length; i++) {
-      this.__sourceStreams[i].subscribe(this.__deliver);
+    __onFirstSubscribed: function(){
+      for (var i = 0; i < this.__sourceStreams.length; i++) {
+        this.__sourceStreams[i].subscribe(this.__deliver);
+      }
+    },
+    __onLastUsubscribed: function(){
+      for (var i = 0; i < this.__sourceStreams.length; i++) {
+        this.__sourceStreams[i].unsubscribe(this.__deliver);
+      }
+    },
+    __unplug: function(stream){
+      stream.unsubscribe(this.__deliver);
+      removeFromArray(this.__sourceStreams, stream);
+      if (this.__sourceStreams.length === 0) {
+        this._send(Kefir.END);
+      }
+    },
+    __unplugFor: function(stream){
+      var _this = this;
+      return function(){  _this.__unplug(stream)  }
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__sourceStreams = null;
+      this.__deliver = null;
     }
-  }
-  Kefir.MergedStream.prototype.__onLastUsubscribed = function(){
-    for (var i = 0; i < this.__sourceStreams.length; i++) {
-      this.__sourceStreams[i].unsubscribe(this.__deliver);
-    }
-  }
-  Kefir.MergedStream.prototype.__unplug = function(stream){
-    stream.unsubscribe(this.__deliver);
-    removeFromArray(this.__sourceStreams, stream);
-    if (this.__sourceStreams.length === 0) {
-      this._send(Kefir.END);
-    }
-  }
-  Kefir.MergedStream.prototype.__unplugFor = function(stream){
-    var _this = this;
-    return function(){  _this.__unplug(stream)  }
-  }
-  Kefir.MergedStream.prototype.__end = function(){
-    Kefir.Stream.prototype.__end.call(this);
-    this.__sourceStreams = null;
-    this.__deliver = null;
-  }
+
+  });
 
   Kefir.merge = function() {
     return new Kefir.MergedStream(firstArrOrToArr(arguments));
@@ -564,81 +592,77 @@
       this.__sourceStreams[i].onEnd( this.__unplugFor(i) );
     }
 
-  }, Kefir.Stream);
+  }, Kefir.Stream, {
 
-  Kefir.CombinedStream.prototype.__onFirstSubscribed = function(){
-    for (var i = 0; i < this.__sourceStreams.length; i++) {
-      if (this.__sourceStreams[i]) {
-        this.__sourceStreams[i].subscribe(this.__receiveFns[i]);
+    __onFirstSubscribed: function(){
+      for (var i = 0; i < this.__sourceStreams.length; i++) {
+        if (this.__sourceStreams[i]) {
+          this.__sourceStreams[i].subscribe(this.__receiveFns[i]);
+        }
       }
-    }
-  }
-  Kefir.CombinedStream.prototype.__onLastUsubscribed = function(){
-    for (var i = 0; i < this.__sourceStreams.length; i++) {
-      if (this.__sourceStreams[i]) {
-        this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+    },
+    __onLastUsubscribed: function(){
+      for (var i = 0; i < this.__sourceStreams.length; i++) {
+        if (this.__sourceStreams[i]) {
+          this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+        }
       }
-    }
-  }
-
-  Kefir.CombinedStream.prototype.__unplug = function(i){
-    this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
-    this.__sourceStreams[i] = null
-    this.__receiveFns[i] = null
-    if (this.__allDead()) {
-      this._send(Kefir.END);
-    }
-  }
-  Kefir.CombinedStream.prototype.__unplugFor = function(i){
-    var _this = this;
-    return function(){  _this.__unplug(i)  }
-  }
-
-  Kefir.CombinedStream.prototype.__receive = function(i, value) {
-    this.__hasCached[i] = true;
-    this.__cachedValues[i] = value;
-    if (this.__allCached()) {
-      if (typeof this.__mapFn === "function") {
-        this._send(this.__mapFn.apply(null, this.__cachedValues));
-      } else {
-        this._send(this.__cachedValues.slice(0));
+    },
+    __unplug: function(i){
+      this.__sourceStreams[i].unsubscribe(this.__receiveFns[i]);
+      this.__sourceStreams[i] = null
+      this.__receiveFns[i] = null
+      if (this.__allDead()) {
+        this._send(Kefir.END);
       }
-    }
-  }
-
-  Kefir.CombinedStream.prototype.__receiveFor = function(i) {
-    var _this = this;
-    return function(value){
-      _this.__receive(i, value);
-    }
-  }
-
-  Kefir.CombinedStream.prototype.__allCached = function(){
-    for (var i = 0; i < this.__hasCached.length; i++) {
-      if (!this.__hasCached[i]) {
-        return false;
+    },
+    __unplugFor: function(i){
+      var _this = this;
+      return function(){  _this.__unplug(i)  }
+    },
+    __receive: function(i, value) {
+      this.__hasCached[i] = true;
+      this.__cachedValues[i] = value;
+      if (this.__allCached()) {
+        if (typeof this.__mapFn === "function") {
+          this._send(this.__mapFn.apply(null, this.__cachedValues));
+        } else {
+          this._send(this.__cachedValues.slice(0));
+        }
       }
-    }
-    return true;
-  }
-
-  Kefir.CombinedStream.prototype.__allDead = function(){
-    for (var i = 0; i < this.__sourceStreams.length; i++) {
-      if (this.__sourceStreams[i]) {
-        return false;
+    },
+    __receiveFor: function(i) {
+      var _this = this;
+      return function(value){
+        _this.__receive(i, value);
       }
+    },
+    __allCached: function(){
+      for (var i = 0; i < this.__hasCached.length; i++) {
+        if (!this.__hasCached[i]) {
+          return false;
+        }
+      }
+      return true;
+    },
+    __allDead: function(){
+      for (var i = 0; i < this.__sourceStreams.length; i++) {
+        if (this.__sourceStreams[i]) {
+          return false;
+        }
+      }
+      return true;
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__sourceStreams = null;
+      this.__cachedValues = null;
+      this.__hasCached = null;
+      this.__receiveFns = null;
+      this.__mapFn = null;
     }
-    return true;
-  }
 
-  Kefir.CombinedStream.prototype.__end = function(){
-    Kefir.Stream.prototype.__end.call(this);
-    this.__sourceStreams = null;
-    this.__cachedValues = null;
-    this.__hasCached = null;
-    this.__receiveFns = null;
-    this.__mapFn = null;
-  }
+  });
 
   Kefir.combine = function(streams, mapFn) {
     return new Kefir.CombinedStream(streams, mapFn);
@@ -655,14 +679,16 @@
   // Log
 
   Kefir.Stream.prototype.log = function(text) {
-    this.subscribe(function(value){
+    function log(value){
       if (text) {
         console.log(text, value);
       } else {
         console.log(value);
       }
-    });
-  };
+    }
+    this.subscribe(log);
+    this.onEnd(function(){  log(Kefir.END)  });
+  }
 
 
 
