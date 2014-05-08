@@ -325,7 +325,7 @@
     this.__sourceStream.unsubscribe(this.__deliver);
   }
   Kefir.MappedStream.prototype.__end = function(){
-    this.__superProto.__end.call(this);
+    Kefir.Stream.prototype.__end.call(this);
     this.__sourceStream = null;
     this.__deliver = null;
   }
@@ -336,6 +336,59 @@
 
   Kefir.Stream.prototype.map = function(fn) {
     return Kefir.map(this, fn);
+  };
+
+
+
+
+
+  // Filter
+
+  Kefir.FilteredStream = inherit(function FilteredStream(sourceStream, filterFn){
+    Kefir.Stream.call(this);
+    this.__sourceStream = sourceStream;
+    var _this = this;
+    this.__deliver = function(x){
+      if (filterFn(x)) {
+        _this._send(x);
+      }
+    }
+    sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Kefir.MappedStream);
+
+  Kefir.filter = function(stream, filterFn) {
+    return new Kefir.FilteredStream(stream, filterFn);
+  }
+
+  Kefir.Stream.prototype.filter = function(fn) {
+    return Kefir.filter(this, fn);
+  };
+
+
+
+
+  // TakeWhile
+
+  Kefir.TakeWhileStream = inherit(function TakeWhileStream(sourceStream, filterFn){
+    Kefir.Stream.call(this);
+    this.__sourceStream = sourceStream;
+    var _this = this;
+    this.__deliver = function(x){
+      if (filterFn(x)) {
+        _this._send(x);
+      } else {
+        _this._send(Kefir.END);
+      }
+    }
+    sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Kefir.MappedStream);
+
+  Kefir.takeWhile = function(stream, filterFn) {
+    return new Kefir.TakeWhileStream(stream, filterFn);
+  }
+
+  Kefir.Stream.prototype.takeWhile = function(fn) {
+    return Kefir.takeWhile(this, fn);
   };
 
 

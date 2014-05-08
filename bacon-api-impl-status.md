@@ -55,9 +55,9 @@ For detailed descriptions of features see
 | `observable.errors()` | :broken_heart: |  |
 | `observable.skipErrors()` | :broken_heart: |  |
 | `observable.mapEnd(f)` | :question: |  |
-| `observable.filter(f)` | :+1: |  |
+| `observable.filter(f)` | :rocket: | `observable.filter(f)` |
 | `observable.filter(property)` | :question: |  |
-| `observable.takeWhile(f)` | :+1: |  |
+| `observable.takeWhile(f)` | :rocket: | `observable.takeWhile(f)` |
 | `observable.takeWhile(property)` | :question: |  |
 | `observable.take(n)` | :+1: |  |
 | `observable.takeUntil(stream)` | :question: |  |
