@@ -229,22 +229,39 @@
       Kefir.Stream.prototype.subscribe.call(this, callback);
     },
     _send: function(value) {
-      this.__hasCached = true;
       if (!this.isEnded()){
+        this.__hasCached = true;
         this.__cached = value;
       }
       Kefir.Stream.prototype._send.call(this, value);
     }
 
-  });
+  })
+
+  Kefir.PropertyFromStream = inherit(function PropertyFromStream(sourceStream, initialValue){
+    Kefir.Property.call(this, null, null, initialValue)
+    this.__sourceStream = sourceStream;
+    var _this = this;
+    this.__deliver = function(x){  _this._send(x)  }
+    sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Kefir.Property, {
+
+    __onFirstSubscribed: function(){
+      this.__sourceStream.subscribe(this.__deliver);
+    },
+    __onLastUsubscribed: function(){
+      this.__sourceStream.unsubscribe(this.__deliver);
+    },
+    __end: function(){
+      Kefir.Stream.prototype.__end.call(this);
+      this.__sourceStream = null;
+      this.__deliver = null;
+    }
+
+  })
 
   Kefir.toProperty = function(sourceStream, initialValue){
-    var send = function(val){  resultStream._send(val)  }
-    var onFirstIn = function(){  sourceStream.subscribe(send)  }
-    var onLastOut = function(){  sourceStream.unsubscribe(send)  }
-    sourceStream.onEnd(function(){ resultStream._send(Kefir.END) })
-    var resultStream = new Kefir.Property(onFirstIn, onLastOut, initialValue);
-    return resultStream;
+    return new Kefir.PropertyFromStream(sourceStream, initialValue);
   }
   Kefir.Stream.prototype.toProperty = function(initialValue){
     return Kefir.toProperty(this, initialValue);
