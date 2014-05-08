@@ -16,72 +16,72 @@
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `$.asEventStream(eventName)` | :question: |  |
-| `Bacon.fromPromise(promise [, abort])` | :question: |  |
-| `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :question: |  |
-| `Bacon.fromCallback(f [, args...])` | :question: |  |
-| `Bacon.fromCallback(object, methodName [, args...])` | :question: |  |
-| `Bacon.fromNodeCallback(f [, args...])` | :question: |  |
-| `Bacon.fromNodeCallback(object, methodName [, args...])` | :question: |  |
-| `Bacon.fromPoll(interval, f)` | :question: |  |
-| `Bacon.once(value)` | :question: |  |
+| `$.asEventStream(eventName)` | :+1: |  |
+| `Bacon.fromPromise(promise [, abort])` | :+1: |  |
+| `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :+1: |  |
+| `Bacon.fromCallback(f [, args...])` | :+1: |  |
+| `Bacon.fromCallback(object, methodName [, args...])` | :+1: |  |
+| `Bacon.fromNodeCallback(f [, args...])` | :+1: |  |
+| `Bacon.fromNodeCallback(object, methodName [, args...])` | :+1: |  |
+| `Bacon.fromPoll(interval, f)` | :+1: |  |
+| `Bacon.once(value)` | :+1: |  |
 | `Bacon.fromArray(values)` | :question: |  |
-| `Bacon.interval(interval, value)` | :question: |  |
-| `Bacon.sequentially(interval, values)` | :question: |  |
-| `Bacon.repeatedly(interval, values)` | :question: |  |
-| `Bacon.never()` | :question: |  |
-| `Bacon.later(delay, value)` | :question: |  |
+| `Bacon.interval(interval, value)` | :+1: |  |
+| `Bacon.sequentially(interval, values)` | :+1: |  |
+| `Bacon.repeatedly(interval, values)` | :+1: |  |
+| `Bacon.never()` | :+1: |  |
+| `Bacon.later(delay, value)` | :+1: |  |
 | `new Bacon.EventStream(subscribe)` | :bike: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` |
-| `property.changes()` | :question: |  |
+| `property.changes()` | :+1: |  |
 | `property.toEventStream()` | :question: |  |
-| `new Bacon.Bus()` | :rocket: |  |
-| `Bacon.fromBinder(subscribe)` | :rocket: |  |
+| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` |
+| `Bacon.fromBinder(subscribe)` | :rocket: | `Kefir.fromBinder(subscribe)` |
 
 
 ### Methods of Stream/Property
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `observable.onValue(f)` | :rocket: | `stream.subscribe(f)` |
+| `observable.onValue(f)` | :rocket: | `observable.subscribe(f)` |
 | `observable.onError(f)` | :broken_heart: |  |
-| `observable.onEnd(f)` | :question: |  |
-| `observable.map(f)` | :rocket: |  |
+| `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
+| `observable.map(f)` | :rocket: | `observable.onEnd(f)` |
 | `stream.map(property) / property.sampledBy(stream)` | :question: |  |
 | `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |
 | `observable.skipErrors()` | :broken_heart: |  |
 | `observable.mapEnd(f)` | :question: |  |
-| `observable.filter(f)` | :question: |  |
+| `observable.filter(f)` | :+1: |  |
 | `observable.filter(property)` | :question: |  |
-| `observable.takeWhile(f)` | :question: |  |
+| `observable.takeWhile(f)` | :+1: |  |
 | `observable.takeWhile(property)` | :question: |  |
-| `observable.take(n)` | :question: |  |
+| `observable.take(n)` | :+1: |  |
 | `observable.takeUntil(stream)` | :question: |  |
-| `observable.skip(n)` | :question: |  |
-| `observable.delay(delay)` | :question: |  |
-| `observable.throttle(delay)` | :question: |  |
-| `observable.debounce(delay)` | :question: |  |
-| `observable.debounceImmediate(delay)` | :question: |  |
-| `observable.doAction(f)` | :question: |  |
-| `observable.not()` | :question: |  |
-| `observable.flatMap(f)` | :rocket: |  |
-| `observable.flatMapLatest(f)` | :question: |  |
+| `observable.skip(n)` | :+1: |  |
+| `observable.delay(delay)` | :+1: |  |
+| `observable.throttle(delay)` | :+1: |  |
+| `observable.debounce(delay)` | :+1: |  |
+| `observable.debounceImmediate(delay)` | :+1: |  |
+| `observable.doAction(f)` | :+1: |  |
+| `observable.not()` | :+1: |  |
+| `observable.flatMap(f)` | :rocket: | `observable.flatMap(f)` |
+| `observable.flatMapLatest(f)` | :+1: |  |
 | `observable.flatMapFirst(f)` | :question: |  |
-| `observable.scan(seed, f)` | :question: |  |
-| `observable.fold(seed, f) / observable.reduce(seed, f)` | :question: |  |
-| `observable.diff(start, f)` | :question: |  |
-| `observable.zip(other, f)` | :question: |  |
+| `observable.scan(seed, f)` | :+1: |  |
+| `observable.fold(seed, f) / observable.reduce(seed, f)` | :+1: |  |
+| `observable.diff(start, f)` | :+1: |  |
+| `observable.zip(other, f)` | :+1: |  |
 | `observable.slidingWindow(max [, min])` | :question: |  |
-| `observable.log()` | :rocket: |  |
-| `observable.combine(property2, f)` | :rocket: |  |
+| `observable.log()` | :bike: | `observable.log()` |
+| `observable.combine(property2, f)` | :rocket: | `observable.combine(streams, f)` |
 | `observable.withStateMachine(initState, f)` | :question: |  |
-| `observable.decode(mapping)` | :question: |  |
-| `observable.awaiting(otherObservable)` | :question: |  |
-| `observable.endOnError()` | :question: |  |
-| `observable.endOnError(f)` | :question: |  |
+| `observable.decode(mapping)` | :+1: |  |
+| `observable.awaiting(otherObservable)` | :+1: |  |
+| `observable.endOnError()` | :broken_heart: |  |
+| `observable.endOnError(f)` | :broken_heart: |  |
 | `observable.withHandler(f)` | :question: |  |
-| `observable.name(newName)` | :question: |  |
-| `observable.withDescription(param...)` | :question: |  |
+| `observable.name(newName)` | :broken_heart: |  |
+| `observable.withDescription(param...)` | :broken_heart: |  |
 
 
 ### Methods of Stream
@@ -91,19 +91,19 @@
 | `stream.subscribe(f)` | :broken_heart: |  |
 | `stream.onValue(f)` | :rocket: | `stream.subscribe(f)` |
 | `stream.onValues(f)` | :question: |  |
-| `stream.skipDuplicates(isEqual)` | :question: |  |
+| `stream.skipDuplicates(isEqual)` | :+1: |  |
 | `stream.concat(otherStream)` | :question: |  |
-| `stream.merge(otherStream)` | :rocket: |  |
+| `stream.merge(otherStream)` | :rocket: | `stream.merge(stream1[, stream2, ...])` / `stream.merge(streams)` |
 | `stream.startWith(value)` | :question: |  |
-| `stream.skipWhile(f)` | :question: |  |
+| `stream.skipWhile(f)` | :+1: |  |
 | `stream.skipWhile(property)` | :question: |  |
 | `stream.skipUntil(stream2)` | :question: |  |
 | `stream.bufferWithTime(delay)` | :question: |  |
 | `stream.bufferWithTime(f)` | :question: |  |
 | `stream.bufferWithCount(count)` | :question: |  |
 | `stream.bufferWithTimeOrCount(delay, count)` | :question: |  |
-| `stream.toProperty()` | :rocket: |  |
-| `stream.toProperty(initialValue)` | :rocket: |  |
+| `stream.toProperty()` | :rocket: | `stream.toProperty()` |
+| `stream.toProperty(initialValue)` | :rocket: | `stream.toProperty(initialValue)` |
 
 
 
@@ -111,19 +111,19 @@
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Bacon.constant(x)` | :question: |  |
+| `Bacon.constant(x)` | :+1: |  |
 | `property.subscribe(f)` | :broken_heart: |  |
 | `property.onValue(f)` | :rocket: | `property.subscribe()` |
 | `property.onValues(f)` | :question: |  |
-| `property.assign(obj, method [, param...])` | :question: |  |
+| `property.assign(obj, method [, param...])` | :+1: |  |
 | `property.sample(interval)` | :question: |  |
 | `property.sampledBy(stream)` | :question: |  |
 | `property.sampledBy(property)` | :question: |  |
 | `property.sampledBy(streamOrProperty, f)` | :question: |  |
-| `property.skipDuplicates(isEqual)` | :question: |  |
-| `property.changes()` | :question: |  |
-| `property.and(other)` | :question: |  |
-| `property.or(other)` | :question: |  |
+| `property.skipDuplicates(isEqual)` | :+1: |  |
+| `property.changes()` | :+1: |  |
+| `property.and(other)` | :+1: |  |
+| `property.or(other)` | :+1: |  |
 | `property.startWith(value)` | :question: |  |
 
 
@@ -132,12 +132,12 @@
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Bacon.combineAsArray(streams)` | :rocket: |  |
+| `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(streams)` |
 | `Bacon.combineAsArray(s1, s2...)` | :question: |  |
-| `Bacon.combineWith(f, stream1, stream2...)` | :question: |  |
+| `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(streams, f)`  |
 | `Bacon.combineTemplate(template)` | :question: |  |
-| `Bacon.mergeAll(streams)` | :rocket: |  |
-| `Bacon.zipAsArray(streams)` | :question: |  |
+| `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(streams)` / `Kefir.merge(stream1[, stream2, ...])` |
+| `Bacon.zipAsArray(streams)` | :+1: |  |
 | `Bacon.zipAsArray(stream1, stream2...)` | :question: |  |
 | `Bacon.zipWith(streams, f)` | :question: |  |
 | `Bacon.zipWith(f, stream1, stream1...)` | :question: |  |
@@ -156,11 +156,11 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `new Bacon.Bus()` | :rocket: |  |
-| `bus.push(x)` | :rocket: |  |
-| `bus.end()` | :rocket: |  |
+| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` |
+| `bus.push(x)` | :rocket: | `bus.push(x)` |
+| `bus.end()` | :rocket: | `bus.end()` |
 | `bus.error(e)` | :broken_heart: |  |
-| `bus.plug(stream)` | :rocket: |  |
+| `bus.plug(stream)` | :rocket: | `bus.plug(stream)` |
 
 
 
@@ -183,7 +183,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Return Bacon.noMore from the handler function` | :question: |  |
+| `Return Bacon.noMore from the handler function` | :+1: |  |
 | `Call the dispose() function that was returned by the subscribe() call` | :broken_heart: / :rocket: | `stream.unsubscribe(f)` |
 
 
@@ -192,12 +192,13 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 https://github.com/baconjs/bacon.js/tree/master#atomic-updates
 
-:broken_heart:
+:question:
 
 
 
+### Glitch-free updates
 
+https://github.com/baconjs/bacon.js/issues/272
 
-
-
+:question:
 
