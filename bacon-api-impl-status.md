@@ -21,14 +21,14 @@ For detailed descriptions of features see
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | `$.asEventStream(eventName)` | :+1: |  |
-| `Bacon.fromPromise(promise [, abort])` | :+1: |  |
+| `Bacon.fromPromise(promise [, abort])` | :question: |  |
 | `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :+1: |  |
 | `Bacon.fromCallback(f [, args...])` | :+1: |  |
 | `Bacon.fromCallback(object, methodName [, args...])` | :+1: |  |
-| `Bacon.fromNodeCallback(f [, args...])` | :+1: |  |
-| `Bacon.fromNodeCallback(object, methodName [, args...])` | :+1: |  |
+| `Bacon.fromNodeCallback(f [, args...])` | :question: |  |
+| `Bacon.fromNodeCallback(object, methodName [, args...])` | :question: |  |
 | `Bacon.fromPoll(interval, f)` | :+1: |  |
-| `Bacon.once(value)` | :rocket: |  |
+| `Bacon.once(value)` | :rocket: | `Kefir.once(value)` |
 | `Bacon.fromArray(values)` | :question: |  |
 | `Bacon.interval(interval, value)` | :+1: |  |
 | `Bacon.sequentially(interval, values)` | :+1: |  |
@@ -59,7 +59,7 @@ For detailed descriptions of features see
 | `observable.filter(property)` | :question: |  |
 | `observable.takeWhile(f)` | :rocket: | `observable.takeWhile(f)` |
 | `observable.takeWhile(property)` | :question: |  |
-| `observable.take(n)` | :+1: |  |
+| `observable.take(n)` | :rocket: | `observable.take(n)` |
 | `observable.takeUntil(stream)` | :question: |  |
 | `observable.skip(n)` | :+1: |  |
 | `observable.delay(delay)` | :+1: |  |
@@ -187,8 +187,8 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Return Bacon.noMore from the handler function` | :+1: |  |
-| `Call the dispose() function that was returned by the subscribe() call` | :broken_heart: / :rocket: | `stream.unsubscribe(f)` |
+| Return `Bacon.noMore` from the handler function | :rocket: | Return `Kefir.NO_MORE` ...  |
+| Call the `dispose()` function that was returned by the `subscribe()` call | :broken_heart: / :rocket: | `stream.unsubscribe(f)` |
 
 
 

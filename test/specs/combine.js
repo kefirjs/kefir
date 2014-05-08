@@ -46,4 +46,41 @@ describe("Combine:", function(){
 
   }, 100);
 
+
+
+  it("with temporary all unsubscribed", function(done){
+
+    var bus1 = new Kefir.Bus;
+    var bus2 = new Kefir.Bus;
+    var combined = bus1.combine(bus2, function(a, b) { return a + b });
+
+    helpers.captureOutput(combined.take(2), function(values){
+      expect(values).toEqual([3, 5]);
+    });
+
+    bus1.push(1)
+    bus2.push(2) // 1 + 2 = 3
+    bus1.push(3) // 3 + 2 = 5
+    expect(bus1.hasSubscribers()).toBe(true);
+    expect(bus2.hasSubscribers()).toBe(true);
+    bus2.push(4) // 3 + 4 = 7
+    expect(bus1.hasSubscribers()).toBe(false);
+    expect(bus2.hasSubscribers()).toBe(false);
+
+
+    helpers.captureOutput(combined, function(values){
+      expect(values).toEqual([9, 11]);
+      done();
+    });
+
+    bus1.push(5) // 5 + 4 = 9
+    bus2.push(6) // 5 + 6 = 11
+    bus1.end()
+    bus2.end()
+
+
+  }, 100);
+
+
+
 });

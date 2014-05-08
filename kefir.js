@@ -15,6 +15,7 @@
   var Kefir = {};
 
   Kefir.END = ['<end>'];
+  Kefir.NO_MORE = ['<no more>'];
 
 
 
@@ -40,6 +41,23 @@
         i++;
       }
     }
+  }
+
+  function killInArray(array, value) {
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] === value) {
+        array[i] = null;
+      }
+    }
+  }
+
+  function isAllDead(array) {
+    for (var i = 0; i < array.length; i++) {
+      if (array[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   function noop(){}
@@ -79,7 +97,12 @@
         this.__end();
       } else {
         for (var i = 0; i < this.__subscribers.length; i++) {
-          this.__subscribers[i](value);
+          var callback = this.__subscribers[i];
+          if (typeof callback === "function") {
+            if(Kefir.NO_MORE === callback(value)) {
+              this.unsubscribe(callback);
+            }
+          }
         }
       }
     }
@@ -95,8 +118,9 @@
   }
   Kefir.Stream.prototype.unsubscribe = function(callback) {
     if (!this.isEnded()) {
-      removeFromArray(this.__subscribers, callback);
-      if (this.__subscribers.length === 0) {
+      killInArray(this.__subscribers, callback);
+      if (isAllDead(this.__subscribers)) {
+        this.__subscribers = [];
         this.__onLastUsubscribed();
       }
     }
@@ -384,6 +408,21 @@
 
   Kefir.Stream.prototype.takeWhile = function(fn) {
     return Kefir.takeWhile(this, fn);
+  };
+
+
+
+
+  // Take
+
+  Kefir.take = function(stream, n) {
+    return new Kefir.TakeWhileStream(stream, function(){
+      return n-- > 0;
+    });
+  }
+
+  Kefir.Stream.prototype.take = function(n) {
+    return Kefir.take(this, n);
   };
 
 
