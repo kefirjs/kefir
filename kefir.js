@@ -88,7 +88,7 @@
 
   // Base Stream class
 
-  Kefir.Stream = inherit(function Stream(onFirstSubscribed, onLastUsubscribed){
+  var Stream = Kefir.Stream = inherit(function Stream(onFirstSubscribed, onLastUsubscribed){
 
     // __onFirstSubscribed, __onLastUsubscribed can also be added to prototype of child classes
     if (typeof onFirstSubscribed === "function") {
@@ -181,7 +181,7 @@
 
   // Never
 
-  Kefir.__neverObj = createObj(Kefir.Stream.prototype);
+  Kefir.__neverObj = createObj(Stream.prototype);
   Kefir.__neverObj.__subscribers = null;
 
   Kefir.never = function() {
@@ -193,10 +193,10 @@
 
   // Once
 
-  Kefir.Once = inherit(function Once(value){
-    Kefir.Stream.call(this);
+  var OnceStream = Kefir.OnceStream = inherit(function OnceStream(value){
+    Stream.call(this);
     this.__value = value;
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       this._send(this.__value);
@@ -207,7 +207,7 @@
   });
 
   Kefir.once = function(value) {
-    return new Kefir.Once(value);
+    return new OnceStream(value);
   }
 
 
@@ -215,35 +215,35 @@
 
   // Property
 
-  Kefir.Property = inherit(function Property(onFirstSubscribed, onLastUsubscribed, initialValue){
-    Kefir.Stream.call(this, onFirstSubscribed, onLastUsubscribed);
+  var Property = Kefir.Property = inherit(function Property(onFirstSubscribed, onLastUsubscribed, initialValue){
+    Stream.call(this, onFirstSubscribed, onLastUsubscribed);
     this.__hasCached = (typeof initialValue !== "undefined");
     this.__cached = initialValue;
-  }, Kefir.Stream, {
+  }, Stream, {
 
     subscribe: function(callback) {
       if (this.__hasCached) {
         callback(this.__cached);
       }
-      Kefir.Stream.prototype.subscribe.call(this, callback);
+      Stream.prototype.subscribe.call(this, callback);
     },
     _send: function(value) {
       if (!this.isEnded()){
         this.__hasCached = true;
         this.__cached = value;
       }
-      Kefir.Stream.prototype._send.call(this, value);
+      Stream.prototype._send.call(this, value);
     }
 
   })
 
-  Kefir.PropertyFromStream = inherit(function PropertyFromStream(sourceStream, initialValue){
-    Kefir.Property.call(this, null, null, initialValue)
+  var PropertyFromStream = inherit(function PropertyFromStream(sourceStream, initialValue){
+    Property.call(this, null, null, initialValue)
     this.__sourceStream = sourceStream;
     var _this = this;
     this.__deliver = function(x){  _this._send(x)  }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.Property, {
+  }, Property, {
 
     __onFirstSubscribed: function(){
       this.__sourceStream.subscribe(this.__deliver);
@@ -252,7 +252,7 @@
       this.__sourceStream.unsubscribe(this.__deliver);
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__sourceStream = null;
       this.__deliver = null;
     }
@@ -260,9 +260,9 @@
   })
 
   Kefir.toProperty = function(sourceStream, initialValue){
-    return new Kefir.PropertyFromStream(sourceStream, initialValue);
+    return new PropertyFromStream(sourceStream, initialValue);
   }
-  Kefir.Stream.prototype.toProperty = function(initialValue){
+  Stream.prototype.toProperty = function(initialValue){
     return Kefir.toProperty(this, initialValue);
   }
 
@@ -273,12 +273,12 @@
 
   // fromBinder
 
-  Kefir.FromBinderStream = inherit(function FromBinderStream(generator){
-    Kefir.Stream.call(this);
+  var FromBinderStream = Kefir.FromBinderStream = inherit(function FromBinderStream(generator){
+    Stream.call(this);
     this.__generator = generator;
     var _this = this;
     this.__deliver = function(x){  _this._send(x)  }
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       this.__generatorUsubscriber = this.__generator(this.__deliver);
@@ -290,7 +290,7 @@
       this.__generatorUsubscriber = null;
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__generator = null;
       this.__deliver = null;
     }
@@ -298,7 +298,7 @@
   })
 
   Kefir.fromBinder = function(generator){
-    return new Kefir.FromBinderStream(generator);
+    return new FromBinderStream(generator);
   }
 
 
@@ -310,12 +310,12 @@
 
   // Bus
 
-  Kefir.Bus = inherit(function Bus(){
-    Kefir.Stream.call(this);
+  var Bus = Kefir.Bus = inherit(function Bus(){
+    Stream.call(this);
     this.__plugged = [];
     var _this = this;
     this.push = function(x){  _this._send(x)  }
-  }, Kefir.Stream, {
+  }, Stream, {
 
     plug: function(stream){
       if (!this.isEnded()) {
@@ -347,7 +347,7 @@
       }
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__plugged = null;
       this.push = noop;
     }
@@ -359,13 +359,13 @@
 
   // FromPoll
 
-  Kefir.FromPollStream = inherit(function FromPollStream(interval, sourceFn){
-    Kefir.Stream.call(this);
+  var FromPollStream = Kefir.FromPollStream = inherit(function FromPollStream(interval, sourceFn){
+    Stream.call(this);
     this.__interval = interval;
     this.__intervalId = null;
     var _this = this;
     this.__deliver = function(){  _this._send(sourceFn())  }
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       this.__intervalId = setInterval(this.__deliver, this.__interval);
@@ -377,14 +377,14 @@
       }
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__deliver = null;
     }
 
   });
 
   Kefir.fromPoll = function(interval, sourceFn){
-    return new Kefir.FromPollStream(interval, sourceFn);
+    return new FromPollStream(interval, sourceFn);
   }
 
 
@@ -393,13 +393,13 @@
 
   // Map
 
-  Kefir.MappedStream = inherit(function MappedStream(sourceStream, mapFn){
-    Kefir.Stream.call(this)
+  var MappedStream = Kefir.MappedStream = inherit(function MappedStream(sourceStream, mapFn){
+    Stream.call(this)
     this.__sourceStream = sourceStream;
     var _this = this;
     this.__deliver = function(x){  _this._send(mapFn(x))  }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       this.__sourceStream.subscribe(this.__deliver);
@@ -408,7 +408,7 @@
       this.__sourceStream.unsubscribe(this.__deliver);
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__sourceStream = null;
       this.__deliver = null;
     }
@@ -416,10 +416,10 @@
   });
 
   Kefir.map = function(stream, mapFn) {
-    return new Kefir.MappedStream(stream, mapFn);
+    return new MappedStream(stream, mapFn);
   }
 
-  Kefir.Stream.prototype.map = function(fn) {
+  Stream.prototype.map = function(fn) {
     return Kefir.map(this, fn);
   };
 
@@ -429,8 +429,8 @@
 
   // Filter
 
-  Kefir.FilteredStream = inherit(function FilteredStream(sourceStream, filterFn){
-    Kefir.Stream.call(this);
+  var FilteredStream = Kefir.FilteredStream = inherit(function FilteredStream(sourceStream, filterFn){
+    Stream.call(this);
     this.__sourceStream = sourceStream;
     var _this = this;
     this.__deliver = function(x){
@@ -439,13 +439,13 @@
       }
     }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.MappedStream);
+  }, MappedStream);
 
   Kefir.filter = function(stream, filterFn) {
-    return new Kefir.FilteredStream(stream, filterFn);
+    return new FilteredStream(stream, filterFn);
   }
 
-  Kefir.Stream.prototype.filter = function(fn) {
+  Stream.prototype.filter = function(fn) {
     return Kefir.filter(this, fn);
   };
 
@@ -454,8 +454,8 @@
 
   // TakeWhile
 
-  Kefir.TakeWhileStream = inherit(function TakeWhileStream(sourceStream, filterFn){
-    Kefir.Stream.call(this);
+  var TakeWhileStream = Kefir.TakeWhileStream = inherit(function TakeWhileStream(sourceStream, filterFn){
+    Stream.call(this);
     this.__sourceStream = sourceStream;
     var _this = this;
     this.__deliver = function(x){
@@ -466,13 +466,13 @@
       }
     }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.MappedStream);
+  }, MappedStream);
 
   Kefir.takeWhile = function(stream, filterFn) {
-    return new Kefir.TakeWhileStream(stream, filterFn);
+    return new TakeWhileStream(stream, filterFn);
   }
 
-  Kefir.Stream.prototype.takeWhile = function(fn) {
+  Stream.prototype.takeWhile = function(fn) {
     return Kefir.takeWhile(this, fn);
   };
 
@@ -482,12 +482,12 @@
   // Take
 
   Kefir.take = function(stream, n) {
-    return new Kefir.TakeWhileStream(stream, function(){
+    return new TakeWhileStream(stream, function(){
       return n-- > 0;
     });
   }
 
-  Kefir.Stream.prototype.take = function(n) {
+  Stream.prototype.take = function(n) {
     return Kefir.take(this, n);
   };
 
@@ -498,15 +498,15 @@
 
   // FlatMap
 
-  Kefir.FlatMappedStream = inherit(function FlatMappedStream(sourceStream, mapFn){
-    Kefir.Stream.call(this)
+  var FlatMappedStream = Kefir.FlatMappedStream = inherit(function FlatMappedStream(sourceStream, mapFn){
+    Stream.call(this)
     this.__sourceStream = sourceStream;
     this.__plugged = [];
     var _this = this;
     this.__deliver = function(x){ _this._send(x)  }
     this.__plugResult = function(x){  _this.__plug(mapFn(x))  }
     sourceStream.onEnd(function(){  _this._send(Kefir.END)  })
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       this.__sourceStream.subscribe(this.__plugResult);
@@ -535,7 +535,7 @@
       }
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__sourceStream = null;
       this.__deliver = null;
       this.__plugResult = null;
@@ -545,10 +545,10 @@
   });
 
   Kefir.flatMap = function(stream, mapFn) {
-    return new Kefir.FlatMappedStream(stream, mapFn);
+    return new FlatMappedStream(stream, mapFn);
   }
 
-  Kefir.Stream.prototype.flatMap = function(fn) {
+  Stream.prototype.flatMap = function(fn) {
     return Kefir.flatMap(this, fn);
   };
 
@@ -561,8 +561,8 @@
 
   // Merge
 
-  Kefir.MergedStream = inherit(function MergedStream(){
-    Kefir.Stream.call(this)
+  var MergedStream = Kefir.MergedStream = inherit(function MergedStream(){
+    Stream.call(this)
     this.__sourceStreams = firstArrOrToArr(arguments);
     var _this = this;
     this.__deliver = function(x){  _this._send(x)  }
@@ -571,7 +571,7 @@
         this.__unplugFor(this.__sourceStreams[i])
       );
     }
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       for (var i = 0; i < this.__sourceStreams.length; i++) {
@@ -595,7 +595,7 @@
       return function(){  _this.__unplug(stream)  }
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__sourceStreams = null;
       this.__deliver = null;
     }
@@ -603,10 +603,10 @@
   });
 
   Kefir.merge = function() {
-    return new Kefir.MergedStream(firstArrOrToArr(arguments));
+    return new MergedStream(firstArrOrToArr(arguments));
   }
 
-  Kefir.Stream.prototype.merge = function() {
+  Stream.prototype.merge = function() {
     return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
   }
 
@@ -620,8 +620,8 @@
 
   // Combine
 
-  Kefir.CombinedStream = inherit(function CombinedStream(sourceStreams, mapFn){
-    Kefir.Stream.call(this)
+  var CombinedStream = Kefir.CombinedStream = inherit(function CombinedStream(sourceStreams, mapFn){
+    Stream.call(this)
 
     this.__sourceStreams = sourceStreams;
     this.__cachedValues = new Array(sourceStreams.length);
@@ -634,7 +634,7 @@
       this.__sourceStreams[i].onEnd( this.__unplugFor(i) );
     }
 
-  }, Kefir.Stream, {
+  }, Stream, {
 
     __onFirstSubscribed: function(){
       for (var i = 0; i < this.__sourceStreams.length; i++) {
@@ -688,7 +688,7 @@
       return true;
     },
     __end: function(){
-      Kefir.Stream.prototype.__end.call(this);
+      Stream.prototype.__end.call(this);
       this.__sourceStreams = null;
       this.__cachedValues = null;
       this.__hasCached = null;
@@ -699,10 +699,10 @@
   });
 
   Kefir.combine = function(streams, mapFn) {
-    return new Kefir.CombinedStream(streams, mapFn);
+    return new CombinedStream(streams, mapFn);
   }
 
-  Kefir.Stream.prototype.combine = function(streams, mapFn) {
+  Stream.prototype.combine = function(streams, mapFn) {
     return Kefir.combine([this].concat(streams), mapFn);
   }
 
@@ -712,7 +712,7 @@
 
   // Log
 
-  Kefir.Stream.prototype.log = function(text) {
+  Stream.prototype.log = function(text) {
     function log(value){
       if (text) {
         console.log(text, value);
@@ -723,9 +723,6 @@
     this.subscribe(log);
     this.onEnd(function(){  log(Kefir.END)  });
   }
-
-
-
 
 
 
