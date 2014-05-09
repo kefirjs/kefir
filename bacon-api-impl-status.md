@@ -30,7 +30,7 @@ For detailed descriptions of features see
 | `Bacon.fromPoll(interval, f)` | :rocket: | `Kefir.fromPoll(interval, f)` |
 | `Bacon.once(value)` | :rocket: | `Kefir.once(value)` |
 | `Bacon.fromArray(values)` | :question: |  |
-| `Bacon.interval(interval, value)` | :+1: |  |
+| `Bacon.interval(interval, value)` | :rocket: | `Kefir.interval(interval, value)` |
 | `Bacon.sequentially(interval, values)` | :+1: |  |
 | `Bacon.repeatedly(interval, values)` | :+1: |  |
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
@@ -49,7 +49,7 @@ For detailed descriptions of features see
 | `observable.onValue(f)` | :rocket: | `observable.subscribe(f)` |
 | `observable.onError(f)` | :broken_heart: |  |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
-| `observable.map(f)` | :rocket: | `observable.onEnd(f)` |
+| `observable.map(f)` | :rocket: | `observable.map(f)` |
 | `stream.map(property) / property.sampledBy(stream)` | :question: |  |
 | `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |

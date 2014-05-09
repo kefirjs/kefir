@@ -389,6 +389,13 @@
 
 
 
+  // Interval
+
+  Kefir.interval = function(interval, value){
+    return new FromPollStream(interval, function(){  return value });
+  }
+
+
 
 
   // Map
