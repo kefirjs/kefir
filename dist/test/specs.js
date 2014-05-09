@@ -777,7 +777,7 @@
 }(this));
 
 },{}],2:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -877,8 +877,8 @@ describe("Base stream:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],3:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],3:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -977,8 +977,8 @@ describe("Bus:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],4:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],4:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1065,8 +1065,8 @@ describe("Combine:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],5:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],5:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1090,8 +1090,8 @@ describe("Filter:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],6:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],6:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1126,8 +1126,8 @@ describe("FlatMap:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],7:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],7:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1166,8 +1166,8 @@ describe("FromPoll:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],8:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],8:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1195,8 +1195,8 @@ describe("interval:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],9:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],9:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1249,8 +1249,8 @@ describe("Map:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],10:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],10:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1279,8 +1279,8 @@ describe("Merge:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],11:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],11:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1299,8 +1299,8 @@ describe("Never:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],12:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],12:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1332,8 +1332,8 @@ describe("No more:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],13:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],13:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1358,8 +1358,8 @@ describe("Once:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],14:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],14:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1424,8 +1424,8 @@ describe("Property:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],15:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],15:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1453,8 +1453,8 @@ describe("repeatedly:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],16:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],16:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1482,8 +1482,8 @@ describe("sequentially:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],17:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],17:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1507,8 +1507,8 @@ describe("Take while:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],18:[function(require,module,exports){
-var Kefir = require('../../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],18:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 
@@ -1536,8 +1536,8 @@ describe("Take:", function(){
 
 });
 
-},{"../../kefir.js":1,"../test-helpers":19}],19:[function(require,module,exports){
-var Kefir = require('../kefir.js');
+},{"../../src/kefir.js":1,"../test-helpers":19}],19:[function(require,module,exports){
+var Kefir = require('../src/kefir.js');
 
 exports.captureOutput = function(stream, callback, timeout) {
   var values = [];
@@ -1577,4 +1577,4 @@ exports.sampleStream = function(values, timeout){
   });
 }
 
-},{"../kefir.js":1}]},{},[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
+},{"../src/kefir.js":1}]},{},[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])

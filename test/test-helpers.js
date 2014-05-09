@@ -1,4 +1,4 @@
-var Kefir = require('../kefir.js');
+var Kefir = require('../src/kefir.js');
 
 exports.captureOutput = function(stream, callback, timeout) {
   var values = [];

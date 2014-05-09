@@ -1,4 +1,4 @@
-var Kefir = require('../../kefir.js');
+var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
 

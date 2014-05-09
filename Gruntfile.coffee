@@ -28,14 +28,14 @@ module.exports = (grunt) ->
         options:
           banner: banner
         files:
-          'dist/kefir.min.js': 'kefir.js'
+          'dist/kefir.min.js': 'src/kefir.js'
 
     concat:
       kefir:
         options:
           banner: banner
         files:
-          'dist/kefir.js': 'kefir.js'
+          'dist/kefir.js': 'src/kefir.js'
 
     jasmine_node:
       main:
@@ -47,12 +47,12 @@ module.exports = (grunt) ->
     jshint:
       options:
         jshintrc: true
-      main: ['kefir.js', 'test/test-helpers.js', 'test/specs/*.js']
+      main: ['src/kefir.js', 'test/test-helpers.js', 'test/specs/*.js']
 
 
     watch:
       kefir:
-        files: 'kefir.js'
+        files: 'src/kefir.js'
         tasks: ['build-kefir']
       tests:
         files: ['kefir.js', 'test-helpers.js', 'specs/*.js']
