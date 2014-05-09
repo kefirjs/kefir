@@ -12,7 +12,7 @@ describe("Property:", function(){
     var property = bus.toProperty();
 
     var result1 = []
-    property.subscribe(function(x){
+    property.on(function(x){
       result1.push(x)
     })
     expect(result1).toEqual([]);
@@ -20,7 +20,7 @@ describe("Property:", function(){
     bus.push(1);
 
     var result2 = []
-    property.subscribe(function(x){
+    property.on(function(x){
       result2.push(x)
     })
     expect(result1).toEqual([1]);
@@ -44,7 +44,7 @@ describe("Property:", function(){
     var property = bus.toProperty(1);
 
     var result1 = []
-    property.subscribe(function(x){
+    property.on(function(x){
       result1.push(x)
     })
     expect(result1).toEqual([1]);

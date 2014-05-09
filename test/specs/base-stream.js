@@ -54,12 +54,12 @@ describe("Base stream:", function(){
     var stream = helpers.sampleStream([1, 2, Kefir.END]);
 
     var result1 = [];
-    stream.subscribe(function(value){
+    stream.on(function(value){
       result1.push(value);
     });
 
     var result2 = [];
-    stream.subscribe(function(value){
+    stream.on(function(value){
       result2.push(value);
     });
 
@@ -76,7 +76,7 @@ describe("Base stream:", function(){
     var stream = helpers.sampleStream([1, 2, Kefir.END]);
 
     var result1 = [];
-    stream.subscribe(function(value){
+    stream.on(function(value){
       result1.push(value);
     });
 
@@ -84,8 +84,8 @@ describe("Base stream:", function(){
     var unsubscriber = function(value){
       result2.push(value);
     }
-    stream.subscribe(unsubscriber);
-    stream.unsubscribe(unsubscriber);
+    stream.on(unsubscriber);
+    stream.off(unsubscriber);
 
     stream.onEnd(function(){
       expect(result1).toEqual([1, 2]);

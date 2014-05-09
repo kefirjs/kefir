@@ -8,10 +8,9 @@ describe("FromPoll:", function(){
   it("works", function(done){
 
     function pollArray(values, interval){
-      values = values.reverse();
       return Kefir.fromPoll(interval, function(){
         if (values.length > 0) {
-          return values.pop();
+          return values.shift();
         } else {
           return Kefir.END;
         }

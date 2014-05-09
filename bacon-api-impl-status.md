@@ -46,7 +46,7 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `observable.onValue(f)` | :rocket: | `observable.subscribe(f)` |
+| `observable.onValue(f)` | :rocket: | `observable.on(f)` |
 | `observable.onError(f)` | :broken_heart: |  |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
 | `observable.map(f)` | :rocket: | `observable.map(f)` |
@@ -93,7 +93,7 @@ For detailed descriptions of features see
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | `stream.subscribe(f)` | :broken_heart: |  |
-| `stream.onValue(f)` | :rocket: | `stream.subscribe(f)` |
+| `stream.onValue(f)` | :rocket: | `stream.on(f)` |
 | `stream.onValues(f)` | :question: |  |
 | `stream.skipDuplicates(isEqual)` | :+1: |  |
 | `stream.concat(otherStream)` | :question: |  |
@@ -117,7 +117,7 @@ For detailed descriptions of features see
 |:---|:---:|:---|
 | `Bacon.constant(x)` | :+1: |  |
 | `property.subscribe(f)` | :broken_heart: |  |
-| `property.onValue(f)` | :rocket: | `property.subscribe()` |
+| `property.onValue(f)` | :rocket: | `property.on(f)` |
 | `property.onValues(f)` | :question: |  |
 | `property.assign(obj, method [, param...])` | :+1: |  |
 | `property.sample(interval)` | :question: |  |
@@ -188,7 +188,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | Return `Bacon.noMore` from the handler function | :rocket: | Return `Kefir.NO_MORE` ...  |
-| Call the `dispose()` function that was returned by the `subscribe()` call | :broken_heart: / :rocket: | `stream.unsubscribe(f)` |
+| Call the `dispose()` function that was returned by the `subscribe()` call | :broken_heart: / :rocket: | `stream.off(f)` |
 
 
 

@@ -10,7 +10,7 @@ describe("No more:", function(){
     var bus = new Kefir.Bus;
 
     var values = []
-    bus.subscribe(function(x){
+    bus.on(function(x){
       values.push(x);
       if (x > 2) {
         return Kefir.NO_MORE;

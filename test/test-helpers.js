@@ -8,12 +8,12 @@ exports.captureOutput = function(stream, callback, timeout) {
   }
 
   function report(){
-    stream.unsubscribe(log);
+    stream.off(log);
     stream.offEnd(report);
     callback(values);
   }
 
-  stream.subscribe(log);
+  stream.on(log);
   stream.onEnd(report);
 
   if (typeof timeout === "number") {
@@ -25,11 +25,10 @@ exports.captureOutput = function(stream, callback, timeout) {
 
 exports.sampleStream = function(values, timeout){
   timeout = timeout || 0;
-  values.reverse();
   return Kefir.fromBinder(function(sink){
     var send = function() {
       if (values.length > 0) {
-        sink(values.pop());
+        sink(values.shift());
         setTimeout(send, timeout);
       }
     }
