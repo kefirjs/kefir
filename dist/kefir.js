@@ -400,6 +400,32 @@
 
 
 
+  // Sequentially
+
+  Kefir.sequentially = function(interval, values){
+    values = values.slice(0);
+    return new FromPollStream(interval, function(){
+      if (values.length === 0){
+        return Kefir.END;
+      } else {
+        return values.shift();
+      }
+    });
+  }
+
+
+
+  // Repeatedly
+
+  Kefir.repeatedly = function(interval, values){
+    var i = -1;
+    return new FromPollStream(interval, function(){
+      return values[++i % values.length];
+    });
+  }
+
+
+
 
   // Map
 

@@ -31,8 +31,8 @@ For detailed descriptions of features see
 | `Bacon.once(value)` | :rocket: | `Kefir.once(value)` |
 | `Bacon.fromArray(values)` | :question: |  |
 | `Bacon.interval(interval, value)` | :rocket: | `Kefir.interval(interval, value)` |
-| `Bacon.sequentially(interval, values)` | :+1: |  |
-| `Bacon.repeatedly(interval, values)` | :+1: |  |
+| `Bacon.sequentially(interval, values)` | :rocket: | `Kefir.sequentially(interval, values)` |
+| `Bacon.repeatedly(interval, values)` | :rocket: | `Kefir.repeatedly(interval, values)` |
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
 | `Bacon.later(delay, value)` | :+1: |  |
 | `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` / `new Kefir.FromBinderStream(subscribe)` |
