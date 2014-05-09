@@ -36,7 +36,7 @@ For detailed descriptions of features see
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
 | `Bacon.later(delay, value)` | :+1: |  |
 | `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` / `new Kefir.FromBinderStream(subscribe)` |
-| `property.changes()` | :+1: |  |
+| `property.changes()` | :rocket: | `property.changes()` |
 | `property.toEventStream()` | :question: |  |
 | `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` |
 | `Bacon.fromBinder(subscribe)` | :rocket: | `Kefir.fromBinder(subscribe)` |
@@ -125,7 +125,7 @@ For detailed descriptions of features see
 | `property.sampledBy(property)` | :question: |  |
 | `property.sampledBy(streamOrProperty, f)` | :question: |  |
 | `property.skipDuplicates(isEqual)` | :+1: |  |
-| `property.changes()` | :+1: |  |
+| `property.changes()` | :rocket: | `property.changes()` |
 | `property.and(other)` | :+1: |  |
 | `property.or(other)` | :+1: |  |
 | `property.startWith(value)` | :question: |  |

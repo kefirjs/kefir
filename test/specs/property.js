@@ -60,5 +60,26 @@ describe("Property:", function(){
   }, 100);
 
 
+  it("changes", function(done) {
+
+    var bus = new Kefir.Bus;
+    var property = bus.toProperty(1);
+
+    helpers.captureOutput(property, function(values){
+      expect(values).toEqual([1, 2, 3]);
+    });
+
+    helpers.captureOutput(property.changes(), function(values){
+      expect(values).toEqual([2, 3]);
+      done();
+    });
+
+    bus.push(2);
+    bus.push(3);
+    bus.end();
+
+  }, 100);
+
+
 
 });

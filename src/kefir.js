@@ -221,11 +221,14 @@
     this.__cached = initialValue;
   }, Stream, {
 
+    subscribeToChanges: function(callback){
+      Stream.prototype.subscribe.call(this, callback);
+    },
     subscribe: function(callback) {
       if (this.__hasCached) {
         callback(this.__cached);
       }
-      Stream.prototype.subscribe.call(this, callback);
+      this.subscribeToChanges(callback);
     },
     _send: function(value) {
       if (!this.isEnded()){
@@ -266,6 +269,40 @@
     return Kefir.toProperty(this, initialValue);
   }
 
+
+
+
+  // Property::changes()
+
+  var PropertyChangesStream = Kefir.PropertyChangesStream = inherit(function PropertyChangesStream(property){
+    Stream.call(this)
+    this.__sourceProperty = property;
+    var _this = this;
+    this.__deliver = function(x){  _this._send(x)  }
+    property.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Stream, {
+
+    __onFirstSubscribed: function(){
+      this.__sourceProperty.subscribeToChanges(this.__deliver);
+    },
+    __onLastUsubscribed: function(){
+      this.__sourceProperty.unsubscribe(this.__deliver);
+    },
+    __end: function(){
+      Stream.prototype.__end.call(this);
+      this.__sourceProperty = null;
+      this.__deliver = null;
+    }
+
+  })
+
+  Kefir.changes = function(property){
+    return new PropertyChangesStream(property);
+  }
+
+  Property.prototype.changes = function() {
+    return Kefir.changes(this);
+  };
 
 
 

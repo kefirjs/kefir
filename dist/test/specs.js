@@ -222,11 +222,14 @@
     this.__cached = initialValue;
   }, Stream, {
 
+    subscribeToChanges: function(callback){
+      Stream.prototype.subscribe.call(this, callback);
+    },
     subscribe: function(callback) {
       if (this.__hasCached) {
         callback(this.__cached);
       }
-      Stream.prototype.subscribe.call(this, callback);
+      this.subscribeToChanges(callback);
     },
     _send: function(value) {
       if (!this.isEnded()){
@@ -267,6 +270,40 @@
     return Kefir.toProperty(this, initialValue);
   }
 
+
+
+
+  // Property::changes()
+
+  var PropertyChangesStream = Kefir.PropertyChangesStream = inherit(function PropertyChangesStream(property){
+    Stream.call(this)
+    this.__sourceProperty = property;
+    var _this = this;
+    this.__deliver = function(x){  _this._send(x)  }
+    property.onEnd(function(){  _this._send(Kefir.END)  })
+  }, Stream, {
+
+    __onFirstSubscribed: function(){
+      this.__sourceProperty.subscribeToChanges(this.__deliver);
+    },
+    __onLastUsubscribed: function(){
+      this.__sourceProperty.unsubscribe(this.__deliver);
+    },
+    __end: function(){
+      Stream.prototype.__end.call(this);
+      this.__sourceProperty = null;
+      this.__deliver = null;
+    }
+
+  })
+
+  Kefir.changes = function(property){
+    return new PropertyChangesStream(property);
+  }
+
+  Property.prototype.changes = function() {
+    return Kefir.changes(this);
+  };
 
 
 
@@ -1417,6 +1454,27 @@ describe("Property:", function(){
       expect(result1).toEqual([1, 2]);
       done()
     });
+
+  }, 100);
+
+
+  it("changes", function(done) {
+
+    var bus = new Kefir.Bus;
+    var property = bus.toProperty(1);
+
+    helpers.captureOutput(property, function(values){
+      expect(values).toEqual([1, 2, 3]);
+    });
+
+    helpers.captureOutput(property.changes(), function(values){
+      expect(values).toEqual([2, 3]);
+      done();
+    });
+
+    bus.push(2);
+    bus.push(3);
+    bus.end();
 
   }, 100);
 
