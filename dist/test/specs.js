@@ -20,6 +20,7 @@
 
 
 
+
   // Utils
 
   function noop(){}
@@ -28,18 +29,30 @@
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
 
+  function toArray(arrayLike){
+    return Array.prototype.slice.call(arrayLike);
+  }
+
   function createObj(proto) {
     var F = function(){};
     F.prototype = proto;
     return new F();
   }
 
-  function extend(to, from) {
-    for (var prop in from) {
-      if(own(from, prop)) {
-        to[prop] = from[prop];
+  function extend() {
+    var objects = toArray(arguments);
+    if (objects.length === 1) {
+      return objects[0];
+    }
+    var result = objects.shift();
+    for (var i = 0; i < objects.length; i++) {
+      for (var prop in objects[i]) {
+        if(own(objects[i], prop)) {
+          result[prop] = objects[i][prop];
+        }
       }
     }
+    return result;
   }
 
   function inherit(Child, Parent, childPrototype) {
@@ -82,9 +95,59 @@
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
       return args[0];
     }
-    return Array.prototype.slice.call(args);
+    return toArray(args);
   }
 
+
+
+
+
+  // Callbacks
+
+  var Callbacks = Kefir.Callbacks = inherit(function Callbacks(){
+    this.__subscribers = null;
+    this.__contexts = null;
+  }, Object, {
+    add: function(fn, context){
+      if (this.__subscribers === null) {
+        this.__subscribers = [];
+        this.__contexts = [];
+      }
+      this.__subscribers.push(fn);
+      this.__contexts.push(context);
+    },
+    remove: function(fn, context){
+      if (this.isEmpty()) {return}
+      for (var i = 0; i < this.__subscribers.length; i++) {
+        if (this.__subscribers[i] === fn && this.__contexts[i] === context) {
+          this.__subscribers[i] = null;
+          this.__contexts[i] = null;
+        }
+      }
+      if (isAllDead(this.__subscribers)){
+        this.__subscribers = null;
+        this.__contexts = null;
+      }
+    },
+    isEmpty: function(){
+      return this.__subscribers === null;
+    },
+    hasOne: function(){
+      return !this.isEmpty() && this.__subscribers.length === 1;
+    },
+    send: function(x){
+      if (this.isEmpty()) {return}
+      for (var i = 0, l = this.__subscribers.length; i < l; i++) {
+        var callback = this.__subscribers[i];
+        var context = this.__contexts[i];
+        if (typeof callback === "function") {
+          if(Kefir.NO_MORE === callback.call(context, x)) {
+            this.remove(callback, context);
+          }
+        }
+      }
+    }
+  });
 
 
 
@@ -103,49 +166,39 @@
       this.__onLastOut = onLastOut;
     }
 
-    this.__subscribers = [];
-    this.__contexts = [];
-    this.__endSubscribers = [];
-    this.__endContexts = [];
+    this.__subscribers = new Callbacks;
+    this.__endSubscribers = new Callbacks;
   }, Object, {
 
-    _send: function(value) {
+    _send: function(x) {
       if (!this.isEnded()) {
-        if (value === Kefir.END) {
+        if (x === Kefir.END) {
           this.__end();
         } else {
-          for (var i = 0; i < this.__subscribers.length; i++) {
-            var callback = this.__subscribers[i];
-            var context = this.__contexts[i];
-            if (typeof callback === "function") {
-              if(Kefir.NO_MORE === callback.call(context, value)) {
-                this.off(callback, context);
-              }
-            }
-          }
+          this.__deliver(x);
+        }
+      }
+    },
+    __deliver: function(x){
+      if (!this.__subscribers.isEmpty()) {
+        this.__subscribers.send(x);
+        if (this.__subscribers.isEmpty()) {
+          this.__onLastOut();
         }
       }
     },
     on: function(callback, context) {
       if (!this.isEnded()) {
-        this.__subscribers.push(callback);
-        this.__contexts.push(context);
-        if (this.__subscribers.length === 1) {
+        this.__subscribers.add(callback, context);
+        if (this.__subscribers.hasOne()) {
           this.__onFirstIn();
         }
       }
     },
     off: function(callback, context) {
       if (!this.isEnded()) {
-        for (var i = 0; i < this.__subscribers.length; i++) {
-          if (this.__subscribers[i] === callback && this.__contexts[i] === context) {
-            this.__subscribers[i] = null;
-            this.__contexts[i] = null;
-          }
-        }
-        if (isAllDead(this.__subscribers)) {
-          this.__subscribers = [];
-          this.__contexts = [];
+        this.__subscribers.remove(callback, context);
+        if (this.__subscribers.isEmpty()) {
           this.__onLastOut();
         }
       }
@@ -154,25 +207,19 @@
       if (this.isEnded()) {
         callback();
       } else {
-        this.__endSubscribers.push(callback);
-        this.__endContexts.push(context);
+        this.__endSubscribers.add(callback, context);
       }
     },
     offEnd: function(callback, context) {
       if (!this.isEnded()){
-        for (var i = 0; i < this.__endSubscribers.length; i++) {
-          if (this.__endSubscribers[i] === callback && this.__endContexts[i] === context) {
-            this.__endSubscribers[i] = null;
-            this.__endContexts[i] = null;
-          }
-        }
+        this.__endSubscribers.remove(callback, context);
       }
     },
     isEnded: function() {
       return this.__subscribers === null;
     },
     hasSubscribers: function(){
-      return !this.isEnded() && this.__subscribers.length > 0;
+      return !this.isEnded() && !this.__subscribers.isEmpty();
     },
     __onFirstIn: noop,
     __onLastOut: noop,
@@ -182,6 +229,7 @@
     __end: function() {
       if (!this.isEnded()) {
         this.__onLastOut();
+        this.__endSubscribers.send();
         if (own(this, '__onFirstIn')) {
           this.__onFirstIn = null;
         }
@@ -189,15 +237,11 @@
           this.__onLastOut = null;
         }
         this.__subscribers = null;
-        this.__contexts = null;
-        for (var i = 0; i < this.__endSubscribers.length; i++) {
-          if (typeof this.__endSubscribers[i] === "function") {
-            this.__endSubscribers[i].call(this.__endContexts[i]);
-          }
-        }
         this.__endSubscribers = null;
-        this.__endContexts = null;
       }
+    },
+    onChanges: function(callback, context){
+      this.on(callback, context);
     }
 
   });
@@ -233,8 +277,8 @@
 
   });
 
-  Kefir.once = function(value) {
-    return new OnceStream(value);
+  Kefir.once = function(x) {
+    return new OnceStream(x);
   }
 
 
@@ -257,12 +301,24 @@
       }
       this.onChanges(callback, context);
     },
-    _send: function(value) {
+    _send: function(x) {
       if (!this.isEnded()){
         this.__hasCached = true;
-        this.__cached = value;
+        this.__cached = x;
       }
-      Stream.prototype._send.call(this, value);
+      Stream.prototype._send.call(this, x);
+    },
+    toProperty: function(initialValue){
+      if (typeof initialValue !== "undefined") {
+        throw new Error("can't convert Property to Property with new initial value")
+      }
+      return this;
+    },
+    hasCached: function(){
+      return this.__hasCached;
+    },
+    getCached: function(){
+      return this.__cached;
     }
 
   })
@@ -336,11 +392,11 @@
     Stream.call(this);
     this.__generator = generator;
     var _this = this;
-    this.__deliver = function(x){  _this._send(x)  }
+    this.__send = function(x){  _this._send(x)  }
   }, Stream, {
 
     __onFirstIn: function(){
-      this.__generatorUsubscriber = this.__generator(this.__deliver);
+      this.__generatorUsubscriber = this.__generator(this.__send);
     },
     __onLastOut: function(){
       if (typeof this.__generatorUsubscriber === "function") {
@@ -351,7 +407,7 @@
     __end: function(){
       Stream.prototype.__end.call(this);
       this.__generator = null;
-      this.__deliver = null;
+      this.__send = null;
     }
 
   })
@@ -424,11 +480,11 @@
     this.__interval = interval;
     this.__intervalId = null;
     var _this = this;
-    this.__deliver = function(){  _this._send(sourceFn())  }
+    this.__send = function(){  _this._send(sourceFn())  }
   }, Stream, {
 
     __onFirstIn: function(){
-      this.__intervalId = setInterval(this.__deliver, this.__interval);
+      this.__intervalId = setInterval(this.__send, this.__interval);
     },
     __onLastOut: function(){
       if (this.__intervalId !== null){
@@ -438,7 +494,7 @@
     },
     __end: function(){
       Stream.prototype.__end.call(this);
-      this.__deliver = null;
+      this.__send = null;
     }
 
   });
@@ -451,8 +507,8 @@
 
   // Interval
 
-  Kefir.interval = function(interval, value){
-    return new FromPollStream(interval, function(){  return value });
+  Kefir.interval = function(interval, x){
+    return new FromPollStream(interval, function(){  return x });
   }
 
 
@@ -486,32 +542,67 @@
 
   // Map
 
-  var MappedStream = Kefir.MappedStream = inherit(function MappedStream(sourceStream, mapFn){
-    Stream.call(this)
-    this.__sourceStream = sourceStream;
-    this.__mapFn = mapFn;
-    sourceStream.onEnd(this.__sendEnd, this);
-  }, Stream, {
-
-    __mapAndSend: function(x){
-      this._send( this.__mapFn(x) );
+  var withHandlerMixin = {
+    __Constructor: function(source) {
+      this.__source = source;
+      source.onEnd(this.__sendEnd, this);
+      if (source instanceof Property) {
+        if (!(this instanceof Property)) {
+          throw new Error('`this` should be a Property');
+        }
+        if (source.hasCached()) {
+          this.__handle(source.getCached());
+        }
+      }
     },
+    __handle: noop,
     __onFirstIn: function(){
-      this.__sourceStream.on(this.__mapAndSend, this);
+      this.__source.onChanges(this.__handle, this);
     },
     __onLastOut: function(){
-      this.__sourceStream.off(this.__mapAndSend, this);
+      this.__source.off(this.__handle, this);
+    },
+    __end: function(){
+      this.__source = null;
+    }
+  }
+
+  var mapMixin = extend({}, withHandlerMixin, {
+    __Constructor: function(source, mapFn){
+      if (source instanceof Property) {
+        Property.call(this);
+      } else {
+        Stream.call(this);
+      }
+      this.__mapFn = mapFn;
+      withHandlerMixin.__Constructor.call(this, source);
+    },
+    __handle: function(x){
+      this._send( this.__mapFn(x) );
     },
     __end: function(){
       Stream.prototype.__end.call(this);
-      this.__sourceStream = null;
+      withHandlerMixin.__end.call(this);
       this.__mapFn = null;
     }
-
   });
 
-  Kefir.map = function(stream, mapFn) {
-    return new MappedStream(stream, mapFn);
+  var MappedStream = Kefir.MappedStream = inherit(
+    function MappedStream(){mapMixin.__Constructor.apply(this, arguments)},
+    Stream, mapMixin
+  );
+
+  var MappedProperty = Kefir.MappedProperty = inherit(
+    function MappedProperty(){mapMixin.__Constructor.apply(this, arguments)},
+    Property, mapMixin
+  );
+
+  Kefir.map = function(source, mapFn) {
+    if (source instanceof Property) {
+      return new MappedProperty(source, mapFn);
+    } else {
+      return new MappedStream(source, mapFn);
+    }
   }
 
   Stream.prototype.map = function(fn) {
@@ -522,22 +613,34 @@
 
 
 
+
+
   // Filter
 
-  var FilteredStream = Kefir.FilteredStream = inherit(function FilteredStream(sourceStream, filterFn){
-    MappedStream.call(this, sourceStream, filterFn);
-  }, MappedStream, {
-
-    __mapAndSend: function(x){
+  var filterMixin = extend({}, mapMixin, {
+    __handle: function(x){
       if (this.__mapFn(x)) {
         this._send(x);
       }
     }
-
   });
 
-  Kefir.filter = function(stream, filterFn) {
-    return new FilteredStream(stream, filterFn);
+  var FilteredStream = Kefir.FilteredStream = inherit(
+    function FilteredStream(){this.__Constructor.apply(this, arguments)},
+    Stream, filterMixin
+  );
+
+  var FilteredProperty = Kefir.FilteredProperty = inherit(
+    function FilteredProperty(){this.__Constructor.apply(this, arguments)},
+    Property, filterMixin
+  );
+
+  Kefir.filter = function(source, filterFn) {
+    if (source instanceof Property) {
+      return new FilteredProperty(source, filterFn);
+    } else {
+      return new FilteredStream(source, filterFn);
+    }
   }
 
   Stream.prototype.filter = function(fn) {
@@ -547,24 +650,35 @@
 
 
 
+
   // TakeWhile
 
-  var TakeWhileStream = Kefir.TakeWhileStream = inherit(function TakeWhileStream(sourceStream, filterFn){
-    MappedStream.call(this, sourceStream, filterFn);
-  }, MappedStream, {
-
-    __mapAndSend: function(x){
+  var takeWhileMixin = extend({}, mapMixin, {
+    __handle: function(x){
       if (this.__mapFn(x)) {
         this._send(x);
       } else {
         this._send(Kefir.END);
       }
     }
-
   });
 
-  Kefir.takeWhile = function(stream, filterFn) {
-    return new TakeWhileStream(stream, filterFn);
+  var TakeWhileStream = Kefir.TakeWhileStream = inherit(
+    function TakeWhileStream(){this.__Constructor.apply(this, arguments)},
+    Stream, takeWhileMixin
+  );
+
+  var TakeWhileProperty = Kefir.TakeWhileProperty = inherit(
+    function TakeWhileProperty(){this.__Constructor.apply(this, arguments)},
+    Property, takeWhileMixin
+  );
+
+  Kefir.takeWhile = function(source, filterFn) {
+    if (source instanceof Property) {
+      return new TakeWhileProperty(source, filterFn);
+    } else {
+      return new TakeWhileStream(source, filterFn);
+    }
   }
 
   Stream.prototype.takeWhile = function(fn) {
@@ -576,8 +690,8 @@
 
   // Take
 
-  Kefir.take = function(stream, n) {
-    return new TakeWhileStream(stream, function(){
+  Kefir.take = function(source, n) {
+    return source.takeWhile(function(){
       return n-- > 0;
     });
   }
@@ -754,9 +868,9 @@
       var _this = this;
       return function(){  _this.__unplug(i)  }
     },
-    __receive: function(i, value) {
+    __receive: function(i, x) {
       this.__hasCached[i] = true;
-      this.__cachedValues[i] = value;
+      this.__cachedValues[i] = x;
       if (this.__allCached()) {
         if (typeof this.__mapFn === "function") {
           this._send(this.__mapFn.apply(null, this.__cachedValues));
@@ -767,8 +881,8 @@
     },
     __receiveFor: function(i) {
       var _this = this;
-      return function(value){
-        _this.__receive(i, value);
+      return function(x){
+        _this.__receive(i, x);
       }
     },
     __allCached: function(){
@@ -1146,6 +1260,47 @@ describe("Filter:", function(){
   }, 100);
 
 
+
+  it("works with properties", function(done){
+
+    var property = helpers.sampleStream([1, 2, 3, 4, Kefir.END]).toProperty(6);
+
+    var filtered = property.filter(function(x){
+      return x % 2 === 0;
+    })
+
+    expect(filtered instanceof Kefir.Property).toBe(true);
+    expect(filtered.getCached()).toBe(6);
+
+    helpers.captureOutput(filtered, function(values){
+      expect(values).toEqual([6, 2, 4]);
+      done();
+    });
+
+  }, 100);
+
+
+
+  it("works with properties 2", function(done){
+
+    var property = helpers.sampleStream([1, 2, 3, 4, Kefir.END]).toProperty(5);
+
+    var filtered = property.filter(function(x){
+      return x % 2 === 0;
+    })
+
+    expect(filtered instanceof Kefir.Property).toBe(true);
+    expect(filtered.hasCached()).toBe(false);
+
+    helpers.captureOutput(filtered, function(values){
+      expect(values).toEqual([2, 4]);
+      done();
+    });
+
+  }, 100);
+
+
+
 });
 
 },{"../../src/kefir.js":1,"../test-helpers":19}],6:[function(require,module,exports){
@@ -1273,6 +1428,25 @@ describe("Map:", function(){
     });
 
   }, 100);
+
+
+  it("produce Property from Property", function(done){
+
+    var property = helpers.sampleStream([1, 2, Kefir.END]).toProperty(5);
+    var mapped = property.map(function(x){
+      return x*2;
+    })
+
+    expect(mapped instanceof Kefir.Property).toBe(true);
+    expect(mapped.getCached()).toBe(10);
+
+    helpers.captureOutput(mapped, function(values){
+      expect(values).toEqual([10, 2, 4]);
+      done();
+    });
+
+  }, 100);
+
 
 
   it("with temporary all unsubscribed", function(done){
@@ -1497,6 +1671,21 @@ describe("Property:", function(){
     bus.end();
 
   }, 100);
+
+
+
+  it("property.toProperty()", function() {
+
+    var bus = new Kefir.Bus;
+    var property = bus.toProperty(1);
+
+    expect(property.toProperty()).toBe(property);
+    expect(function(){
+      property.toProperty(2);
+    }).toThrow();
+
+  });
+
 
 
 

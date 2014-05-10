@@ -20,6 +20,25 @@ describe("Map:", function(){
   }, 100);
 
 
+  it("produce Property from Property", function(done){
+
+    var property = helpers.sampleStream([1, 2, Kefir.END]).toProperty(5);
+    var mapped = property.map(function(x){
+      return x*2;
+    })
+
+    expect(mapped instanceof Kefir.Property).toBe(true);
+    expect(mapped.getCached()).toBe(10);
+
+    helpers.captureOutput(mapped, function(values){
+      expect(values).toEqual([10, 2, 4]);
+      done();
+    });
+
+  }, 100);
+
+
+
   it("with temporary all unsubscribed", function(done){
 
     var bus = new Kefir.Bus;

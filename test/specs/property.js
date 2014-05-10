@@ -82,4 +82,19 @@ describe("Property:", function(){
 
 
 
+  it("property.toProperty()", function() {
+
+    var bus = new Kefir.Bus;
+    var property = bus.toProperty(1);
+
+    expect(property.toProperty()).toBe(property);
+    expect(function(){
+      property.toProperty(2);
+    }).toThrow();
+
+  });
+
+
+
+
 });
