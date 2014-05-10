@@ -97,6 +97,12 @@
     return toArray(args);
   }
 
+  function assert(condition, message) {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+
 
 
 
@@ -308,9 +314,10 @@
       Stream.prototype._send.call(this, x);
     },
     toProperty: function(initialValue){
-      if (typeof initialValue !== "undefined") {
-        throw new Error("can't convert Property to Property with new initial value")
-      }
+      assert(
+        typeof initialValue === "undefined",
+        "can't convert Property to Property with new initial value"
+      )
       return this;
     },
     hasCached: function(){
@@ -546,9 +553,7 @@
       this.__source = source;
       source.onEnd(this.__sendEnd, this);
       if (source instanceof Property) {
-        if (!(this instanceof Property)) {
-          throw new Error('`this` should be a Property');
-        }
+        assert(this instanceof Property, "`this` should be a Property")
         if (source.hasCached()) {
           this.__handle(source.getCached());
         }
@@ -587,12 +592,12 @@
   });
 
   var MappedStream = Kefir.MappedStream = inherit(
-    function MappedStream(){mapMixin.__Constructor.apply(this, arguments)},
+    function MappedStream(){this.__Constructor.apply(this, arguments)},
     Stream, mapMixin
   );
 
   var MappedProperty = Kefir.MappedProperty = inherit(
-    function MappedProperty(){mapMixin.__Constructor.apply(this, arguments)},
+    function MappedProperty(){this.__Constructor.apply(this, arguments)},
     Property, mapMixin
   );
 
