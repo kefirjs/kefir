@@ -1,0 +1,44 @@
+{
+  "name": "kefir",
+  "version": "0.1.2",
+  "homepage": "https://github.com/pozadi/kefir",
+  "authors": [
+    "Roman Pominov <rpominov@gmail.com>"
+  ],
+  "description": "Bacon.js inspired FRP library with less memory consumption",
+  "main": "dist/kefir.js",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "frp",
+    "bacon",
+    "bacon.js",
+    "kefir",
+    "kefir.js",
+    "functional",
+    "reactive",
+    "stream",
+    "streams",
+    "EventStream",
+    "Rx",
+    "RxJs",
+    "Observable"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "playground",
+    ".grunt",
+    "dist/test",
+    "src",
+    "test-memory-usage.js",
+    "Gruntfile.coffee",
+    ""
+  ]
+}
