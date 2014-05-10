@@ -92,4 +92,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
   grunt.registerTask 'release-patch', ['bump', 'release']
+  grunt.registerTask 'release-minor', ['bump:minor', 'release']
+  grunt.registerTask 'release-major', ['bump:major', 'release']
+  grunt.registerTask 'release-pre', ['bump:prerelease', 'release']
   grunt.registerTask 'default', ['clean', 'build-browser-tests', 'build-kefir', 'test']

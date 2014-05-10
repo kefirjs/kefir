@@ -233,6 +233,9 @@
     onChanges: function(callback, context){
       this.on(callback, context);
     },
+    onValue: function(callback, context){
+      this.on(callback, context);
+    },
     off: function(callback, context) {
       if (!this.isEnded()) {
         this.__subscribers.remove(callback, context);
