@@ -211,7 +211,7 @@
     },
     onEnd: function(callback, context) {
       if (this.isEnded()) {
-        callback();
+        callback.call(context);
       } else {
         this.__endSubscribers.add(callback, context);
       }
