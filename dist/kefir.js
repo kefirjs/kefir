@@ -1,4 +1,4 @@
-/*! kefir - 0.1.5
+/*! kefir - 0.1.6
  *  https://github.com/pozadi/kefir
  */
 (function(global){
@@ -335,7 +335,7 @@
     },
     on: function(callback, context) {
       if (this.__hasCached) {
-        callback(this.__cached);
+        callback.call(context, this.__cached);
       }
       this.onChanges(callback, context);
     },

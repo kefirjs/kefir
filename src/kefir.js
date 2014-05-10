@@ -332,7 +332,7 @@
     },
     on: function(callback, context) {
       if (this.__hasCached) {
-        callback(this.__cached);
+        callback.call(context, this.__cached);
       }
       this.onChanges(callback, context);
     },
