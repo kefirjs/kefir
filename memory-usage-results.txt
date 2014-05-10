@@ -32,9 +32,9 @@ Kefir: 0.01 Mb
 Bacon: 4.71 Mb
 
 .combineAsArray(bus, bus, bus, bus).onValue(noop) x1000
-Kefir: 1.01 Mb
-Bacon: 29.05 Mb
+Kefir: 5.31 Mb
+Bacon: 29.16 Mb
 
 .mergeAll(bus, bus, bus, bus).onValue(noop) x1000
-Kefir: 4.53 Mb
-Bacon: 38.34 Mb
+Kefir: 4.51 Mb
+Bacon: 38.33 Mb

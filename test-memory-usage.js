@@ -349,7 +349,7 @@ begin()
 var a = (function() {
   var result = new Array(1000);
   for (var i = 0; i < result.length; i++) {
-    result[i] = Kefir.combine(new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus());
+    result[i] = Kefir.combine([new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus()]);
     result[i].on(noop)
   };
   return result;
