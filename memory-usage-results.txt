@@ -1,10 +1,10 @@
 
 new Bus().map(noop) x1000
 Kefir: 0.67 Mb
-Bacon: 8.70 Mb
+Bacon: 8.68 Mb
 
 new Kefir.Bus().take(5) x1000
-Kefir: 0.76 Mb
+Kefir: 0.77 Mb
 Bacon: 8.50 Mb
 
 new Bus().onValue(noop) x1000
@@ -20,7 +20,7 @@ Kefir: 0.66 Mb
 Bacon: 8.11 Mb
 
 .fromBinder(noop).combine(Kefir.fromBinder(noop), noop) x1000
-Kefir: 2.14 Mb
+Kefir: 1.88 Mb
 Bacon: 18.89 Mb
 
 .once(1).onValue(noop) x1000

@@ -41,50 +41,6 @@ function end(name){
 
 
 
-// begin('nothing 1')
-// end('nothing 1')
-
-// begin('nothing 2')
-// end('nothing 2')
-
-// begin('nothing 3')
-// end('nothing 3')
-
-// begin('nothing 4')
-// end('nothing 4')
-
-// begin('nothing 5')
-// end('nothing 5')
-
-
-// begin('empty array')
-// var a = [];
-// end('empty array')
-
-
-// begin('empty fn')
-// var b = function(){};
-// end('empty fn')
-
-
-// begin('empty object')
-// var c = {};
-// end('empty object')
-
-
-// begin('remove empty array')
-// var a = null;
-// global.gc()
-// end('remove empty array')
-
-
-// begin('nothing 6')
-// end('nothing 6')
-
-
-// begin('nothing 7')
-// end('nothing 7')
-
 
 
 function noop(){}
