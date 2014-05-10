@@ -29,6 +29,7 @@ module.exports = function(grunt){
     run('grunt') // lol
     run('git add .')
     run('git commit -m "'+ pkg.version +'"');
+    run('git push');
 
   });
 };
