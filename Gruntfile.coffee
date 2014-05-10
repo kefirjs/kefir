@@ -62,11 +62,34 @@ module.exports = (grunt) ->
       main:
         src: ['.grunt', 'dist']
 
+    release:
+      options:
+        bump: false, # default: true
+        # file: 'component.json', # default: package.json
+        add: false, # default: true
+        commit: false, # default: true
+        # tag: false, # default: true
+        push: false, # default: true
+        # pushTags: false, # default: true
+        # npm: false, # default: true
+        # npmtag: true, # default: no tag
+        # folder: 'folder/to/publish/to/npm', # default project root
+        # tagName: 'some-tag-<%= version %>', # default: '<%= version %>'
+        # commitMessage: 'check out my release <%= version %>', # default: 'release <%= version %>'
+        # tagMessage: 'tagging version <%= version %>', # default: 'Version <%= version %>',
+        # github:
+        #   repo: 'pozadi/kefir', //put your user/repo here
+        #   usernameVar: 'GITHUB_USERNAME', //ENVIRONMENT VARIABLE that contains Github username
+        #   passwordVar: 'GITHUB_PASSWORD' //ENVIRONMENT VARIABLE that contains Github password
+
+
   )
 
   require("load-grunt-tasks")(grunt)
+  grunt.loadTasks("grunt-tasks")
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests', 'jasmine:main:build']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
+  grunt.registerTask 'release-patch', ['bump', 'release']
   grunt.registerTask 'default', ['clean', 'build-browser-tests', 'build-kefir', 'test']
