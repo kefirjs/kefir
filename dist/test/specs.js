@@ -1491,27 +1491,6 @@ if (typeof window !== 'undefined'){
 
   describe("jQuery::eventStream()", function(){
 
-    // it("works", function(done){
-
-    //   // var stream1 = helpers.sampleStream([1, Kefir.END]);
-    //   // var stream2 = Kefir.interval(30, 2).take(2);
-    //   // var stream3 = Kefir.interval(45, 3).take(2);
-
-    //   // // -1----------
-    //   // // ---2---2----
-    //   // // -----3-----3
-    //   // var merged = stream1.merge(stream2, stream3);
-
-    //   // helpers.captureOutput(merged, function(values){
-    //   //   expect(values).toEqual([1, 2, 3, 2, 3]);
-    //   //   done();
-    //   // });
-
-    //   jQuery('body').eventStream('')
-
-    //   done();
-
-    // }, 200);
 
     it("jquery itself works", function(){
 
@@ -1568,7 +1547,7 @@ if (typeof window !== 'undefined'){
 
       var stream = jQuery('body')
         .eventStream('click', '.my-button', function(event){
-          return this === event.currentTarget && jQuery(this).hasClass('my-button1');
+          return this === event.currentTarget && jQuery(this).hasClass('my-button');
         }).take(2);
 
       helpers.captureOutput(stream, function(values){
@@ -1585,19 +1564,6 @@ if (typeof window !== 'undefined'){
       $btn.remove()
 
     });
-
-
-
-    // it("just event name and selector", function(done){
-
-    //   var stream = jQuery('body', ).eventStream('click').take(2);
-
-    //   helpers.captureOutput(stream, function(values){
-    //     expect(values.length).toBe(2);
-    //     done();
-    //   });
-
-    // });
 
 
   });
