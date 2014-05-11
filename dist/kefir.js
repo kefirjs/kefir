@@ -192,9 +192,9 @@
 
 
 
-  // Base Stream class
+  // Base Observable class
 
-  var Stream = Kefir.Stream = inherit(function Stream(onFirstIn, onLastOut){
+  var Observable = Kefir.Observable = inherit(function Observable(onFirstIn, onLastOut){
 
     // __onFirstIn, __onLastOut can also be added to prototype of child classes
     if (isFn(onFirstIn)) {
@@ -234,6 +234,9 @@
       }
     },
     onChanges: function(callback, context){
+      this.on(callback, context);
+    },
+    onValue: function(callback, context){
       this.on(callback, context);
     },
     off: function(callback, context) {
@@ -287,6 +290,14 @@
 
 
 
+  // Stream
+
+  var Stream = Kefir.Stream = inherit(function Stream(){
+    Observable.apply(this, arguments);
+  }, Observable, {});
+
+
+
 
 
   // Never
@@ -325,13 +336,13 @@
   // Property
 
   var Property = Kefir.Property = inherit(function Property(onFirstIn, onLastOut, initial){
-    Stream.call(this, onFirstIn, onLastOut);
+    Observable.call(this, onFirstIn, onLastOut);
     this.__hasCached = (typeof initial !== "undefined");
     this.__cached = initial;
-  }, Stream, {
+  }, Observable, {
 
     onChanges: function(callback, context){
-      Stream.prototype.on.call(this, callback, context);
+      Observable.prototype.on.call(this, callback, context);
     },
     on: function(callback, context) {
       if (this.__hasCached) {
@@ -344,7 +355,7 @@
         this.__hasCached = true;
         this.__cached = x;
       }
-      Stream.prototype._send.call(this, x);
+      Observable.prototype._send.call(this, x);
     },
     toProperty: function(initial){
       assert(
@@ -593,7 +604,7 @@
     Property, mapMixin
   );
 
-  Stream.prototype.map = function(fn) {
+  Observable.prototype.map = function(fn) {
     if (this instanceof Property) {
       return new Kefir.MappedProperty(this, fn);
     } else {
@@ -627,7 +638,7 @@
     Property, filterMixin
   );
 
-  Stream.prototype.filter = function(fn) {
+  Observable.prototype.filter = function(fn) {
     if (this instanceof Property) {
       return new Kefir.FilteredProperty(this, fn);
     } else {
@@ -661,7 +672,7 @@
     Property, takeWhileMixin
   );
 
-  Stream.prototype.takeWhile = function(fn) {
+  Observable.prototype.takeWhile = function(fn) {
     if (this instanceof Property) {
       return new Kefir.TakeWhileProperty(this, fn);
     } else {
@@ -674,7 +685,7 @@
 
   // Take
 
-  Stream.prototype.take = function(n) {
+  Observable.prototype.take = function(n) {
     return this.takeWhile(function(){
       return n-- > 0;
     })
@@ -733,7 +744,7 @@
 
   });
 
-  Stream.prototype.flatMap = function(fn) {
+  Observable.prototype.flatMap = function(fn) {
     return new Kefir.FlatMappedStream(this, fn);
   };
 
@@ -884,7 +895,7 @@
     return new Kefir.CombinedStream(sources, mapFn);
   }
 
-  Stream.prototype.combine = function(sources, mapFn) {
+  Observable.prototype.combine = function(sources, mapFn) {
     return Kefir.combine([this].concat(sources), mapFn);
   }
 
@@ -894,7 +905,7 @@
 
   // Log
 
-  Stream.prototype.log = function(text) {
+  Observable.prototype.log = function(text) {
     function log(value){
       if (text) {
         console.log(text, value);
