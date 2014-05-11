@@ -212,4 +212,4 @@ https://github.com/baconjs/bacon.js/issues/272
 
 https://github.com/baconjs/bacon.js/issues/265
 
-:question:
+:question: / :bike:

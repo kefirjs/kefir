@@ -104,8 +104,21 @@
     }
   }
 
+  function assertStream(stream){
+    assert(stream instanceof Stream, "not a Stream: " + stream)
+  }
+
+  function assertProperty(property){
+    assert(property instanceof Property, "not a Property: " + property)
+  }
+
   function isFn(fn) {
     return typeof fn === "function";
+  }
+
+  function withName(name, obj){
+    obj.__objName = name;
+    return obj;
   }
 
 
@@ -208,6 +221,7 @@
     this.__endSubscribers = new Callbacks;
   }, Object, {
 
+    __ClassName: 'Observable',
     _send: function(x) {
       if (!this.isEnded()) {
         if (x === Kefir.END) {
@@ -283,6 +297,9 @@
         this.__subscribers = null;
         this.__endSubscribers = null;
       }
+    },
+    toString: function(){
+      return '[' + this.__ClassName + (this.__objName ? (' | ' + this.__objName) : '') + ']';
     }
 
   });
@@ -294,7 +311,9 @@
 
   var Stream = Kefir.Stream = inherit(function Stream(){
     Observable.apply(this, arguments);
-  }, Observable, {});
+  }, Observable, {
+    __ClassName: 'Stream'
+  });
 
 
 
@@ -304,6 +323,7 @@
 
   var neverObj = createObj(Stream.prototype);
   neverObj.__subscribers = null;
+  neverObj.__objName = 'Kefir.never()'
   Kefir.never = function() {
     return neverObj;
   }
@@ -318,6 +338,8 @@
     this.__value = value;
   }, Stream, {
 
+    __ClassName: 'OnceStream',
+    __objName: 'Kefir.once(x)',
     __onFirstIn: function(){
       this._send(this.__value);
       this.__value = null;
@@ -341,6 +363,7 @@
     this.__cached = initial;
   }, Observable, {
 
+    __ClassName: 'Property',
     onChanges: function(callback, context){
       Observable.prototype.on.call(this, callback, context);
     },
@@ -374,10 +397,13 @@
   })
 
   Kefir.PropertyFromStream = inherit(function PropertyFromStream(source, initial){
+    assertStream(source);
     Property.call(this, null, null, initial);
     this.__Constructor.call(this, source);
   }, Property, extend({}, withHandlerMixin, {
 
+    __ClassName: 'PropertyFromStream',
+    __objName: 'stream.toProperty()',
     __end: function(){
       Property.prototype.__end.call(this);
       withHandlerMixin.__end.call(this);
@@ -395,10 +421,13 @@
   // Property::changes()
 
   Kefir.ChangesStream = inherit(function ChangesStream(source){
+    assertProperty(source);
     Stream.call(this);
     this.__Constructor.call(this, source);
   }, Stream, extend({}, withHandlerMixin, {
 
+    __ClassName: 'ChangesStream',
+    __objName: 'property.changes()',
     __end: function(){
       Stream.prototype.__end.call(this);
       withHandlerMixin.__end.call(this);
@@ -421,6 +450,8 @@
     this.__subscribe = subscribe;
   }, Stream, {
 
+    __ClassName: 'FromBinderStream',
+    __objName: 'Kefir.fromBinder(subscribe)',
     __onFirstIn: function(){
       var _this = this;
       this.__usubscriber = this.__subscribe(function(x){
@@ -458,6 +489,8 @@
     this.__plugged = [];
   }, Stream, {
 
+    __ClassName: 'Bus',
+    __objName: 'Kefir.bus()',
     push: function(x){
       this._send(x)
     },
@@ -515,6 +548,8 @@
     this.__send = function(){  _this._send(sourceFn())  }
   }, Stream, {
 
+    __ClassName: 'FromPollStream',
+    __objName: 'Kefir.fromPoll(interval, fn)',
     __onFirstIn: function(){
       this.__intervalId = setInterval(this.__send, this.__interval);
     },
@@ -531,8 +566,8 @@
 
   });
 
-  Kefir.fromPoll = function(interval, sourceFn){
-    return new FromPollStream(interval, sourceFn);
+  Kefir.fromPoll = function(interval, fn){
+    return withName('Kefir.fromPoll(interval, fn)', new FromPollStream(interval, fn));
   }
 
 
@@ -540,33 +575,33 @@
   // Interval
 
   Kefir.interval = function(interval, x){
-    return new FromPollStream(interval, function(){  return x });
+    return withName('Kefir.interval(interval, x)', new FromPollStream(interval, function(){  return x }));
   }
 
 
 
   // Sequentially
 
-  Kefir.sequentially = function(interval, values){
-    values = values.slice(0);
-    return new FromPollStream(interval, function(){
-      if (values.length === 0){
+  Kefir.sequentially = function(interval, xs){
+    xs = xs.slice(0);
+    return withName('Kefir.sequentially(interval, xs)', new FromPollStream(interval, function(){
+      if (xs.length === 0){
         return Kefir.END;
       } else {
-        return values.shift();
+        return xs.shift();
       }
-    });
+    }));
   }
 
 
 
   // Repeatedly
 
-  Kefir.repeatedly = function(interval, values){
+  Kefir.repeatedly = function(interval, xs){
     var i = -1;
-    return new FromPollStream(interval, function(){
-      return values[++i % values.length];
-    });
+    return withName('Kefir.repeatedly(interval, xs)', new FromPollStream(interval, function(){
+      return xs[++i % xs.length];
+    }));
   }
 
 
@@ -598,11 +633,14 @@
     function MappedStream(){this.__Constructor.apply(this, arguments)},
     Stream, mapMixin
   );
+  Kefir.MappedStream.prototype.__ClassName = 'MappedStream'
 
   Kefir.MappedProperty = inherit(
     function MappedProperty(){this.__Constructor.apply(this, arguments)},
     Property, mapMixin
   );
+  Kefir.MappedProperty.prototype.__ClassName = 'MappedProperty'
+
 
   Observable.prototype.map = function(fn) {
     if (this instanceof Property) {
@@ -632,11 +670,13 @@
     function FilteredStream(){this.__Constructor.apply(this, arguments)},
     Stream, filterMixin
   );
+  Kefir.FilteredStream.prototype.__ClassName = 'FilteredStream'
 
   Kefir.FilteredProperty = inherit(
     function FilteredProperty(){this.__Constructor.apply(this, arguments)},
     Property, filterMixin
   );
+  Kefir.FilteredProperty.prototype.__ClassName = 'FilteredProperty'
 
   Observable.prototype.filter = function(fn) {
     if (this instanceof Property) {
@@ -666,11 +706,13 @@
     function TakeWhileStream(){this.__Constructor.apply(this, arguments)},
     Stream, takeWhileMixin
   );
+  Kefir.TakeWhileStream.prototype.__ClassName = 'TakeWhileStream'
 
   Kefir.TakeWhileProperty = inherit(
     function TakeWhileProperty(){this.__Constructor.apply(this, arguments)},
     Property, takeWhileMixin
   );
+  Kefir.TakeWhileProperty.prototype.__ClassName = 'TakeWhileProperty'
 
   Observable.prototype.takeWhile = function(fn) {
     if (this instanceof Property) {
@@ -686,9 +728,9 @@
   // Take
 
   Observable.prototype.take = function(n) {
-    return this.takeWhile(function(){
+    return withName('observable.take(n)', this.takeWhile(function(){
       return n-- > 0;
-    })
+    }))
   };
 
 
@@ -706,6 +748,8 @@
     sourceStream.onEnd(this.__sendEnd, this);
   }, Stream, {
 
+    __ClassName: 'FlatMappedStream',
+    __objName: 'observable.flatMap(fn)',
     __plugResult: function(x){
       this.__plug(  this.__mapFn(x)  );
     },
@@ -761,12 +805,15 @@
     Stream.call(this)
     this.__sources = firstArrOrToArr(arguments);
     for (var i = 0; i < this.__sources.length; i++) {
+      assertStream(this.__sources[i]);
       this.__sources[i].onEnd(
         this.__unplugFor(this.__sources[i])
       );
     }
   }, Stream, {
 
+    __ClassName: 'MergedStream',
+    __objName: 'Kefir.merge(streams)',
     __onFirstIn: function(){
       for (var i = 0; i < this.__sources.length; i++) {
         this.__sources[i].on(this._send, this);
@@ -829,6 +876,8 @@
 
   }, Stream, {
 
+    __ClassName: 'CombinedStream',
+    __objName: 'Kefir.combine(streams, fn)',
     __onFirstIn: function(){
       for (var i = 0; i < this.__sources.length; i++) {
         if (this.__sources[i]) {
