@@ -1,40 +1,48 @@
 
-new Bus().map(noop) x1000
-Kefir: 0.67 Mb
-Bacon: 8.68 Mb
+new Bus() x1000
+Kefir: w/o subscr. 0.17 Mb, w. subscr. 0.51 Mb
+Bacon: w/o subscr. 3.56 Mb, w. subscr. 4.19 Mb
 
-new Kefir.Bus().take(5) x1000
-Kefir: 0.77 Mb
-Bacon: 8.50 Mb
-
-new Bus().onValue(noop) x1000
-Kefir: 0.52 Mb
-Bacon: 4.20 Mb
-
-new Bus().flatMap(noop).onValue(noop) x1000
-Kefir: 1.39 Mb
-Bacon: 8.51 Mb
+.fromBinder(noop) x1000
+Kefir: w/o subscr. 0.12 Mb, w. subscr. 0.51 Mb
+Bacon: w/o subscr. 2.77 Mb, w. subscr. 3.50 Mb
 
 new Bus().toProperty(1) x1000
-Kefir: 0.66 Mb
-Bacon: 8.11 Mb
+Kefir: w/o subscr. 0.66 Mb, w. subscr. 1.36 Mb
+Bacon: w/o subscr. 8.11 Mb, w. subscr. 9.83 Mb
 
-.fromBinder(noop).combine(Kefir.fromBinder(noop), noop) x1000
-Kefir: 1.88 Mb
-Bacon: 18.89 Mb
+new Bus().map(noop) x1000
+Kefir: w/o subscr. 0.64 Mb, w. subscr. 1.33 Mb
+Bacon: w/o subscr. 8.58 Mb, w. subscr. 10.09 Mb
 
-.once(1).onValue(noop) x1000
-Kefir: 0.09 Mb
-Bacon: 4.65 Mb
+new Bus().filter(noop) x1000
+Kefir: w/o subscr. 0.63 Mb, w. subscr. 1.33 Mb
+Bacon: w/o subscr. 8.55 Mb, w. subscr. 10.08 Mb
 
-.never().onValue(noop) x1000
-Kefir: 0.01 Mb
-Bacon: 4.71 Mb
+new Kefir.Bus().take(5) x1000
+Kefir: w/o subscr. 0.78 Mb, w. subscr. 1.47 Mb
+Bacon: w/o subscr. 8.48 Mb, w. subscr. 10.02 Mb
 
-.combineAsArray(bus, bus, bus, bus).onValue(noop) x1000
-Kefir: 5.31 Mb
-Bacon: 29.16 Mb
+new Bus().flatMap(noop) x1000
+Kefir: w/o subscr. 0.66 Mb, w. subscr. 1.37 Mb
+Bacon: w/o subscr. 6.20 Mb, w. subscr. 8.46 Mb
 
-.mergeAll(bus, bus, bus, bus).onValue(noop) x1000
-Kefir: 4.51 Mb
-Bacon: 38.33 Mb
+.fromBinder(noop).combine(Kefir.fromBinder(noop), noop) x500
+Kefir: w/o subscr. 0.95 Mb, w. subscr. 1.48 Mb
+Bacon: w/o subscr. 9.70 Mb, w. subscr. 12.01 Mb
+
+.once(1) x1000
+Kefir: w/o subscr. 0.11 Mb, w. subscr. 0.07 Mb
+Bacon: w/o subscr. 3.86 Mb, w. subscr. 4.64 Mb
+
+.never() x1000
+Kefir: w/o subscr. 0.00 Mb, w. subscr. -0.00 Mb
+Bacon: w/o subscr. 3.81 Mb, w. subscr. 4.71 Mb
+
+.combineAsArray(bus, bus, bus, bus) x300
+Kefir: w/o subscr. 1.07 Mb, w. subscr. 1.58 Mb
+Bacon: w/o subscr. 6.94 Mb, w. subscr. 8.73 Mb
+
+.mergeAll(bus, bus, bus, bus) x300
+Kefir: w/o subscr. 0.84 Mb, w. subscr. 1.36 Mb
+Bacon: w/o subscr. 8.89 Mb, w. subscr. 11.52 Mb

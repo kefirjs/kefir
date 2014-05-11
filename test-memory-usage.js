@@ -31,334 +31,222 @@ function end(name){
   // report += '  heapTotal ' + diff(__lastMemoryUsageCache.heapTotal, now.heapTotal) + '\n';
   // report += '  rss ' + diff(__lastMemoryUsageCache.rss, now.rss) + '\n';
 
-  var report = name + ': ' + diff(__lastMemoryUsageCache.heapUsed, now.heapUsed)
+  // var report = name + ': ' + diff(__lastMemoryUsageCache.heapUsed, now.heapUsed)
 
   // var report = name + ': ' + diff(__lastMemoryUsageCache, now)
 
-  console.log(report);
+  // console.log(report);
+  return diff(__lastMemoryUsageCache.heapUsed, now.heapUsed);
 }
 
 
 
+function createNObservable(msg, n, generator){
+  var objects = new Array(n);
+  begin()
+  for (var i = 0; i < objects.length; i++) {
+    objects[i] = generator(i);
+  }
+  var withoutSubscribers = end()
+  var objects = null;
+  global.gc();
 
+  var objects = new Array(n);
+  begin()
+  for (var i = 0; i < objects.length; i++) {
+    objects[i] = generator(i);
+    objects[i].onValue(noop);
+  }
+  var withSubscribers = end()
+  var objects = null;
+  global.gc();
 
+  console.log(msg + ': w/o subscr. ' + withoutSubscribers + ', w. subscr. ' + withSubscribers);
+}
 
 function noop(){}
 
 
 
-console.log('\nnew Bus().map(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Kefir.Bus().map(noop)
-  };
-  return result;
-}())
-end('Kefir')
 
-var a = null;
-global.gc();
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Bacon.Bus().map(noop)
-  };
-  return result;
-}())
-end('Bacon')
+console.log('\nnew Bus() x1000')
 
-var a = null;
-global.gc();
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus();
+})
+
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus();
+})
 
 
 
 
-console.log('\nnew Kefir.Bus().take(5) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Kefir.Bus().take(5)
-  };
-  return result;
-}())
-end('Kefir')
+console.log('\n.fromBinder(noop) x1000')
 
-var a = null;
-global.gc();
+createNObservable('Kefir', 1000, function(){
+  return Kefir.fromBinder(noop);
+})
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Bacon.Bus().take(5)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
-
-
-
-
-console.log('\nnew Bus().onValue(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Kefir.Bus()
-    result[i].on(noop)
-  };
-  return result;
-}())
-end('Kefir')
-
-var a = null;
-global.gc();
-
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Bacon.Bus()
-    result[i].onValue(noop)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
-
-
-
-
-console.log('\nnew Bus().flatMap(noop).onValue(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Kefir.Bus().flatMap(noop)
-    result[i].on(noop)
-  };
-  return result;
-}())
-end('Kefir')
-
-var a = null;
-global.gc();
-
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Bacon.Bus().flatMap(noop)
-    result[i].onValue(noop)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
-
+createNObservable('Bacon', 1000, function(){
+  return Bacon.fromBinder(noop);
+})
 
 
 
 
 console.log('\nnew Bus().toProperty(1) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Kefir.Bus().toProperty(1)
-  };
-  return result;
-}())
-end('Kefir')
 
-var a = null;
-global.gc();
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().toProperty(1);
+})
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = new Bacon.Bus().toProperty(1)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().toProperty(1);
+})
 
 
 
+console.log('\nnew Bus().toProperty(1).changes() x1000')
 
-console.log('\n.fromBinder(noop).combine(Kefir.fromBinder(noop), noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Kefir.fromBinder(noop).combine(Kefir.fromBinder(noop), noop);
-  };
-  return result;
-}())
-end('Kefir')
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().toProperty(1).changes();
+})
 
-var a = null;
-global.gc();
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().toProperty(1).changes();
+})
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Bacon.fromBinder(noop).combine(Bacon.fromBinder(noop), noop);
-  };
-  return result;
-}())
-end('Bacon')
 
-var a = null;
-global.gc();
+
+console.log('\nnew Bus().map(noop) x1000')
+
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().map(noop);
+})
+
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().map(noop);
+})
+
+
+
+
+console.log('\n.sequentially(0, [1, 2])')
+
+createNObservable('Kefir', 1000, function(){
+  return Kefir.sequentially(0, [1, 2]);
+})
+
+createNObservable('Bacon', 1000, function(){
+  return Bacon.sequentially(0, [1, 2]);
+})
 
 
 
 
 
-console.log('\n.once(1).onValue(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Kefir.once(1);
-    result[i].on(noop)
-  };
-  return result;
-}())
-end('Kefir')
+console.log('\nnew Bus().filter(noop) x1000')
 
-var a = null;
-global.gc();
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().filter(noop);
+})
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Bacon.once(1);
-    result[i].onValue(noop)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().filter(noop);
+})
 
 
 
 
 
-console.log('\n.never().onValue(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Kefir.never();
-    result[i].on(noop)
-  };
-  return result;
-}())
-end('Kefir')
+console.log('\nnew Kefir.Bus().take(5) x1000')
 
-var a = null;
-global.gc();
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().take(5);
+})
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Bacon.never();
-    result[i].onValue(noop)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().take(5);
+})
 
 
 
 
 
+console.log('\nnew Bus().flatMap(noop) x1000')
 
-console.log('\n.combineAsArray(bus, bus, bus, bus).onValue(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Kefir.combine([new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus()]);
-    result[i].on(noop)
-  };
-  return result;
-}())
-end('Kefir')
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().flatMap(noop);
+})
 
-var a = null;
-global.gc();
-
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Bacon.combineAsArray(new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus());
-    result[i].onValue(noop)
-  };
-  return result;
-}())
-end('Bacon')
-
-var a = null;
-global.gc();
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().flatMap(noop);
+})
 
 
 
 
+console.log('\n.fromBinder(noop).combine(Kefir.fromBinder(noop), noop) x500')
+
+createNObservable('Kefir', 500, function(){
+  return Kefir.fromBinder(noop).combine(Kefir.fromBinder(noop), noop);
+})
+
+createNObservable('Bacon', 500, function(){
+  return Bacon.fromBinder(noop).combine(Bacon.fromBinder(noop), noop);
+})
 
 
-console.log('\n.mergeAll(bus, bus, bus, bus).onValue(noop) x1000')
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Kefir.merge(new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus());
-    result[i].on(noop)
-  };
-  return result;
-}())
-end('Kefir')
 
-var a = null;
-global.gc();
 
-begin()
-var a = (function() {
-  var result = new Array(1000);
-  for (var i = 0; i < result.length; i++) {
-    result[i] = Bacon.mergeAll(new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus());
-    result[i].onValue(noop)
-  };
-  return result;
-}())
-end('Bacon')
+console.log('\n.once(1) x1000')
 
-var a = null;
-global.gc();
+createNObservable('Kefir', 1000, function(i){
+  return Kefir.once(i);
+})
+
+createNObservable('Bacon', 1000, function(i){
+  return Bacon.once(i);
+})
+
+
+
+
+console.log('\n.never() x1000')
+
+createNObservable('Kefir', 1000, function(){
+  return Kefir.never();
+})
+
+createNObservable('Bacon', 1000, function(){
+  return Bacon.never();
+})
+
+
+
+
+console.log('\n.combineAsArray(bus, bus, bus, bus) x300')
+
+createNObservable('Kefir', 300, function(){
+  return Kefir.combine([new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus()]);
+})
+
+createNObservable('Bacon', 300, function(){
+  return Bacon.combineAsArray(new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus());
+})
+
+
+
+
+console.log('\n.mergeAll(bus, bus, bus, bus) x300')
+
+createNObservable('Kefir', 300, function(){
+  return Kefir.merge(new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus(), new Kefir.Bus());
+})
+
+createNObservable('Bacon', 300, function(){
+  return Bacon.mergeAll(new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus());
+})
+
