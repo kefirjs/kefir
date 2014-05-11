@@ -60,10 +60,12 @@
     "browsers": [
       "ie/6..latest",
       "chrome/25",
+      "chrome/33",
       "chrome/latest",
       "firefox/12",
       "firefox/17",
       "firefox/20",
+      "firefox/28",
       "firefox/latest",
       "safari/latest",
       "opera/11.0",
