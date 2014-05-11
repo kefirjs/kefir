@@ -1,14 +1,11 @@
 # Bacon.js API implementation status
 
-:rocket: — already implemented
+:rocket: — implemented
 
 :bike: — partially implemented
 
-:+1: — will be implemented most likely
+:broken_heart: — not implemented
 
-:question: — maybe will be implemented, maybe not
-
-:broken_heart: — probably will not be implemented
 
 
 
@@ -20,25 +17,25 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `$.asEventStream(eventName)` | :+1: |  |
-| `Bacon.fromPromise(promise [, abort])` | :question: |  |
-| `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :+1: |  |
-| `Bacon.fromCallback(f [, args...])` | :+1: |  |
-| `Bacon.fromCallback(object, methodName [, args...])` | :+1: |  |
-| `Bacon.fromNodeCallback(f [, args...])` | :question: |  |
-| `Bacon.fromNodeCallback(object, methodName [, args...])` | :question: |  |
+| `$.asEventStream(eventName)` | :broken_heart: |  |
+| `Bacon.fromPromise(promise [, abort])` | :broken_heart: |  |
+| `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :broken_heart: |  |
+| `Bacon.fromCallback(f [, args...])` | :broken_heart: |  |
+| `Bacon.fromCallback(object, methodName [, args...])` | :broken_heart: |  |
+| `Bacon.fromNodeCallback(f [, args...])` | :broken_heart: |  |
+| `Bacon.fromNodeCallback(object, methodName [, args...])` | :broken_heart: |  |
 | `Bacon.fromPoll(interval, f)` | :rocket: | `Kefir.fromPoll(interval, f)` |
 | `Bacon.once(value)` | :rocket: | `Kefir.once(value)` |
-| `Bacon.fromArray(values)` | :question: |  |
+| `Bacon.fromArray(values)` | :broken_heart: |  |
 | `Bacon.interval(interval, value)` | :rocket: | `Kefir.interval(interval, value)` |
 | `Bacon.sequentially(interval, values)` | :rocket: | `Kefir.sequentially(interval, values)` |
 | `Bacon.repeatedly(interval, values)` | :rocket: | `Kefir.repeatedly(interval, values)` |
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
-| `Bacon.later(delay, value)` | :+1: |  |
-| `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstSubscribed, onLastUsubscribed)` / `new Kefir.FromBinderStream(subscribe)` |
+| `Bacon.later(delay, value)` | :broken_heart: |  |
+| `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstIn, onLastOut)` / `Kefir.fromBinder(subscribe)` |
 | `property.changes()` | :rocket: | `property.changes()` |
-| `property.toEventStream()` | :question: |  |
-| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` |
+| `property.toEventStream()` | :broken_heart: |  |
+| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` / `Kefir.bus()` |
 | `Bacon.fromBinder(subscribe)` | :rocket: | `Kefir.fromBinder(subscribe)` |
 
 
@@ -50,40 +47,40 @@ For detailed descriptions of features see
 | `observable.onError(f)` | :broken_heart: |  |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
 | `observable.map(f)` | :rocket: | `observable.map(f)` |
-| `stream.map(property) / property.sampledBy(stream)` | :question: |  |
+| `stream.map(property) / property.sampledBy(stream)` | :broken_heart: |  |
 | `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |
 | `observable.skipErrors()` | :broken_heart: |  |
-| `observable.mapEnd(f)` | :question: |  |
+| `observable.mapEnd(f)` | :broken_heart: |  |
 | `observable.filter(f)` | :rocket: | `observable.filter(f)` |
-| `observable.filter(property)` | :question: |  |
+| `observable.filter(property)` | :broken_heart: |  |
 | `observable.takeWhile(f)` | :rocket: | `observable.takeWhile(f)` |
-| `observable.takeWhile(property)` | :question: |  |
+| `observable.takeWhile(property)` | :broken_heart: |  |
 | `observable.take(n)` | :rocket: | `observable.take(n)` |
-| `observable.takeUntil(stream)` | :question: |  |
-| `observable.skip(n)` | :+1: |  |
-| `observable.delay(delay)` | :+1: |  |
-| `observable.throttle(delay)` | :+1: |  |
-| `observable.debounce(delay)` | :+1: |  |
-| `observable.debounceImmediate(delay)` | :+1: |  |
-| `observable.doAction(f)` | :+1: |  |
-| `observable.not()` | :+1: |  |
+| `observable.takeUntil(stream)` | :broken_heart: |  |
+| `observable.skip(n)` | :broken_heart: |  |
+| `observable.delay(delay)` | :broken_heart: |  |
+| `observable.throttle(delay)` | :broken_heart: |  |
+| `observable.debounce(delay)` | :broken_heart: |  |
+| `observable.debounceImmediate(delay)` | :broken_heart: |  |
+| `observable.doAction(f)` | :broken_heart: |  |
+| `observable.not()` | :broken_heart: |  |
 | `observable.flatMap(f)` | :rocket: | `observable.flatMap(f)` |
-| `observable.flatMapLatest(f)` | :+1: |  |
-| `observable.flatMapFirst(f)` | :question: |  |
-| `observable.scan(seed, f)` | :+1: |  |
-| `observable.fold(seed, f) / observable.reduce(seed, f)` | :+1: |  |
-| `observable.diff(start, f)` | :+1: |  |
-| `observable.zip(other, f)` | :+1: |  |
-| `observable.slidingWindow(max [, min])` | :question: |  |
+| `observable.flatMapLatest(f)` | :broken_heart: |  |
+| `observable.flatMapFirst(f)` | :broken_heart: |  |
+| `observable.scan(seed, f)` | :broken_heart: |  |
+| `observable.fold(seed, f) / observable.reduce(seed, f)` | :broken_heart: |  |
+| `observable.diff(start, f)` | :broken_heart: |  |
+| `observable.zip(other, f)` | :broken_heart: |  |
+| `observable.slidingWindow(max [, min])` | :broken_heart: |  |
 | `observable.log()` | :bike: | `observable.log()` |
 | `observable.combine(property2, f)` | :rocket: | `observable.combine(streams, f)` |
-| `observable.withStateMachine(initState, f)` | :question: |  |
-| `observable.decode(mapping)` | :+1: |  |
-| `observable.awaiting(otherObservable)` | :+1: |  |
+| `observable.withStateMachine(initState, f)` | :broken_heart: |  |
+| `observable.decode(mapping)` | :broken_heart: |  |
+| `observable.awaiting(otherObservable)` | :broken_heart: |  |
 | `observable.endOnError()` | :broken_heart: |  |
 | `observable.endOnError(f)` | :broken_heart: |  |
-| `observable.withHandler(f)` | :question: |  |
+| `observable.withHandler(f)` | :broken_heart: |  |
 | `observable.name(newName)` | :broken_heart: |  |
 | `observable.withDescription(param...)` | :broken_heart: |  |
 
@@ -94,18 +91,18 @@ For detailed descriptions of features see
 |:---|:---:|:---|
 | `stream.subscribe(f)` | :broken_heart: |  |
 | `stream.onValue(f)` | :rocket: | `stream.on(f)` |
-| `stream.onValues(f)` | :question: |  |
-| `stream.skipDuplicates(isEqual)` | :+1: |  |
-| `stream.concat(otherStream)` | :question: |  |
+| `stream.onValues(f)` | :broken_heart: |  |
+| `stream.skipDuplicates(isEqual)` | :broken_heart: |  |
+| `stream.concat(otherStream)` | :broken_heart: |  |
 | `stream.merge(otherStream)` | :rocket: | `stream.merge(stream1[, stream2, ...])` / `stream.merge(streams)` |
-| `stream.startWith(value)` | :question: |  |
-| `stream.skipWhile(f)` | :+1: |  |
-| `stream.skipWhile(property)` | :question: |  |
-| `stream.skipUntil(stream2)` | :question: |  |
-| `stream.bufferWithTime(delay)` | :question: |  |
-| `stream.bufferWithTime(f)` | :question: |  |
-| `stream.bufferWithCount(count)` | :question: |  |
-| `stream.bufferWithTimeOrCount(delay, count)` | :question: |  |
+| `stream.startWith(value)` | :broken_heart: |  |
+| `stream.skipWhile(f)` | :broken_heart: |  |
+| `stream.skipWhile(property)` | :broken_heart: |  |
+| `stream.skipUntil(stream2)` | :broken_heart: |  |
+| `stream.bufferWithTime(delay)` | :broken_heart: |  |
+| `stream.bufferWithTime(f)` | :broken_heart: |  |
+| `stream.bufferWithCount(count)` | :broken_heart: |  |
+| `stream.bufferWithTimeOrCount(delay, count)` | :broken_heart: |  |
 | `stream.toProperty()` | :rocket: | `stream.toProperty()` |
 | `stream.toProperty(initialValue)` | :rocket: | `stream.toProperty(initialValue)` |
 
@@ -115,20 +112,20 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Bacon.constant(x)` | :+1: |  |
+| `Bacon.constant(x)` | :broken_heart: |  |
 | `property.subscribe(f)` | :broken_heart: |  |
 | `property.onValue(f)` | :rocket: | `property.on(f)` |
-| `property.onValues(f)` | :question: |  |
-| `property.assign(obj, method [, param...])` | :+1: |  |
-| `property.sample(interval)` | :question: |  |
-| `property.sampledBy(stream)` | :question: |  |
-| `property.sampledBy(property)` | :question: |  |
-| `property.sampledBy(streamOrProperty, f)` | :question: |  |
-| `property.skipDuplicates(isEqual)` | :+1: |  |
+| `property.onValues(f)` | :broken_heart: |  |
+| `property.assign(obj, method [, param...])` | :broken_heart: |  |
+| `property.sample(interval)` | :broken_heart: |  |
+| `property.sampledBy(stream)` | :broken_heart: |  |
+| `property.sampledBy(property)` | :broken_heart: |  |
+| `property.sampledBy(streamOrProperty, f)` | :broken_heart: |  |
+| `property.skipDuplicates(isEqual)` | :broken_heart: |  |
 | `property.changes()` | :rocket: | `property.changes()` |
-| `property.and(other)` | :+1: |  |
-| `property.or(other)` | :+1: |  |
-| `property.startWith(value)` | :question: |  |
+| `property.and(other)` | :broken_heart: |  |
+| `property.or(other)` | :broken_heart: |  |
+| `property.startWith(value)` | :broken_heart: |  |
 
 
 
@@ -137,15 +134,15 @@ For detailed descriptions of features see
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(streams)` |
-| `Bacon.combineAsArray(s1, s2...)` | :question: |  |
+| `Bacon.combineAsArray(s1, s2...)` | :broken_heart: |  |
 | `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(streams, f)`  |
-| `Bacon.combineTemplate(template)` | :question: |  |
+| `Bacon.combineTemplate(template)` | :broken_heart: |  |
 | `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(streams)` / `Kefir.merge(stream1[, stream2, ...])` |
-| `Bacon.zipAsArray(streams)` | :+1: |  |
-| `Bacon.zipAsArray(stream1, stream2...)` | :question: |  |
-| `Bacon.zipWith(streams, f)` | :question: |  |
-| `Bacon.zipWith(f, stream1, stream1...)` | :question: |  |
-| `Bacon.onValues(a, b [, c...], f)` | :question: |  |
+| `Bacon.zipAsArray(streams)` | :broken_heart: |  |
+| `Bacon.zipAsArray(stream1, stream2...)` | :broken_heart: |  |
+| `Bacon.zipWith(streams, f)` | :broken_heart: |  |
+| `Bacon.zipWith(f, stream1, stream1...)` | :broken_heart: |  |
+| `Bacon.onValues(a, b [, c...], f)` | :broken_heart: |  |
 
 
 
@@ -153,7 +150,7 @@ For detailed descriptions of features see
 
 https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
-:+1:
+:broken_heart:
 
 
 ### Bus
@@ -178,8 +175,8 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Bacon.when()` | :question: |  |
-| `Bacon.update()` | :question: |  |
+| `Bacon.when()` | :broken_heart: |  |
+| `Bacon.update()` | :broken_heart: |  |
 
 
 
@@ -188,7 +185,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | Return `Bacon.noMore` from the handler function | :rocket: | Return `Kefir.NO_MORE` ...  |
-| Call the `dispose()` function that was returned by the `subscribe()` call | :broken_heart: / :rocket: | `stream.off(f)` |
+| Call the `dispose()` function that was returned by the `subscribe()` call | :bike: | `stream.off(f)` |
 
 
 
@@ -196,7 +193,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 https://github.com/baconjs/bacon.js/tree/master#atomic-updates
 
-:question:
+:broken_heart:
 
 
 
@@ -204,7 +201,7 @@ https://github.com/baconjs/bacon.js/tree/master#atomic-updates
 
 https://github.com/baconjs/bacon.js/issues/272
 
-:question:
+:broken_heart:
 
 
 
@@ -212,4 +209,4 @@ https://github.com/baconjs/bacon.js/issues/272
 
 https://github.com/baconjs/bacon.js/issues/265
 
-:question: / :bike:
+:bike:
