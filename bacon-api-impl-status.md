@@ -17,7 +17,7 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `$.asEventStream(eventName)` | :broken_heart: |  |
+| `$::asEventStream(eventName)` | :rocket: | `$::eventStream(events, [selector, eventTransformer])` |
 | `Bacon.fromPromise(promise [, abort])` | :broken_heart: |  |
 | `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :broken_heart: |  |
 | `Bacon.fromCallback(f [, args...])` | :broken_heart: |  |

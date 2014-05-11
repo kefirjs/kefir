@@ -7,7 +7,7 @@
 
 
 var Kefir = require('./src/kefir.js');
-var Bacon = require('./playground/bacon.js');
+var Bacon = require('baconjs');
 
 
 

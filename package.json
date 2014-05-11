@@ -29,6 +29,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "baconjs": "^0.7.11",
     "browserify": "~3.46.0",
     "coffee-script": "~1.7.1",
     "grunt": "~0.4.4",
@@ -49,6 +50,7 @@
   },
   "testling": {
     "scripts": [
+      "bower_components/jquery/dist/jquery.js",
       ".grunt/grunt-contrib-jasmine/jasmine.js",
       ".grunt/grunt-contrib-jasmine/jasmine-html.js",
       ".grunt/grunt-contrib-jasmine/boot.js",

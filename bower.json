@@ -40,5 +40,9 @@
     "test-memory-usage.js",
     "Gruntfile.coffee",
     "grunt-tasks"
-  ]
+  ],
+  "devDependencies": {
+    "bacon": "~0.7.11",
+    "jquery": "~2.1.1"
+  }
 }

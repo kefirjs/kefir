@@ -1,0 +1,11 @@
+node_modules*
+npm-debug.log
+**/.DS_Store
+.DS_Store
+.idea/
+*.iml
+*.exe
+*.nupkg
+browsertest/bundle.js
+src/Testing*
+testing

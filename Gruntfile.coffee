@@ -20,6 +20,7 @@ module.exports = (grunt) ->
       main:
         src: []
         options:
+          vendor: ['bower_components/jquery/dist/jquery.js']
           specs: 'dist/test/specs.js'
           outfile: 'dist/test/SpecRunner.html'
 

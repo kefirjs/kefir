@@ -22,6 +22,7 @@
   // Utils
 
   function noop(){}
+  function id(x){return x}
 
   function own(obj, prop){
     return Object.prototype.hasOwnProperty.call(obj, prop);
@@ -319,8 +320,8 @@
 
   // Never
 
-  var neverObj = createObj(Stream.prototype);
-  neverObj.__subscribers = null;
+  var neverObj = new Stream();
+  neverObj._send(Kefir.END);
   neverObj.__objName = 'Kefir.never()'
   Kefir.never = function() {
     return neverObj;
@@ -967,6 +968,46 @@
 
 
 
+  // $::eventStream()
+
+  var jQuery = global.jQuery || global.Zepto || (
+    typeof window !== 'undefined' && (window.jQuery || window.Zepto)
+  );
+  if (jQuery) {
+
+    jQuery.fn.eventStream = function(events, selector, eventTransformer){
+
+      if (arguments.length === 2 && isFn(selector)) {
+        eventTransformer = selector;
+        selector = null;
+      }
+
+      if (!isFn(eventTransformer)) {
+        eventTransformer = id;
+      }
+
+      var $this = this;
+
+      function handler(){
+        result._send( eventTransformer.apply(this, arguments) );
+      }
+      function sub(){
+        $this.on(events, selector, handler);
+      }
+      function unsub(){
+        $this.off(events, selector, handler);
+      }
+
+      var result = new Stream(sub, unsub);
+
+      return result;
+    }
+
+  }
+
+
+
+
 
   if (typeof define === 'function' && define.amd) {
     define([], function() {
@@ -1083,7 +1124,7 @@ describe("Base stream:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],3:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],3:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1183,7 +1224,7 @@ describe("Bus:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],4:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],4:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1271,7 +1312,7 @@ describe("Combine:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],5:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],5:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1337,7 +1378,7 @@ describe("Filter:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],6:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],6:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1373,7 +1414,7 @@ describe("FlatMap:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],7:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],7:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1412,7 +1453,7 @@ describe("FromPoll:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],8:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],8:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1441,7 +1482,129 @@ describe("interval:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],9:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],9:[function(require,module,exports){
+var Kefir = require('../../src/kefir.js');
+var helpers = require('../test-helpers');
+
+
+if (typeof window !== 'undefined'){
+
+  describe("jQuery::eventStream()", function(){
+
+    // it("works", function(done){
+
+    //   // var stream1 = helpers.sampleStream([1, Kefir.END]);
+    //   // var stream2 = Kefir.interval(30, 2).take(2);
+    //   // var stream3 = Kefir.interval(45, 3).take(2);
+
+    //   // // -1----------
+    //   // // ---2---2----
+    //   // // -----3-----3
+    //   // var merged = stream1.merge(stream2, stream3);
+
+    //   // helpers.captureOutput(merged, function(values){
+    //   //   expect(values).toEqual([1, 2, 3, 2, 3]);
+    //   //   done();
+    //   // });
+
+    //   jQuery('body').eventStream('')
+
+    //   done();
+
+    // }, 200);
+
+    it("jquery itself works", function(){
+
+      var count = 0;
+      function handler(){ count++ }
+
+      jQuery('body').on('click', handler);
+      jQuery('body').trigger('click');
+      jQuery('body').off('click', handler);
+
+      expect(count).toBe(1);
+
+    });
+
+
+
+    it("just event name", function(done){
+
+      var stream = jQuery('body').eventStream('click').take(2);
+
+      helpers.captureOutput(stream, function(values){
+        expect(values.length).toBe(2);
+        done();
+      });
+
+      jQuery('body').trigger('click');
+      jQuery('body').trigger('click');
+      jQuery('body').trigger('click');
+
+    });
+
+
+    it("event name and selector", function(done){
+
+      var stream = jQuery('body').eventStream('click', '.my-button').take(2);
+
+      helpers.captureOutput(stream, function(values){
+        expect(values.length).toBe(2);
+        done();
+      });
+
+      $btn = jQuery('<button class="my-button">my-button</button>').appendTo('body');
+
+      $btn.trigger('click');
+      $btn.trigger('click');
+      $btn.trigger('click');
+
+      $btn.remove()
+
+    });
+
+
+    it("event name, selector, and transformer", function(done){
+
+      var stream = jQuery('body')
+        .eventStream('click', '.my-button', function(event){
+          return this === event.currentTarget && jQuery(this).hasClass('my-button1');
+        }).take(2);
+
+      helpers.captureOutput(stream, function(values){
+        expect(values).toEqual([true, true]);
+        done();
+      });
+
+      $btn = jQuery('<button class="my-button">my-button</button>').appendTo('body');
+
+      $btn.trigger('click');
+      $btn.trigger('click');
+      $btn.trigger('click');
+
+      $btn.remove()
+
+    });
+
+
+
+    // it("just event name and selector", function(done){
+
+    //   var stream = jQuery('body', ).eventStream('click').take(2);
+
+    //   helpers.captureOutput(stream, function(values){
+    //     expect(values.length).toBe(2);
+    //     done();
+    //   });
+
+    // });
+
+
+  });
+
+}
+
+},{"../../src/kefir.js":1,"../test-helpers":20}],10:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1514,7 +1677,7 @@ describe("Map:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],10:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],11:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1544,7 +1707,7 @@ describe("Merge:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],11:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],12:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1564,7 +1727,7 @@ describe("Never:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],12:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],13:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1597,7 +1760,7 @@ describe("No more:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],13:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],14:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1623,7 +1786,7 @@ describe("Once:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],14:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],15:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1725,7 +1888,7 @@ describe("Property:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],15:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],16:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1754,7 +1917,7 @@ describe("repeatedly:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],16:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],17:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1783,7 +1946,7 @@ describe("sequentially:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],17:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],18:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1808,7 +1971,7 @@ describe("Take while:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],18:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],19:[function(require,module,exports){
 var Kefir = require('../../src/kefir.js');
 var helpers = require('../test-helpers');
 
@@ -1837,7 +2000,7 @@ describe("Take:", function(){
 
 });
 
-},{"../../src/kefir.js":1,"../test-helpers":19}],19:[function(require,module,exports){
+},{"../../src/kefir.js":1,"../test-helpers":20}],20:[function(require,module,exports){
 var Kefir = require('../src/kefir.js');
 
 exports.captureOutput = function(stream, callback, timeout) {
@@ -1877,4 +2040,4 @@ exports.sampleStream = function(values, timeout){
   });
 }
 
-},{"../src/kefir.js":1}]},{},[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
+},{"../src/kefir.js":1}]},{},[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19])
