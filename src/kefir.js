@@ -318,8 +318,8 @@
 
   // Never
 
-  var neverObj = createObj(Stream.prototype);
-  neverObj.__subscribers = null;
+  var neverObj = new Stream();
+  neverObj._send(Kefir.END);
   neverObj.__objName = 'Kefir.never()'
   Kefir.never = function() {
     return neverObj;
