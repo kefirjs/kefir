@@ -68,6 +68,13 @@ function noop(){}
 
 
 
+console.log('\nnew Stream(noop, noop) x1000')
+
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Stream(noop, noop);
+})
+
+
 
 
 console.log('\nnew Bus() x1000')
