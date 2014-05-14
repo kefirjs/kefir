@@ -7,27 +7,34 @@
 
 var Kefir = {};
 
-Kefir.END = ['<end>'];
-Kefir.NO_MORE = ['<no more>'];
+var NOTHING = Kefir.NOTHING = ['<nothing>'];
+var END = Kefir.END = ['<end>'];
+var NO_MORE = Kefir.NO_MORE = ['<no more>'];
 
-// Для withHandler
-// Kefir.NOTHING = ['<nothing>']; // и для Property initial value
-// var lastValueObj = {value: null}
-// Kefir.lastValue = function(value) {
-//   lastValueObj.value = value;
-//   return lastValueObj;
-// }
-// Kefir.isLastValue = function(obj){
-//   return obj === lastValueObj;
-// }
+
+// BunchOfValues
+//
+// Example:
+//   stream._send(Kefir.bunch(1, 2, Kefir.END))
+
+Kefir.BunchOfValues = function(values){
+  this.values = values;
+}
+Kefir.bunch = function() {
+  return new Kefir.BunchOfValues(firstArrOrToArr(arguments));
+}
+
 
 
 // Callbacks
 
-var Callbacks = Kefir.Callbacks = inherit(function Callbacks(){
+var Callbacks = Kefir.Callbacks = function Callbacks(){
   this.__subscribers = null;
   this.__contexts = null;
-}, Object, {
+}
+
+inherit(Callbacks, Object, {
+
   add: function(fn, context){
     if (this.__subscribers === null) {
       this.__subscribers = [];
@@ -61,19 +68,20 @@ var Callbacks = Kefir.Callbacks = inherit(function Callbacks(){
       var callback = this.__subscribers[i];
       var context = this.__contexts[i];
       if (isFn(callback)) {
-        if(Kefir.NO_MORE === callback.call(context, x)) {
+        if(NO_MORE === callback.call(context, x)) {
           this.remove(callback, context);
         }
       }
     }
   }
-});
+
+})
 
 
 
-// Base Observable class
+// Observable
 
-var Observable = Kefir.Observable = inherit(function Observable(onFirstIn, onLastOut){
+var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut){
 
   // __onFirstIn, __onLastOut can also be added to prototype of child classes
   if (isFn(onFirstIn)) {
@@ -85,14 +93,21 @@ var Observable = Kefir.Observable = inherit(function Observable(onFirstIn, onLas
 
   this.__subscribers = new Callbacks;
   this.__endSubscribers = new Callbacks;
-}, Object, {
+
+}
+
+inherit(Observable, Object, {
 
   __ClassName: 'Observable',
   _send: function(x) {
     if (!this.isEnded()) {
-      if (x === Kefir.END) {
+      if (x === END) {
         this.__end();
-      } else {
+      } else if (x instanceof Kefir.BunchOfValues) {
+        for (var i = 0; i < x.values.length; i++) {
+          this._send(x.values[i]);
+        }
+      } else if (x !== Kefir.NOTHING) {
         this.__deliver(x);
       }
     }
@@ -148,7 +163,7 @@ var Observable = Kefir.Observable = inherit(function Observable(onFirstIn, onLas
   __onFirstIn: noop,
   __onLastOut: noop,
   __sendEnd: function(){
-    this._send(Kefir.END);
+    this._send(END);
   },
   __end: function() {
     if (!this.isEnded()) {
@@ -168,43 +183,45 @@ var Observable = Kefir.Observable = inherit(function Observable(onFirstIn, onLas
     return '[' + this.__ClassName + (this.__objName ? (' | ' + this.__objName) : '') + ']';
   }
 
-});
+})
 
 
 
 
 // Stream
 
-var Stream = Kefir.Stream = inherit(function Stream(){
+var Stream = Kefir.Stream = function Stream(){
   Observable.apply(this, arguments);
-}, Observable, {
+}
+
+inherit(Stream, Observable, {
   __ClassName: 'Stream'
-});
+})
 
 
 
 
 // Property
 
-var Property = Kefir.Property = inherit(function Property(onFirstIn, onLastOut, initial){
+var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial){
   Observable.call(this, onFirstIn, onLastOut);
-  this.__hasCached = (typeof initial !== "undefined");
-  this.__cached = initial;
-}, Observable, {
+  this.__cached = (typeof initial !== "undefined") ? initial : Kefir.NOTHING;
+}
+
+inherit(Property, Observable, {
 
   __ClassName: 'Property',
   onChanges: function(callback, context){
     Observable.prototype.on.call(this, callback, context);
   },
   on: function(callback, context) {
-    if (this.__hasCached) {
+    if ( this.hasCached() ) {
       callback.call(context, this.__cached);
     }
     this.onChanges(callback, context);
   },
   _send: function(x) {
     if (!this.isEnded()){
-      this.__hasCached = true;
       this.__cached = x;
     }
     Observable.prototype._send.call(this, x);
@@ -217,7 +234,7 @@ var Property = Kefir.Property = inherit(function Property(onFirstIn, onLastOut, 
     return this;
   },
   hasCached: function(){
-    return this.__hasCached;
+    return this.__cached !== Kefir.NOTHING;
   },
   getCached: function(){
     return this.__cached;
@@ -238,5 +255,5 @@ Observable.prototype.log = function(text) {
     }
   }
   this.on(log);
-  this.onEnd(function(){  log(Kefir.END)  });
+  this.onEnd(function(){  log(END)  });
 }

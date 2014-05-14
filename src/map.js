@@ -1,4 +1,5 @@
 // TODO
+//
 // stream.skipWhile(f)
 // observable.skip(n)
 //
@@ -9,7 +10,7 @@
 
 
 
-var withHandlerMixin = {
+var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
     source.onEnd(this.__sendEnd, this);
@@ -35,20 +36,24 @@ var withHandlerMixin = {
 
 
 
-Kefir.PropertyFromStream = inherit(function PropertyFromStream(source, initial){
+// Stream::toProperty()
+
+Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
   assertStream(source);
   Property.call(this, null, null, initial);
   this.__Constructor.call(this, source);
-}, Property, extend({}, withHandlerMixin, {
+}
+
+inherit(Kefir.PropertyFromStream, Property, WithSourceStreamMixin, {
 
   __ClassName: 'PropertyFromStream',
   __objName: 'stream.toProperty()',
   __end: function(){
     Property.prototype.__end.call(this);
-    withHandlerMixin.__end.call(this);
+    WithSourceStreamMixin.__end.call(this);
   }
 
-}))
+})
 
 Stream.prototype.toProperty = function(initial){
   return new Kefir.PropertyFromStream(this, initial);
@@ -57,27 +62,29 @@ Stream.prototype.toProperty = function(initial){
 
 
 
+
 // Property::changes()
 
-Kefir.ChangesStream = inherit(function ChangesStream(source){
+Kefir.ChangesStream = function ChangesStream(source){
   assertProperty(source);
   Stream.call(this);
   this.__Constructor.call(this, source);
-}, Stream, extend({}, withHandlerMixin, {
+}
+
+inherit(Kefir.ChangesStream, Stream, WithSourceStreamMixin, {
 
   __ClassName: 'ChangesStream',
   __objName: 'property.changes()',
   __end: function(){
     Stream.prototype.__end.call(this);
-    withHandlerMixin.__end.call(this);
+    WithSourceStreamMixin.__end.call(this);
   }
 
-}))
+})
 
 Property.prototype.changes = function() {
   return new Kefir.ChangesStream(this);
-};
-
+}
 
 
 
@@ -86,7 +93,7 @@ Property.prototype.changes = function() {
 
 // Map
 
-var mapMixin = extend({}, withHandlerMixin, {
+var MapMixin = {
   __Constructor: function(source, mapFn){
     if (source instanceof Property) {
       Property.call(this);
@@ -94,30 +101,34 @@ var mapMixin = extend({}, withHandlerMixin, {
       Stream.call(this);
     }
     this.__mapFn = mapFn;
-    withHandlerMixin.__Constructor.call(this, source);
+    WithSourceStreamMixin.__Constructor.call(this, source);
   },
   __handle: function(x){
     this._send( this.__mapFn(x) );
   },
   __end: function(){
     Stream.prototype.__end.call(this);
-    withHandlerMixin.__end.call(this);
+    WithSourceStreamMixin.__end.call(this);
     this.__mapFn = null;
   }
+}
+inheritMixin(MapMixin, WithSourceStreamMixin);
+
+Kefir.MappedStream = function MappedStream(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.MappedStream, Stream, MapMixin, {
+  __ClassName: 'MappedStream'
 });
 
-Kefir.MappedStream = inherit(
-  function MappedStream(){this.__Constructor.apply(this, arguments)},
-  Stream, mapMixin
-);
-Kefir.MappedStream.prototype.__ClassName = 'MappedStream'
+Kefir.MappedProperty = function MappedProperty(){
+  this.__Constructor.apply(this, arguments);
+}
 
-Kefir.MappedProperty = inherit(
-  function MappedProperty(){this.__Constructor.apply(this, arguments)},
-  Property, mapMixin
-);
-Kefir.MappedProperty.prototype.__ClassName = 'MappedProperty'
-
+inherit(Kefir.MappedProperty, Property, MapMixin, {
+  __ClassName: 'MappedProperty'
+})
 
 Observable.prototype.map = function(fn) {
   if (this instanceof Property) {
@@ -125,8 +136,7 @@ Observable.prototype.map = function(fn) {
   } else {
     return new Kefir.MappedStream(this, fn);
   }
-};
-
+}
 
 
 
@@ -135,25 +145,30 @@ Observable.prototype.map = function(fn) {
 
 // Filter
 
-var filterMixin = extend({}, mapMixin, {
+var filterMixin = {
   __handle: function(x){
     if (this.__mapFn(x)) {
       this._send(x);
     }
   }
-});
+}
+inheritMixin(filterMixin, MapMixin);
 
-Kefir.FilteredStream = inherit(
-  function FilteredStream(){this.__Constructor.apply(this, arguments)},
-  Stream, filterMixin
-);
-Kefir.FilteredStream.prototype.__ClassName = 'FilteredStream'
+Kefir.FilteredStream = function FilteredStream(){
+  this.__Constructor.apply(this, arguments);
+}
 
-Kefir.FilteredProperty = inherit(
-  function FilteredProperty(){this.__Constructor.apply(this, arguments)},
-  Property, filterMixin
-);
-Kefir.FilteredProperty.prototype.__ClassName = 'FilteredProperty'
+inherit(Kefir.FilteredStream, Stream, filterMixin, {
+  __ClassName: 'FilteredStream'
+})
+
+Kefir.FilteredProperty = function FilteredProperty(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.FilteredProperty, Property, filterMixin, {
+  __ClassName: 'FilteredProperty'
+})
 
 Observable.prototype.filter = function(fn) {
   if (this instanceof Property) {
@@ -161,7 +176,7 @@ Observable.prototype.filter = function(fn) {
   } else {
     return new Kefir.FilteredStream(this, fn);
   }
-};
+}
 
 
 
@@ -169,7 +184,7 @@ Observable.prototype.filter = function(fn) {
 
 // TakeWhile
 
-var takeWhileMixin = extend({}, mapMixin, {
+var TakeWhileMixin = {
   __handle: function(x){
     if (this.__mapFn(x)) {
       this._send(x);
@@ -177,19 +192,24 @@ var takeWhileMixin = extend({}, mapMixin, {
       this._send(Kefir.END);
     }
   }
-});
+}
+inheritMixin(TakeWhileMixin, MapMixin);
 
-Kefir.TakeWhileStream = inherit(
-  function TakeWhileStream(){this.__Constructor.apply(this, arguments)},
-  Stream, takeWhileMixin
-);
-Kefir.TakeWhileStream.prototype.__ClassName = 'TakeWhileStream'
+Kefir.TakeWhileStream = function TakeWhileStream(){
+  this.__Constructor.apply(this, arguments);
+}
 
-Kefir.TakeWhileProperty = inherit(
-  function TakeWhileProperty(){this.__Constructor.apply(this, arguments)},
-  Property, takeWhileMixin
-);
-Kefir.TakeWhileProperty.prototype.__ClassName = 'TakeWhileProperty'
+inherit(Kefir.TakeWhileStream, Stream, TakeWhileMixin, {
+  __ClassName: 'TakeWhileStream'
+})
+
+Kefir.TakeWhileProperty = function TakeWhileProperty(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.TakeWhileProperty, Property, TakeWhileMixin, {
+  __ClassName: 'TakeWhileStream'
+})
 
 Observable.prototype.takeWhile = function(fn) {
   if (this instanceof Property) {
@@ -197,7 +217,7 @@ Observable.prototype.takeWhile = function(fn) {
   } else {
     return new Kefir.TakeWhileStream(this, fn);
   }
-};
+}
 
 
 

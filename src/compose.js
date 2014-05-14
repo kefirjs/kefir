@@ -15,10 +15,12 @@
 
 // Bus
 
-Kefir.Bus = inherit(function Bus(){
+Kefir.Bus = function Bus(){
   Stream.call(this);
   this.__plugged = [];
-}, Stream, {
+}
+
+inherit(Kefir.Bus, Stream, {
 
   __ClassName: 'Bus',
   __objName: 'Kefir.bus()',
@@ -67,15 +69,20 @@ Kefir.bus = function(){
 }
 
 
+
+
+
 // FlatMap
 
-Kefir.FlatMappedStream = inherit(function FlatMappedStream(sourceStream, mapFn){
+Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
   Stream.call(this)
   this.__sourceStream = sourceStream;
   this.__plugged = [];
   this.__mapFn = mapFn;
   sourceStream.onEnd(this.__sendEnd, this);
-}, Stream, {
+}
+
+inherit(Kefir.FlatMappedStream, Stream, {
 
   __ClassName: 'FlatMappedStream',
   __objName: 'observable.flatMap(fn)',
@@ -115,7 +122,7 @@ Kefir.FlatMappedStream = inherit(function FlatMappedStream(sourceStream, mapFn){
     this.__plugged = null;
   }
 
-});
+})
 
 Observable.prototype.flatMap = function(fn) {
   return new Kefir.FlatMappedStream(this, fn);
@@ -130,7 +137,7 @@ Observable.prototype.flatMap = function(fn) {
 
 // Merge
 
-Kefir.MergedStream = inherit(function MergedStream(){
+Kefir.MergedStream = function MergedStream(){
   Stream.call(this)
   this.__sources = firstArrOrToArr(arguments);
   for (var i = 0; i < this.__sources.length; i++) {
@@ -139,7 +146,9 @@ Kefir.MergedStream = inherit(function MergedStream(){
       this.__unplugFor(this.__sources[i])
     );
   }
-}, Stream, {
+}
+
+inherit(Kefir.MergedStream, Stream, {
 
   __ClassName: 'MergedStream',
   __objName: 'Kefir.merge(streams)',
@@ -189,7 +198,7 @@ Stream.prototype.merge = function() {
 
 // Combine
 
-Kefir.CombinedStream = inherit(function CombinedStream(sources, mapFn){
+Kefir.CombinedStream = function CombinedStream(sources, mapFn){
   Stream.call(this)
 
   this.__sources = sources;
@@ -203,7 +212,9 @@ Kefir.CombinedStream = inherit(function CombinedStream(sources, mapFn){
     this.__sources[i].onEnd( this.__unplugFor(i) );
   }
 
-}, Stream, {
+}
+
+inherit(Kefir.CombinedStream, Stream, {
 
   __ClassName: 'CombinedStream',
   __objName: 'Kefir.combine(streams, fn)',

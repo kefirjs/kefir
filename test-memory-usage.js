@@ -6,7 +6,7 @@
 //   --expose-gc for global.gc()
 
 
-var Kefir = require('./src/kefir.js');
+var Kefir = require('./dist/kefir.js');
 var Bacon = require('baconjs');
 
 

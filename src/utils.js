@@ -32,11 +32,20 @@ function extend() {
   return result;
 }
 
-function inherit(Child, Parent, childPrototype) {
+function inherit(Child, Parent) { // (Child, Parent[, mixin1, mixin2, ...])
   Child.prototype = createObj(Parent.prototype);
   Child.prototype.constructor = Child;
-  if (childPrototype) {
-    extend(Child.prototype, childPrototype)
+  for (var i = 2; i < arguments.length; i++) {
+    extend(Child.prototype, arguments[i]);
+  }
+  return Child;
+}
+
+function inheritMixin(Child, Parent) {
+  for (var prop in Parent) {
+    if (own(Parent, prop) && !(prop in Child)) {
+      Child[prop] = Parent[prop];
+    }
   }
   return Child;
 }

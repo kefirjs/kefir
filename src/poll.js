@@ -1,12 +1,14 @@
 // FromPoll
 
-var FromPollStream = Kefir.FromPollStream = inherit(function FromPollStream(interval, sourceFn){
+var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFn){
   Stream.call(this);
   this.__interval = interval;
   this.__intervalId = null;
   var _this = this;
   this.__send = function(){  _this._send(sourceFn())  }
-}, Stream, {
+}
+
+inherit(FromPollStream, Stream, {
 
   __ClassName: 'FromPollStream',
   __objName: 'Kefir.fromPoll(interval, fn)',
@@ -45,11 +47,13 @@ Kefir.interval = function(interval, x){
 Kefir.sequentially = function(interval, xs){
   xs = xs.slice(0);
   return withName('Kefir.sequentially(interval, xs)', new FromPollStream(interval, function(){
-    if (xs.length === 0){
-      return Kefir.END;
-    } else {
-      return xs.shift();
+    if (xs.length === 0) {
+      return END;
     }
+    if (xs.length === 1){
+      return Kefir.bunch(xs[0], END);
+    }
+    return xs.shift();
   }));
 }
 

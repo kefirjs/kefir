@@ -18,10 +18,12 @@ Kefir.never = function() {
 
 // Once
 
-Kefir.OnceStream = inherit(function OnceStream(value){
+Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
   this.__value = value;
-}, Stream, {
+}
+
+inherit(Kefir.OnceStream, Stream, {
 
   __ClassName: 'OnceStream',
   __objName: 'Kefir.once(x)',
@@ -31,7 +33,7 @@ Kefir.OnceStream = inherit(function OnceStream(value){
     this._send(Kefir.END);
   }
 
-});
+})
 
 Kefir.once = function(x) {
   return new Kefir.OnceStream(x);
@@ -43,10 +45,12 @@ Kefir.once = function(x) {
 
 // fromBinder
 
-Kefir.FromBinderStream = inherit(function FromBinderStream(subscribe){
+Kefir.FromBinderStream = function FromBinderStream(subscribe){
   Stream.call(this);
   this.__subscribe = subscribe;
-}, Stream, {
+}
+
+inherit(Kefir.FromBinderStream, Stream, {
 
   __ClassName: 'FromBinderStream',
   __objName: 'Kefir.fromBinder(subscribe)',
