@@ -13,6 +13,26 @@
 
 
 
+
+// var PluggableMixin = {
+
+//   __Constructor: function(){
+//     this.__plugged = [];
+//   },
+//   __handlePlugged: function(i, value){
+//     this._send(value);
+//   },
+//   __end: function(){
+//     this.__plugged = null;
+//   }
+
+
+// }
+
+
+
+
+
 // Bus
 
 Kefir.Bus = function Bus(){
@@ -33,8 +53,7 @@ inherit(Kefir.Bus, Stream, {
       if (this.hasSubscribers()) {
         stream.on(this._send, this);
       }
-      var _this = this;
-      stream.onEnd(function(){  _this.unplug(stream)  });
+      stream.onEnd(this.unplug, this, stream);
     }
   },
   unplug: function(stream){
@@ -106,8 +125,7 @@ inherit(Kefir.FlatMappedStream, Stream, {
     if (this.hasSubscribers()) {
       stream.on(this._send, this);
     }
-    var _this = this;
-    stream.onEnd(function(){  _this.__unplug(stream)  });
+    stream.onEnd(this.__unplug, this, stream);
   },
   __unplug: function(stream){
     if (!this.isEnded()) {
@@ -141,10 +159,7 @@ Kefir.MergedStream = function MergedStream(){
   Stream.call(this)
   this.__sources = firstArrOrToArr(arguments);
   for (var i = 0; i < this.__sources.length; i++) {
-    assertStream(this.__sources[i]);
-    this.__sources[i].onEnd(
-      this.__unplugFor(this.__sources[i])
-    );
+    this.__sources[i].onEnd(this.__unplug, this, this.__sources[i]);
   }
 }
 
@@ -154,7 +169,7 @@ inherit(Kefir.MergedStream, Stream, {
   __objName: 'Kefir.merge(streams)',
   __onFirstIn: function(){
     for (var i = 0; i < this.__sources.length; i++) {
-      this.__sources[i].on(this._send, this);
+      this.__sources[i].onChanges(this._send, this);
     }
   },
   __onLastOut: function(){
@@ -168,10 +183,6 @@ inherit(Kefir.MergedStream, Stream, {
     if (this.__sources.length === 0) {
       this._send(Kefir.END);
     }
-  },
-  __unplugFor: function(stream){
-    var _this = this;
-    return function(){  _this.__unplug(stream)  }
   },
   __end: function(){
     Stream.prototype.__end.call(this);
@@ -204,12 +215,10 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFn){
   this.__sources = sources;
   this.__cachedValues = new Array(sources.length);
   this.__hasCached = new Array(sources.length);
-  this.__receiveFns = new Array(sources.length);
   this.__mapFn = mapFn;
 
   for (var i = 0; i < this.__sources.length; i++) {
-    this.__receiveFns[i] = this.__receiveFor(i);
-    this.__sources[i].onEnd( this.__unplugFor(i) );
+    this.__sources[i].onEnd(this.__unplug, this, i);
   }
 
 }
@@ -221,28 +230,23 @@ inherit(Kefir.CombinedStream, Stream, {
   __onFirstIn: function(){
     for (var i = 0; i < this.__sources.length; i++) {
       if (this.__sources[i]) {
-        this.__sources[i].on(this.__receiveFns[i]);
+        this.__sources[i].on(this.__receive, this, i);
       }
     }
   },
   __onLastOut: function(){
     for (var i = 0; i < this.__sources.length; i++) {
       if (this.__sources[i]) {
-        this.__sources[i].off(this.__receiveFns[i]);
+        this.__sources[i].off(this.__receive, this, i);
       }
     }
   },
   __unplug: function(i){
-    this.__sources[i].off(this.__receiveFns[i]);
+    this.__sources[i].off(this.__receive, this, i);
     this.__sources[i] = null
-    this.__receiveFns[i] = null
     if (isAllDead(this.__sources)) {
       this._send(Kefir.END);
     }
-  },
-  __unplugFor: function(i){
-    var _this = this;
-    return function(){  _this.__unplug(i)  }
   },
   __receive: function(i, x) {
     this.__hasCached[i] = true;
@@ -253,12 +257,6 @@ inherit(Kefir.CombinedStream, Stream, {
       } else {
         this._send(this.__cachedValues.slice(0));
       }
-    }
-  },
-  __receiveFor: function(i) {
-    var _this = this;
-    return function(x){
-      _this.__receive(i, x);
     }
   },
   __allCached: function(){
@@ -274,7 +272,6 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__sources = null;
     this.__cachedValues = null;
     this.__hasCached = null;
-    this.__receiveFns = null;
     this.__mapFn = null;
   }
 

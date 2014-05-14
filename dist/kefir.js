@@ -69,14 +69,15 @@ function removeFromArray(array, value) {
 function killInArray(array, value) {
   for (var i = 0; i < array.length; i++) {
     if (array[i] === value) {
-      array[i] = null;
+      delete array[i];
     }
   }
 }
 
 function isAllDead(array) {
   for (var i = 0; i < array.length; i++) {
-    if (array[i]) {
+    /*jshint eqnull:true */
+    if (array[i] != null) {
       return false;
     }
   }
@@ -88,6 +89,25 @@ function firstArrOrToArr(args) {
     return args[0];
   }
   return toArray(args);
+}
+
+function restArgs(args, start, nullOnEmpty){
+  if (args.length > start) {
+    return Array.prototype.slice.call(args, start);
+  }
+  if (nullOnEmpty) {
+    return null;
+  } else {
+    return [];
+  }
+}
+
+function callFn(args/*, moreArgs...*/){
+  var fn = args[0];
+  var context = args[1];
+  var bindedArgs = restArgs(args, 2);
+  var moreArgs = restArgs(arguments, 1);
+  return fn.apply(context, bindedArgs.concat(moreArgs));
 }
 
 function assert(condition, message) {
@@ -112,6 +132,24 @@ function withName(name, obj){
   obj.__objName = name;
   return obj;
 }
+
+function isEqualArrays(a, b){
+  /*jshint eqnull:true */
+  if (a == null && b == null) {
+    return true;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 
 // Class method names convention
 //
@@ -144,35 +182,58 @@ Kefir.bunch = function() {
 // Callbacks
 
 var Callbacks = Kefir.Callbacks = function Callbacks(){
-  this.__subscribers = null;
-  this.__contexts = null;
+  // this.__subscribers = null;
+  // this.__contexts = null;
+  // this.__arguments = null;
 }
 
 inherit(Callbacks, Object, {
 
-  add: function(fn, context){
-    if (this.__subscribers === null) {
+  add: function(fn, context /*, args...*/){
+    var args = restArgs(arguments, 2, true);
+    if (!this.__subscribers) {
       this.__subscribers = [];
-      this.__contexts = [];
     }
     this.__subscribers.push(fn);
-    this.__contexts.push(context);
+    /*jshint eqnull:true */
+    if (context != null) {
+      if (!this.__contexts) {
+        this.__contexts = {};
+      }
+      this.__contexts[this.__subscribers.length - 1] = context;
+    }
+    if (args != null) {
+      if (!this.__arguments) {
+        this.__arguments = {};
+      }
+      this.__arguments[this.__subscribers.length - 1] = args;
+    }
   },
-  remove: function(fn, context){
+  remove: function(fn, context /*, args...*/){
     if (this.isEmpty()) {return}
+    var args = restArgs(arguments, 2, true);
     for (var i = 0; i < this.__subscribers.length; i++) {
-      if (this.__subscribers[i] === fn && this.__contexts[i] === context) {
-        this.__subscribers[i] = null;
-        this.__contexts[i] = null;
+      var sameFn = (this.__subscribers[i] === fn);
+      var sameContext = (this.__contexts && this.__contexts[i]) === context;
+      var sameArgs = isEqualArrays((this.__arguments && this.__arguments[i]), args);
+      if (sameFn && sameContext && sameArgs) {
+        delete this.__subscribers[i];
+        if (this.__contexts) {
+          delete this.__contexts[i];
+        }
+        if (this.__arguments) {
+          delete this.__arguments[i];
+        }
       }
     }
     if (isAllDead(this.__subscribers)){
-      this.__subscribers = null;
-      this.__contexts = null;
+      delete this.__subscribers;
+      delete this.__contexts;
+      delete this.__arguments;
     }
   },
   isEmpty: function(){
-    return this.__subscribers === null;
+    return !this.__subscribers;
   },
   hasOne: function(){
     return !this.isEmpty() && this.__subscribers.length === 1;
@@ -181,9 +242,10 @@ inherit(Callbacks, Object, {
     if (this.isEmpty()) {return}
     for (var i = 0, l = this.__subscribers.length; i < l; i++) {
       var callback = this.__subscribers[i];
-      var context = this.__contexts[i];
+      var context = (this.__contexts && this.__contexts[i]);
+      var args = ((this.__arguments && this.__arguments[i]) || []).concat([x]);
       if (isFn(callback)) {
-        if(NO_MORE === callback.call(context, x)) {
+        if(NO_MORE === callback.apply(context, args)) {
           this.remove(callback, context);
         }
       }
@@ -235,38 +297,38 @@ inherit(Observable, Object, {
       }
     }
   },
-  on: function(callback, context) {
+  on: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (!this.isEnded()) {
-      this.__subscribers.add(callback, context);
+      this.__subscribers.add.apply(this.__subscribers, arguments);
       if (this.__subscribers.hasOne()) {
         this.__onFirstIn();
       }
     }
   },
-  onChanges: function(callback, context){
-    this.on(callback, context);
+  onChanges: function(){
+    this.on.apply(this, arguments);
   },
-  onValue: function(callback, context){
-    this.on(callback, context);
+  onValue: function(){
+    this.on.apply(this, arguments);
   },
-  off: function(callback, context) {
+  off: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (!this.isEnded()) {
-      this.__subscribers.remove(callback, context);
+      this.__subscribers.remove.apply(this.__subscribers, arguments);
       if (this.__subscribers.isEmpty()) {
         this.__onLastOut();
       }
     }
   },
-  onEnd: function(callback, context) {
+  onEnd: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (this.isEnded()) {
-      callback.call(context);
+      callFn(arguments);
     } else {
-      this.__endSubscribers.add(callback, context);
+      this.__endSubscribers.add.apply(this.__endSubscribers, arguments);
     }
   },
-  offEnd: function(callback, context) {
+  offEnd: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (!this.isEnded()){
-      this.__endSubscribers.remove(callback, context);
+      this.__endSubscribers.remove.apply(this.__endSubscribers, arguments);
     }
   },
   isEnded: function() {
@@ -326,14 +388,14 @@ var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial)
 inherit(Property, Observable, {
 
   __ClassName: 'Property',
-  onChanges: function(callback, context){
-    Observable.prototype.on.call(this, callback, context);
+  onChanges: function(){
+    Observable.prototype.on.apply(this, arguments);
   },
-  on: function(callback, context) {
+  on: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if ( this.hasCached() ) {
-      callback.call(context, this.__cached);
+      callFn(arguments, this.__cached);
     }
-    this.onChanges(callback, context);
+    this.onChanges.apply(this, arguments);
   },
   _send: function(x) {
     if (!this.isEnded()){
@@ -699,6 +761,26 @@ Observable.prototype.take = function(n) {
 
 
 
+
+// var PluggableMixin = {
+
+//   __Constructor: function(){
+//     this.__plugged = [];
+//   },
+//   __handlePlugged: function(i, value){
+//     this._send(value);
+//   },
+//   __end: function(){
+//     this.__plugged = null;
+//   }
+
+
+// }
+
+
+
+
+
 // Bus
 
 Kefir.Bus = function Bus(){
@@ -719,8 +801,7 @@ inherit(Kefir.Bus, Stream, {
       if (this.hasSubscribers()) {
         stream.on(this._send, this);
       }
-      var _this = this;
-      stream.onEnd(function(){  _this.unplug(stream)  });
+      stream.onEnd(this.unplug, this, stream);
     }
   },
   unplug: function(stream){
@@ -792,8 +873,7 @@ inherit(Kefir.FlatMappedStream, Stream, {
     if (this.hasSubscribers()) {
       stream.on(this._send, this);
     }
-    var _this = this;
-    stream.onEnd(function(){  _this.__unplug(stream)  });
+    stream.onEnd(this.__unplug, this, stream);
   },
   __unplug: function(stream){
     if (!this.isEnded()) {
@@ -827,10 +907,7 @@ Kefir.MergedStream = function MergedStream(){
   Stream.call(this)
   this.__sources = firstArrOrToArr(arguments);
   for (var i = 0; i < this.__sources.length; i++) {
-    assertStream(this.__sources[i]);
-    this.__sources[i].onEnd(
-      this.__unplugFor(this.__sources[i])
-    );
+    this.__sources[i].onEnd(this.__unplug, this, this.__sources[i]);
   }
 }
 
@@ -840,7 +917,7 @@ inherit(Kefir.MergedStream, Stream, {
   __objName: 'Kefir.merge(streams)',
   __onFirstIn: function(){
     for (var i = 0; i < this.__sources.length; i++) {
-      this.__sources[i].on(this._send, this);
+      this.__sources[i].onChanges(this._send, this);
     }
   },
   __onLastOut: function(){
@@ -854,10 +931,6 @@ inherit(Kefir.MergedStream, Stream, {
     if (this.__sources.length === 0) {
       this._send(Kefir.END);
     }
-  },
-  __unplugFor: function(stream){
-    var _this = this;
-    return function(){  _this.__unplug(stream)  }
   },
   __end: function(){
     Stream.prototype.__end.call(this);
@@ -890,12 +963,10 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFn){
   this.__sources = sources;
   this.__cachedValues = new Array(sources.length);
   this.__hasCached = new Array(sources.length);
-  this.__receiveFns = new Array(sources.length);
   this.__mapFn = mapFn;
 
   for (var i = 0; i < this.__sources.length; i++) {
-    this.__receiveFns[i] = this.__receiveFor(i);
-    this.__sources[i].onEnd( this.__unplugFor(i) );
+    this.__sources[i].onEnd(this.__unplug, this, i);
   }
 
 }
@@ -907,28 +978,23 @@ inherit(Kefir.CombinedStream, Stream, {
   __onFirstIn: function(){
     for (var i = 0; i < this.__sources.length; i++) {
       if (this.__sources[i]) {
-        this.__sources[i].on(this.__receiveFns[i]);
+        this.__sources[i].on(this.__receive, this, i);
       }
     }
   },
   __onLastOut: function(){
     for (var i = 0; i < this.__sources.length; i++) {
       if (this.__sources[i]) {
-        this.__sources[i].off(this.__receiveFns[i]);
+        this.__sources[i].off(this.__receive, this, i);
       }
     }
   },
   __unplug: function(i){
-    this.__sources[i].off(this.__receiveFns[i]);
+    this.__sources[i].off(this.__receive, this, i);
     this.__sources[i] = null
-    this.__receiveFns[i] = null
     if (isAllDead(this.__sources)) {
       this._send(Kefir.END);
     }
-  },
-  __unplugFor: function(i){
-    var _this = this;
-    return function(){  _this.__unplug(i)  }
   },
   __receive: function(i, x) {
     this.__hasCached[i] = true;
@@ -939,12 +1005,6 @@ inherit(Kefir.CombinedStream, Stream, {
       } else {
         this._send(this.__cachedValues.slice(0));
       }
-    }
-  },
-  __receiveFor: function(i) {
-    var _this = this;
-    return function(x){
-      _this.__receive(i, x);
     }
   },
   __allCached: function(){
@@ -960,7 +1020,6 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__sources = null;
     this.__cachedValues = null;
     this.__hasCached = null;
-    this.__receiveFns = null;
     this.__mapFn = null;
   }
 

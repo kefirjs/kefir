@@ -63,14 +63,15 @@ function removeFromArray(array, value) {
 function killInArray(array, value) {
   for (var i = 0; i < array.length; i++) {
     if (array[i] === value) {
-      array[i] = null;
+      delete array[i];
     }
   }
 }
 
 function isAllDead(array) {
   for (var i = 0; i < array.length; i++) {
-    if (array[i]) {
+    /*jshint eqnull:true */
+    if (array[i] != null) {
       return false;
     }
   }
@@ -82,6 +83,25 @@ function firstArrOrToArr(args) {
     return args[0];
   }
   return toArray(args);
+}
+
+function restArgs(args, start, nullOnEmpty){
+  if (args.length > start) {
+    return Array.prototype.slice.call(args, start);
+  }
+  if (nullOnEmpty) {
+    return null;
+  } else {
+    return [];
+  }
+}
+
+function callFn(args/*, moreArgs...*/){
+  var fn = args[0];
+  var context = args[1];
+  var bindedArgs = restArgs(args, 2);
+  var moreArgs = restArgs(arguments, 1);
+  return fn.apply(context, bindedArgs.concat(moreArgs));
 }
 
 function assert(condition, message) {
@@ -106,3 +126,21 @@ function withName(name, obj){
   obj.__objName = name;
   return obj;
 }
+
+function isEqualArrays(a, b){
+  /*jshint eqnull:true */
+  if (a == null && b == null) {
+    return true;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+

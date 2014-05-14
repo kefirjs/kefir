@@ -23,6 +23,7 @@ describe("Map:", function(){
   it("produce Property from Property", function(done){
 
     var property = helpers.sampleStream([1, 2, Kefir.END]).toProperty(5);
+
     var mapped = property.map(function(x){
       return x*2;
     })
