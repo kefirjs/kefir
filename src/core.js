@@ -28,55 +28,25 @@ Kefir.bunch = function() {
 
 // Callbacks
 
-var Callbacks = Kefir.Callbacks = function Callbacks(){
-  // this.__subscribers = null;
-  // this.__contexts = null;
-  // this.__arguments = null;
-}
+var Callbacks = Kefir.Callbacks = function Callbacks(){}
 
 inherit(Callbacks, Object, {
 
-  add: function(fn, context /*, args...*/){
-    var args = restArgs(arguments, 2, true);
+  add: function(/*callback [, context [, arg1, arg2 ...]]*/){
     if (!this.__subscribers) {
       this.__subscribers = [];
     }
-    this.__subscribers.push(fn);
-    /*jshint eqnull:true */
-    if (context != null) {
-      if (!this.__contexts) {
-        this.__contexts = {};
-      }
-      this.__contexts[this.__subscribers.length - 1] = context;
-    }
-    if (args != null) {
-      if (!this.__arguments) {
-        this.__arguments = {};
-      }
-      this.__arguments[this.__subscribers.length - 1] = args;
-    }
+    this.__subscribers.push(arguments);
   },
-  remove: function(fn, context /*, args...*/){
+  remove: function(/*callback [, context [, arg1, arg2 ...]]*/){
     if (this.isEmpty()) {return}
-    var args = restArgs(arguments, 2, true);
     for (var i = 0; i < this.__subscribers.length; i++) {
-      var sameFn = (this.__subscribers[i] === fn);
-      var sameContext = (this.__contexts && this.__contexts[i]) === context;
-      var sameArgs = isEqualArrays((this.__arguments && this.__arguments[i]), args);
-      if (sameFn && sameContext && sameArgs) {
-        delete this.__subscribers[i];
-        if (this.__contexts) {
-          delete this.__contexts[i];
-        }
-        if (this.__arguments) {
-          delete this.__arguments[i];
-        }
+      if (isEqualArrays(this.__subscribers[i], arguments)) {
+        this.__subscribers[i] = null;
       }
     }
     if (isAllDead(this.__subscribers)){
-      delete this.__subscribers;
-      delete this.__contexts;
-      delete this.__arguments;
+      this.__subscribers = null;
     }
   },
   isEmpty: function(){
@@ -88,18 +58,17 @@ inherit(Callbacks, Object, {
   send: function(x){
     if (this.isEmpty()) {return}
     for (var i = 0, l = this.__subscribers.length; i < l; i++) {
-      var callback = this.__subscribers[i];
-      var context = (this.__contexts && this.__contexts[i]);
-      var args = ((this.__arguments && this.__arguments[i]) || []).concat([x]);
-      if (isFn(callback)) {
-        if(NO_MORE === callback.apply(context, args)) {
-          this.remove(callback, context);
+      if (this.__subscribers[i]) {
+        if(NO_MORE === callFn(this.__subscribers[i], x)) {
+          this.remove.apply(this, this.__subscribers[i]);
         }
       }
     }
   }
 
 })
+
+
 
 
 
@@ -179,7 +148,7 @@ inherit(Observable, Object, {
     }
   },
   isEnded: function() {
-    return this.__subscribers === null;
+    return !this.__subscribers;
   },
   hasSubscribers: function(){
     return !this.isEnded() && !this.__subscribers.isEmpty();
