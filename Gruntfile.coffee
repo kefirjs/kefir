@@ -66,8 +66,8 @@ module.exports = (grunt) ->
             'src/utils.js'
             'src/core.js'
             'src/special-streams.js'
-            'src/compose.js'
-            'src/map.js'
+            'src/one-source.js'
+            'src/multiple-sources.js'
             'src/poll.js'
             'src/time.js'
           ]
