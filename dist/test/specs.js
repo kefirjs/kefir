@@ -185,7 +185,9 @@ Kefir.bunch = function() {
 
 // Callbacks
 
-var Callbacks = Kefir.Callbacks = function Callbacks(){}
+var Callbacks = Kefir.Callbacks = function Callbacks(){
+  this.__subscribers = null;
+}
 
 inherit(Callbacks, Object, {
 
