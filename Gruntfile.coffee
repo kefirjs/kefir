@@ -9,6 +9,31 @@ module.exports = (grunt) ->
 
   """
 
+  intro = """
+    (function(global){
+      "use strict";
+
+
+  """
+
+  outro = """
+
+
+      if (typeof define === 'function' && define.amd) {
+        define([], function() {
+          return Kefir;
+        });
+        global.Kefir = Kefir;
+      } else if (typeof module === "object" && typeof exports === "object") {
+        module.exports = Kefir;
+        Kefir.Kefir = Kefir;
+      } else {
+        global.Kefir = Kefir;
+      }
+
+    }(this));
+  """
+
   grunt.initConfig(
 
     browserify:
@@ -29,14 +54,23 @@ module.exports = (grunt) ->
         options:
           banner: banner
         files:
-          'dist/kefir.min.js': 'src/kefir.js'
+          'dist/kefir.min.js': 'dist/kefir.js'
 
     concat:
       kefir:
         options:
-          banner: banner
+          banner: banner + intro
+          footer: outro
         files:
-          'dist/kefir.js': 'src/kefir.js'
+          'dist/kefir.js': [
+            'src/utils.js'
+            'src/core.js'
+            'src/special-streams.js'
+            'src/compose.js'
+            'src/map.js'
+            'src/poll.js'
+            'src/time.js'
+          ]
 
     jasmine_node:
       main:
@@ -48,15 +82,15 @@ module.exports = (grunt) ->
     jshint:
       options:
         jshintrc: true
-      main: ['src/kefir.js', 'test/test-helpers.js', 'test/specs/*.js']
+      main: ['src/*.js', 'test/test-helpers.js', 'test/specs/*.js']
 
 
     watch:
       kefir:
-        files: 'src/kefir.js'
-        tasks: ['build-kefir']
+        files: 'src/*.js'
+        tasks: ['build-kefir', 'build-browser-tests']
       tests:
-        files: ['kefir.js', 'test-helpers.js', 'specs/*.js']
+        files: ['test-helpers.js', 'specs/*.js']
         tasks: ['build-browser-tests']
 
     clean:
@@ -96,4 +130,4 @@ module.exports = (grunt) ->
   grunt.registerTask 'release-minor', ['bump:minor', 'release']
   grunt.registerTask 'release-major', ['bump:major', 'release']
   grunt.registerTask 'release-pre', ['bump:prerelease', 'release']
-  grunt.registerTask 'default', ['clean', 'build-browser-tests', 'build-kefir', 'test']
+  grunt.registerTask 'default', ['clean', 'build-kefir', 'build-browser-tests', 'test']

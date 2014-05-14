@@ -1,86 +1,86 @@
-var Kefir = require('../../src/kefir.js');
-var helpers = require('../test-helpers');
+// var Kefir = require('../../dist/kefir.js');
+// var helpers = require('../test-helpers');
 
 
-if (typeof window !== 'undefined'){
+// if (typeof window !== 'undefined'){
 
-  describe("jQuery::eventStream()", function(){
-
-
-    it("jquery itself works", function(){
-
-      var count = 0;
-      function handler(){ count++ }
-
-      jQuery('body').on('click', handler);
-      jQuery('body').trigger('click');
-      jQuery('body').off('click', handler);
-
-      expect(count).toBe(1);
-
-    });
+//   describe("jQuery::eventStream()", function(){
 
 
+//     it("jquery itself works", function(){
 
-    it("just event name", function(done){
+//       var count = 0;
+//       function handler(){ count++ }
 
-      var stream = jQuery('body').eventStream('click').take(2);
+//       jQuery('body').on('click', handler);
+//       jQuery('body').trigger('click');
+//       jQuery('body').off('click', handler);
 
-      helpers.captureOutput(stream, function(values){
-        expect(values.length).toBe(2);
-        done();
-      });
+//       expect(count).toBe(1);
 
-      jQuery('body').trigger('click');
-      jQuery('body').trigger('click');
-      jQuery('body').trigger('click');
-
-    });
+//     });
 
 
-    it("event name and selector", function(done){
 
-      var stream = jQuery('body').eventStream('click', '.my-button').take(2);
+//     it("just event name", function(done){
 
-      helpers.captureOutput(stream, function(values){
-        expect(values.length).toBe(2);
-        done();
-      });
+//       var stream = jQuery('body').eventStream('click').take(2);
 
-      $btn = jQuery('<button class="my-button">my-button</button>').appendTo('body');
+//       helpers.captureOutput(stream, function(values){
+//         expect(values.length).toBe(2);
+//         done();
+//       });
 
-      $btn.trigger('click');
-      $btn.trigger('click');
-      $btn.trigger('click');
+//       jQuery('body').trigger('click');
+//       jQuery('body').trigger('click');
+//       jQuery('body').trigger('click');
 
-      $btn.remove()
-
-    });
+//     });
 
 
-    it("event name, selector, and transformer", function(done){
+//     it("event name and selector", function(done){
 
-      var stream = jQuery('body')
-        .eventStream('click', '.my-button', function(event){
-          return this === event.currentTarget && jQuery(this).hasClass('my-button');
-        }).take(2);
+//       var stream = jQuery('body').eventStream('click', '.my-button').take(2);
 
-      helpers.captureOutput(stream, function(values){
-        expect(values).toEqual([true, true]);
-        done();
-      });
+//       helpers.captureOutput(stream, function(values){
+//         expect(values.length).toBe(2);
+//         done();
+//       });
 
-      $btn = jQuery('<button class="my-button">my-button</button>').appendTo('body');
+//       $btn = jQuery('<button class="my-button">my-button</button>').appendTo('body');
 
-      $btn.trigger('click');
-      $btn.trigger('click');
-      $btn.trigger('click');
+//       $btn.trigger('click');
+//       $btn.trigger('click');
+//       $btn.trigger('click');
 
-      $btn.remove()
+//       $btn.remove()
 
-    });
+//     });
 
 
-  });
+//     it("event name, selector, and transformer", function(done){
 
-}
+//       var stream = jQuery('body')
+//         .eventStream('click', '.my-button', function(event){
+//           return this === event.currentTarget && jQuery(this).hasClass('my-button');
+//         }).take(2);
+
+//       helpers.captureOutput(stream, function(values){
+//         expect(values).toEqual([true, true]);
+//         done();
+//       });
+
+//       $btn = jQuery('<button class="my-button">my-button</button>').appendTo('body');
+
+//       $btn.trigger('click');
+//       $btn.trigger('click');
+//       $btn.trigger('click');
+
+//       $btn.remove()
+
+//     });
+
+
+//   });
+
+// }
