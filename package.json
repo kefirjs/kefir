@@ -30,7 +30,6 @@
   "license": "MIT",
   "devDependencies": {
     "baconjs": "^0.7.11",
-    "browserify": "~3.46.0",
     "coffee-script": "~1.7.1",
     "grunt": "~0.4.4",
     "grunt-browserify": "~2.0.8",
@@ -43,7 +42,6 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-jasmine-node": "~0.2.1",
     "grunt-release": "^0.7.0",
-    "jasmine-node": "~1.14.3",
     "load-grunt-tasks": "~0.4.0",
     "semver": "^2.3.0",
     "shelljs": "^0.3.0"
