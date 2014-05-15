@@ -27,6 +27,8 @@ inherit(Kefir.OnceStream, Stream, {
 
   __ClassName: 'OnceStream',
   __objName: 'Kefir.once(x)',
+
+  // TODO: patch .on() instead
   __onFirstIn: function(){
     this._send(this.__value);
     this.__value = null;

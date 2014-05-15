@@ -15,7 +15,7 @@ Kefir: w/o subscr. 0.41 Mb, w. subscr. 0.68 Mb
 Bacon: w/o subscr. 8.12 Mb, w. subscr. 9.84 Mb
 
 new Bus().toProperty(1).changes() x1000
-Kefir: w/o subscr. 0.67 Mb, w. subscr. 1.02 Mb
+Kefir: w/o subscr. 0.68 Mb, w. subscr. 1.02 Mb
 Bacon: w/o subscr. 10.87 Mb, w. subscr. 13.12 Mb
 
 new Bus().map(noop) x1000

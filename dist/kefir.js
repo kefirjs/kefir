@@ -102,14 +102,6 @@ function restArgs(args, start, nullOnEmpty){
   }
 }
 
-function callFn(args/*, moreArgs...*/){
-  var fn = args[0];
-  var context = args[1];
-  var bindedArgs = restArgs(args, 2);
-  var moreArgs = restArgs(arguments, 1);
-  return fn.apply(context, bindedArgs.concat(moreArgs));
-}
-
 function callSubscriber(subscriber/*, moreArgs...*/){
   // subscriber = [
   //   eventName,
@@ -246,7 +238,6 @@ inherit(Observable, Object, {
     this.__subscribers.push(arguments);
   },
   ___off: function(/*type ,callback [, context [, arg1, arg2 ...]]*/){
-    this.__subscribers.push(arguments);
     for (var i = 0; i < this.__subscribers.length; i++) {
       if (isEqualArrays(this.__subscribers[i], arguments)) {
         this.__subscribers[i] = null;
@@ -447,6 +438,8 @@ inherit(Kefir.OnceStream, Stream, {
 
   __ClassName: 'OnceStream',
   __objName: 'Kefir.once(x)',
+
+  // TODO: patch .on() instead
   __onFirstIn: function(){
     this._send(this.__value);
     this.__value = null;

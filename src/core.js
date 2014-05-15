@@ -74,7 +74,6 @@ inherit(Observable, Object, {
     this.__subscribers.push(arguments);
   },
   ___off: function(/*type ,callback [, context [, arg1, arg2 ...]]*/){
-    this.__subscribers.push(arguments);
     for (var i = 0; i < this.__subscribers.length; i++) {
       if (isEqualArrays(this.__subscribers[i], arguments)) {
         this.__subscribers[i] = null;

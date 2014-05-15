@@ -96,14 +96,6 @@ function restArgs(args, start, nullOnEmpty){
   }
 }
 
-function callFn(args/*, moreArgs...*/){
-  var fn = args[0];
-  var context = args[1];
-  var bindedArgs = restArgs(args, 2);
-  var moreArgs = restArgs(arguments, 1);
-  return fn.apply(context, bindedArgs.concat(moreArgs));
-}
-
 function callSubscriber(subscriber/*, moreArgs...*/){
   // subscriber = [
   //   eventName,
