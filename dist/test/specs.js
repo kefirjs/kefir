@@ -111,6 +111,22 @@ function callFn(args/*, moreArgs...*/){
   return fn.apply(context, bindedArgs.concat(moreArgs));
 }
 
+function callSubscriber(subscriber/*, moreArgs...*/){
+  // subscriber = [
+  //   eventName,
+  //   fn,
+  //   context,
+  //   arg1,
+  //   arg2,
+  //   ...
+  // ]
+  var fn = subscriber[1];
+  var context = subscriber[2];
+  var bindedArgs = restArgs(subscriber, 3);
+  var moreArgs = restArgs(arguments, 1);
+  return fn.apply(context, bindedArgs.concat(moreArgs));
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -183,52 +199,6 @@ Kefir.bunch = function() {
 
 
 
-// Callbacks
-
-var Callbacks = Kefir.Callbacks = function Callbacks(){
-  this.__subscribers = null;
-}
-
-inherit(Callbacks, Object, {
-
-  add: function(/*callback [, context [, arg1, arg2 ...]]*/){
-    if (!this.__subscribers) {
-      this.__subscribers = [];
-    }
-    this.__subscribers.push(arguments);
-  },
-  remove: function(/*callback [, context [, arg1, arg2 ...]]*/){
-    if (this.isEmpty()) {return}
-    for (var i = 0; i < this.__subscribers.length; i++) {
-      if (isEqualArrays(this.__subscribers[i], arguments)) {
-        this.__subscribers[i] = null;
-      }
-    }
-    if (isAllDead(this.__subscribers)){
-      this.__subscribers = null;
-    }
-  },
-  isEmpty: function(){
-    return !this.__subscribers;
-  },
-  hasOne: function(){
-    return !this.isEmpty() && this.__subscribers.length === 1;
-  },
-  send: function(x){
-    if (this.isEmpty()) {return}
-    for (var i = 0, l = this.__subscribers.length; i < l; i++) {
-      if (this.__subscribers[i]) {
-        if(NO_MORE === callFn(this.__subscribers[i], x)) {
-          this.remove.apply(this, this.__subscribers[i]);
-        }
-      }
-    }
-  }
-
-})
-
-
-
 
 
 // Observable
@@ -243,8 +213,7 @@ var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut){
     this.__onLastOut = onLastOut;
   }
 
-  this.__subscribers = new Callbacks;
-  this.__endSubscribers = new Callbacks;
+  this.__subscribers = [];
 
 }
 
@@ -265,17 +234,53 @@ inherit(Observable, Object, {
     }
   },
   __deliver: function(x){
-    if (!this.__subscribers.isEmpty()) {
-      this.__subscribers.send(x);
-      if (this.__subscribers.isEmpty()) {
-        this.__onLastOut();
+    // TODO: new on/off
+    this.___send('value', x);
+    if (!this.hasSubscribers()) {
+      this.__onLastOut();
+    }
+  },
+
+
+  // TODO: new on/off
+  ___on: function(/*type ,callback [, context [, arg1, arg2 ...]]*/){
+    this.__subscribers.push(arguments);
+  },
+  ___off: function(/*type ,callback [, context [, arg1, arg2 ...]]*/){
+    this.__subscribers.push(arguments);
+    for (var i = 0; i < this.__subscribers.length; i++) {
+      if (isEqualArrays(this.__subscribers[i], arguments)) {
+        this.__subscribers[i] = null;
       }
     }
   },
+  ___send: function(type, x) {
+    for (var i = 0; i < this.__subscribers.length; i++) {
+      var subscriber = this.__subscribers[i];
+      if (subscriber && subscriber[0] === type) {
+        var result = callSubscriber(subscriber, x);
+        if (result === NO_MORE) {
+          this.___off.apply(this, subscriber)
+        }
+      }
+    }
+  },
+  ___hasSubscribers: function(type) {
+    for (var i = 0; i < this.__subscribers.length; i++) {
+      if (this.__subscribers[i] && this.__subscribers[i][0] === type) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+
   on: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (!this.isEnded()) {
-      this.__subscribers.add.apply(this.__subscribers, arguments);
-      if (this.__subscribers.hasOne()) {
+      var willBeFirst = !this.hasSubscribers();
+      // TODO: new on/off
+      this.___on.apply(this, ['value'].concat(toArray(arguments)));
+      if (willBeFirst) {
         this.__onFirstIn();
       }
     }
@@ -288,29 +293,33 @@ inherit(Observable, Object, {
   },
   off: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (!this.isEnded()) {
-      this.__subscribers.remove.apply(this.__subscribers, arguments);
-      if (this.__subscribers.isEmpty()) {
+      // TODO: new on/off
+      this.___off.apply(this, ['value'].concat(toArray(arguments)));
+      if (!this.hasSubscribers()) {
         this.__onLastOut();
       }
     }
   },
   onEnd: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (this.isEnded()) {
-      callFn(arguments);
+      // TODO: new on/off
+      callSubscriber(['end'].concat(toArray(arguments)));
     } else {
-      this.__endSubscribers.add.apply(this.__endSubscribers, arguments);
+      // TODO: new on/off
+      this.___on.apply(this, ['end'].concat(toArray(arguments)));
     }
   },
   offEnd: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if (!this.isEnded()){
-      this.__endSubscribers.remove.apply(this.__endSubscribers, arguments);
+      // TODO: new on/off
+      this.___off.apply(this, ['end'].concat(toArray(arguments)));
     }
   },
   isEnded: function() {
     return !this.__subscribers;
   },
   hasSubscribers: function(){
-    return !this.isEnded() && !this.__subscribers.isEmpty();
+    return !this.isEnded() && this.___hasSubscribers('value');
   },
   __onFirstIn: noop,
   __onLastOut: noop,
@@ -320,7 +329,7 @@ inherit(Observable, Object, {
   __end: function() {
     if (!this.isEnded()) {
       this.__onLastOut();
-      this.__endSubscribers.send();
+      this.___send('end');
       if (own(this, '__onFirstIn')) {
         this.__onFirstIn = null;
       }
@@ -328,7 +337,6 @@ inherit(Observable, Object, {
         this.__onLastOut = null;
       }
       this.__subscribers = null;
-      this.__endSubscribers = null;
     }
   },
   toString: function(){
@@ -368,7 +376,8 @@ inherit(Property, Observable, {
   },
   on: function(/*callback [, context [, arg1, arg2 ...]]*/) {
     if ( this.hasCached() ) {
-      callFn(arguments, this.__cached);
+      // TODO: new on/off
+      callSubscriber(['value'].concat(toArray(arguments)), this.__cached);
     }
     this.onChanges.apply(this, arguments);
   },

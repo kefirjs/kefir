@@ -104,6 +104,22 @@ function callFn(args/*, moreArgs...*/){
   return fn.apply(context, bindedArgs.concat(moreArgs));
 }
 
+function callSubscriber(subscriber/*, moreArgs...*/){
+  // subscriber = [
+  //   eventName,
+  //   fn,
+  //   context,
+  //   arg1,
+  //   arg2,
+  //   ...
+  // ]
+  var fn = subscriber[1];
+  var context = subscriber[2];
+  var bindedArgs = restArgs(subscriber, 3);
+  var moreArgs = restArgs(arguments, 1);
+  return fn.apply(context, bindedArgs.concat(moreArgs));
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
