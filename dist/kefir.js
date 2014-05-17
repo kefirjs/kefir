@@ -419,11 +419,12 @@ inherit(Kefir.OnceStream, Stream, {
   __ClassName: 'OnceStream',
   __objName: 'Kefir.once(x)',
 
-  // TODO: patch .onValue() instead
-  __onFirstIn: function(){
-    this.__sendValue(this.__value);
-    this.__value = null;
-    this.__sendEnd();
+  onValue: function(){
+    if (!this.isEnded()) {
+      callSubscriber(['value'].concat(toArray(arguments)), [this.__value]);
+      this.__value = null;
+      this.__sendEnd();
+    }
   }
 
 })
