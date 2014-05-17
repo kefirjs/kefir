@@ -45,36 +45,36 @@ Kefir.once = function(x) {
 
 
 
-// // fromBinder
+// fromBinder
 
-// Kefir.FromBinderStream = function FromBinderStream(subscribe){
-//   Stream.call(this);
-//   this.__subscribe = subscribe;
-// }
+Kefir.FromBinderStream = function FromBinderStream(subscribe){
+  Stream.call(this);
+  this.__subscribe = subscribe;
+}
 
-// inherit(Kefir.FromBinderStream, Stream, {
+inherit(Kefir.FromBinderStream, Stream, {
 
-//   __ClassName: 'FromBinderStream',
-//   __objName: 'Kefir.fromBinder(subscribe)',
-//   __onFirstIn: function(){
-//     var _this = this;
-//     this.__usubscriber = this.__subscribe(function(x){
-//       _this._send(x);
-//     });
-//   },
-//   __onLastOut: function(){
-//     if (isFn(this.__usubscriber)) {
-//       this.__usubscriber();
-//     }
-//     this.__usubscriber = null;
-//   },
-//   __clear: function(){
-//     Stream.prototype.__clear.call(this);
-//     this.__subscribe = null;
-//   }
+  __ClassName: 'FromBinderStream',
+  __objName: 'Kefir.fromBinder(subscribe)',
+  __onFirstIn: function(){
+    var _this = this;
+    this.__usubscriber = this.__subscribe(function(x){
+      _this.__sendAny(x);
+    });
+  },
+  __onLastOut: function(){
+    if (isFn(this.__usubscriber)) {
+      this.__usubscriber();
+    }
+    this.__usubscriber = null;
+  },
+  __clear: function(){
+    Stream.prototype.__clear.call(this);
+    this.__subscribe = null;
+  }
 
-// })
+})
 
-// Kefir.fromBinder = function(subscribe){
-//   return new Kefir.FromBinderStream(subscribe);
-// }
+Kefir.fromBinder = function(subscribe){
+  return new Kefir.FromBinderStream(subscribe);
+}
