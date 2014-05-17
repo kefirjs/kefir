@@ -136,11 +136,6 @@ function isFn(fn) {
   return typeof fn === "function";
 }
 
-function withName(name, obj){
-  obj.__objName = name;
-  return obj;
-}
-
 function isEqualArrays(a, b){
   /*jshint eqnull:true */
   if (a == null && b == null) {

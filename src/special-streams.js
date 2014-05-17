@@ -26,8 +26,6 @@ Kefir.OnceStream = function OnceStream(value){
 inherit(Kefir.OnceStream, Stream, {
 
   __ClassName: 'OnceStream',
-  __objName: 'Kefir.once(x)',
-
   onValue: function(){
     if (!this.isEnded()) {
       callSubscriber(['value'].concat(toArray(arguments)), [this.__value]);
@@ -56,7 +54,6 @@ Kefir.FromBinderStream = function FromBinderStream(subscribe){
 inherit(Kefir.FromBinderStream, Stream, {
 
   __ClassName: 'FromBinderStream',
-  __objName: 'Kefir.fromBinder(subscribe)',
   __onFirstIn: function(){
     var _this = this;
     this.__usubscriber = this.__subscribe(function(x){

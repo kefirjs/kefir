@@ -1,22 +1,21 @@
 var Kefir = {};
 
+
+
+// Special values
+
 var NOTHING = Kefir.NOTHING = ['<nothing>'];
 var END = Kefir.END = ['<end>'];
 var NO_MORE = Kefir.NO_MORE = ['<no more>'];
 
-
-// BunchOfValues
-//
 // Example:
-//   stream._send(Kefir.bunch(1, 2, Kefir.END))
-
+//   stream.__sendAny(Kefir.bunch(1, 2, Kefir.END))
 Kefir.BunchOfValues = function(values){
   this.values = values;
 }
 Kefir.bunch = function() {
   return new Kefir.BunchOfValues(firstArrOrToArr(arguments));
 }
-
 
 
 
@@ -65,9 +64,9 @@ inherit(Observable, Object, {
         if (isEqualArrays(this.__subscribers[i], arguments)) {
           this.__subscribers[i] = null;
         }
-        if (type === 'value' && !this.__hasSubscribers('value')) {
-          this.__onLastOut();
-        }
+      }
+      if (type === 'value' && !this.__hasSubscribers('value')) {
+        this.__onLastOut();
       }
     }
   },

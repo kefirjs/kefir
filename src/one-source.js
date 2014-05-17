@@ -28,6 +28,7 @@ var WithSourceStreamMixin = {
     this.__source.offValue(this.__handle, this);
   },
   __clear: function(){
+    Observable.prototype.__clear.call(this);
     this.__source = null;
   }
 }
@@ -36,7 +37,7 @@ var WithSourceStreamMixin = {
 
 
 
-// .toProperty()
+// observable.toProperty()
 
 Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
   Property.call(this, null, null, initial);
@@ -44,14 +45,7 @@ Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
 }
 
 inherit(Kefir.PropertyFromStream, Property, WithSourceStreamMixin, {
-
-  __ClassName: 'PropertyFromStream',
-  __objName: 'stream.toProperty()',
-  __clear: function(){
-    Property.prototype.__clear.call(this);
-    WithSourceStreamMixin.__clear.call(this);
-  }
-
+  __ClassName: 'PropertyFromStream'
 })
 
 Stream.prototype.toProperty = function(initial){
@@ -72,7 +66,8 @@ Property.prototype.toProperty = function(initial){
 
 
 
-// Property::changes()
+// property.changes()
+// TODO: tests
 
 Kefir.ChangesStream = function ChangesStream(source){
   assertProperty(source);
@@ -81,14 +76,7 @@ Kefir.ChangesStream = function ChangesStream(source){
 }
 
 inherit(Kefir.ChangesStream, Stream, WithSourceStreamMixin, {
-
-  __ClassName: 'ChangesStream',
-  __objName: 'property.changes()',
-  __clear: function(){
-    Stream.prototype.__clear.call(this);
-    WithSourceStreamMixin.__clear.call(this);
-  }
-
+  __ClassName: 'ChangesStream'
 })
 
 Property.prototype.changes = function() {
@@ -116,7 +104,6 @@ var MapMixin = {
     this.__sendAny( this.__mapFn(x) );
   },
   __clear: function(){
-    Stream.prototype.__clear.call(this);
     WithSourceStreamMixin.__clear.call(this);
     this.__mapFn = null;
   }
@@ -139,14 +126,13 @@ inherit(Kefir.MappedProperty, Property, MapMixin, {
   __ClassName: 'MappedProperty'
 })
 
-Observable.prototype.map = function(fn) {
-  if (this instanceof Property) {
-    return new Kefir.MappedProperty(this, fn);
-  } else {
-    return new Kefir.MappedStream(this, fn);
-  }
+Stream.prototype.map = function(fn) {
+  return new Kefir.MappedStream(this, fn);
 }
 
+Property.prototype.map = function(fn) {
+  return new Kefir.MappedProperty(this, fn);
+}
 
 
 
@@ -154,78 +140,29 @@ Observable.prototype.map = function(fn) {
 
 // Filter
 
-var filterMixin = {
-  __handle: function(x){
-    if (this.__mapFn(x)) {
-      this.__sendValue(x);
-    }
-  }
-}
-inheritMixin(filterMixin, MapMixin);
-
-Kefir.FilteredStream = function FilteredStream(){
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(Kefir.FilteredStream, Stream, filterMixin, {
-  __ClassName: 'FilteredStream'
-})
-
-Kefir.FilteredProperty = function FilteredProperty(){
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(Kefir.FilteredProperty, Property, filterMixin, {
-  __ClassName: 'FilteredProperty'
-})
-
 Observable.prototype.filter = function(fn) {
-  if (this instanceof Property) {
-    return new Kefir.FilteredProperty(this, fn);
-  } else {
-    return new Kefir.FilteredStream(this, fn);
-  }
+  return this.map(function(x){
+    if (fn(x)) {
+      return x;
+    } else {
+      return NOTHING;
+    }
+  })
 }
-
 
 
 
 
 // TakeWhile
 
-var TakeWhileMixin = {
-  __handle: function(x){
-    if (this.__mapFn(x)) {
-      this.__sendValue(x);
-    } else {
-      this.__sendEnd();
-    }
-  }
-}
-inheritMixin(TakeWhileMixin, MapMixin);
-
-Kefir.TakeWhileStream = function TakeWhileStream(){
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(Kefir.TakeWhileStream, Stream, TakeWhileMixin, {
-  __ClassName: 'TakeWhileStream'
-})
-
-Kefir.TakeWhileProperty = function TakeWhileProperty(){
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(Kefir.TakeWhileProperty, Property, TakeWhileMixin, {
-  __ClassName: 'TakeWhileStream'
-})
-
 Observable.prototype.takeWhile = function(fn) {
-  if (this instanceof Property) {
-    return new Kefir.TakeWhileProperty(this, fn);
-  } else {
-    return new Kefir.TakeWhileStream(this, fn);
-  }
+  return this.map(function(x){
+    if (fn(x)) {
+      return x;
+    } else {
+      return END;
+    }
+  })
 }
 
 
@@ -234,7 +171,11 @@ Observable.prototype.takeWhile = function(fn) {
 // Take
 
 Observable.prototype.take = function(n) {
-  return withName('observable.take(n)', this.takeWhile(function(){
-    return n-- > 0;
-  }))
-};
+  return this.map(function(x){
+    if (n-- > 0) {
+      return x;
+    } else {
+      return END;
+    }
+  })
+}

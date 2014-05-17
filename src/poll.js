@@ -11,7 +11,6 @@ var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, so
 inherit(FromPollStream, Stream, {
 
   __ClassName: 'FromPollStream',
-  __objName: 'Kefir.fromPoll(interval, fn)',
   __onFirstIn: function(){
     this.__intervalId = setInterval(this.__bindedSend, this.__interval);
   },
@@ -29,7 +28,7 @@ inherit(FromPollStream, Stream, {
 });
 
 Kefir.fromPoll = function(interval, fn){
-  return withName('Kefir.fromPoll(interval, fn)', new FromPollStream(interval, fn));
+  return new FromPollStream(interval, fn);
 }
 
 
@@ -37,7 +36,7 @@ Kefir.fromPoll = function(interval, fn){
 // Interval
 
 Kefir.interval = function(interval, x){
-  return withName('Kefir.interval(interval, x)', new FromPollStream(interval, function(){  return x }));
+  return new FromPollStream(interval, function(){  return x });
 }
 
 
@@ -46,7 +45,7 @@ Kefir.interval = function(interval, x){
 
 Kefir.sequentially = function(interval, xs){
   xs = xs.slice(0);
-  return withName('Kefir.sequentially(interval, xs)', new FromPollStream(interval, function(){
+  return new FromPollStream(interval, function(){
     if (xs.length === 0) {
       return END;
     }
@@ -54,7 +53,7 @@ Kefir.sequentially = function(interval, xs){
       return Kefir.bunch(xs[0], END);
     }
     return xs.shift();
-  }));
+  });
 }
 
 
@@ -63,7 +62,7 @@ Kefir.sequentially = function(interval, xs){
 
 Kefir.repeatedly = function(interval, xs){
   var i = -1;
-  return withName('Kefir.repeatedly(interval, xs)', new FromPollStream(interval, function(){
+  return new FromPollStream(interval, function(){
     return xs[++i % xs.length];
-  }));
+  });
 }

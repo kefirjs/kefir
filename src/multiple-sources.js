@@ -43,7 +43,6 @@ Kefir.Bus = function Bus(){
 inherit(Kefir.Bus, Stream, {
 
   __ClassName: 'Bus',
-  __objName: 'Kefir.bus()',
   push: function(x){
     this.__sendAny(x)
   },
@@ -104,7 +103,6 @@ Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
 inherit(Kefir.FlatMappedStream, Stream, {
 
   __ClassName: 'FlatMappedStream',
-  __objName: 'observable.flatMap(fn)',
   __plugResult: function(x){
     this.__plug(  this.__mapFn(x)  );
   },
@@ -166,7 +164,6 @@ Kefir.MergedStream = function MergedStream(){
 inherit(Kefir.MergedStream, Stream, {
 
   __ClassName: 'MergedStream',
-  __objName: 'Kefir.merge(streams)',
   __onFirstIn: function(){
     for (var i = 0; i < this.__sources.length; i++) {
       this.__sources[i].onNewValue(this.__sendValue, this);
@@ -226,7 +223,6 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFn){
 inherit(Kefir.CombinedStream, Stream, {
 
   __ClassName: 'CombinedStream',
-  __objName: 'Kefir.combine(streams, fn)',
   __onFirstIn: function(){
     for (var i = 0; i < this.__sources.length; i++) {
       if (this.__sources[i]) {
