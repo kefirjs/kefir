@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("FromPoll:", function(){
+describe("Kefir.fromPoll()", function(){
 
   it("works", function(done){
 

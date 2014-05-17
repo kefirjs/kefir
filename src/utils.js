@@ -7,7 +7,11 @@ function own(obj, prop){
 }
 
 function toArray(arrayLike){
-  return Array.prototype.slice.call(arrayLike);
+  if (arrayLike instanceof Array) {
+    return arrayLike;
+  } else {
+    return Array.prototype.slice.call(arrayLike);
+  }
 }
 
 function createObj(proto) {
@@ -96,7 +100,7 @@ function restArgs(args, start, nullOnEmpty){
   }
 }
 
-function callSubscriber(subscriber/*, moreArgs...*/){
+function callSubscriber(subscriber, moreArgs){
   // subscriber = [
   //   eventName,
   //   fn,
@@ -107,9 +111,11 @@ function callSubscriber(subscriber/*, moreArgs...*/){
   // ]
   var fn = subscriber[1];
   var context = subscriber[2];
-  var bindedArgs = restArgs(subscriber, 3);
-  var moreArgs = restArgs(arguments, 1);
-  return fn.apply(context, bindedArgs.concat(moreArgs));
+  var args = restArgs(subscriber, 3);
+  if (moreArgs){
+    args = args.concat(toArray(moreArgs));
+  }
+  return fn.apply(context, args);
 }
 
 function assert(condition, message) {

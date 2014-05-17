@@ -22,10 +22,10 @@
 //       result._send( eventTransformer.apply(this, arguments) );
 //     }
 //     function sub(){
-//       $this.on(events, selector, handler);
+//       $this.onValue(events, selector, handler);
 //     }
 //     function unsub(){
-//       $this.off(events, selector, handler);
+//       $this.offValue(events, selector, handler);
 //     }
 
 //     var result = new Stream(sub, unsub);

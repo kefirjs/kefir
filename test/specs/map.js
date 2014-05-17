@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Map:", function(){
+describe(".map()", function(){
 
   it("works", function(done){
 
@@ -53,9 +53,9 @@ describe("Map:", function(){
 
     bus.push(1)
     bus.push(2)
-    expect(bus.hasSubscribers()).toBe(true);
+    expect(bus.__hasSubscribers('value')).toBe(true);
     bus.push(3)
-    expect(bus.hasSubscribers()).toBe(false);
+    expect(bus.__hasSubscribers('value')).toBe(false);
 
     helpers.captureOutput(mapped, function(values){
       expect(values).toEqual([8, 10]);

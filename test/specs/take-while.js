@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Take while:", function(){
+describe(".takeWhile()", function(){
 
   it("works", function(done){
 

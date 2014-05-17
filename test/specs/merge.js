@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Merge:", function(){
+describe(".merge()", function(){
 
 
   it("works", function(done){

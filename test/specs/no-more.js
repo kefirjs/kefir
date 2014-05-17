@@ -3,14 +3,14 @@ var helpers = require('../test-helpers');
 
 
 
-describe("No more:", function(){
+describe("No more", function(){
 
   it("works", function(){
 
     var bus = new Kefir.Bus;
 
     var values = []
-    bus.on(function(x){
+    bus.onValue(function(x){
       values.push(x);
       if (x > 2) {
         return Kefir.NO_MORE;

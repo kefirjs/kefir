@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Combine:", function(){
+describe(".combine()", function(){
 
   it("simple case", function(done){
 
@@ -61,11 +61,11 @@ describe("Combine:", function(){
     bus1.push(1)
     bus2.push(2) // 1 + 2 = 3
     bus1.push(3) // 3 + 2 = 5
-    expect(bus1.hasSubscribers()).toBe(true);
-    expect(bus2.hasSubscribers()).toBe(true);
+    expect(bus1.__hasSubscribers('value')).toBe(true);
+    expect(bus2.__hasSubscribers('value')).toBe(true);
     bus2.push(4) // 3 + 4 = 7
-    expect(bus1.hasSubscribers()).toBe(false);
-    expect(bus2.hasSubscribers()).toBe(false);
+    expect(bus1.__hasSubscribers('value')).toBe(false);
+    expect(bus2.__hasSubscribers('value')).toBe(false);
 
 
     helpers.captureOutput(combined, function(values){

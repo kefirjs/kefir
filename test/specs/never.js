@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Never:", function(){
+describe("Kefir.never()", function(){
 
   it("works", function(done){
 

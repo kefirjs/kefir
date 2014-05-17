@@ -19,15 +19,15 @@ var WithSourceStreamMixin = {
     }
   },
   __handle: function(x){
-    this._send(x);
+    this.__sendAny(x);
   },
   __onFirstIn: function(){
-    this.__source.onChanges(this.__handle, this);
+    this.__source.onNewValue(this.__handle, this);
   },
   __onLastOut: function(){
-    this.__source.off(this.__handle, this);
+    this.__source.offValue(this.__handle, this);
   },
-  __end: function(){
+  __clear: function(){
     this.__source = null;
   }
 }
@@ -36,10 +36,9 @@ var WithSourceStreamMixin = {
 
 
 
-// Stream::toProperty()
+// .toProperty()
 
 Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
-  assertStream(source);
   Property.call(this, null, null, initial);
   this.__Constructor.call(this, source);
 }
@@ -48,15 +47,25 @@ inherit(Kefir.PropertyFromStream, Property, WithSourceStreamMixin, {
 
   __ClassName: 'PropertyFromStream',
   __objName: 'stream.toProperty()',
-  __end: function(){
-    Property.prototype.__end.call(this);
-    WithSourceStreamMixin.__end.call(this);
+  __clear: function(){
+    Property.prototype.__clear.call(this);
+    WithSourceStreamMixin.__clear.call(this);
   }
 
 })
 
 Stream.prototype.toProperty = function(initial){
   return new Kefir.PropertyFromStream(this, initial);
+}
+
+Property.prototype.toProperty = function(initial){
+  if (typeof initial === "undefined") {
+    return this
+  } else {
+    var prop = new Kefir.PropertyFromStream(this);
+    prop.__sendValue(initial);
+    return prop;
+  }
 }
 
 
@@ -75,9 +84,9 @@ inherit(Kefir.ChangesStream, Stream, WithSourceStreamMixin, {
 
   __ClassName: 'ChangesStream',
   __objName: 'property.changes()',
-  __end: function(){
-    Stream.prototype.__end.call(this);
-    WithSourceStreamMixin.__end.call(this);
+  __clear: function(){
+    Stream.prototype.__clear.call(this);
+    WithSourceStreamMixin.__clear.call(this);
   }
 
 })
@@ -104,11 +113,11 @@ var MapMixin = {
     WithSourceStreamMixin.__Constructor.call(this, source);
   },
   __handle: function(x){
-    this._send( this.__mapFn(x) );
+    this.__sendAny( this.__mapFn(x) );
   },
-  __end: function(){
-    Stream.prototype.__end.call(this);
-    WithSourceStreamMixin.__end.call(this);
+  __clear: function(){
+    Stream.prototype.__clear.call(this);
+    WithSourceStreamMixin.__clear.call(this);
     this.__mapFn = null;
   }
 }
@@ -148,7 +157,7 @@ Observable.prototype.map = function(fn) {
 var filterMixin = {
   __handle: function(x){
     if (this.__mapFn(x)) {
-      this._send(x);
+      this.__sendValue(x);
     }
   }
 }
@@ -187,9 +196,9 @@ Observable.prototype.filter = function(fn) {
 var TakeWhileMixin = {
   __handle: function(x){
     if (this.__mapFn(x)) {
-      this._send(x);
+      this.__sendValue(x);
     } else {
-      this._send(Kefir.END);
+      this.__sendEnd();
     }
   }
 }

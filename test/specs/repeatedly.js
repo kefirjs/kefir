@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("repeatedly:", function(){
+describe("Kefir.repeatedly()", function(){
 
   it("works", function(done){
 

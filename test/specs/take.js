@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Take:", function(){
+describe(".take()", function(){
 
   it("works", function(done){
 

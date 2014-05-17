@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("sequentially:", function(){
+describe("Kefir.sequentially()", function(){
 
   it("works", function(done){
 

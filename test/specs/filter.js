@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Filter:", function(){
+describe(".filter()", function(){
 
   it("works", function(done){
 

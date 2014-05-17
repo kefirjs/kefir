@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("FlatMap:", function(){
+describe(".flatMap()", function(){
 
   it("works", function(done){
 

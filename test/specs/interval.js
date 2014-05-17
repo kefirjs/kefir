@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("interval:", function(){
+describe("Kefir.interval()", function(){
 
   it("works", function(done){
 

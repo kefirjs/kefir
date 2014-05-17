@@ -1,6 +1,6 @@
 var Kefir = require('../dist/kefir.js');
 
-exports.captureOutput = function(stream, callback, timeout) {
+exports.captureOutput = function(stream, callback) {
   var values = [];
 
   function log(value){
@@ -8,31 +8,33 @@ exports.captureOutput = function(stream, callback, timeout) {
   }
 
   function report(){
-    stream.off(log);
-    stream.offEnd(report);
     callback(values);
   }
 
-  stream.on(log);
+  stream.onValue(log);
   stream.onEnd(report);
-
-  if (typeof timeout === "number") {
-    setTimeout(report, timeout);
-  }
 }
 
 
 
-exports.sampleStream = function(values, timeout){
-  timeout = timeout || 0;
-  return Kefir.fromBinder(function(sink){
-    var send = function() {
-      if (values.length > 0) {
-        sink(values.shift());
-        setTimeout(send, timeout);
-      }
+exports.sampleStream = function(values, interval){
+  interval = interval || 0;
+
+  var intervalId = null;
+
+  var stream = new Kefir.Stream(
+    function(){
+      intervalId = setInterval(function(){
+        if (values.length > 0) {
+          stream.__sendAny( values.shift() );
+        }
+      }, interval)
+    },
+    function(){
+      clearInterval(intervalId);
+      intervalId = null;
     }
-    setTimeout(send, timeout);
-    return function(){};
-  });
+  );
+
+  return stream;
 }

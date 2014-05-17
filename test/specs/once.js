@@ -3,7 +3,7 @@ var helpers = require('../test-helpers');
 
 
 
-describe("Once:", function(){
+describe("Kefir.once()", function(){
 
   it("works", function(done){
 

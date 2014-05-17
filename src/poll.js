@@ -5,7 +5,7 @@ var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, so
   this.__interval = interval;
   this.__intervalId = null;
   var _this = this;
-  this.__send = function(){  _this._send(sourceFn())  }
+  this.__bindedSend = function(){  _this.__sendAny(sourceFn())  }
 }
 
 inherit(FromPollStream, Stream, {
@@ -13,7 +13,7 @@ inherit(FromPollStream, Stream, {
   __ClassName: 'FromPollStream',
   __objName: 'Kefir.fromPoll(interval, fn)',
   __onFirstIn: function(){
-    this.__intervalId = setInterval(this.__send, this.__interval);
+    this.__intervalId = setInterval(this.__bindedSend, this.__interval);
   },
   __onLastOut: function(){
     if (this.__intervalId !== null){
@@ -21,9 +21,9 @@ inherit(FromPollStream, Stream, {
       this.__intervalId = null;
     }
   },
-  __end: function(){
-    Stream.prototype.__end.call(this);
-    this.__send = null;
+  __clear: function(){
+    Stream.prototype.__clear.call(this);
+    this.__bindedSend = null;
   }
 
 });

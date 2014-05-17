@@ -2,98 +2,116 @@ var Kefir = require('../../dist/kefir.js');
 var helpers = require('../test-helpers');
 
 
-describe("Property:", function(){
 
+describe("Property", function(){
 
+  it("hasCached, getCached", function(){
 
-  it("works", function(done) {
+    var prop = new Kefir.Property();
 
-    var bus = new Kefir.Bus;
-    var property = bus.toProperty();
+    expect(prop.hasCached()).toBe(false);
+    expect(prop.getCached()).toBe(Kefir.NOTHING);
 
-    var result1 = []
-    property.on(function(x){
-      result1.push(x)
-    })
-    expect(result1).toEqual([]);
+    prop.__sendValue(1)
+    expect(prop.hasCached()).toBe(true);
+    expect(prop.getCached()).toBe(1);
 
-    bus.push(1);
+    prop = new Kefir.Property(null, null, 2);
 
-    var result2 = []
-    property.on(function(x){
-      result2.push(x)
-    })
-    expect(result1).toEqual([1]);
-    expect(result2).toEqual([1]);
-
-    bus.push(2);
-    bus.end();
-
-    property.onEnd(function(){
-      expect(result1).toEqual([1, 2]);
-      expect(result2).toEqual([1, 2]);
-      done()
-    });
-
-  }, 100);
-
-
-  it("initial value works", function(done) {
-
-    var bus = new Kefir.Bus;
-    var property = bus.toProperty(1);
-
-    var result1 = []
-    property.on(function(x){
-      result1.push(x)
-    })
-    expect(result1).toEqual([1]);
-
-    bus.push(2);
-    bus.end();
-
-    property.onEnd(function(){
-      expect(result1).toEqual([1, 2]);
-      done()
-    });
-
-  }, 100);
-
-
-  it("changes", function(done) {
-
-    var bus = new Kefir.Bus;
-    var property = bus.toProperty(1);
-
-    helpers.captureOutput(property, function(values){
-      expect(values).toEqual([1, 2, 3]);
-    });
-
-    helpers.captureOutput(property.changes(), function(values){
-      expect(values).toEqual([2, 3]);
-      done();
-    });
-
-    bus.push(2);
-    bus.push(3);
-    bus.end();
-
-  }, 100);
-
-
-
-  it("property.toProperty()", function() {
-
-    var bus = new Kefir.Bus;
-    var property = bus.toProperty(1);
-
-    expect(property.toProperty()).toBe(property);
-    expect(function(){
-      property.toProperty(2);
-    }).toThrow();
+    expect(prop.hasCached()).toBe(true);
+    expect(prop.getCached()).toBe(2);
 
   });
 
+
+  it("onValue", function(done){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    prop.onValue(function(x){
+      expect(x).toBe('foo');
+      done();
+    })
+
+  }, 1);
+
+
+  it("onNewValue", function(){
+
+    var log = [];
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    prop.onNewValue(function(x){
+      log.push(x);
+    });
+
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+
+    expect(log).toEqual([1, 2]);
+
+  });
+
+
+  it("stream.toProperty()", function(){
+
+    var stream = new Kefir.Stream();
+    var prop = stream.toProperty();
+
+    var log = [];
+    prop.onValue(function(x){
+      log.push(x);
+    })
+
+    expect(prop.hasCached()).toBe(false);
+    expect(prop.getCached()).toBe(Kefir.NOTHING);
+    expect(log).toEqual([]);
+
+    stream.__sendValue(1);
+
+    expect(prop.hasCached()).toBe(true);
+    expect(prop.getCached()).toBe(1);
+    expect(log).toEqual([1]);
+
+    stream.__sendValue(2);
+
+    expect(prop.hasCached()).toBe(true);
+    expect(prop.getCached()).toBe(2);
+    expect(log).toEqual([1, 2]);
+
+    stream.__sendEnd();
+
+    expect(prop.isEnded()).toBe(true);
+    expect(prop.hasCached()).toBe(true);
+    expect(prop.getCached()).toBe(2);
+
+
+    // with initial
+
+    var prop2 = stream.toProperty(5);
+
+    expect(prop2.hasCached()).toBe(true);
+    expect(prop2.getCached()).toBe(5);
+
+  });
+
+
+
+  it("property.toProperty()", function(){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    expect(prop.toProperty()).toBe(prop);
+
+
+    // with initial
+
+    var prop2 = prop.toProperty(5);
+
+    expect(prop2.hasCached()).toBe(true);
+    expect(prop2.getCached()).toBe(5);
+
+  });
 
 
 

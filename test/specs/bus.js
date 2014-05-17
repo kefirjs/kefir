@@ -2,7 +2,7 @@ var Kefir = require('../../dist/kefir.js');
 var helpers = require('../test-helpers');
 
 
-describe("Bus:", function(){
+describe("Bus", function(){
 
 
 
