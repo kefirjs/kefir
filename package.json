@@ -56,7 +56,7 @@
       "dist/test/specs.js"
     ],
     "browsers": [
-      "ie/6..latest",
+      "ie/8..latest",
       "chrome/25",
       "chrome/33",
       "chrome/latest",
