@@ -11,3 +11,13 @@ Bacon.js inspired FRP library with less memory consumption
 Early alpha
 
 [Bacon.js API implementation status](https://github.com/pozadi/kefir/blob/master/bacon-api-impl-status.md)
+
+# Install
+
+### NPM
+
+    npm install kefir
+
+### Bower
+
+    bower install kefir
