@@ -17,7 +17,7 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `$::asEventStream(eventName)` | :rocket: | `$::eventStream(events, [selector, eventTransformer])` |
+| `$::asEventStream(eventName)` | :broken_heart: | |
 | `Bacon.fromPromise(promise [, abort])` | :broken_heart: |  |
 | `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :broken_heart: |  |
 | `Bacon.fromCallback(f [, args...])` | :broken_heart: |  |
@@ -43,7 +43,7 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `observable.onValue(f)` | :rocket: | `observable.on(f)` |
+| `observable.onValue(f)` | :rocket: | `observable.onValue(f)` |
 | `observable.onError(f)` | :broken_heart: |  |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
 | `observable.map(f)` | :rocket: | `observable.map(f)` |
@@ -90,7 +90,7 @@ For detailed descriptions of features see
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | `stream.subscribe(f)` | :broken_heart: |  |
-| `stream.onValue(f)` | :rocket: | `stream.on(f)` |
+| `stream.onValue(f)` | :rocket: | `stream.onValue(f)` |
 | `stream.onValues(f)` | :broken_heart: |  |
 | `stream.skipDuplicates(isEqual)` | :broken_heart: |  |
 | `stream.concat(otherStream)` | :broken_heart: |  |
@@ -114,7 +114,7 @@ For detailed descriptions of features see
 |:---|:---:|:---|
 | `Bacon.constant(x)` | :broken_heart: |  |
 | `property.subscribe(f)` | :broken_heart: |  |
-| `property.onValue(f)` | :rocket: | `property.on(f)` |
+| `property.onValue(f)` | :rocket: | `property.onValue(f)` |
 | `property.onValues(f)` | :broken_heart: |  |
 | `property.assign(obj, method [, param...])` | :broken_heart: |  |
 | `property.sample(interval)` | :broken_heart: |  |
@@ -150,14 +150,14 @@ For detailed descriptions of features see
 
 https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
-:broken_heart:
+:bike:
 
 
 ### Bus
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` |
+| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` / `Kefir.bus()` |
 | `bus.push(x)` | :rocket: | `bus.push(x)` |
 | `bus.end()` | :rocket: | `bus.end()` |
 | `bus.error(e)` | :broken_heart: |  |
@@ -185,7 +185,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | Return `Bacon.noMore` from the handler function | :rocket: | Return `Kefir.NO_MORE` ...  |
-| Call the `dispose()` function that was returned by the `subscribe()` call | :bike: | `stream.off(f)` |
+| Call the `dispose()` function that was returned by the `subscribe()` call | :bike: | `stream.offValue(f)` |
 
 
 
