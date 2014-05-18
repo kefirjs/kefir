@@ -5,7 +5,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.once()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream = Kefir.once(1);
 
@@ -18,7 +18,7 @@ describe("Kefir.once()", function(){
       done();
     });
 
-  }, 100);
+  }, 1);
 
 
 });

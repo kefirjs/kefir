@@ -83,7 +83,7 @@ inherit(Kefir.Bus, Stream, {
 });
 
 Kefir.bus = function(){
-  return new Kefir.Bus;
+  return new Kefir.Bus();
 }
 
 
@@ -91,6 +91,7 @@ Kefir.bus = function(){
 
 
 // FlatMap
+// TODO: should end only when source AND all plugged ends
 
 Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
   Stream.call(this)
@@ -192,7 +193,7 @@ Kefir.merge = function() {
   return new Kefir.MergedStream(firstArrOrToArr(arguments));
 }
 
-Stream.prototype.merge = function() {
+Observable.prototype.merge = function() {
   return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
 }
 

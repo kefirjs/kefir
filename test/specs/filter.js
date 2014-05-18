@@ -5,31 +5,38 @@ var helpers = require('../test-helpers');
 
 describe(".filter()", function(){
 
-  it("works", function(done){
+  function isEven(x){
+    return x % 2 === 0;
+  }
 
-    var stream = helpers.sampleStream([1, 2, 3, 4, Kefir.END]);
-    var filtered = stream.filter(function(x){
-      return x % 2 === 0;
-    })
+  it("stream.filter()", function(done){
+
+    var stream = new Kefir.Stream();
+    var filtered = stream.filter(isEven);
 
     helpers.captureOutput(filtered, function(values){
       expect(values).toEqual([2, 4]);
       done();
     });
 
-  }, 100);
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendValue(5);
+    stream.__sendEnd();
+
+  }, 1);
 
 
 
-  it("works with properties", function(done){
+  it("property.filter()", function(done){
 
-    var property = helpers.sampleStream([1, 2, 3, 4, Kefir.END]).toProperty(6);
+    var prop = new Kefir.Property(null, null, 6);
+    var filtered = prop.filter(isEven);
 
-    var filtered = property.filter(function(x){
-      return x % 2 === 0;
-    })
-
-    expect(filtered instanceof Kefir.Property).toBe(true);
+    expect(filtered).toEqual(jasmine.any(Kefir.Property));
+    expect(filtered.hasCached()).toBe(true);
     expect(filtered.getCached()).toBe(6);
 
     helpers.captureOutput(filtered, function(values){
@@ -37,28 +44,37 @@ describe(".filter()", function(){
       done();
     });
 
-  }, 100);
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendValue(4);
+    prop.__sendValue(5);
+    prop.__sendEnd();
+
+  }, 1);
 
 
+  it("property.filter() with wrong initial", function(done){
 
-  it("works with properties 2", function(done){
+    var prop = new Kefir.Property(null, null, 5);
+    var filtered = prop.filter(isEven);
 
-    var property = helpers.sampleStream([1, 2, 3, 4, Kefir.END]).toProperty(5);
-
-    var filtered = property.filter(function(x){
-      return x % 2 === 0;
-    })
-
-    expect(filtered instanceof Kefir.Property).toBe(true);
+    expect(filtered).toEqual(jasmine.any(Kefir.Property));
     expect(filtered.hasCached()).toBe(false);
+    expect(filtered.getCached()).toBe(Kefir.NOTHING);
 
     helpers.captureOutput(filtered, function(values){
       expect(values).toEqual([2, 4]);
       done();
     });
 
-  }, 100);
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendValue(4);
+    prop.__sendValue(5);
+    prop.__sendEnd();
 
-
+  }, 1);
 
 });

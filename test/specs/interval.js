@@ -5,7 +5,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.interval()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream1 = helpers.sampleStream([1, Kefir.END]);
     var stream2 = Kefir.interval(30, 2).take(2);

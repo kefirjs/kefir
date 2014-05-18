@@ -531,7 +531,6 @@ Property.prototype.toProperty = function(initial){
 
 
 // property.changes()
-// TODO: tests
 
 Kefir.ChangesStream = function ChangesStream(source){
   assertProperty(source);
@@ -636,11 +635,14 @@ Observable.prototype.takeWhile = function(fn) {
 
 Observable.prototype.take = function(n) {
   return this.map(function(x){
-    if (n-- > 0) {
-      return x;
-    } else {
+    if (n <= 0) {
       return END;
     }
+    if (n === 1) {
+      return Kefir.bunch(x, END);
+    }
+    n--;
+    return x;
   })
 }
 
@@ -729,7 +731,7 @@ inherit(Kefir.Bus, Stream, {
 });
 
 Kefir.bus = function(){
-  return new Kefir.Bus;
+  return new Kefir.Bus();
 }
 
 
@@ -737,6 +739,7 @@ Kefir.bus = function(){
 
 
 // FlatMap
+// TODO: should end only when source AND all plugged ends
 
 Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
   Stream.call(this)
@@ -838,7 +841,7 @@ Kefir.merge = function() {
   return new Kefir.MergedStream(firstArrOrToArr(arguments));
 }
 
-Stream.prototype.merge = function() {
+Observable.prototype.merge = function() {
   return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
 }
 

@@ -67,7 +67,6 @@ Property.prototype.toProperty = function(initial){
 
 
 // property.changes()
-// TODO: tests
 
 Kefir.ChangesStream = function ChangesStream(source){
   assertProperty(source);
@@ -172,10 +171,13 @@ Observable.prototype.takeWhile = function(fn) {
 
 Observable.prototype.take = function(n) {
   return this.map(function(x){
-    if (n-- > 0) {
-      return x;
-    } else {
+    if (n <= 0) {
       return END;
     }
+    if (n === 1) {
+      return Kefir.bunch(x, END);
+    }
+    n--;
+    return x;
   })
 }

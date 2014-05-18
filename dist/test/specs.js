@@ -532,7 +532,6 @@ Property.prototype.toProperty = function(initial){
 
 
 // property.changes()
-// TODO: tests
 
 Kefir.ChangesStream = function ChangesStream(source){
   assertProperty(source);
@@ -637,11 +636,14 @@ Observable.prototype.takeWhile = function(fn) {
 
 Observable.prototype.take = function(n) {
   return this.map(function(x){
-    if (n-- > 0) {
-      return x;
-    } else {
+    if (n <= 0) {
       return END;
     }
+    if (n === 1) {
+      return Kefir.bunch(x, END);
+    }
+    n--;
+    return x;
   })
 }
 
@@ -730,7 +732,7 @@ inherit(Kefir.Bus, Stream, {
 });
 
 Kefir.bus = function(){
-  return new Kefir.Bus;
+  return new Kefir.Bus();
 }
 
 
@@ -738,6 +740,7 @@ Kefir.bus = function(){
 
 
 // FlatMap
+// TODO: should end only when source AND all plugged ends
 
 Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
   Stream.call(this)
@@ -839,7 +842,7 @@ Kefir.merge = function() {
   return new Kefir.MergedStream(firstArrOrToArr(arguments));
 }
 
-Stream.prototype.merge = function() {
+Observable.prototype.merge = function() {
   return Kefir.merge([this].concat(firstArrOrToArr(arguments)));
 }
 
@@ -1030,16 +1033,11 @@ describe("Bus", function(){
 
 
 
-  it("push() works", function(done) {
+  it(".push()", function(done) {
 
-    var bus = new Kefir.Bus;
+    var bus = new Kefir.Bus();
 
     bus.push('no subscribers – will not be delivered');
-
-    setTimeout(function(){
-      bus.push(2);
-      bus.end();
-    }, 0);
 
     helpers.captureOutput(bus, function(values){
       expect(values).toEqual([1, 2]);
@@ -1047,74 +1045,65 @@ describe("Bus", function(){
     });
 
     bus.push(1);
+    bus.push(2);
+    bus.end();
 
-  }, 100);
+  }, 1);
 
 
 
 
-  it("plug() works", function(done) {
+  it(".plug()", function(done) {
 
-    var mainBus = new Kefir.Bus;
-    var source1 = new Kefir.Bus;
-    var source2 = new Kefir.Bus;
+    var mainBus = new Kefir.Bus();
+    var source1 = new Kefir.Bus();
+    var source2 = new Kefir.Bus();
 
     mainBus.plug(source1);
 
     source1.push('no subscribers – will not be delivered');
-
-    setTimeout(function(){
-      source2.push('not plugged – will not be delivered');
-      source1.push(1);
-      mainBus.plug(source2);
-    }, 0);
-
-    setTimeout(function(){
-      source2.push(2);
-      source1.push(3);
-      source1.end();
-    }, 0);
-
-    setTimeout(function(){
-      source2.push(4);
-      mainBus.end();
-    }, 0);
 
     helpers.captureOutput(mainBus, function(values){
       expect(values).toEqual([1, 2, 3, 4]);
       done();
     });
 
-  }, 100);
+    source2.push('not plugged – will not be delivered');
+    source1.push(1);
+    mainBus.plug(source2);
+
+    source2.push(2);
+    source1.push(3);
+    source1.end();
+
+    source2.push(4);
+    mainBus.end();
+
+  }, 1);
 
 
 
 
-  it("unplug() works", function(done) {
+  it(".unplug()", function(done) {
 
-    var mainBus = new Kefir.Bus;
-    var source = new Kefir.Bus;
+    var mainBus = new Kefir.Bus();
+    var source = new Kefir.Bus();
 
     mainBus.plug(source);
-
-
-    setTimeout(function(){
-      source.push(1);
-      mainBus.unplug(source);
-    }, 0);
-
-    setTimeout(function(){
-      source.push(2);
-      source.end();
-      mainBus.end();
-    }, 0);
 
     helpers.captureOutput(mainBus, function(values){
       expect(values).toEqual([1]);
       done();
     });
 
-  }, 100);
+    source.push(1);
+    mainBus.unplug(source);
+
+    source.push(2);
+    source.end();
+    mainBus.end();
+
+  }, 1);
 
 
 
@@ -1129,16 +1118,16 @@ var helpers = require('../test-helpers');
 
 describe(".combine()", function(){
 
-  it("simple case", function(done){
+  it("2 streams", function(done){
 
-    var stream1 = helpers.sampleStream([1, 3, Kefir.END], 15);
-    var stream2 = helpers.sampleStream([6, 5, Kefir.END], 20);
+    var stream1 = new Kefir.Stream();
+    var stream2 = new Kefir.Stream();
 
     // --1--3
     // ---6---5
     // ---7-9-8
 
-    var combined = stream1.combine(stream2, function(s1, s2){
+    var combined = stream1.combine([stream2], function(s1, s2){
       return s1 + s2;
     })
 
@@ -1147,19 +1136,27 @@ describe(".combine()", function(){
       done();
     });
 
-  }, 100);
+    stream1.__sendValue(1)
+    stream2.__sendValue(6)
+    stream1.__sendValue(3)
+    stream1.__sendEnd()
+    stream2.__sendValue(5)
+    stream2.__sendEnd()
+
+  }, 1);
 
 
-  it("with property", function(done){
+  it("stream and property", function(done){
 
-    var stream1 = helpers.sampleStream([1, 3, Kefir.END], 15);
-    var stream2 = helpers.sampleStream([6, 5, Kefir.END], 20).toProperty(0);
+    var stream1 = new Kefir.Stream();
+    var stream2 = new Kefir.Stream();
+    var prop2 = stream2.toProperty(0);
 
     // --1--3
     // 0--6---5
     // --17-9-8
 
-    var combined = stream1.combine(stream2, function(s1, s2){
+    var combined = stream1.combine([prop2], function(s1, s2){
       return s1 + s2;
     })
 
@@ -1168,42 +1165,114 @@ describe(".combine()", function(){
       done();
     });
 
-  }, 100);
+    stream1.__sendValue(1)
+    stream2.__sendValue(6)
+    stream1.__sendValue(3)
+    stream1.__sendEnd()
+    stream2.__sendValue(5)
+    stream2.__sendEnd()
+
+  }, 1);
 
 
 
-  it("with temporary all unsubscribed", function(done){
+  it("4 streams", function(done){
 
-    var bus1 = new Kefir.Bus;
-    var bus2 = new Kefir.Bus;
-    var combined = bus1.combine(bus2, function(a, b) { return a + b });
+    var stream1 = new Kefir.Stream(); // --1---3
+    var stream2 = new Kefir.Stream(); // ----2-------5
+    var stream3 = new Kefir.Stream(); // 2-------1
+    var stream4 = new Kefir.Stream(); // -4--------2
+                                      // ----2-6-1-3-6
+
+    var combined = stream1.combine([stream2, stream3, stream4], function(s1, s2, s3, s4){
+      return (s1 + s2) * s3 - s4;
+    })
+
+    helpers.captureOutput(combined, function(values){
+      expect(values).toEqual([2, 6, 1, 3, 6]);
+      done();
+    });
+
+    stream3.__sendValue(2)
+    stream4.__sendValue(4)
+    stream1.__sendValue(1)
+    stream2.__sendValue(2)
+    stream1.__sendValue(3)
+    stream1.__sendEnd()
+    stream3.__sendValue(1)
+    stream3.__sendEnd()
+    stream4.__sendValue(2)
+    stream4.__sendEnd()
+    stream2.__sendValue(5)
+    stream2.__sendEnd()
+
+  }, 1);
+
+
+  it("3 streams w/o fn", function(done){
+
+    var stream1 = new Kefir.Stream(); // --1---3
+    var stream2 = new Kefir.Stream(); // ----2-------5
+    var stream3 = new Kefir.Stream(); // 2-------1
+
+    var combined = stream1.combine([stream2, stream3])
+
+    helpers.captureOutput(combined, function(values){
+      expect(values).toEqual([
+        [1, 2, 2],
+        [3, 2, 2],
+        [3, 2, 1],
+        [3, 5, 1]
+      ]);
+      done();
+    });
+
+    stream3.__sendValue(2)
+    stream1.__sendValue(1)
+    stream2.__sendValue(2)
+    stream1.__sendValue(3)
+    stream1.__sendEnd()
+    stream3.__sendValue(1)
+    stream3.__sendEnd()
+    stream2.__sendValue(5)
+    stream2.__sendEnd()
+
+  }, 1);
+
+
+
+  it("firstIn/lastOut", function(done){
+
+    var stream1 = new Kefir.Stream();
+    var stream2 = new Kefir.Stream();
+    var combined = stream1.combine([stream2], function(a, b) { return a + b });
 
     helpers.captureOutput(combined.take(2), function(values){
       expect(values).toEqual([3, 5]);
     });
 
-    bus1.push(1)
-    bus2.push(2) // 1 + 2 = 3
-    bus1.push(3) // 3 + 2 = 5
-    expect(bus1.__hasSubscribers('value')).toBe(true);
-    expect(bus2.__hasSubscribers('value')).toBe(true);
-    bus2.push(4) // 3 + 4 = 7
-    expect(bus1.__hasSubscribers('value')).toBe(false);
-    expect(bus2.__hasSubscribers('value')).toBe(false);
+    stream1.__sendValue(1)
+    stream2.__sendValue(2) // 1 + 2 = 3
+    expect(stream1.__hasSubscribers('value')).toBe(true);
+    expect(stream2.__hasSubscribers('value')).toBe(true);
+    stream1.__sendValue(3) // 3 + 2 = 5
+    expect(stream1.__hasSubscribers('value')).toBe(false);
+    expect(stream2.__hasSubscribers('value')).toBe(false);
+    stream2.__sendValue(4) // skipped
 
 
     helpers.captureOutput(combined, function(values){
-      expect(values).toEqual([9, 11]);
+      expect(values).toEqual([7, 11]);
       done();
     });
 
-    bus1.push(5) // 5 + 4 = 9
-    bus2.push(6) // 5 + 6 = 11
-    bus1.end()
-    bus2.end()
+    stream1.__sendValue(5) // 5 + 2 = 7
+    stream2.__sendValue(6) // 5 + 6 = 11
+    stream1.__sendEnd()
+    stream2.__sendEnd()
 
 
-  }, 100);
+  }, 1);
 
 
 
@@ -1217,31 +1286,38 @@ var helpers = require('../test-helpers');
 
 describe(".filter()", function(){
 
-  it("works", function(done){
+  function isEven(x){
+    return x % 2 === 0;
+  }
 
-    var stream = helpers.sampleStream([1, 2, 3, 4, Kefir.END]);
-    var filtered = stream.filter(function(x){
-      return x % 2 === 0;
-    })
+  it("stream.filter()", function(done){
+
+    var stream = new Kefir.Stream();
+    var filtered = stream.filter(isEven);
 
     helpers.captureOutput(filtered, function(values){
       expect(values).toEqual([2, 4]);
       done();
     });
 
-  }, 100);
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendValue(5);
+    stream.__sendEnd();
+
+  }, 1);
 
 
 
-  it("works with properties", function(done){
+  it("property.filter()", function(done){
 
-    var property = helpers.sampleStream([1, 2, 3, 4, Kefir.END]).toProperty(6);
+    var prop = new Kefir.Property(null, null, 6);
+    var filtered = prop.filter(isEven);
 
-    var filtered = property.filter(function(x){
-      return x % 2 === 0;
-    })
-
-    expect(filtered instanceof Kefir.Property).toBe(true);
+    expect(filtered).toEqual(jasmine.any(Kefir.Property));
+    expect(filtered.hasCached()).toBe(true);
     expect(filtered.getCached()).toBe(6);
 
     helpers.captureOutput(filtered, function(values){
@@ -1249,29 +1325,38 @@ describe(".filter()", function(){
       done();
     });
 
-  }, 100);
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendValue(4);
+    prop.__sendValue(5);
+    prop.__sendEnd();
+
+  }, 1);
 
 
+  it("property.filter() with wrong initial", function(done){
 
-  it("works with properties 2", function(done){
+    var prop = new Kefir.Property(null, null, 5);
+    var filtered = prop.filter(isEven);
 
-    var property = helpers.sampleStream([1, 2, 3, 4, Kefir.END]).toProperty(5);
-
-    var filtered = property.filter(function(x){
-      return x % 2 === 0;
-    })
-
-    expect(filtered instanceof Kefir.Property).toBe(true);
+    expect(filtered).toEqual(jasmine.any(Kefir.Property));
     expect(filtered.hasCached()).toBe(false);
+    expect(filtered.getCached()).toBe(Kefir.NOTHING);
 
     helpers.captureOutput(filtered, function(values){
       expect(values).toEqual([2, 4]);
       done();
     });
 
-  }, 100);
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendValue(4);
+    prop.__sendValue(5);
+    prop.__sendEnd();
 
-
+  }, 1);
 
 });
 
@@ -1283,30 +1368,87 @@ var helpers = require('../test-helpers');
 
 describe(".flatMap()", function(){
 
-  it("works", function(done){
+  it("filter with once() and never()", function(done){
 
-    var main = new Kefir.Bus;
-    var mapped = main.flatMap(function(x){
-      return x;
+    var stream = new Kefir.Stream();
+    var mapped = stream.flatMap(function(x){
+      if (x % 2 === 0) {
+        return Kefir.once(x);
+      } else {
+        return Kefir.never();
+      }
     });
 
-    var childA = new Kefir.Bus;
-    var childB = new Kefir.Bus;
-
     helpers.captureOutput(mapped, function(values){
-      expect(values).toEqual([1, 2, 3, 4]);
+      expect(values).toEqual([2, 4]);
       done();
     });
 
-    main.push(childA)
-    childA.push(1)
-    main.push(childB)
-    childB.push(2)
-    childA.push(3)
-    childB.push(4)
-    main.end()
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendValue(5);
+    stream.__sendEnd();
 
-  }, 100);
+  }, 1);
+
+
+
+
+  it("property.flatMap()", function(done){
+
+    var prop = new Kefir.Property(null, null, 1);
+    var mapped = prop.flatMap(function(x){
+      return Kefir.once(x * 2);
+    });
+
+    expect(mapped).toEqual(jasmine.any(Kefir.Stream));
+
+    helpers.captureOutput(mapped, function(values){
+      expect(values).toEqual([2, 4, 6]);
+      done();
+    });
+
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendEnd();
+
+  }, 1);
+
+
+
+  it("multiple values from children", function(done){
+
+    var childStreams = [
+      new Kefir.Stream(),
+      new Kefir.Stream(),
+      new Kefir.Stream()
+    ]
+
+    var stream = new Kefir.Stream();
+    var mapped = stream.flatMap(function(x){
+      return childStreams[x];
+    });
+
+    helpers.captureOutput(mapped, function(values){
+      expect(values).toEqual([1, 2, 3, 4, 4]);
+      done();
+    });
+
+    stream.__sendValue(2);
+    childStreams[0].__sendValue("not delivered");
+    childStreams[2].__sendValue(1);
+    stream.__sendValue(0);
+    childStreams[0].__sendValue(2);
+    stream.__sendValue(1);
+    childStreams[1].__sendValue(3);
+    stream.__sendValue(1);
+    childStreams[1].__sendValue(4);
+    stream.__sendEnd();
+
+
+  });
 
 
 });
@@ -1319,7 +1461,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.fromPoll()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     function pollArray(values, interval){
       return Kefir.fromPoll(interval, function(){
@@ -1430,7 +1572,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.interval()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream1 = helpers.sampleStream([1, Kefir.END]);
     var stream2 = Kefir.interval(30, 2).take(2);
@@ -1547,30 +1689,34 @@ var helpers = require('../test-helpers');
 
 describe(".map()", function(){
 
-  it("works", function(done){
+  function x2(a){
+    return a * 2;
+  }
 
-    var stream = helpers.sampleStream([1, 2, Kefir.END]);
-    var mapped = stream.map(function(x){
-      return x*2;
-    })
+  it("stream.map()", function(done){
+
+    var stream = new Kefir.Stream();
+    var mapped = stream.map(x2);
 
     helpers.captureOutput(mapped, function(values){
       expect(values).toEqual([2, 4]);
       done();
     });
 
-  }, 100);
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendEnd();
+
+  }, 1);
 
 
-  it("produce Property from Property", function(done){
+  it("property.map()", function(done){
 
-    var property = helpers.sampleStream([1, 2, Kefir.END]).toProperty(5);
+    var prop = new Kefir.Property(null, null, 5);
+    var mapped = prop.map(x2);
 
-    var mapped = property.map(function(x){
-      return x*2;
-    })
-
-    expect(mapped instanceof Kefir.Property).toBe(true);
+    expect(mapped).toEqual(jasmine.any(Kefir.Property));
+    expect(mapped.hasCached()).toBe(true);
     expect(mapped.getCached()).toBe(10);
 
     helpers.captureOutput(mapped, function(values){
@@ -1578,37 +1724,39 @@ describe(".map()", function(){
       done();
     });
 
-  }, 100);
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendEnd();
+
+  }, 1);
 
 
 
-  it("with temporary all unsubscribed", function(done){
+  it("firstIn/lastOut", function(done){
 
-    var bus = new Kefir.Bus;
-    var mapped = bus.map(function(x){
-      return x*2;
-    })
+    var stream = new Kefir.Stream();
+    var mapped = stream.map(x2)
 
     helpers.captureOutput(mapped.take(2), function(values){
       expect(values).toEqual([2, 4]);
     });
 
-    bus.push(1)
-    bus.push(2)
-    expect(bus.__hasSubscribers('value')).toBe(true);
-    bus.push(3)
-    expect(bus.__hasSubscribers('value')).toBe(false);
+    stream.__sendValue(1)
+    expect(stream.__hasSubscribers('value')).toBe(true);
+    stream.__sendValue(2)
+    expect(stream.__hasSubscribers('value')).toBe(false);
+    stream.__sendValue(3)
 
     helpers.captureOutput(mapped, function(values){
       expect(values).toEqual([8, 10]);
       done();
     });
 
-    bus.push(4)
-    bus.push(5)
-    bus.end()
+    stream.__sendValue(4)
+    stream.__sendValue(5)
+    stream.__sendEnd()
 
-  }, 100);
+  }, 1);
 
 
 });
@@ -1621,24 +1769,54 @@ var helpers = require('../test-helpers');
 
 describe(".merge()", function(){
 
+  it("3 streams", function(done){
 
-  it("works", function(done){
-
-    var stream1 = helpers.sampleStream([1, Kefir.END]);
-    var stream2 = helpers.sampleStream([2, 4, Kefir.END], 30);
-    var stream3 = helpers.sampleStream([3, 5, Kefir.END], 45);
-
-    // -1----------
-    // ---2---4----
-    // -----3-----5
-    var merged = stream1.merge(stream2, stream3);
+    var stream1 = new Kefir.Stream()              // 1
+    var stream2 = new Kefir.Stream()              // -2-4
+    var stream3 = new Kefir.Stream()              // --3-5
+    var merged = stream1.merge(stream2, stream3); // 12345
 
     helpers.captureOutput(merged, function(values){
       expect(values).toEqual([1, 2, 3, 4, 5]);
       done();
     });
 
-  }, 200);
+    stream1.__sendValue(1);
+    stream1.__sendEnd();
+    stream2.__sendValue(2);
+    stream3.__sendValue(3);
+    stream2.__sendValue(4);
+    stream2.__sendEnd();
+    stream3.__sendValue(5);
+    stream3.__sendEnd();
+
+  }, 1);
+
+
+  it("3 properties end 1 stream", function(done){
+
+    var prop1 = new Kefir.Property(null, null, "10"); // 1
+    var prop2 = new Kefir.Property(null, null, "10"); // -2--5
+    var prop3 = new Kefir.Property();                 // --3
+    var stream1 = new Kefir.Stream();                 // ---4
+    var merged = prop1.merge(prop2, prop3, stream1);  // 12345 (all initial ignored)
+
+    helpers.captureOutput(merged, function(values){
+      expect(values).toEqual([1, 2, 3, 4, 5]);
+      done();
+    });
+
+    prop1.__sendValue(1);
+    prop1.__sendEnd();
+    prop2.__sendValue(2);
+    prop3.__sendValue(3);
+    prop3.__sendEnd();
+    stream1.__sendValue(4);
+    stream1.__sendEnd();
+    prop2.__sendValue(5);
+    prop2.__sendEnd();
+
+  }, 1);
 
 
 });
@@ -1651,14 +1829,14 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.never()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     helpers.captureOutput(Kefir.never(), function(values){
       expect(values).toEqual([]);
       done();
     });
 
-  }, 100);
+  }, 1);
 
 
 });
@@ -1669,25 +1847,28 @@ var helpers = require('../test-helpers');
 
 
 
-describe("No more", function(){
+describe("Kefir.NO_MORE", function(){
 
-  it("works", function(){
+  it("ok", function(){
 
-    var bus = new Kefir.Bus;
+    var stream = new Kefir.Stream();
 
     var values = []
-    bus.onValue(function(x){
+    stream.onValue(function(x){
       values.push(x);
       if (x > 2) {
         return Kefir.NO_MORE;
       }
     });
 
-    bus.push(1);
-    bus.push(2);
-    bus.push(3);
-    bus.push(4);
-    bus.push(5);
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+
+    expect(stream.__hasSubscribers('value')).toBe(false);
+
+    stream.__sendValue(4);
+    stream.__sendValue(5);
 
     expect(values).toEqual([1, 2, 3]);
 
@@ -1882,7 +2063,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.once()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream = Kefir.once(1);
 
@@ -1895,7 +2076,7 @@ describe("Kefir.once()", function(){
       done();
     });
 
-  }, 100);
+  }, 1);
 
 
 });
@@ -2018,6 +2199,26 @@ describe("Property", function(){
 
 
 
+  it("property.changes()", function(done){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+    var changesStream = prop.changes();
+
+    expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
+
+    helpers.captureOutput(changesStream, function(values){
+      expect(values).toEqual([1, 2, 3]);
+      done();
+    });
+
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendEnd();
+
+  }, 1);
+
+
 });
 
 },{"../../dist/kefir.js":1,"../test-helpers":21}],17:[function(require,module,exports){
@@ -2028,7 +2229,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.repeatedly()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream1 = helpers.sampleStream([1, Kefir.END]);
     var stream2 = Kefir.repeatedly(30, [2, 4]).take(5);
@@ -2057,7 +2258,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.sequentially()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream1 = helpers.sampleStream([1, Kefir.END]);
     var stream2 = Kefir.sequentially(30, [2, 4]);
@@ -2086,19 +2287,21 @@ var helpers = require('../test-helpers');
 
 describe(".takeWhile()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
-    var stream = helpers.sampleStream([1, 2, 3, 4, Kefir.END]);
-    var filtered = stream.takeWhile(function(x){
+    var stream = new Kefir.Stream();
+    var whileNot3 = stream.takeWhile(function(x){
       return x !== 3;
-    })
+    });
 
-    helpers.captureOutput(filtered, function(values){
+    helpers.captureOutput(whileNot3, function(values){
       expect(values).toEqual([1, 2]);
       done();
     });
 
-  }, 100);
+    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+
+  }, 1);
 
 
 });
@@ -2111,23 +2314,25 @@ var helpers = require('../test-helpers');
 
 describe(".take()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
-    var stream = helpers.sampleStream([1, 2, 3, 4, Kefir.END]);
+    var stream = new Kefir.Stream();
 
-    var first2 = stream.take(2);
-    var first10 = stream.take(10);
+    var take2 = stream.take(2);
+    var take10 = stream.take(10);
 
-    helpers.captureOutput(first2, function(values){
+    helpers.captureOutput(take2, function(values){
       expect(values).toEqual([1, 2]);
     });
 
-    helpers.captureOutput(first10, function(values){
+    helpers.captureOutput(take10, function(values){
       expect(values).toEqual([1, 2, 3, 4]);
       done();
     });
 
-  }, 100);
+    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+
+  }, 1);
 
 
 });

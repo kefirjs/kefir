@@ -5,7 +5,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.repeatedly()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     var stream1 = helpers.sampleStream([1, Kefir.END]);
     var stream2 = Kefir.repeatedly(30, [2, 4]).take(5);

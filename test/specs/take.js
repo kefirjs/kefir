@@ -5,23 +5,25 @@ var helpers = require('../test-helpers');
 
 describe(".take()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
-    var stream = helpers.sampleStream([1, 2, 3, 4, Kefir.END]);
+    var stream = new Kefir.Stream();
 
-    var first2 = stream.take(2);
-    var first10 = stream.take(10);
+    var take2 = stream.take(2);
+    var take10 = stream.take(10);
 
-    helpers.captureOutput(first2, function(values){
+    helpers.captureOutput(take2, function(values){
       expect(values).toEqual([1, 2]);
     });
 
-    helpers.captureOutput(first10, function(values){
+    helpers.captureOutput(take10, function(values){
       expect(values).toEqual([1, 2, 3, 4]);
       done();
     });
 
-  }, 100);
+    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+
+  }, 1);
 
 
 });

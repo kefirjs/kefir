@@ -3,25 +3,28 @@ var helpers = require('../test-helpers');
 
 
 
-describe("No more", function(){
+describe("Kefir.NO_MORE", function(){
 
-  it("works", function(){
+  it("ok", function(){
 
-    var bus = new Kefir.Bus;
+    var stream = new Kefir.Stream();
 
     var values = []
-    bus.onValue(function(x){
+    stream.onValue(function(x){
       values.push(x);
       if (x > 2) {
         return Kefir.NO_MORE;
       }
     });
 
-    bus.push(1);
-    bus.push(2);
-    bus.push(3);
-    bus.push(4);
-    bus.push(5);
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+
+    expect(stream.__hasSubscribers('value')).toBe(false);
+
+    stream.__sendValue(4);
+    stream.__sendValue(5);
 
     expect(values).toEqual([1, 2, 3]);
 

@@ -5,7 +5,7 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.fromPoll()", function(){
 
-  it("works", function(done){
+  it("ok", function(done){
 
     function pollArray(values, interval){
       return Kefir.fromPoll(interval, function(){

@@ -115,4 +115,24 @@ describe("Property", function(){
 
 
 
+  it("property.changes()", function(done){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+    var changesStream = prop.changes();
+
+    expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
+
+    helpers.captureOutput(changesStream, function(values){
+      expect(values).toEqual([1, 2, 3]);
+      done();
+    });
+
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+    prop.__sendValue(3);
+    prop.__sendEnd();
+
+  }, 1);
+
+
 });
