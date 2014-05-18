@@ -32,7 +32,7 @@ For detailed descriptions of features see
 | `Bacon.repeatedly(interval, values)` | :rocket: | `Kefir.repeatedly(interval, values)` |
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
 | `Bacon.later(delay, value)` | :broken_heart: |  |
-| `new Bacon.EventStream(subscribe)` | :rocket: | `new Kefir.Stream(onFirstIn, onLastOut)` / `Kefir.fromBinder(subscribe)` |
+| `new Bacon.EventStream(subscribe)` | :broken_heart: |  |
 | `property.changes()` | :rocket: | `property.changes()` |
 | `property.toEventStream()` | :broken_heart: |  |
 | `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` / `Kefir.bus()` |
