@@ -55,7 +55,7 @@
       "test/in-browser/boot.js"
     ],
     "browsers": [
-      "ie/8..latest",
+      "ie/6..latest",
       "chrome/25",
       "chrome/33",
       "chrome/latest",
