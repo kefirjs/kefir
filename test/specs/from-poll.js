@@ -5,33 +5,48 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.fromPoll()", function(){
 
-  it("ok", function(done){
+  beforeEach(function() {
+    jasmine.Clock.useMock();
+  });
 
-    function pollArray(values, interval){
-      return Kefir.fromPoll(interval, function(){
-        if (values.length > 0) {
-          return values.shift();
-        } else {
-          return Kefir.END;
-        }
-      })
-    }
+  function pollArray(values, interval){
+    return Kefir.fromPoll(interval, function(){
+      if (values.length > 0) {
+        return values.shift();
+      } else {
+        return Kefir.END;
+      }
+    });
+  }
 
-    var stream1 = helpers.sampleStream([1, Kefir.END]);
-    var stream2 = pollArray([2, 4], 30);
-    var stream3 = pollArray([3, 5], 45);
+  it("ok", function(){
 
-    // -1----------
-    // ---2---4----
-    // -----3-----5
-    var merged = stream1.merge(stream2, stream3);
+    var stream = pollArray([1, 2, 3], 30);
 
-    helpers.captureOutput(merged, function(values){
-      expect(values).toEqual([1, 2, 3, 4, 5]);
-      done();
+    var log = [];
+    stream.onValue(function(x){
+      log.push(x);
     });
 
-  }, 200);
+    expect(log).toEqual([]);
+
+    jasmine.Clock.tick(10);
+    expect(log).toEqual([]);
+
+    jasmine.Clock.tick(21);
+    expect(log).toEqual([1]);
+
+    jasmine.Clock.tick(30);
+    expect(log).toEqual([1, 2]);
+
+    jasmine.Clock.tick(30);
+    expect(log).toEqual([1, 2, 3]);
+
+    jasmine.Clock.tick(30);
+    expect(stream.isEnded()).toBe(true);
+    expect(log).toEqual([1, 2, 3]);
+
+  });
 
 
 });

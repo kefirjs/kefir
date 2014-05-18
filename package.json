@@ -48,12 +48,11 @@
   },
   "testling": {
     "scripts": [
-      "bower_components/jquery/dist/jquery.js",
-      ".grunt/grunt-contrib-jasmine/jasmine.js",
-      ".grunt/grunt-contrib-jasmine/jasmine-html.js",
-      ".grunt/grunt-contrib-jasmine/boot.js",
-      "test/jasmine.tap_reporter.js",
-      "dist/test/specs.js"
+      "test/in-browser/lib/jasmine-1.3.1/jasmine.js",
+      "test/in-browser/lib/jasmine-1.3.1/jasmine-html.js",
+      "test/in-browser/spec/KefirSpecs.js",
+      "bower_components/jasmine-reporters/src/jasmine.tap_reporter.js",
+      "test/in-browser/boot.js"
     ],
     "browsers": [
       "ie/8..latest",

@@ -5,21 +5,23 @@ var helpers = require('../test-helpers');
 
 describe(".takeWhile()", function(){
 
-  it("ok", function(done){
+  it("ok", function(){
 
     var stream = new Kefir.Stream();
     var whileNot3 = stream.takeWhile(function(x){
       return x !== 3;
     });
 
-    helpers.captureOutput(whileNot3, function(values){
-      expect(values).toEqual([1, 2]);
-      done();
-    });
+    var result = helpers.getOutput(whileNot3);
 
     stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [1, 2]
+    })
+
+  });
 
 
 });

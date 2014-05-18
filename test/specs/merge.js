@@ -5,17 +5,14 @@ var helpers = require('../test-helpers');
 
 describe(".merge()", function(){
 
-  it("3 streams", function(done){
+  it("3 streams", function(){
 
     var stream1 = new Kefir.Stream()              // 1
     var stream2 = new Kefir.Stream()              // -2-4
     var stream3 = new Kefir.Stream()              // --3-5
     var merged = stream1.merge(stream2, stream3); // 12345
 
-    helpers.captureOutput(merged, function(values){
-      expect(values).toEqual([1, 2, 3, 4, 5]);
-      done();
-    });
+    var result = helpers.getOutput(merged)
 
     stream1.__sendValue(1);
     stream1.__sendEnd();
@@ -26,10 +23,15 @@ describe(".merge()", function(){
     stream3.__sendValue(5);
     stream3.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [1, 2, 3, 4, 5]
+    });
+
+  });
 
 
-  it("3 properties end 1 stream", function(done){
+  it("3 properties end 1 stream", function(){
 
     var prop1 = new Kefir.Property(null, null, "10"); // 1
     var prop2 = new Kefir.Property(null, null, "10"); // -2--5
@@ -37,10 +39,7 @@ describe(".merge()", function(){
     var stream1 = new Kefir.Stream();                 // ---4
     var merged = prop1.merge(prop2, prop3, stream1);  // 12345 (all initial ignored)
 
-    helpers.captureOutput(merged, function(values){
-      expect(values).toEqual([1, 2, 3, 4, 5]);
-      done();
-    });
+    var result = helpers.getOutput(merged)
 
     prop1.__sendValue(1);
     prop1.__sendEnd();
@@ -52,7 +51,12 @@ describe(".merge()", function(){
     prop2.__sendValue(5);
     prop2.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [1, 2, 3, 4, 5]
+    });
+
+  });
 
 
 });

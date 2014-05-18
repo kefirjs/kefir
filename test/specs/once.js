@@ -5,20 +5,31 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.once()", function(){
 
-  it("ok", function(done){
+  it("ok", function(){
 
     var stream = Kefir.once(1);
 
-    helpers.captureOutput(stream, function(values){
-      expect(values).toEqual([1]);
+    var log = [];
+
+    expect(stream.isEnded()).toBe(false);
+
+    stream.onValue(function(x){
+      log.push(x);
     });
 
-    helpers.captureOutput(stream, function(values){
-      expect(values).toEqual([]);
-      done();
+    expect(log).toEqual([1]);
+    expect(stream.isEnded()).toBe(true);
+
+    log = [];
+
+    stream.onValue(function(x){
+      log.push(x);
     });
 
-  }, 1);
+    expect(log).toEqual([]);
+
+
+  });
 
 
 });

@@ -5,23 +5,34 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.interval()", function(){
 
-  it("ok", function(done){
+  beforeEach(function() {
+    jasmine.Clock.useMock();
+  });
 
-    var stream1 = helpers.sampleStream([1, Kefir.END]);
-    var stream2 = Kefir.interval(30, 2).take(2);
-    var stream3 = Kefir.interval(45, 3).take(2);
+  it("ok", function(){
 
-    // -1----------
-    // ---2---2----
-    // -----3-----3
-    var merged = stream1.merge(stream2, stream3);
+    var stream = Kefir.interval(30, 2);
 
-    helpers.captureOutput(merged, function(values){
-      expect(values).toEqual([1, 2, 3, 2, 3]);
-      done();
-    });
+    var result = helpers.getOutput(stream);
 
-  }, 200);
+    expect(result.xs).toEqual([]);
+
+    jasmine.Clock.tick(10);
+    expect(result.xs).toEqual([]);
+
+    jasmine.Clock.tick(21);
+    expect(result.xs).toEqual([2]);
+
+    jasmine.Clock.tick(30);
+    expect(result.xs).toEqual([2, 2]);
+
+    jasmine.Clock.tick(15);
+    expect(result.xs).toEqual([2, 2]);
+
+    jasmine.Clock.tick(15);
+    expect(result.xs).toEqual([2, 2, 2]);
+
+  });
 
 
 });

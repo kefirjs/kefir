@@ -5,14 +5,28 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.never()", function(){
 
-  it("ok", function(done){
+  it("ok", function(){
 
-    helpers.captureOutput(Kefir.never(), function(values){
-      expect(values).toEqual([]);
-      done();
+    var stream = Kefir.never();
+
+    expect(stream.isEnded()).toBe(true);
+
+    var valueCall = 0;
+    var endCall = 0;
+
+    stream.onValue(function(){
+      valueCall++;
     });
 
-  }, 1);
+    stream.onEnd(function(){
+      endCall++;
+    });
+
+    expect(valueCall).toBe(0);
+    expect(endCall).toBe(1);
+
+
+  });
 
 
 });

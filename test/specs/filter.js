@@ -9,15 +9,12 @@ describe(".filter()", function(){
     return x % 2 === 0;
   }
 
-  it("stream.filter()", function(done){
+  it("stream.filter()", function(){
 
     var stream = new Kefir.Stream();
     var filtered = stream.filter(isEven);
 
-    helpers.captureOutput(filtered, function(values){
-      expect(values).toEqual([2, 4]);
-      done();
-    });
+    var result = helpers.getOutput(filtered);
 
     stream.__sendValue(1);
     stream.__sendValue(2);
@@ -26,11 +23,16 @@ describe(".filter()", function(){
     stream.__sendValue(5);
     stream.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [2, 4]
+    });
+
+  });
 
 
 
-  it("property.filter()", function(done){
+  it("property.filter()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
     var filtered = prop.filter(isEven);
@@ -39,10 +41,7 @@ describe(".filter()", function(){
     expect(filtered.hasCached()).toBe(true);
     expect(filtered.getCached()).toBe(6);
 
-    helpers.captureOutput(filtered, function(values){
-      expect(values).toEqual([6, 2, 4]);
-      done();
-    });
+    var result = helpers.getOutput(filtered);
 
     prop.__sendValue(1);
     prop.__sendValue(2);
@@ -51,10 +50,15 @@ describe(".filter()", function(){
     prop.__sendValue(5);
     prop.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [6, 2, 4]
+    });
+
+  });
 
 
-  it("property.filter() with wrong initial", function(done){
+  it("property.filter() with wrong initial", function(){
 
     var prop = new Kefir.Property(null, null, 5);
     var filtered = prop.filter(isEven);
@@ -63,10 +67,7 @@ describe(".filter()", function(){
     expect(filtered.hasCached()).toBe(false);
     expect(filtered.getCached()).toBe(Kefir.NOTHING);
 
-    helpers.captureOutput(filtered, function(values){
-      expect(values).toEqual([2, 4]);
-      done();
-    });
+    var result = helpers.getOutput(filtered);
 
     prop.__sendValue(1);
     prop.__sendValue(2);
@@ -75,6 +76,11 @@ describe(".filter()", function(){
     prop.__sendValue(5);
     prop.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [2, 4]
+    });
+
+  });
 
 });

@@ -5,23 +5,37 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.repeatedly()", function(){
 
-  it("ok", function(done){
+  beforeEach(function() {
+    jasmine.Clock.useMock();
+  });
 
-    var stream1 = helpers.sampleStream([1, Kefir.END]);
-    var stream2 = Kefir.repeatedly(30, [2, 4]).take(5);
-    var stream3 = Kefir.repeatedly(45, [3, 5]).take(1);
+  it("ok", function(){
 
-    // 1
-    // ---2---4---2---4---2
-    // -----3
-    var merged = stream1.merge(stream2, stream3);
+    var stream = Kefir.repeatedly(30, [2, 4]);
 
-    helpers.captureOutput(merged, function(values){
-      expect(values).toEqual([1, 2, 3, 4, 2, 4, 2]);
-      done();
-    });
+    var result = helpers.getOutput(stream);
 
-  }, 200);
+    expect(result.xs).toEqual([]);
+
+    jasmine.Clock.tick(10);
+    expect(result.xs).toEqual([]);
+
+    jasmine.Clock.tick(21);
+    expect(result.xs).toEqual([2]);
+
+    jasmine.Clock.tick(30);
+    expect(result.xs).toEqual([2, 4]);
+
+    jasmine.Clock.tick(15);
+    expect(result.xs).toEqual([2, 4]);
+
+    jasmine.Clock.tick(15);
+    expect(result.xs).toEqual([2, 4, 2]);
+
+    jasmine.Clock.tick(90);
+    expect(result.xs).toEqual([2, 4, 2, 4, 2, 4]);
+
+  });
 
 
 });

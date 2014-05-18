@@ -43,6 +43,7 @@
   ],
   "devDependencies": {
     "bacon": "~0.7.11",
-    "jquery": "~1.11.1"
+    "jquery": "~1.11.1",
+    "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#~0.4.1"
   }
 }

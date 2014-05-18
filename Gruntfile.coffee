@@ -39,15 +39,7 @@ module.exports = (grunt) ->
     browserify:
       tests:
         src: 'test/specs/*.js'
-        dest: 'dist/test/specs.js'
-
-    jasmine:
-      main:
-        src: []
-        options:
-          vendor: ['bower_components/jquery/dist/jquery.js']
-          specs: 'dist/test/specs.js'
-          outfile: 'dist/test/SpecRunner.html'
+        dest: 'test/in-browser/spec/KefirSpecs.js'
 
     uglify:
       kefir:
@@ -123,7 +115,7 @@ module.exports = (grunt) ->
   require("load-grunt-tasks")(grunt)
   grunt.loadTasks("grunt-tasks")
 
-  grunt.registerTask 'build-browser-tests', ['browserify:tests', 'jasmine:main:build']
+  grunt.registerTask 'build-browser-tests', ['browserify:tests']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
   grunt.registerTask 'release-patch', ['bump', 'release']

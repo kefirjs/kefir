@@ -6,27 +6,26 @@ describe("Bus", function(){
 
 
 
-  it(".push()", function(done) {
+  it(".push()", function() {
 
     var bus = new Kefir.Bus();
 
     bus.push('no subscribers – will not be delivered');
 
-    helpers.captureOutput(bus, function(values){
-      expect(values).toEqual([1, 2]);
-      done();
-    });
+    var result = helpers.getOutput(bus);
 
     bus.push(1);
     bus.push(2);
     bus.end();
 
-  }, 1);
+    expect(result).toEqual({ended: true, xs: [1, 2]});
+
+  });
 
 
 
 
-  it(".plug()", function(done) {
+  it(".plug()", function() {
 
     var mainBus = new Kefir.Bus();
     var source1 = new Kefir.Bus();
@@ -36,10 +35,7 @@ describe("Bus", function(){
 
     source1.push('no subscribers – will not be delivered');
 
-    helpers.captureOutput(mainBus, function(values){
-      expect(values).toEqual([1, 2, 3, 4]);
-      done();
-    });
+    var result = helpers.getOutput(mainBus);
 
     source2.push('not plugged – will not be delivered');
     source1.push(1);
@@ -52,22 +48,21 @@ describe("Bus", function(){
     source2.push(4);
     mainBus.end();
 
-  }, 1);
+    expect(result).toEqual({ended: true, xs: [1, 2, 3, 4]});
+
+  });
 
 
 
 
-  it(".unplug()", function(done) {
+  it(".unplug()", function() {
 
     var mainBus = new Kefir.Bus();
     var source = new Kefir.Bus();
 
     mainBus.plug(source);
 
-    helpers.captureOutput(mainBus, function(values){
-      expect(values).toEqual([1]);
-      done();
-    });
+    var result = helpers.getOutput(mainBus);
 
     source.push(1);
     mainBus.unplug(source);
@@ -76,7 +71,9 @@ describe("Bus", function(){
     source.end();
     mainBus.end();
 
-  }, 1);
+    expect(result).toEqual({ended: true, xs: [1]});
+
+  });
 
 
 

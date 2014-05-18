@@ -24,16 +24,20 @@ describe("Property", function(){
   });
 
 
-  it("onValue", function(done){
+  it("onValue", function(){
 
     var prop = new Kefir.Property(null, null, 'foo');
 
+    var calls = 0;
+
     prop.onValue(function(x){
       expect(x).toBe('foo');
-      done();
+      calls++;
     })
 
-  }, 1);
+    expect(calls).toBe(1);
+
+  });
 
 
   it("onNewValue", function(){
@@ -115,24 +119,26 @@ describe("Property", function(){
 
 
 
-  it("property.changes()", function(done){
+  it("property.changes()", function(){
 
     var prop = new Kefir.Property(null, null, 'foo');
     var changesStream = prop.changes();
 
     expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
 
-    helpers.captureOutput(changesStream, function(values){
-      expect(values).toEqual([1, 2, 3]);
-      done();
-    });
+    var result = helpers.getOutput(changesStream);
 
     prop.__sendValue(1);
     prop.__sendValue(2);
     prop.__sendValue(3);
     prop.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [1, 2, 3]
+    })
+
+  });
 
 
 });

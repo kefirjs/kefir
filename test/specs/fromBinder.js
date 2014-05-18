@@ -43,7 +43,7 @@ describe("Kefir.fromBinder()", function(){
 
 
 
-  it("send", function(done) {
+  it("send", function() {
 
     var __send;
 
@@ -52,17 +52,19 @@ describe("Kefir.fromBinder()", function(){
       return function(){};
     });
 
-    helpers.captureOutput(obs, function(values){
-      expect(values).toEqual([1, 2, 3, 4]);
-      done();
-    });
+    var result = helpers.getOutput(obs);
 
     __send(1);
     __send(2);
     __send(Kefir.NOTHING);
     __send(Kefir.bunch(3, Kefir.NOTHING, 4, Kefir.END));
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [1, 2, 3, 4]
+    });
+
+  });
 
 
 

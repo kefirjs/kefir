@@ -155,21 +155,23 @@ describe("Observable/Stream", function(){
   });
 
 
-  it("_sendAny", function(done){
+  it("_sendAny", function(){
 
     var obs = new Kefir.Observable();
 
-    helpers.captureOutput(obs, function(values){
-      expect(values).toEqual([1, 2, 3, 4]);
-      done();
-    });
+    var result = helpers.getOutput(obs);
 
     obs.__sendValue(1);
     obs.__sendAny(2);
     obs.__sendAny(Kefir.NOTHING);
     obs.__sendAny(Kefir.bunch(3, Kefir.NOTHING, 4, Kefir.END));
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [1, 2, 3, 4]
+    });
+
+  });
 
 
 

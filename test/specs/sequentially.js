@@ -5,23 +5,29 @@ var helpers = require('../test-helpers');
 
 describe("Kefir.sequentially()", function(){
 
-  it("ok", function(done){
+  beforeEach(function() {
+    jasmine.Clock.useMock();
+  });
 
-    var stream1 = helpers.sampleStream([1, Kefir.END]);
-    var stream2 = Kefir.sequentially(30, [2, 4]);
-    var stream3 = Kefir.sequentially(45, [3, 5]);
+  it("ok", function(){
 
-    // -1----------
-    // ---2---4----
-    // -----3-----5
-    var merged = stream1.merge(stream2, stream3);
+    var stream = Kefir.sequentially(30, [2, 4]);
 
-    helpers.captureOutput(merged, function(values){
-      expect(values).toEqual([1, 2, 3, 4, 5]);
-      done();
-    });
+    var result = helpers.getOutput(stream);
 
-  }, 200);
+    expect(result.xs).toEqual([]);
+
+    jasmine.Clock.tick(10);
+    expect(result.xs).toEqual([]);
+
+    jasmine.Clock.tick(21);
+    expect(result.xs).toEqual([2]);
+
+    jasmine.Clock.tick(30);
+    expect(result.xs).toEqual([2, 4]);
+    expect(result.ended).toEqual(true);
+
+  });
 
 
 });

@@ -9,24 +9,26 @@ describe(".map()", function(){
     return a * 2;
   }
 
-  it("stream.map()", function(done){
+  it("stream.map()", function(){
 
     var stream = new Kefir.Stream();
     var mapped = stream.map(x2);
 
-    helpers.captureOutput(mapped, function(values){
-      expect(values).toEqual([2, 4]);
-      done();
-    });
+    var result = helpers.getOutput(mapped);
 
     stream.__sendValue(1);
     stream.__sendValue(2);
     stream.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [2, 4]
+    });
+
+  });
 
 
-  it("property.map()", function(done){
+  it("property.map()", function(){
 
     var prop = new Kefir.Property(null, null, 5);
     var mapped = prop.map(x2);
@@ -35,44 +37,50 @@ describe(".map()", function(){
     expect(mapped.hasCached()).toBe(true);
     expect(mapped.getCached()).toBe(10);
 
-    helpers.captureOutput(mapped, function(values){
-      expect(values).toEqual([10, 2, 4]);
-      done();
-    });
+    var result = helpers.getOutput(mapped);
 
     prop.__sendValue(1);
     prop.__sendValue(2);
     prop.__sendEnd();
 
-  }, 1);
+    expect(result).toEqual({
+      ended: true,
+      xs: [10, 2, 4]
+    });
+
+  });
 
 
 
-  it("firstIn/lastOut", function(done){
+  it("firstIn/lastOut", function(){
 
     var stream = new Kefir.Stream();
     var mapped = stream.map(x2)
 
-    helpers.captureOutput(mapped.take(2), function(values){
-      expect(values).toEqual([2, 4]);
-    });
-
+    var result1 = helpers.getOutput(mapped.take(2));
     stream.__sendValue(1)
     expect(stream.__hasSubscribers('value')).toBe(true);
     stream.__sendValue(2)
     expect(stream.__hasSubscribers('value')).toBe(false);
     stream.__sendValue(3)
 
-    helpers.captureOutput(mapped, function(values){
-      expect(values).toEqual([8, 10]);
-      done();
-    });
+    var result2 = helpers.getOutput(mapped);
 
     stream.__sendValue(4)
     stream.__sendValue(5)
     stream.__sendEnd()
 
-  }, 1);
+    expect(result1).toEqual({
+      ended: true,
+      xs: [2, 4]
+    });
+
+    expect(result2).toEqual({
+      ended: true,
+      xs: [8, 10]
+    });
+
+  });
 
 
 });
