@@ -69,7 +69,6 @@ Property.prototype.toProperty = function(initial){
 // property.changes()
 
 Kefir.ChangesStream = function ChangesStream(source){
-  assertProperty(source);
   Stream.call(this);
   this.__Constructor.call(this, source);
 }

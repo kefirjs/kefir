@@ -90,20 +90,6 @@ function callSubscriber(subscriber, moreArgs){
   return fn.apply(context, args);
 }
 
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message);
-  }
-}
-
-function assertStream(stream){
-  assert(stream instanceof Stream, "not a Stream: " + stream)
-}
-
-function assertProperty(property){
-  assert(property instanceof Property, "not a Property: " + property)
-}
-
 function isFn(fn) {
   return typeof fn === "function";
 }

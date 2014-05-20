@@ -61,34 +61,6 @@ function inheritMixin(Child, Parent) {
   return Child;
 }
 
-// function removeFromArray(array, value) {
-//   for (var i = 0; i < array.length;) {
-//     if (array[i] === value) {
-//       array.splice(i, 1);
-//     } else {
-//       i++;
-//     }
-//   }
-// }
-
-// function killInArray(array, value) {
-//   for (var i = 0; i < array.length; i++) {
-//     if (array[i] === value) {
-//       delete array[i];
-//     }
-//   }
-// }
-
-// function isAllDead(array) {
-//   for (var i = 0; i < array.length; i++) {
-//     /*jshint eqnull:true */
-//     if (array[i] != null) {
-//       return false;
-//     }
-//   }
-//   return true;
-// }
-
 function firstArrOrToArr(args) {
   if (Object.prototype.toString.call(args[0]) === '[object Array]') {
     return args[0];
@@ -123,20 +95,6 @@ function callSubscriber(subscriber, moreArgs){
     args = args.concat(toArray(moreArgs));
   }
   return fn.apply(context, args);
-}
-
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message);
-  }
-}
-
-function assertStream(stream){
-  assert(stream instanceof Stream, "not a Stream: " + stream)
-}
-
-function assertProperty(property){
-  assert(property instanceof Property, "not a Property: " + property)
 }
 
 function isFn(fn) {
@@ -534,7 +492,6 @@ Property.prototype.toProperty = function(initial){
 // property.changes()
 
 Kefir.ChangesStream = function ChangesStream(source){
-  assertProperty(source);
   Stream.call(this);
   this.__Constructor.call(this, source);
 }
