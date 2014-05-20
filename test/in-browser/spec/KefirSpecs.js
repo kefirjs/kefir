@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! kefir - 0.1.7
+/*! kefir - 0.1.8
  *  https://github.com/pozadi/kefir
  */
 (function(global){
@@ -2438,58 +2438,6 @@ describe(".scan()", function(){
 
   });
 
-
-
-  // it("property.scan()", function(){
-
-  //   var prop = new Kefir.Property(null, null, 6);
-  //   var scanned = prop.scan(0, sum);
-
-  //   expect(scanned).toEqual(jasmine.any(Kefir.Property));
-  //   expect(scanned.hasCached()).toBe(true);
-  //   expect(scanned.getCached()).toBe(6);
-
-  //   var result = helpers.getOutput(scanned);
-
-  //   prop.__sendValue(1);
-  //   prop.__sendValue(2);
-  //   prop.__sendValue(3);
-  //   prop.__sendValue(4);
-  //   prop.__sendValue(5);
-  //   prop.__sendEnd();
-
-  //   expect(result).toEqual({
-  //     ended: true,
-  //     xs: [6, 2, 4]
-  //   });
-
-  // });
-
-
-  // it("property.scan() with wrong initial", function(){
-
-  //   var prop = new Kefir.Property(null, null, 5);
-  //   var scanned = prop.scan(0, sum);
-
-  //   expect(scanned).toEqual(jasmine.any(Kefir.Property));
-  //   expect(scanned.hasCached()).toBe(false);
-  //   expect(scanned.getCached()).toBe(Kefir.NOTHING);
-
-  //   var result = helpers.getOutput(scanned);
-
-  //   prop.__sendValue(1);
-  //   prop.__sendValue(2);
-  //   prop.__sendValue(3);
-  //   prop.__sendValue(4);
-  //   prop.__sendValue(5);
-  //   prop.__sendEnd();
-
-  //   expect(result).toEqual({
-  //     ended: true,
-  //     xs: [2, 4]
-  //   });
-
-  // });
 
 });
 
