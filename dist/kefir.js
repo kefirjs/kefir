@@ -463,7 +463,7 @@ var WithSourceStreamMixin = {
 
 Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
   Property.call(this, null, null, initial);
-  this.__Constructor.call(this, source);
+  this.__Constructor(source);
 }
 
 inherit(Kefir.PropertyFromStream, Property, WithSourceStreamMixin, {
@@ -492,7 +492,7 @@ Property.prototype.toProperty = function(initial){
 
 Kefir.ChangesStream = function ChangesStream(source){
   Stream.call(this);
-  this.__Constructor.call(this, source);
+  this.__Constructor(source);
 }
 
 inherit(Kefir.ChangesStream, Stream, WithSourceStreamMixin, {
@@ -504,6 +504,34 @@ Property.prototype.changes = function() {
 }
 
 
+
+
+
+// .scan()
+
+Kefir.ScanProperty = function ScanProperty(source, seed, fn){
+  Property.call(this, null, null, seed);
+  this.__fn = fn;
+  this.__Constructor(source);
+}
+
+inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
+
+  __ClassName: 'ScanProperty',
+
+  __handle: function(x){
+    this.__sendValue( this.__fn(this.getCached(), x) );
+  },
+  __clear: function(){
+    WithSourceStreamMixin.__clear.call(this);
+    this.__fn = null;
+  }
+
+})
+
+Observable.prototype.scan = function(seed, fn) {
+  return new Kefir.ScanProperty(this, seed, fn);
+}
 
 
 

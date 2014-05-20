@@ -140,6 +140,19 @@ createNObservable('Bacon', 1000, function(){
 
 
 
+console.log('\nnew Bus().scan(0, noop) x1000')
+
+createNObservable('Kefir', 1000, function(){
+  return new Kefir.Bus().scan(0, noop);
+})
+
+createNObservable('Bacon', 1000, function(){
+  return new Bacon.Bus().scan(0, noop);
+})
+
+
+
+
 console.log('\n.sequentially(0, [1, 2])')
 
 createNObservable('Kefir', 1000, function(){
@@ -256,4 +269,38 @@ createNObservable('Kefir', 300, function(){
 createNObservable('Bacon', 300, function(){
   return Bacon.mergeAll(new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus(), new Bacon.Bus());
 })
+
+
+
+
+console.log('\ncrazy x100')
+
+createNObservable('Kefir', 100, function(){
+  return (new Kefir.Bus())
+    .merge(Kefir.fromBinder(noop))
+    .combine([Kefir.once(1)], noop)
+    .scan(0, noop)
+    .changes()
+    .merge(Kefir.never().map(noop))
+    .flatMap(noop)
+    .take(5)
+    .filter(noop)
+    .merge(Kefir.sequentially(0, [1, 2]))
+    .combine([Kefir.fromBinder(noop)], noop);
+})
+
+createNObservable('Bacon', 100, function(){
+  return (new Bacon.Bus())
+    .merge(Bacon.fromBinder(noop))
+    .combine(Bacon.once(1), noop)
+    .scan(0, noop)
+    .changes()
+    .merge(Bacon.never().map(noop))
+    .flatMap(noop)
+    .take(5)
+    .filter(noop)
+    .merge(Bacon.sequentially(0, [1, 2]))
+    .combine(Bacon.fromBinder(noop), noop);
+})
+
 
