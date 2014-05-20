@@ -33,13 +33,13 @@ describe(".merge()", function(){
 
   it("3 properties end 1 stream", function(){
 
-    var prop1 = new Kefir.Property(null, null, "10"); // 1
-    var prop2 = new Kefir.Property(null, null, "10"); // -2--5
-    var prop3 = new Kefir.Property();                 // --3
-    var stream1 = new Kefir.Stream();                 // ---4
-    var merged = prop1.merge(prop2, prop3, stream1);  // 12345 (all initial ignored)
+    var prop1 = new Kefir.Property(null, null, 6);    // 6-1
+    var prop2 = new Kefir.Property(null, null, 7);    // 7--2--5
+    var prop3 = new Kefir.Property();                 // ----3
+    var stream1 = new Kefir.Stream();                 // -----4
+    var merged = prop1.merge(prop2, prop3, stream1);  // 6712345
 
-    var result = helpers.getOutput(merged)
+    var result = helpers.getOutput(merged);
 
     prop1.__sendValue(1);
     prop1.__sendEnd();
@@ -53,7 +53,7 @@ describe(".merge()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 2, 3, 4, 5]
+      xs: [6, 7, 1, 2, 3, 4, 5]
     });
 
   });

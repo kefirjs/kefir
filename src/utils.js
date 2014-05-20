@@ -54,33 +54,33 @@ function inheritMixin(Child, Parent) {
   return Child;
 }
 
-function removeFromArray(array, value) {
-  for (var i = 0; i < array.length;) {
-    if (array[i] === value) {
-      array.splice(i, 1);
-    } else {
-      i++;
-    }
-  }
-}
+// function removeFromArray(array, value) {
+//   for (var i = 0; i < array.length;) {
+//     if (array[i] === value) {
+//       array.splice(i, 1);
+//     } else {
+//       i++;
+//     }
+//   }
+// }
 
-function killInArray(array, value) {
-  for (var i = 0; i < array.length; i++) {
-    if (array[i] === value) {
-      delete array[i];
-    }
-  }
-}
+// function killInArray(array, value) {
+//   for (var i = 0; i < array.length; i++) {
+//     if (array[i] === value) {
+//       delete array[i];
+//     }
+//   }
+// }
 
-function isAllDead(array) {
-  for (var i = 0; i < array.length; i++) {
-    /*jshint eqnull:true */
-    if (array[i] != null) {
-      return false;
-    }
-  }
-  return true;
-}
+// function isAllDead(array) {
+//   for (var i = 0; i < array.length; i++) {
+//     /*jshint eqnull:true */
+//     if (array[i] != null) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 function firstArrOrToArr(args) {
   if (Object.prototype.toString.call(args[0]) === '[object Array]') {

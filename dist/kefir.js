@@ -60,33 +60,33 @@ function inheritMixin(Child, Parent) {
   return Child;
 }
 
-function removeFromArray(array, value) {
-  for (var i = 0; i < array.length;) {
-    if (array[i] === value) {
-      array.splice(i, 1);
-    } else {
-      i++;
-    }
-  }
-}
+// function removeFromArray(array, value) {
+//   for (var i = 0; i < array.length;) {
+//     if (array[i] === value) {
+//       array.splice(i, 1);
+//     } else {
+//       i++;
+//     }
+//   }
+// }
 
-function killInArray(array, value) {
-  for (var i = 0; i < array.length; i++) {
-    if (array[i] === value) {
-      delete array[i];
-    }
-  }
-}
+// function killInArray(array, value) {
+//   for (var i = 0; i < array.length; i++) {
+//     if (array[i] === value) {
+//       delete array[i];
+//     }
+//   }
+// }
 
-function isAllDead(array) {
-  for (var i = 0; i < array.length; i++) {
-    /*jshint eqnull:true */
-    if (array[i] != null) {
-      return false;
-    }
-  }
-  return true;
-}
+// function isAllDead(array) {
+//   for (var i = 0; i < array.length; i++) {
+//     /*jshint eqnull:true */
+//     if (array[i] != null) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 function firstArrOrToArr(args) {
   if (Object.prototype.toString.call(args[0]) === '[object Array]') {
@@ -662,20 +662,75 @@ Observable.prototype.take = function(n) {
 
 
 
-// var PluggableMixin = {
+var PluggableMixin = {
 
-//   __Constructor: function(){
-//     this.__plugged = [];
-//   },
-//   __handlePlugged: function(i, value){
-//     this.__sendAny(value);
-//   },
-//   __clear: function(){
-//     this.__plugged = null;
-//   }
+  __initPluggable: function(){
+    this.__plugged = [];
+  },
+  __clearPluggable: function(){
+    this.__plugged = null;
+  },
+  __handlePlugged: function(i, value){
+    this.__sendAny(value);
+  },
+  __plug: function(stream){
+    if ( !this.isEnded() ) {
+      this.__plugged.push(stream);
+      var i = this.__plugged.length - 1;
+      if (this.__hasSubscribers('value')) {
+        stream.onValue(this.__handlePlugged, this, i);
+      }
+      stream.onEnd(this.__unplugById, this, i);
+    }
+  },
+  __unplugById: function(i){
+    if ( !this.isEnded() ) {
+      var stream = this.__plugged[i];
+      if (stream) {
+        this.__plugged[i] = null;
+        stream.offValue(this.__handlePlugged, this, i);
+        stream.onEnd(this.__unplugById, this, i);
+      }
+    }
+  },
+  __unplug: function(stream){
+    if ( !this.isEnded() ) {
+      for (var i = 0; i < this.__plugged.length; i++) {
+        if (this.__plugged[i] === stream) {
+          this.__unplugById(i);
+        }
+      }
+    }
+  },
+  __onFirstIn: function(){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      var stream = this.__plugged[i];
+      if (stream) {
+        stream.onValue(this.__handlePlugged, this, i);
+      }
+    }
+  },
+  __onLastOut: function(){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      var stream = this.__plugged[i];
+      if (stream) {
+        stream.offValue(this.__handlePlugged, this, i);
+      }
+    }
+  },
+  __hasNoPlugged: function(){
+    if (this.isEnded()) {
+      return true;
+    }
+    for (var i = 0; i < this.__plugged.length; i++) {
+      if (this.__plugged[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-
-// }
+}
 
 
 
@@ -685,46 +740,28 @@ Observable.prototype.take = function(n) {
 
 Kefir.Bus = function Bus(){
   Stream.call(this);
-  this.__plugged = [];
+  this.__initPluggable();
 }
 
-inherit(Kefir.Bus, Stream, {
+inherit(Kefir.Bus, Stream, PluggableMixin, {
 
   __ClassName: 'Bus',
+
   push: function(x){
-    this.__sendAny(x)
+    this.__sendAny(x);
   },
   plug: function(stream){
-    if (!this.isEnded()) {
-      this.__plugged.push(stream);
-      if (this.__hasSubscribers('value')) {
-        stream.onValue(this.__sendValue, this);
-      }
-      stream.onEnd(this.unplug, this, stream);
-    }
+    this.__plug(stream);
   },
   unplug: function(stream){
-    if (!this.isEnded()) {
-      stream.offValue(this.__sendValue, this);
-      removeFromArray(this.__plugged, stream);
-    }
+    this.__unplug(stream);
   },
   end: function(){
     this.__sendEnd();
   },
-  __onFirstIn: function(){
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].onValue(this.__sendValue, this);
-    }
-  },
-  __onLastOut: function(){
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].offValue(this.__sendValue, this);
-    }
-  },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__plugged = null;
+    this.__clearPluggable();
     this.push = noop;
   }
 
@@ -739,52 +776,46 @@ Kefir.bus = function(){
 
 
 // FlatMap
-// TODO: should end only when source AND all plugged ends
 
 Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
-  Stream.call(this)
+  Stream.call(this);
+  this.__initPluggable();
   this.__sourceStream = sourceStream;
-  this.__plugged = [];
   this.__mapFn = mapFn;
-  sourceStream.onEnd(this.__sendEnd, this);
+  sourceStream.onEnd(this.__onSourceEnds, this);
 }
 
-inherit(Kefir.FlatMappedStream, Stream, {
+inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
 
   __ClassName: 'FlatMappedStream',
+
+  __onSourceEnds: function(){
+    if (this.__hasNoPlugged()) {
+      this.__sendEnd();
+    }
+  },
   __plugResult: function(x){
     this.__plug(  this.__mapFn(x)  );
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue(this.__plugResult, this);
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].onValue(this.__sendValue, this);
-    }
+    PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function(){
     this.__sourceStream.offValue(this.__plugResult, this);
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__plugged[i].offValue(this.__sendValue, this);
-    }
+    PluggableMixin.__onLastOut.call(this);
   },
-  __plug: function(stream){
-    this.__plugged.push(stream);
-    if (this.__hasSubscribers('value')) {
-      stream.onValue(this.__sendValue, this);
-    }
-    stream.onEnd(this.__unplug, this, stream);
-  },
-  __unplug: function(stream){
-    if (!this.isEnded()) {
-      stream.offValue(this.__sendValue, this);
-      removeFromArray(this.__plugged, stream);
+  __unplugById: function(i){
+    PluggableMixin.__unplugById.call(this, i);
+    if (!this.isEnded() && this.__hasNoPlugged() && this.__sourceStream.isEnded()) {
+      this.__sendEnd();
     }
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
+    this.__clearPluggable();
     this.__sourceStream = null;
     this.__mapFn = null;
-    this.__plugged = null;
   }
 
 })
@@ -803,36 +834,27 @@ Observable.prototype.flatMap = function(fn) {
 // Merge
 
 Kefir.MergedStream = function MergedStream(){
-  Stream.call(this)
-  this.__sources = firstArrOrToArr(arguments);
-  for (var i = 0; i < this.__sources.length; i++) {
-    this.__sources[i].onEnd(this.__unplug, this, this.__sources[i]);
+  Stream.call(this);
+  this.__initPluggable();
+  var sources = firstArrOrToArr(arguments);
+  for (var i = 0; i < sources.length; i++) {
+    this.__plug(sources[i]);
   }
 }
 
-inherit(Kefir.MergedStream, Stream, {
+inherit(Kefir.MergedStream, Stream, PluggableMixin, {
 
   __ClassName: 'MergedStream',
-  __onFirstIn: function(){
-    for (var i = 0; i < this.__sources.length; i++) {
-      this.__sources[i].onNewValue(this.__sendValue, this);
-    }
-  },
-  __onLastOut: function(){
-    for (var i = 0; i < this.__sources.length; i++) {
-      this.__sources[i].offValue(this.__sendValue, this);
-    }
-  },
-  __unplug: function(stream){
-    stream.offValue(this.__sendValue, this);
-    removeFromArray(this.__sources, stream);
-    if (this.__sources.length === 0) {
-      this.__sendEnd();
-    }
-  },
+
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__sources = null;
+    this.__clearPluggable();
+  },
+  __unplugById: function(i){
+    PluggableMixin.__unplugById.call(this, i);
+    if (this.__hasNoPlugged()) {
+      this.__sendEnd();
+    }
   }
 
 });
@@ -856,44 +878,27 @@ Observable.prototype.merge = function() {
 // Combine
 
 Kefir.CombinedStream = function CombinedStream(sources, mapFn){
-  Stream.call(this)
-
-  this.__sources = sources;
+  Stream.call(this);
+  this.__initPluggable();
+  for (var i = 0; i < sources.length; i++) {
+    this.__plug(sources[i]);
+  }
   this.__cachedValues = new Array(sources.length);
   this.__hasCached = new Array(sources.length);
   this.__mapFn = mapFn;
-
-  for (var i = 0; i < this.__sources.length; i++) {
-    this.__sources[i].onEnd(this.__unplug, this, i);
-  }
-
 }
 
-inherit(Kefir.CombinedStream, Stream, {
+inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
 
   __ClassName: 'CombinedStream',
-  __onFirstIn: function(){
-    for (var i = 0; i < this.__sources.length; i++) {
-      if (this.__sources[i]) {
-        this.__sources[i].onValue(this.__receive, this, i);
-      }
-    }
-  },
-  __onLastOut: function(){
-    for (var i = 0; i < this.__sources.length; i++) {
-      if (this.__sources[i]) {
-        this.__sources[i].offValue(this.__receive, this, i);
-      }
-    }
-  },
-  __unplug: function(i){
-    this.__sources[i].offValue(this.__receive, this, i);
-    this.__sources[i] = null
-    if (isAllDead(this.__sources)) {
+
+  __unplugById: function(i){
+    PluggableMixin.__unplugById.call(this, i);
+    if (this.__hasNoPlugged()) {
       this.__sendEnd();
     }
   },
-  __receive: function(i, x) {
+  __handlePlugged: function(i, x) {
     this.__hasCached[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
@@ -914,7 +919,7 @@ inherit(Kefir.CombinedStream, Stream, {
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__sources = null;
+    this.__clearPluggable();
     this.__cachedValues = null;
     this.__hasCached = null;
     this.__mapFn = null;

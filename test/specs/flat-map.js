@@ -86,6 +86,15 @@ describe(".flatMap()", function(){
     stream.__sendEnd();
 
     expect(result).toEqual({
+      ended: false,
+      xs: [1, 2, 3, 4, 4]
+    });
+
+    childStreams[0].__sendEnd()
+    childStreams[1].__sendEnd()
+    childStreams[2].__sendEnd()
+
+    expect(result).toEqual({
       ended: true,
       xs: [1, 2, 3, 4, 4]
     });

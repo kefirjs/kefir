@@ -3,8 +3,8 @@ new Stream(noop, noop) x1000
 Kefir: w/o subscr. 0.08 Mb, w. subscr. 0.29 Mb
 
 new Bus() x1000
-Kefir: w/o subscr. 0.10 Mb, w. subscr. 0.32 Mb
-Bacon: w/o subscr. 3.57 Mb, w. subscr. 4.19 Mb
+Kefir: w/o subscr. 0.11 Mb, w. subscr. 0.28 Mb
+Bacon: w/o subscr. 3.56 Mb, w. subscr. 4.19 Mb
 
 .fromBinder(noop) x1000
 Kefir: w/o subscr. 0.07 Mb, w. subscr. 0.31 Mb
@@ -12,14 +12,14 @@ Bacon: w/o subscr. 2.77 Mb, w. subscr. 3.50 Mb
 
 new Bus().toProperty(1) x1000
 Kefir: w/o subscr. 0.41 Mb, w. subscr. 0.69 Mb
-Bacon: w/o subscr. 8.12 Mb, w. subscr. 9.83 Mb
+Bacon: w/o subscr. 8.12 Mb, w. subscr. 9.84 Mb
 
 new Bus().toProperty(1).changes() x1000
 Kefir: w/o subscr. 0.69 Mb, w. subscr. 1.02 Mb
 Bacon: w/o subscr. 10.87 Mb, w. subscr. 13.12 Mb
 
 new Bus().map(noop) x1000
-Kefir: w/o subscr. 0.39 Mb, w. subscr. 0.66 Mb
+Kefir: w/o subscr. 0.40 Mb, w. subscr. 0.66 Mb
 Bacon: w/o subscr. 8.57 Mb, w. subscr. 10.10 Mb
 
 .sequentially(0, [1, 2])
@@ -39,8 +39,8 @@ Kefir: w/o subscr. 0.43 Mb, w. subscr. 0.70 Mb
 Bacon: w/o subscr. 6.20 Mb, w. subscr. 8.46 Mb
 
 .fromBinder(noop).combine(Kefir.fromBinder(noop), noop) x500
-Kefir: w/o subscr. 0.43 Mb, w. subscr. 0.64 Mb
-Bacon: w/o subscr. 9.74 Mb, w. subscr. 12.00 Mb
+Kefir: w/o subscr. 0.50 Mb, w. subscr. 0.70 Mb
+Bacon: w/o subscr. 9.73 Mb, w. subscr. 12.00 Mb
 
 .once(1) x1000
 Kefir: w/o subscr. 0.07 Mb, w. subscr. 0.05 Mb
@@ -51,9 +51,9 @@ Kefir: w/o subscr. 0.00 Mb, w. subscr. 0.00 Mb
 Bacon: w/o subscr. 3.81 Mb, w. subscr. 4.72 Mb
 
 .combineAsArray(bus, bus, bus, bus) x300
-Kefir: w/o subscr. 0.50 Mb, w. subscr. 0.65 Mb
+Kefir: w/o subscr. 0.53 Mb, w. subscr. 0.68 Mb
 Bacon: w/o subscr. 6.94 Mb, w. subscr. 8.72 Mb
 
 .mergeAll(bus, bus, bus, bus) x300
-Kefir: w/o subscr. 0.45 Mb, w. subscr. 0.58 Mb
+Kefir: w/o subscr. 0.47 Mb, w. subscr. 0.61 Mb
 Bacon: w/o subscr. 8.89 Mb, w. subscr. 11.50 Mb
