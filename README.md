@@ -1,6 +1,6 @@
 # Kefir
 
-Bacon.js inspired FRP library with less memory consumption
+Bacon.js inspired FRP library with [less memory consumption](https://github.com/pozadi/kefir/blob/master/memory-usage-results.txt)
 
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
 
