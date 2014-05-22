@@ -104,90 +104,90 @@ function baseBacon(){
 
 
 
-console.log('\nvery base stream x1000')
+console.log('\nvery base stream x500')
 
-createNObservable('Kefir', 1000, baseKefir)
-createNObservable('Rx', 1000, baseRx)
-createNObservable('Bacon', 1000, baseBacon)
-
-
+createNObservable('Kefir', 500, baseKefir)
+createNObservable('Rx', 500, baseRx)
+createNObservable('Bacon', 500, baseBacon)
 
 
 
-console.log('\nnew Bus() x1000')
 
-createNObservable('Kefir', 1000, function(){
+
+console.log('\nnew Bus() x500')
+
+createNObservable('Kefir', 500, function(){
   return new Kefir.Bus();
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return new Bacon.Bus();
 })
 
 
 
 
-console.log('\n.fromBinder(noop) x1000')
+console.log('\n.fromBinder(noop) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return Kefir.fromBinder(noop);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return Bacon.fromBinder(noop);
 })
 
 
 
 
-console.log('\n.toProperty(1) x1000')
+console.log('\n.toProperty(1) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().toProperty(1);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().toProperty(1);
 })
 
 
 
-console.log('\n.toProperty(1).changes() x1000')
+console.log('\n.toProperty(1).changes() x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().toProperty(1).changes();
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().toProperty(1).changes();
 })
 
 
 
-console.log('\n.map(noop) x1000')
+console.log('\n.map(noop) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().map(noop);
 })
 
-createNObservable('Rx', 1000, function(){
+createNObservable('Rx', 500, function(){
   return baseRx().map(noop);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().map(noop);
 })
 
 
 
 
-console.log('\n.scan(0, noop) x1000')
+console.log('\n.scan(0, noop) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().scan(0, noop);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().scan(0, noop);
 })
 
@@ -196,11 +196,11 @@ createNObservable('Bacon', 1000, function(){
 
 console.log('\n.sequentially(0, [1, 2])')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return Kefir.sequentially(0, [1, 2]);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return Bacon.sequentially(0, [1, 2]);
 })
 
@@ -208,17 +208,17 @@ createNObservable('Bacon', 1000, function(){
 
 
 
-console.log('\n.filter(noop) x1000')
+console.log('\n.filter(noop) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().filter(noop);
 })
 
-createNObservable('Rx', 1000, function(){
+createNObservable('Rx', 500, function(){
   return baseRx().filter(noop);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().filter(noop);
 })
 
@@ -226,17 +226,17 @@ createNObservable('Bacon', 1000, function(){
 
 
 
-console.log('\n.take(5) x1000')
+console.log('\n.take(5) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().take(5);
 })
 
-createNObservable('Rx', 1000, function(){
+createNObservable('Rx', 500, function(){
   return baseRx().take(5);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().take(5);
 })
 
@@ -244,17 +244,17 @@ createNObservable('Bacon', 1000, function(){
 
 
 
-console.log('\n.flatMap(noop) x1000')
+console.log('\n.flatMap(noop) x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return baseKefir().flatMap(noop);
 })
 
-createNObservable('Rx', 1000, function(){
+createNObservable('Rx', 500, function(){
   return baseRx().flatMap(noop);
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return baseBacon().flatMap(noop);
 })
 
@@ -278,65 +278,65 @@ createNObservable('Bacon', 500, function(){
 
 
 
-console.log('\n.once(1) x1000')
+console.log('\n.once(1) x500')
 
-createNObservable('Kefir', 1000, function(i){
+createNObservable('Kefir', 500, function(i){
   return Kefir.once(i);
 })
 
-createNObservable('Bacon', 1000, function(i){
+createNObservable('Bacon', 500, function(i){
   return Bacon.once(i);
 })
 
 
 
 
-console.log('\n.never() x1000')
+console.log('\n.never() x500')
 
-createNObservable('Kefir', 1000, function(){
+createNObservable('Kefir', 500, function(){
   return Kefir.never();
 })
 
-createNObservable('Bacon', 1000, function(){
+createNObservable('Bacon', 500, function(){
   return Bacon.never();
 })
 
 
 
 
-console.log('\n.combineAsArray(stream, stream, stream, stream) x300')
+console.log('\n.combineAsArray(stream, stream, stream, stream) x150')
 
-createNObservable('Kefir', 300, function(){
+createNObservable('Kefir', 150, function(){
   return Kefir.combine([baseKefir(), baseKefir(), baseKefir(), baseKefir()]);
 })
 
-createNObservable('Bacon', 300, function(){
+createNObservable('Bacon', 150, function(){
   return Bacon.combineAsArray(baseBacon(), baseBacon(), baseBacon(), baseBacon());
 })
 
 
 
 
-console.log('\n.mergeAll(stream, stream, stream, stream) x300')
+console.log('\n.mergeAll(stream, stream, stream, stream) x150')
 
-createNObservable('Kefir', 300, function(){
+createNObservable('Kefir', 150, function(){
   return Kefir.merge(baseKefir(), baseKefir(), baseKefir(), baseKefir());
 })
 
-createNObservable('Rx', 300, function(){
+createNObservable('Rx', 150, function(){
   return Rx.Observable.merge(baseRx(), baseRx(), baseRx(), baseRx());
 })
 
-createNObservable('Bacon', 300, function(){
+createNObservable('Bacon', 150, function(){
   return Bacon.mergeAll(baseBacon(), baseBacon(), baseBacon(), baseBacon());
 })
 
 
 
 
-console.log('\ncrazy x100')
+console.log('\ncrazy x50')
 
-createNObservable('Kefir', 100, function(){
+createNObservable('Kefir', 50, function(){
   return (baseKefir())
     .merge(Kefir.fromBinder(noop))
     .combine([Kefir.once(1)], noop)
@@ -350,7 +350,7 @@ createNObservable('Kefir', 100, function(){
     .combine([Kefir.fromBinder(noop)], noop);
 })
 
-createNObservable('Bacon', 100, function(){
+createNObservable('Bacon', 50, function(){
   return (baseBacon())
     .merge(Bacon.fromBinder(noop))
     .combine(Bacon.once(1), noop)
