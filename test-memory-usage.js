@@ -146,6 +146,10 @@ createNObservable('Kefir', 500, function(){
   return baseKefir().toProperty(1);
 })
 
+createNObservable('Rx', 500, function(){
+  return baseRx().publishValue(1).refCount()
+})
+
 createNObservable('Bacon', 500, function(){
   return baseBacon().toProperty(1);
 })
