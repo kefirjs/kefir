@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Kefir playground</title>
+        <script src="../../bower_components/jquery/dist/jquery.js"></script>
+        <script src="../../bower_components/bacon/dist/Bacon.js"></script>
+        <script src="../../bower_components/rxjs/dist/rx.all.js"></script>
+        <script src="../../dist/kefir.js"></script>
+        <script type="text/javascript">
+            // Just keep references to listeners
+            var fakeSource = {
+              listeners: [],
+              subscribe: function(listener){
+                this.listeners.push(listener);
+              },
+              unsubscribe: function(listener){
+                var index = this.listeners.indexOf(listener);
+                if (index != -1) {
+                  this.listeners.splice(index, 1);
+                }
+              }
+            }
+
+
+            function baseKefir(){
+              var stream = new Kefir.Stream(function(){
+                fakeSource.subscribe(send);
+              }, function(){
+                fakeSource.unsubscribe(send);
+              });
+              var send = stream.__sendValue.bind(stream);
+              return stream;
+            }
+
+            function baseRx(){
+              return new Rx.Observable.create(function(observer){
+                debugger
+                var send = function(x){
+                  observer.onNext(x);
+                }
+                fakeSource.subscribe(send);
+                return function(){
+                  fakeSource.unsubscribe(send);
+                }
+              });
+            }
+
+            function baseBacon(){
+              return new Bacon.EventStream(function(sink){
+                fakeSource.subscribe(sink);
+                return function(){
+                  fakeSource.unsubscribe(sink);
+                }
+              });
+            }
+
+
+        </script>
+    </head>
+    <body></body>
+</html>

@@ -1,9 +1,6 @@
 // I am not sure this tests are correct
 //
-// Run: node --expose-gc --allow-natives-syntax test-memory-usage.js
-//
-//   --allow-natives-syntax for %GetHeapUsage()
-//   --expose-gc for global.gc()
+// Run: node --expose-gc test-memory-usage.js
 
 
 var Kefir = require('./dist/kefir.js');
@@ -16,28 +13,14 @@ function diff(a, b) {
   return ( (b - a) / 1024 / 1024 ).toFixed(2) + ' Mb';
 }
 
-var __lastMemoryUsageCache;
+var __lastMemoryUsage;
 function begin(){
   global.gc()
-  __lastMemoryUsageCache = process.memoryUsage();
-  // __lastMemoryUsageCache = %GetHeapUsage();
+  __lastMemoryUsage = process.memoryUsage().heapUsed;
 }
 function end(name){
   global.gc()
-  var now = process.memoryUsage();
-  // var now = %GetHeapUsage();
-
-  // var report = name + ':\n';
-  // report += '  heapUsed ' + diff(__lastMemoryUsageCache.heapUsed, now.heapUsed) + '\n';
-  // report += '  heapTotal ' + diff(__lastMemoryUsageCache.heapTotal, now.heapTotal) + '\n';
-  // report += '  rss ' + diff(__lastMemoryUsageCache.rss, now.rss) + '\n';
-
-  // var report = name + ': ' + diff(__lastMemoryUsageCache.heapUsed, now.heapUsed)
-
-  // var report = name + ': ' + diff(__lastMemoryUsageCache, now)
-
-  // console.log(report);
-  return diff(__lastMemoryUsageCache.heapUsed, now.heapUsed);
+  return diff(__lastMemoryUsage, process.memoryUsage().heapUsed);
 }
 
 
@@ -62,27 +45,61 @@ function createNObservable(msg, n, generator){
       objects[i].onValue(noop);
     }
   }
-  var withSubscribers = end()
+  var withSubscribers = end();
   var objects = null;
   global.gc();
 
-  console.log(msg + ': w/o subscr. ' + withoutSubscribers + ', w. subscr. ' + withSubscribers);
+  console.log(msg + ': w/o subscr. ' + withoutSubscribers + ', w/ subscr. ' + withSubscribers);
 }
 
 function noop(){}
 
 
+// Just keeps references to listeners
+var fakeSource = {
+  listeners: [],
+  subscribe: function(listener){
+    this.listeners.push(listener);
+  },
+  unsubscribe: function(listener){
+    var index = this.listeners.indexOf(listener);
+    if (index != -1) {
+      this.listeners.splice(index, 1);
+    }
+  }
+}
+
 
 function baseKefir(){
-  return new Kefir.Stream(noop, noop);
+  var stream = new Kefir.Stream(function(){
+    fakeSource.subscribe(send);
+  }, function(){
+    fakeSource.unsubscribe(send);
+  });
+  var send = stream.__sendValue.bind(stream);
+  return stream;
 }
 
 function baseRx(){
-  return new Rx.Observable.create(noop);
+  return new Rx.Observable.create(function(observer){
+    debugger
+    var send = function(x){
+      observer.onNext(x);
+    }
+    fakeSource.subscribe(send);
+    return function(){
+      fakeSource.unsubscribe(send);
+    }
+  });
 }
 
 function baseBacon(){
-  return new Bacon.EventStream(noop);
+  return new Bacon.EventStream(function(sink){
+    fakeSource.subscribe(sink);
+    return function(){
+      fakeSource.unsubscribe(sink);
+    }
+  });
 }
 
 
