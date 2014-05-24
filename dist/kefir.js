@@ -420,13 +420,6 @@ Kefir.fromBinder = function(subscribe){
   return new Kefir.FromBinderStream(subscribe);
 }
 
-// TODO
-//
-// observable.diff(start, f)
-//
-
-
-
 var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
@@ -454,7 +447,7 @@ var WithSourceStreamMixin = {
 
 
 
-// observable.toProperty()
+// observable.toProperty([initial])
 
 Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
   Property.call(this, null, null, initial);
@@ -502,7 +495,7 @@ Property.prototype.changes = function() {
 
 
 
-// .scan()
+// .scan(seed, fn)
 
 Kefir.ScanProperty = function ScanProperty(source, seed, fn){
   Property.call(this, null, null, seed);
@@ -531,7 +524,7 @@ Observable.prototype.scan = function(seed, fn) {
 
 
 
-// Map
+// .map(fn)
 
 var MapMixin = {
   __Constructor: function(source, mapFn){
@@ -580,8 +573,21 @@ Property.prototype.map = function(fn) {
 
 
 
+// .diff(seed, fn)
 
-// Filter
+Observable.prototype.diff = function(prev, fn) {
+  return this.map(function(x){
+    var result = fn(prev, x);
+    prev = x;
+    return result;
+  })
+}
+
+
+
+
+
+// .filter(fn)
 
 Observable.prototype.filter = function(fn) {
   return this.map(function(x){
@@ -596,7 +602,7 @@ Observable.prototype.filter = function(fn) {
 
 
 
-// TakeWhile
+// .takeWhile(fn)
 
 Observable.prototype.takeWhile = function(fn) {
   return this.map(function(x){
@@ -611,7 +617,7 @@ Observable.prototype.takeWhile = function(fn) {
 
 
 
-// Take
+// .take(n)
 
 Observable.prototype.take = function(n) {
   return this.map(function(x){
@@ -629,7 +635,7 @@ Observable.prototype.take = function(n) {
 
 
 
-// Skip
+// .skip(n)
 
 Observable.prototype.skip = function(n) {
   return this.map(function(x){
@@ -646,7 +652,7 @@ Observable.prototype.skip = function(n) {
 
 
 
-// SkipDuplicates
+// .skipDuplicates([fn])
 
 Observable.prototype.skipDuplicates = function(fn) {
   var prev, hasPrev = false;
