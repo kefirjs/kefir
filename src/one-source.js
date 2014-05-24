@@ -1,8 +1,5 @@
 // TODO
 //
-// stream.skipWhile(f)
-// observable.skip(n)
-//
 // observable.diff(start, f)
 //
 
@@ -204,6 +201,22 @@ Observable.prototype.take = function(n) {
     }
     n--;
     return x;
+  })
+}
+
+
+
+
+// Skip
+
+Observable.prototype.skip = function(n) {
+  return this.map(function(x){
+    if (n <= 0) {
+      return x;
+    } else {
+      n--;
+      return Kefir.NOTHING;
+    }
   })
 }
 
