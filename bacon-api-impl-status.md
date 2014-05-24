@@ -135,7 +135,7 @@ For detailed descriptions of features see
 |:---|:---:|:---|
 | `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(streams)` |
 | `Bacon.combineAsArray(s1, s2...)` | :broken_heart: |  |
-| `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(streams, f)`  |
+| `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(observables, f)`  |
 | `Bacon.combineTemplate(template)` | :broken_heart: |  |
 | `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(streams)` / `Kefir.merge(stream1[, stream2, ...])` |
 | `Bacon.zipAsArray(streams)` | :broken_heart: |  |

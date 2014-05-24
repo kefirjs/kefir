@@ -1383,7 +1383,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, -5, 1, 1]
+      xs: [1, -5, 1, 2]
     });
 
   });
