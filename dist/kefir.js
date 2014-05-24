@@ -1,4 +1,4 @@
-/*! kefir - 0.1.8
+/*! kefir - 0.1.9
  *  https://github.com/pozadi/kefir
  */
 (function(global){
