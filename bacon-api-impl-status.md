@@ -58,7 +58,7 @@ For detailed descriptions of features see
 | `observable.takeWhile(property)` | :broken_heart: |  |
 | `observable.take(n)` | :rocket: | `observable.take(n)` |
 | `observable.takeUntil(stream)` | :broken_heart: |  |
-| `observable.skip(n)` | :broken_heart: |  |
+| `observable.skip(n)` | :rocket: | `observable.skip(n)` |
 | `observable.delay(delay)` | :broken_heart: |  |
 | `observable.throttle(delay)` | :broken_heart: |  |
 | `observable.debounce(delay)` | :broken_heart: |  |
@@ -70,7 +70,7 @@ For detailed descriptions of features see
 | `observable.flatMapFirst(f)` | :broken_heart: |  |
 | `observable.scan(seed, f)` | :rocket: | `observable.scan(seed, f)` |
 | `observable.fold(seed, f) / observable.reduce(seed, f)` | :broken_heart: |  |
-| `observable.diff(start, f)` | :broken_heart: |  |
+| `observable.diff(start, f)` | :rocket: | `observable.diff(start, f)` |
 | `observable.zip(other, f)` | :broken_heart: |  |
 | `observable.slidingWindow(max [, min])` | :broken_heart: |  |
 | `observable.log()` | :bike: | `observable.log()` |
@@ -92,11 +92,11 @@ For detailed descriptions of features see
 | `stream.subscribe(f)` | :broken_heart: |  |
 | `stream.onValue(f)` | :rocket: | `stream.onValue(f)` |
 | `stream.onValues(f)` | :broken_heart: |  |
-| `stream.skipDuplicates(isEqual)` | :broken_heart: |  |
+| `stream.skipDuplicates(isEqual)` | :rocket: | `stream.skipDuplicates(isEqual)` |
 | `stream.concat(otherStream)` | :broken_heart: |  |
 | `stream.merge(otherStream)` | :rocket: | `stream.merge(stream1[, stream2, ...])` / `stream.merge(streams)` |
 | `stream.startWith(value)` | :broken_heart: |  |
-| `stream.skipWhile(f)` | :broken_heart: |  |
+| `stream.skipWhile(f)` | :rocket: | `stream.skipWhile(f)` |
 | `stream.skipWhile(property)` | :broken_heart: |  |
 | `stream.skipUntil(stream2)` | :broken_heart: |  |
 | `stream.bufferWithTime(delay)` | :broken_heart: |  |
@@ -121,7 +121,7 @@ For detailed descriptions of features see
 | `property.sampledBy(stream)` | :broken_heart: |  |
 | `property.sampledBy(property)` | :broken_heart: |  |
 | `property.sampledBy(streamOrProperty, f)` | :broken_heart: |  |
-| `property.skipDuplicates(isEqual)` | :broken_heart: |  |
+| `property.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
 | `property.changes()` | :rocket: | `property.changes()` |
 | `property.and(other)` | :broken_heart: |  |
 | `property.or(other)` | :broken_heart: |  |
