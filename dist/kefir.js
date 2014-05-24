@@ -344,6 +344,7 @@ Observable.prototype.log = function(text) {
 // TODO
 //
 // Kefir.constant(x)
+// Kefir.fromArray(values)
 
 
 
@@ -419,6 +420,11 @@ inherit(Kefir.FromBinderStream, Stream, {
 Kefir.fromBinder = function(subscribe){
   return new Kefir.FromBinderStream(subscribe);
 }
+
+// TODO
+//
+// observable.fold(seed, f) / observable.reduce(seed, f)
+
 
 var WithSourceStreamMixin = {
   __Constructor: function(source) {
@@ -974,6 +980,19 @@ Kefir.combine = function(sources, mapFn) {
 
 Observable.prototype.combine = function(sources, mapFn) {
   return Kefir.combine([this].concat(sources), mapFn);
+}
+
+
+
+
+
+
+// Kefir.onValues()
+
+Kefir.onValues = function(streams, fn, context){
+  return Kefir.combine(streams).onValue(function(xs){
+    return fn.apply(context, xs);
+  })
 }
 
 // FromPoll

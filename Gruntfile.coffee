@@ -38,8 +38,10 @@ module.exports = (grunt) ->
 
     browserify:
       tests:
-        src: 'test/specs/*.js'
+        src: ['test/specs/*.js', 'test/specs/*.coffee']
         dest: 'test/in-browser/spec/KefirSpecs.js'
+        options:
+          transform: ['coffeeify']
 
     uglify:
       kefir:
@@ -70,6 +72,7 @@ module.exports = (grunt) ->
           specFolders: ["test/specs"]
           matchall: true
           verbose: true
+          coffee: true
 
     jshint:
       options:

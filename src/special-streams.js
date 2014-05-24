@@ -1,6 +1,7 @@
 // TODO
 //
 // Kefir.constant(x)
+// Kefir.fromArray(values)
 
 
 

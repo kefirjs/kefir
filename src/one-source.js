@@ -1,3 +1,8 @@
+// TODO
+//
+// observable.fold(seed, f) / observable.reduce(seed, f)
+
+
 var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
