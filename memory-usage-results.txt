@@ -12,12 +12,12 @@ Kefir: w/o subscr. 0.10 Kb, w/ subscr. +0.22 Kb
 Bacon: w/o subscr. 3.72 Kb, w/ subscr. +0.76 Kb
 
 .once(1)
-Kefir: w/o subscr. 0.07 Kb, w/ subscr. +0.04 Kb
+Kefir: w/o subscr. 0.07 Kb, w/ subscr. +0.03 Kb
 Bacon: w/o subscr. 4.09 Kb, w/ subscr. +0.95 Kb
 
 .never()
-Kefir: w/o subscr. -0.00 Kb, w/ subscr. -0.01 Kb
-Rx: w/o subscr. 0.23 Kb, w/ subscr. +0.00 Kb
+Kefir: w/o subscr. -0.00 Kb, w/ subscr. -0.00 Kb
+Rx: w/o subscr. 0.23 Kb, w/ subscr. -0.00 Kb
 Bacon: w/o subscr. 4.04 Kb, w/ subscr. +0.89 Kb
 
 .toProperty(1)
@@ -36,7 +36,7 @@ Bacon: w/o subscr. 8.29 Kb, w/ subscr. +1.71 Kb
 
 .filter(noop)
 Kefir: w/o subscr. 1.11 Kb, w/ subscr. +0.28 Kb
-Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.47 Kb
+Rx: w/o subscr. 0.53 Kb, w/ subscr. +1.47 Kb
 Bacon: w/o subscr. 8.27 Kb, w/ subscr. +1.71 Kb
 
 .scan(0, noop)
@@ -46,7 +46,7 @@ Bacon: w/o subscr. 6.80 Kb, w/ subscr. +1.90 Kb
 
 .sequentially(0, [1, 2])
 Kefir: w/o subscr. 0.41 Kb, w/ subscr. +0.55 Kb
-Bacon: w/o subscr. 5.02 Kb, w/ subscr. +1.32 Kb
+Bacon: w/o subscr. 5.02 Kb, w/ subscr. +1.31 Kb
 
 .take(5)
 Kefir: w/o subscr. 1.11 Kb, w/ subscr. +0.28 Kb
@@ -56,12 +56,12 @@ Bacon: w/o subscr. 8.20 Kb, w/ subscr. +1.71 Kb
 .flatMap(noop)
 Kefir: w/o subscr. 0.99 Kb, w/ subscr. +0.29 Kb
 Rx: w/o subscr. 0.94 Kb, w/ subscr. +2.59 Kb
-Bacon: w/o subscr. 5.91 Kb, w/ subscr. +2.71 Kb
+Bacon: w/o subscr. 5.91 Kb, w/ subscr. +2.70 Kb
 
 .combine(stream, noop)
 Kefir: w/o subscr. 2.19 Kb, w/ subscr. +0.37 Kb
 Rx: w/o subscr. 0.82 Kb, w/ subscr. +2.93 Kb
-Bacon: w/o subscr. 20.98 Kb, w/ subscr. +5.01 Kb
+Bacon: w/o subscr. 20.99 Kb, w/ subscr. +5.01 Kb
 
 .combineAsArray(stream1, stream2, stream3, stream4)
 Kefir: w/o subscr. 3.97 Kb, w/ subscr. +0.51 Kb

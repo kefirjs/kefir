@@ -142,7 +142,7 @@ For detailed descriptions of features see
 | `Bacon.zipAsArray(stream1, stream2...)` | :broken_heart: |  |
 | `Bacon.zipWith(streams, f)` | :broken_heart: |  |
 | `Bacon.zipWith(f, stream1, stream1...)` | :broken_heart: |  |
-| `Bacon.onValues(a, b [, c...], f)` | :broken_heart: |  |
+| `Bacon.onValues(a, b [, c...], f)` | :rocket: | Kefir.onValues(observables, f) |
 
 
 

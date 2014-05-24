@@ -55,7 +55,7 @@ inherit(Observable, Object, {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
-      callSubscriber(arguments);
+      callFn(restArgs(arguments, 1));
     }
   },
   __off: function(type /*,callback [, context [, arg1, arg2 ...]]*/){
@@ -75,7 +75,7 @@ inherit(Observable, Object, {
       for (var i = 0; i < this.__subscribers.length; i++) {
         var subscriber = this.__subscribers[i];
         if (subscriber && subscriber[0] === type) {
-          var result = callSubscriber(subscriber, restArgs(arguments, 1));
+          var result = callFn(restArgs(subscriber, 1), restArgs(arguments, 1));
           if (result === NO_MORE) {
             this.__off.apply(this, subscriber)
           }
@@ -181,7 +181,7 @@ inherit(Stream, Observable, {
 
 var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial){
   Observable.call(this, onFirstIn, onLastOut);
-  this.__cached = (typeof initial !== "undefined") ? initial : Kefir.NOTHING;
+  this.__cached = (typeof initial !== 'undefined') ? initial : Kefir.NOTHING;
 }
 
 inherit(Property, Observable, {
@@ -207,7 +207,7 @@ inherit(Property, Observable, {
   },
   onValue: function() {
     if ( this.hasCached() ) {
-      callSubscriber(['value'].concat(toArray(arguments)), [this.__cached]);
+      callFn(arguments, [this.__cached])
     }
     return this.onNewValue.apply(this, arguments);
   }

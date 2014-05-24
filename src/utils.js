@@ -72,26 +72,28 @@ function restArgs(args, start, nullOnEmpty){
   }
 }
 
-function callSubscriber(subscriber, moreArgs){
-  // subscriber = [
-  //   eventName,
+function callFn(fnMeta, moreArgs){
+  // fnMeta = [
   //   fn,
   //   context,
   //   arg1,
   //   arg2,
   //   ...
   // ]
-  var fn = subscriber[1];
-  var context = subscriber[2];
-  var args = restArgs(subscriber, 3);
+  var fn = fnMeta[0];
+  var context = fnMeta[1];
+  var args = restArgs(fnMeta, 2);
   if (moreArgs){
     args = args.concat(toArray(moreArgs));
+  }
+  if (typeof fn === 'string') {
+    fn = context[fn]
   }
   return fn.apply(context, args);
 }
 
 function isFn(fn) {
-  return typeof fn === "function";
+  return typeof fn === 'function';
 }
 
 function isEqualArrays(a, b){

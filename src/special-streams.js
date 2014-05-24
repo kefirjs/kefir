@@ -29,7 +29,7 @@ inherit(Kefir.OnceStream, Stream, {
   __ClassName: 'OnceStream',
   onValue: function(){
     if (!this.isEnded()) {
-      callSubscriber(['value'].concat(toArray(arguments)), [this.__value]);
+      callFn(arguments, [this.__value]);
       this.__value = null;
       this.__sendEnd();
     }

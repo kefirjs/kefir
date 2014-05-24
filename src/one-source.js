@@ -15,10 +15,10 @@ var WithSourceStreamMixin = {
     this.__sendAny(x);
   },
   __onFirstIn: function(){
-    this.__source.onNewValue(this.__handle, this);
+    this.__source.onNewValue('__handle', this);
   },
   __onLastOut: function(){
-    this.__source.offValue(this.__handle, this);
+    this.__source.offValue('__handle', this);
   },
   __clear: function(){
     Observable.prototype.__clear.call(this);
@@ -46,7 +46,7 @@ Stream.prototype.toProperty = function(initial){
 }
 
 Property.prototype.toProperty = function(initial){
-  if (typeof initial === "undefined") {
+  if (typeof initial === 'undefined') {
     return this
   } else {
     var prop = new Kefir.PropertyFromStream(this);

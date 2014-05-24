@@ -138,6 +138,33 @@ describe("Observable/Stream", function(){
   });
 
 
+  it("subscribers with string as fn and context", function(){
+
+    var log = [];
+    var obs = new Kefir.Observable();
+
+    var subscriber = function(){
+      log.push( [this.name].concat([].slice.call(arguments)) );
+    }
+
+    var context = {
+      foo: subscriber,
+      name: "bar"
+    };
+
+    obs.onValue("foo", context, 1, 2);
+
+    obs.__sendValue(1);
+    obs.__sendValue(2);
+
+    expect(log).toEqual([
+      ["bar", 1, 2, 1],
+      ["bar", 1, 2, 2]
+    ]);
+
+  });
+
+
   it("send after end", function(){
 
     var log = [];

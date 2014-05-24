@@ -28,9 +28,9 @@ var PluggableMixin = {
       this.__plugged.push(stream);
       var i = this.__plugged.length - 1;
       if (this.__hasSubscribers('value')) {
-        stream.onValue(this.__handlePlugged, this, i);
+        stream.onValue('__handlePlugged', this, i);
       }
-      stream.onEnd(this.__unplugById, this, i);
+      stream.onEnd('__unplugById', this, i);
     }
   },
   __unplugById: function(i){
@@ -38,8 +38,8 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         this.__plugged[i] = null;
-        stream.offValue(this.__handlePlugged, this, i);
-        stream.onEnd(this.__unplugById, this, i);
+        stream.offValue('__handlePlugged', this, i);
+        stream.offEnd('__unplugById', this, i);
       }
     }
   },
@@ -56,7 +56,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue(this.__handlePlugged, this, i);
+        stream.onValue('__handlePlugged', this, i);
       }
     }
   },
@@ -64,7 +64,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue(this.__handlePlugged, this, i);
+        stream.offValue('__handlePlugged', this, i);
       }
     }
   },
@@ -152,11 +152,11 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     this.__plug(  this.__mapFn(x)  );
   },
   __onFirstIn: function(){
-    this.__sourceStream.onValue(this.__plugResult, this);
+    this.__sourceStream.onValue('__plugResult', this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function(){
-    this.__sourceStream.offValue(this.__plugResult, this);
+    this.__sourceStream.offValue('__plugResult', this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplugById: function(i){
@@ -296,8 +296,9 @@ Observable.prototype.combine = function(sources, mapFn) {
 
 // Kefir.onValues()
 
-Kefir.onValues = function(streams, fn, context){
+Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
+  var fnMeta = restArgs(arguments, 1)
   return Kefir.combine(streams).onValue(function(xs){
-    return fn.apply(context, xs);
+    return callFn(fnMeta, xs);
   })
 }
