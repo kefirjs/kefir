@@ -8,8 +8,6 @@
 // observable.awaiting(otherObservable)
 //
 // stream.concat(otherStream)
-//
-// Kefir.onValues(a, b [, c...], f)
 
 
 
@@ -101,15 +99,19 @@ inherit(Kefir.Bus, Stream, PluggableMixin, {
 
   push: function(x){
     this.__sendAny(x);
+    return this;
   },
   plug: function(stream){
     this.__plug(stream);
+    return this;
   },
   unplug: function(stream){
     this.__unplug(stream);
+    return this;
   },
   end: function(){
     this.__sendEnd();
+    return this;
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);

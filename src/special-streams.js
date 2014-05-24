@@ -33,6 +33,7 @@ inherit(Kefir.OnceStream, Stream, {
       this.__value = null;
       this.__sendEnd();
     }
+    return this;
   }
 
 })

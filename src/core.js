@@ -111,9 +111,11 @@ inherit(Observable, Object, {
 
   __sendValue: function(x){
     this.__send('value', x);
+    return this;
   },
   __sendEnd: function(){
     this.__send('end');
+    return this;
   },
   __sendAny: function(x){
     if (x === END) {
@@ -125,25 +127,31 @@ inherit(Observable, Object, {
     } else if (x !== Kefir.NOTHING) {
       this.__sendValue(x);
     }
+    return this;
   },
 
 
   onValue: function(){
     this.__on.apply(this, ['value'].concat(toArray(arguments)));
+    return this;
   },
   offValue: function(){
     this.__off.apply(this, ['value'].concat(toArray(arguments)));
+    return this;
   },
   onEnd: function(){
     this.__on.apply(this, ['end'].concat(toArray(arguments)));
+    return this;
   },
   offEnd: function(){
     this.__off.apply(this, ['end'].concat(toArray(arguments)));
+    return this;
   },
 
   // for Property
   onNewValue: function(){
     this.onValue.apply(this, arguments);
+    return this;
   },
 
   isEnded: function() {
@@ -195,12 +203,13 @@ inherit(Property, Observable, {
   },
   onNewValue: function(){
     this.__on.apply(this, ['value'].concat(toArray(arguments)));
+    return this;
   },
   onValue: function() {
     if ( this.hasCached() ) {
       callSubscriber(['value'].concat(toArray(arguments)), [this.__cached]);
     }
-    this.onNewValue.apply(this, arguments);
+    return this.onNewValue.apply(this, arguments);
   }
 
 })
@@ -216,4 +225,5 @@ Observable.prototype.log = function(text) {
   function log(x){  console.log(text, x)  }
   this.onValue(log);
   this.onEnd(function(){  log(END)  });
+  return this;
 }
