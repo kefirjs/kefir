@@ -53,11 +53,11 @@ function createNObservable(msg, n, generator){
 
   var plus = withSubscr[0] > 0 ? '+' : '';
   console.log(
-    msg +
-    ': w/o subscr. ' + toKb(withoutSubscr[0]/n) +
-    ' ' + (withoutSubscr[1]/n).toFixed(4) + ' ms' +
-    ', w/ subscr. ' + plus + toKb(withSubscr[0]/n) +
-    ' ' + (withSubscr[1]/n).toFixed(4) + ' ms'
+    msg
+    + ': w/o subscr. ' + toKb(withoutSubscr[0]/n)
+    // + ' ' + (withoutSubscr[1]/n).toFixed(4) + ' ms'
+    + ', w/ subscr. ' + plus + toKb(withSubscr[0]/n)
+    // + ' ' + (withSubscr[1]/n).toFixed(4) + ' ms'
   );
 }
 
@@ -168,7 +168,7 @@ createNObservable('Kefir', 700, function(){
 })
 
 createNObservable('Rx', 700, function(){
-  return Rx.Observable.empty();
+  return Rx.Observable.never();
 })
 
 createNObservable('Bacon', 700, function(){

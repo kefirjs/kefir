@@ -3,72 +3,72 @@ Please don't take this results too serious, I am not 100% sure about correctness
 
 
 very base stream
-Kefir: w/o subscr. 0.68 Kb 0.0086 ms, w/ subscr. +0.22 Kb 0.0071 ms
-Rx: w/o subscr. 0.25 Kb 0.0071 ms, w/ subscr. +0.43 Kb 0.0086 ms
-Bacon: w/o subscr. 3.04 Kb 0.0200 ms, w/ subscr. +0.92 Kb 0.0129 ms
+Kefir: w/o subscr. 0.68 Kb, w/ subscr. +0.22 Kb
+Rx: w/o subscr. 0.25 Kb, w/ subscr. +0.43 Kb
+Bacon: w/o subscr. 3.04 Kb, w/ subscr. +0.92 Kb
 
 new Bus()
-Kefir: w/o subscr. 0.10 Kb 0.0086 ms, w/ subscr. +0.22 Kb 0.0100 ms
-Bacon: w/o subscr. 3.72 Kb 0.0243 ms, w/ subscr. +0.76 Kb 0.0171 ms
+Kefir: w/o subscr. 0.10 Kb, w/ subscr. +0.22 Kb
+Bacon: w/o subscr. 3.72 Kb, w/ subscr. +0.76 Kb
 
 .once(1)
-Kefir: w/o subscr. 0.07 Kb 0.0086 ms, w/ subscr. +0.04 Kb 0.0129 ms
-Bacon: w/o subscr. 4.09 Kb 0.0243 ms, w/ subscr. +0.95 Kb 0.0257 ms
+Kefir: w/o subscr. 0.07 Kb, w/ subscr. +0.04 Kb
+Bacon: w/o subscr. 4.09 Kb, w/ subscr. +0.95 Kb
 
 .never()
-Kefir: w/o subscr. -0.00 Kb 0.0086 ms, w/ subscr. -0.00 Kb 0.0100 ms
-Rx: w/o subscr. 0.29 Kb 0.0086 ms, w/ subscr. +0.03 Kb 0.0114 ms
-Bacon: w/o subscr. 4.04 Kb 0.0329 ms, w/ subscr. +0.89 Kb 0.0186 ms
+Kefir: w/o subscr. -0.00 Kb, w/ subscr. -0.01 Kb
+Rx: w/o subscr. 0.23 Kb, w/ subscr. +0.00 Kb
+Bacon: w/o subscr. 4.04 Kb, w/ subscr. +0.89 Kb
 
 .toProperty(1)
-Kefir: w/o subscr. 0.97 Kb 0.0143 ms, w/ subscr. +0.29 Kb 0.0157 ms
-Rx: w/o subscr. 1.22 Kb 0.0157 ms, w/ subscr. +1.18 Kb 0.0214 ms
-Bacon: w/o subscr. 7.88 Kb 0.0471 ms, w/ subscr. +1.92 Kb 0.0357 ms
+Kefir: w/o subscr. 0.97 Kb, w/ subscr. +0.29 Kb
+Rx: w/o subscr. 1.22 Kb, w/ subscr. +1.18 Kb
+Bacon: w/o subscr. 7.88 Kb, w/ subscr. +1.92 Kb
 
 .toProperty(1).changes()
-Kefir: w/o subscr. 1.25 Kb 0.0314 ms, w/ subscr. +0.38 Kb 0.0286 ms
-Bacon: w/o subscr. 10.80 Kb 0.0857 ms, w/ subscr. +2.44 Kb 0.0514 ms
+Kefir: w/o subscr. 1.25 Kb, w/ subscr. +0.38 Kb
+Bacon: w/o subscr. 10.80 Kb, w/ subscr. +2.44 Kb
 
 .map(noop)
-Kefir: w/o subscr. 0.96 Kb 0.0429 ms, w/ subscr. +0.28 Kb 0.0400 ms
-Rx: w/o subscr. 0.52 Kb 0.0400 ms, w/ subscr. +1.52 Kb 0.0457 ms
-Bacon: w/o subscr. 8.29 Kb 0.0700 ms, w/ subscr. +1.71 Kb 0.0571 ms
+Kefir: w/o subscr. 0.96 Kb, w/ subscr. +0.28 Kb
+Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.52 Kb
+Bacon: w/o subscr. 8.29 Kb, w/ subscr. +1.71 Kb
 
 .filter(noop)
-Kefir: w/o subscr. 1.11 Kb 0.0543 ms, w/ subscr. +0.28 Kb 0.0529 ms
-Rx: w/o subscr. 0.53 Kb 0.0543 ms, w/ subscr. +1.47 Kb 0.0571 ms
-Bacon: w/o subscr. 8.27 Kb 0.0929 ms, w/ subscr. +1.71 Kb 0.0686 ms
+Kefir: w/o subscr. 1.11 Kb, w/ subscr. +0.28 Kb
+Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.47 Kb
+Bacon: w/o subscr. 8.27 Kb, w/ subscr. +1.71 Kb
 
 .scan(0, noop)
-Kefir: w/o subscr. 0.96 Kb 0.0686 ms, w/ subscr. +0.34 Kb 0.0671 ms
-Rx: w/o subscr. 0.54 Kb 0.0629 ms, w/ subscr. +1.17 Kb 0.0671 ms
-Bacon: w/o subscr. 6.80 Kb 0.0886 ms, w/ subscr. +1.90 Kb 0.0829 ms
+Kefir: w/o subscr. 0.96 Kb, w/ subscr. +0.34 Kb
+Rx: w/o subscr. 0.54 Kb, w/ subscr. +1.17 Kb
+Bacon: w/o subscr. 6.80 Kb, w/ subscr. +1.90 Kb
 
 .sequentially(0, [1, 2])
-Kefir: w/o subscr. 0.41 Kb 0.0700 ms, w/ subscr. +0.55 Kb 0.0786 ms
-Bacon: w/o subscr. 5.02 Kb 0.0971 ms, w/ subscr. +1.32 Kb 0.0843 ms
+Kefir: w/o subscr. 0.41 Kb, w/ subscr. +0.55 Kb
+Bacon: w/o subscr. 5.02 Kb, w/ subscr. +1.32 Kb
 
 .take(5)
-Kefir: w/o subscr. 1.11 Kb 0.0829 ms, w/ subscr. +0.28 Kb 0.0886 ms
-Rx: w/o subscr. 0.52 Kb 0.0886 ms, w/ subscr. +1.47 Kb 0.0843 ms
-Bacon: w/o subscr. 8.20 Kb 0.1086 ms, w/ subscr. +1.71 Kb 0.1129 ms
+Kefir: w/o subscr. 1.11 Kb, w/ subscr. +0.28 Kb
+Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.47 Kb
+Bacon: w/o subscr. 8.20 Kb, w/ subscr. +1.71 Kb
 
 .flatMap(noop)
-Kefir: w/o subscr. 1.00 Kb 0.1100 ms, w/ subscr. +0.29 Kb 0.1000 ms
-Rx: w/o subscr. 0.94 Kb 0.0929 ms, w/ subscr. +2.59 Kb 0.1086 ms
-Bacon: w/o subscr. 5.91 Kb 0.1186 ms, w/ subscr. +2.71 Kb 0.1143 ms
+Kefir: w/o subscr. 0.99 Kb, w/ subscr. +0.29 Kb
+Rx: w/o subscr. 0.94 Kb, w/ subscr. +2.59 Kb
+Bacon: w/o subscr. 5.91 Kb, w/ subscr. +2.71 Kb
 
 .combine(stream, noop)
-Kefir: w/o subscr. 2.19 Kb 0.1357 ms, w/ subscr. +0.37 Kb 0.1086 ms
-Rx: w/o subscr. 0.82 Kb 0.1043 ms, w/ subscr. +2.93 Kb 0.1186 ms
-Bacon: w/o subscr. 20.99 Kb 0.2114 ms, w/ subscr. +5.01 Kb 0.1829 ms
+Kefir: w/o subscr. 2.19 Kb, w/ subscr. +0.37 Kb
+Rx: w/o subscr. 0.82 Kb, w/ subscr. +2.93 Kb
+Bacon: w/o subscr. 20.98 Kb, w/ subscr. +5.01 Kb
 
 .combineAsArray(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.97 Kb 0.2360 ms, w/ subscr. +0.51 Kb 0.2140 ms
-Rx: w/o subscr. 1.27 Kb 0.1940 ms, w/ subscr. +3.88 Kb 0.2200 ms
-Bacon: w/o subscr. 21.46 Kb 0.2880 ms, w/ subscr. +6.72 Kb 0.2580 ms
+Kefir: w/o subscr. 3.97 Kb, w/ subscr. +0.51 Kb
+Rx: w/o subscr. 1.27 Kb, w/ subscr. +3.88 Kb
+Bacon: w/o subscr. 21.46 Kb, w/ subscr. +6.71 Kb
 
 .mergeAll(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.75 Kb 0.2700 ms, w/ subscr. +0.51 Kb 0.2640 ms
-Rx: w/o subscr. 1.56 Kb 0.2320 ms, w/ subscr. +5.38 Kb 0.2860 ms
-Bacon: w/o subscr. 14.62 Kb 0.2880 ms, w/ subscr. +4.59 Kb 0.2780 ms
+Kefir: w/o subscr. 3.75 Kb, w/ subscr. +0.51 Kb
+Rx: w/o subscr. 1.56 Kb, w/ subscr. +5.41 Kb
+Bacon: w/o subscr. 14.62 Kb, w/ subscr. +4.59 Kb
