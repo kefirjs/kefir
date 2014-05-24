@@ -208,3 +208,24 @@ Observable.prototype.take = function(n) {
     return x;
   })
 }
+
+
+
+
+
+// SkipDuplicates
+
+Observable.prototype.skipDuplicates = function(fn) {
+  var prev, hasPrev = false;
+  return this.map(function(x){
+    var result;
+    if (hasPrev && (fn ? fn(prev, x) : prev === x)) {
+      result = Kefir.NOTHING;
+    } else {
+      result = x;
+    }
+    hasPrev = true;
+    prev = x;
+    return result;
+  })
+}
