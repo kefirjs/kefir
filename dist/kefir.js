@@ -425,10 +425,8 @@ Kefir.fromBinder = function(subscribe){
 // stream.skipWhile(f)
 // observable.skip(n)
 //
-// observable.scan(seed, f)
 // observable.diff(start, f)
 //
-// observable.skipDuplicates(isEqual)
 
 
 
@@ -649,6 +647,24 @@ Observable.prototype.skipDuplicates = function(fn) {
     hasPrev = true;
     prev = x;
     return result;
+  })
+}
+
+
+
+
+
+// .skipWhile(f)
+
+Observable.prototype.skipWhile = function(fn) {
+  var skip = true;
+  return this.map(function(x){
+    if (skip && fn(x)) {
+      return Kefir.NOTHING;
+    } else {
+      skip = false;
+      return x;
+    }
   })
 }
 
