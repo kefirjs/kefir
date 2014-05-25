@@ -94,7 +94,7 @@ For detailed descriptions of features see
 | `stream.onValues(f)` | :broken_heart: |  |
 | `stream.skipDuplicates(isEqual)` | :rocket: | `stream.skipDuplicates(isEqual)` |
 | `stream.concat(otherStream)` | :broken_heart: |  |
-| `stream.merge(otherStream)` | :rocket: | `stream.merge(stream1[, stream2, ...])` / `stream.merge(streams)` |
+| `stream.merge(otherStream)` | :rocket: | `stream.merge(obs1, obs2, ...)` / `stream.merge(observables)` |
 | `stream.startWith(value)` | :broken_heart: |  |
 | `stream.skipWhile(f)` | :rocket: | `stream.skipWhile(f)` |
 | `stream.skipWhile(property)` | :broken_heart: |  |
@@ -133,11 +133,11 @@ For detailed descriptions of features see
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(streams)` |
+| `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(observables)` |
 | `Bacon.combineAsArray(s1, s2...)` | :broken_heart: |  |
 | `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(observables, f)`  |
 | `Bacon.combineTemplate(template)` | :broken_heart: |  |
-| `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(streams)` / `Kefir.merge(stream1[, stream2, ...])` |
+| `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(observables)` / `Kefir.merge(obs1, obs2, ...)` |
 | `Bacon.zipAsArray(streams)` | :broken_heart: |  |
 | `Bacon.zipAsArray(stream1, stream2...)` | :broken_heart: |  |
 | `Bacon.zipWith(streams, f)` | :broken_heart: |  |

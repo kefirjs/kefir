@@ -80,14 +80,21 @@ function callFn(fnMeta, moreArgs){
   //   arg2,
   //   ...
   // ]
-  var fn = fnMeta[0];
-  var context = fnMeta[1];
-  var args = restArgs(fnMeta, 2);
-  if (moreArgs){
-    args = args.concat(toArray(moreArgs));
-  }
-  if (typeof fn === 'string') {
-    fn = context[fn]
+  var fn, context, args;
+  if (isFn(fnMeta)) {
+    fn = fnMeta;
+    context = null;
+    args = [];
+  } else {
+    fn = fnMeta[0];
+    context = fnMeta[1];
+    args = restArgs(fnMeta, 2);
+    if (!isFn(fn)) {
+      fn = context[fn];
+    }
+    if (moreArgs){
+      args = args.concat(toArray(moreArgs));
+    }
   }
   return fn.apply(context, args);
 }

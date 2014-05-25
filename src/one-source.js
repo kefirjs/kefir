@@ -110,21 +110,21 @@ Observable.prototype.scan = function(seed, fn) {
 // .map(fn)
 
 var MapMixin = {
-  __Constructor: function(source, mapFn){
+  __Constructor: function(source, mapFnMeta){
     if (source instanceof Property) {
       Property.call(this);
     } else {
       Stream.call(this);
     }
-    this.__mapFn = mapFn;
+    this.__mapFnMeta = mapFnMeta.lenght === 1 ? mapFnMeta[0] : mapFnMeta;
     WithSourceStreamMixin.__Constructor.call(this, source);
   },
   __handle: function(x){
-    this.__sendAny( this.__mapFn(x) );
+    this.__sendAny( callFn(this.__mapFnMeta, [x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__mapFn = null;
+    this.__mapFnMeta = null;
   }
 }
 inheritMixin(MapMixin, WithSourceStreamMixin);
@@ -145,12 +145,12 @@ inherit(Kefir.MappedProperty, Property, MapMixin, {
   __ClassName: 'MappedProperty'
 })
 
-Stream.prototype.map = function(fn) {
-  return new Kefir.MappedStream(this, fn);
+Stream.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.MappedStream(this, arguments);
 }
 
-Property.prototype.map = function(fn) {
-  return new Kefir.MappedProperty(this, fn);
+Property.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.MappedProperty(this, arguments);
 }
 
 
@@ -158,12 +158,14 @@ Property.prototype.map = function(fn) {
 
 // .diff(seed, fn)
 
-Observable.prototype.diff = function(prev, fn) {
-  return this.map(function(x){
-    var result = fn(prev, x);
-    prev = x;
-    return result;
-  })
+var diffMapFn = function(x){
+  var result = this.fn(this.prev, x);
+  this.prev = x;
+  return result;
+}
+
+Observable.prototype.diff = function(start, fn) {
+  return this.map(diffMapFn, {prev: start, fn: fn});
 }
 
 
@@ -172,14 +174,16 @@ Observable.prototype.diff = function(prev, fn) {
 
 // .filter(fn)
 
+var filterMapFn = function(filterFn, x){
+  if (filterFn(x)) {
+    return x;
+  } else {
+    return NOTHING;
+  }
+}
+
 Observable.prototype.filter = function(fn) {
-  return this.map(function(x){
-    if (fn(x)) {
-      return x;
-    } else {
-      return NOTHING;
-    }
-  })
+  return this.map(filterMapFn, null, fn);
 }
 
 
@@ -187,14 +191,16 @@ Observable.prototype.filter = function(fn) {
 
 // .takeWhile(fn)
 
+var takeWhileMapFn = function(fn, x) {
+  if (fn(x)) {
+    return x;
+  } else {
+    return END;
+  }
+}
+
 Observable.prototype.takeWhile = function(fn) {
-  return this.map(function(x){
-    if (fn(x)) {
-      return x;
-    } else {
-      return END;
-    }
-  })
+  return this.map(takeWhileMapFn, null, fn);
 }
 
 
@@ -202,17 +208,19 @@ Observable.prototype.takeWhile = function(fn) {
 
 // .take(n)
 
+var takeMapFn = function(x) {
+  if (this.n <= 0) {
+    return END;
+  }
+  if (this.n === 1) {
+    return Kefir.bunch(x, END);
+  }
+  this.n--;
+  return x;
+}
+
 Observable.prototype.take = function(n) {
-  return this.map(function(x){
-    if (n <= 0) {
-      return END;
-    }
-    if (n === 1) {
-      return Kefir.bunch(x, END);
-    }
-    n--;
-    return x;
-  })
+  return this.map(takeMapFn, {n: n});
 }
 
 
@@ -220,15 +228,17 @@ Observable.prototype.take = function(n) {
 
 // .skip(n)
 
+var skipMapFn = function(x) {
+  if (this.n <= 0) {
+    return x;
+  } else {
+    this.n--;
+    return Kefir.NOTHING;
+  }
+}
+
 Observable.prototype.skip = function(n) {
-  return this.map(function(x){
-    if (n <= 0) {
-      return x;
-    } else {
-      n--;
-      return Kefir.NOTHING;
-    }
-  })
+  return this.map(skipMapFn, {n: n});
 }
 
 
@@ -237,19 +247,20 @@ Observable.prototype.skip = function(n) {
 
 // .skipDuplicates([fn])
 
+var skipDuplicatesMapFn = function(x){
+  var result;
+  if (this.hasPrev && (this.fn ? this.fn(this.prev, x) : this.prev === x)) {
+    result = Kefir.NOTHING;
+  } else {
+    result = x;
+  }
+  this.hasPrev = true;
+  this.prev = x;
+  return result;
+}
+
 Observable.prototype.skipDuplicates = function(fn) {
-  var prev, hasPrev = false;
-  return this.map(function(x){
-    var result;
-    if (hasPrev && (fn ? fn(prev, x) : prev === x)) {
-      result = Kefir.NOTHING;
-    } else {
-      result = x;
-    }
-    hasPrev = true;
-    prev = x;
-    return result;
-  })
+  return this.map(skipDuplicatesMapFn, {fn: fn, hasPrev: false, prev: null});
 }
 
 
@@ -258,14 +269,15 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 // .skipWhile(f)
 
+var skipWhileMapFn = function(x){
+  if (this.skip && this.fn(x)) {
+    return Kefir.NOTHING;
+  } else {
+    this.skip = false;
+    return x;
+  }
+}
+
 Observable.prototype.skipWhile = function(fn) {
-  var skip = true;
-  return this.map(function(x){
-    if (skip && fn(x)) {
-      return Kefir.NOTHING;
-    } else {
-      skip = false;
-      return x;
-    }
-  })
+  return this.map(skipWhileMapFn, {skip: true, fn: fn});
 }
