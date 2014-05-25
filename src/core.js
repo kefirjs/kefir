@@ -124,7 +124,7 @@ inherit(Observable, Object, {
       for (var i = 0; i < x.values.length; i++) {
         this.__sendAny(x.values[i]);
       }
-    } else if (x !== Kefir.NOTHING) {
+    } else if (x !== NOTHING) {
       this.__sendValue(x);
     }
     return this;
@@ -181,7 +181,7 @@ inherit(Stream, Observable, {
 
 var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial){
   Observable.call(this, onFirstIn, onLastOut);
-  this.__cached = (typeof initial !== 'undefined') ? initial : Kefir.NOTHING;
+  this.__cached = (typeof initial !== 'undefined') ? initial : NOTHING;
 }
 
 inherit(Property, Observable, {
@@ -189,7 +189,7 @@ inherit(Property, Observable, {
   __ClassName: 'Property',
 
   hasCached: function(){
-    return this.__cached !== Kefir.NOTHING;
+    return this.__cached !== NOTHING;
   },
   getCached: function(){
     return this.__cached;
