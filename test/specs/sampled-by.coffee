@@ -125,4 +125,25 @@ describe ".sampledBy()", ->
 
 
 
+  it ".scan() and errors", ->
+
+    stream1 = new Kefir.Stream()
+    stream2 = new Kefir.Stream()
+
+    sampled = stream1.sampledBy(stream2)
+
+    result = helpers.getOutputAndErrors(sampled)
+
+    stream1.__sendError('e1-1')
+    stream2.__sendError('e2-1')
+    stream1.__sendError('e1-2')
+    stream2.__sendError('e2-2')
+
+    expect(result).toEqual(
+      ended: false
+      xs: []
+      errors: ['e1-1', 'e2-1', 'e1-2', 'e2-2']
+    )
+
+
 

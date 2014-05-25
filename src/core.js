@@ -17,6 +17,15 @@ Kefir.bunch = function() {
   return new Kefir.BunchOfValues(firstArrOrToArr(arguments));
 }
 
+// Example:
+//   stream.__sendAny(Kefir.error('network error'))
+Kefir.Error = function(error) {
+  this.error = error;
+}
+
+Kefir.error = function(error) {
+  return new Kefir.Error(error);
+}
 
 
 
@@ -49,9 +58,12 @@ inherit(Observable, Object, {
 
   __on: function(type /*,callback [, context [, arg1, arg2 ...]]*/){
     if (!this.isEnded()) {
-      var firstValueSubscriber = (type === 'value' && !this.__hasSubscribers('value'));
+      var firstIn = (
+        (type === 'value' || type === 'error') &&
+        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
+      );
       this.__subscribers.push(arguments);
-      if (firstValueSubscriber) {
+      if (firstIn) {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
@@ -65,7 +77,10 @@ inherit(Observable, Object, {
           this.__subscribers[i] = null;
         }
       }
-      if (type === 'value' && !this.__hasSubscribers('value')) {
+      if (
+        (type === 'value' || type === 'error') &&
+        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
+      ) {
         this.__onLastOut();
       }
     }
@@ -113,6 +128,10 @@ inherit(Observable, Object, {
     this.__send('value', x);
     return this;
   },
+  __sendError: function(x){
+    this.__send('error', x);
+    return this;
+  },
   __sendEnd: function(){
     this.__send('end');
     return this;
@@ -124,6 +143,8 @@ inherit(Observable, Object, {
       for (var i = 0; i < x.values.length; i++) {
         this.__sendAny(x.values[i]);
       }
+    } else if (x instanceof Kefir.Error) {
+      this.__sendError(x.error);
     } else if (x !== NOTHING) {
       this.__sendValue(x);
     }
@@ -139,6 +160,14 @@ inherit(Observable, Object, {
     this.__off.apply(this, ['value'].concat(toArray(arguments)));
     return this;
   },
+  onError: function(){
+    this.__on.apply(this, ['error'].concat(toArray(arguments)));
+    return this;
+  },
+  offError: function(){
+    this.__off.apply(this, ['error'].concat(toArray(arguments)));
+    return this;
+  },
   onEnd: function(){
     this.__on.apply(this, ['end'].concat(toArray(arguments)));
     return this;
@@ -150,8 +179,7 @@ inherit(Observable, Object, {
 
   // for Property
   onNewValue: function(){
-    this.onValue.apply(this, arguments);
-    return this;
+    return this.onValue.apply(this, arguments);
   },
 
   isEnded: function() {
@@ -218,12 +246,16 @@ inherit(Property, Observable, {
 
 // Log
 
-Observable.prototype.log = function(text) {
-  if (!text) {
-    text = this.toString();
+var logHelper = function(name, type, x) {
+  console.log(text, type, x);
+}
+
+Observable.prototype.log = function(name) {
+  if (!name) {
+    name = this.toString();
   }
-  function log(x){  console.log(text, x)  }
-  this.onValue(log);
-  this.onEnd(function(){  log(END)  });
+  this.onValue(logHelper, null, name, '<value>');
+  this.onError(logHelper, null, name, '<error>');
+  this.onEnd(logHelper, null, name, '<end>');
   return this;
 }

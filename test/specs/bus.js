@@ -25,6 +25,23 @@ describe("Bus", function(){
 
 
 
+  it(".error()", function() {
+
+    var bus = new Kefir.Bus();
+
+    var result = helpers.getOutputAndErrors(bus);
+
+    bus.push(1);
+    bus.push(Kefir.error('e1'));
+    bus.error('e2');
+
+    expect(result).toEqual({ended: false, xs: [1], errors: ['e1', 'e2']});
+
+  });
+
+
+
+
   it(".plug()", function() {
 
     var mainBus = new Kefir.Bus();

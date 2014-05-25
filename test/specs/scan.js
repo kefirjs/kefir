@@ -80,4 +80,25 @@ describe(".scan()", function(){
   });
 
 
+
+  it(".scan() and errors", function(){
+
+    var stream = new Kefir.Stream();
+    var scanned = stream.scan(0, sum);
+
+    var result = helpers.getOutputAndErrors(scanned);
+
+    stream.__sendValue(1);
+    stream.__sendError('e1');
+    stream.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [0, 1],
+      errors: ['e1', 'e2']
+    });
+
+  });
+
+
 });

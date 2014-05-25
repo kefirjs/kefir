@@ -103,4 +103,33 @@ describe(".flatMap()", function(){
   });
 
 
+
+
+
+  it("errors", function(){
+    var stream = new Kefir.Stream();
+
+    var childStreams = [
+      new Kefir.Stream(),
+      new Kefir.Stream(),
+      new Kefir.Stream()
+    ]
+
+    var mapped = stream.flatMap(function(x){
+      return childStreams[x];
+    });
+
+    var result = helpers.getOutputAndErrors(mapped);
+
+    stream.__sendValue(2);
+    childStreams[0].__sendError('e0 - not delivered');
+    childStreams[2].__sendError('e1');
+    stream.__sendValue(0);
+    childStreams[0].__sendError('e2');
+    stream.__sendError('e3');
+
+    expect(result).toEqual({ended: false, xs: [], errors: ['e1', 'e2', 'e3']});
+  })
+
+
 });

@@ -149,6 +149,15 @@ Kefir.bunch = function() {
   return new Kefir.BunchOfValues(firstArrOrToArr(arguments));
 }
 
+// Example:
+//   stream.__sendAny(Kefir.error('network error'))
+Kefir.Error = function(error) {
+  this.error = error;
+}
+
+Kefir.error = function(error) {
+  return new Kefir.Error(error);
+}
 
 
 
@@ -181,9 +190,12 @@ inherit(Observable, Object, {
 
   __on: function(type /*,callback [, context [, arg1, arg2 ...]]*/){
     if (!this.isEnded()) {
-      var firstValueSubscriber = (type === 'value' && !this.__hasSubscribers('value'));
+      var firstIn = (
+        (type === 'value' || type === 'error') &&
+        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
+      );
       this.__subscribers.push(arguments);
-      if (firstValueSubscriber) {
+      if (firstIn) {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
@@ -197,7 +209,10 @@ inherit(Observable, Object, {
           this.__subscribers[i] = null;
         }
       }
-      if (type === 'value' && !this.__hasSubscribers('value')) {
+      if (
+        (type === 'value' || type === 'error') &&
+        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
+      ) {
         this.__onLastOut();
       }
     }
@@ -245,6 +260,10 @@ inherit(Observable, Object, {
     this.__send('value', x);
     return this;
   },
+  __sendError: function(x){
+    this.__send('error', x);
+    return this;
+  },
   __sendEnd: function(){
     this.__send('end');
     return this;
@@ -256,6 +275,8 @@ inherit(Observable, Object, {
       for (var i = 0; i < x.values.length; i++) {
         this.__sendAny(x.values[i]);
       }
+    } else if (x instanceof Kefir.Error) {
+      this.__sendError(x.error);
     } else if (x !== NOTHING) {
       this.__sendValue(x);
     }
@@ -271,6 +292,14 @@ inherit(Observable, Object, {
     this.__off.apply(this, ['value'].concat(toArray(arguments)));
     return this;
   },
+  onError: function(){
+    this.__on.apply(this, ['error'].concat(toArray(arguments)));
+    return this;
+  },
+  offError: function(){
+    this.__off.apply(this, ['error'].concat(toArray(arguments)));
+    return this;
+  },
   onEnd: function(){
     this.__on.apply(this, ['end'].concat(toArray(arguments)));
     return this;
@@ -282,8 +311,7 @@ inherit(Observable, Object, {
 
   // for Property
   onNewValue: function(){
-    this.onValue.apply(this, arguments);
-    return this;
+    return this.onValue.apply(this, arguments);
   },
 
   isEnded: function() {
@@ -350,13 +378,17 @@ inherit(Property, Observable, {
 
 // Log
 
-Observable.prototype.log = function(text) {
-  if (!text) {
-    text = this.toString();
+var logHelper = function(name, type, x) {
+  console.log(text, type, x);
+}
+
+Observable.prototype.log = function(name) {
+  if (!name) {
+    name = this.toString();
   }
-  function log(x){  console.log(text, x)  }
-  this.onValue(log);
-  this.onEnd(function(){  log(END)  });
+  this.onValue(logHelper, null, name, '<value>');
+  this.onError(logHelper, null, name, '<error>');
+  this.onEnd(logHelper, null, name, '<end>');
   return this;
 }
 
@@ -380,6 +412,7 @@ Kefir.never = function() {
 
 
 // Once
+// TODO: fix onError ???
 
 Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
@@ -409,6 +442,7 @@ Kefir.once = function(x) {
 
 
 // fromBinder
+// TODO: is all ok with errors?
 
 Kefir.FromBinderStream = function FromBinderStream(subscribe){
   Stream.call(this);
@@ -463,9 +497,11 @@ var WithSourceStreamMixin = {
   },
   __onFirstIn: function(){
     this.__source.onNewValue('__handle', this);
+    this.__source.onError('__sendError', this);
   },
   __onLastOut: function(){
     this.__source.offValue('__handle', this);
+    this.__source.offError('__sendError', this);
   },
   __clear: function(){
     Observable.prototype.__clear.call(this);
@@ -732,6 +768,7 @@ Observable.prototype.skipWhile = function(fn) {
 
 
 // .sampledBy(observable, fn)
+// TODO:
 
 Observable.prototype.sampledBy = function(observable, fn) {
   var lastVal = NOTHING;
@@ -740,13 +777,16 @@ Observable.prototype.sampledBy = function(observable, fn) {
   observable.onEnd(function(){
     this.offValue(saveLast);
   }, this);
-  return observable.map(function(x){
+  var result = observable.map(function(x){
     if (lastVal !== NOTHING) {
       return fn ? fn(lastVal, x) : lastVal;
     } else {
       return NOTHING;
     }
   });
+  // firstIn/firstOut ???
+  this.onError('__sendError', result);
+  return result;
 }
 
 // TODO
@@ -780,6 +820,7 @@ var PluggableMixin = {
       var i = this.__plugged.length - 1;
       if (this.__hasSubscribers('value')) {
         stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
       }
       stream.onEnd('__unplugById', this, i);
     }
@@ -790,6 +831,7 @@ var PluggableMixin = {
       if (stream) {
         this.__plugged[i] = null;
         stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
         stream.offEnd('__unplugById', this, i);
       }
     }
@@ -808,6 +850,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
       }
     }
   },
@@ -816,6 +859,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
       }
     }
   },
@@ -850,6 +894,10 @@ inherit(Kefir.Bus, Stream, PluggableMixin, {
 
   push: function(x){
     this.__sendAny(x);
+    return this;
+  },
+  error: function(e){
+    this.__sendError(e);
     return this;
   },
   plug: function(stream){
@@ -904,10 +952,12 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
+    this.__sourceStream.onError('__sendError', this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function(){
     this.__sourceStream.offValue('__plugResult', this);
+    this.__sourceStream.offError('__sendError', this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplugById: function(i){

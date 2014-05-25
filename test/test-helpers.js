@@ -13,3 +13,23 @@ exports.getOutput = function(stream) {
   })
   return result;
 }
+
+
+
+exports.getOutputAndErrors = function(stream) {
+  var result = {
+    xs: [],
+    errors: [],
+    ended: false
+  };
+  stream.onValue(function(x){
+    result.xs.push(x);
+  });
+  stream.onError(function(e){
+    result.errors.push(e);
+  });
+  stream.onEnd(function(){
+    result.ended = true;
+  })
+  return result;
+}

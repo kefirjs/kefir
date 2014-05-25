@@ -174,4 +174,23 @@ describe(".combine()", function(){
 
 
 
+
+
+  it("errors", function(){
+    var stream1 = new Kefir.Stream();
+    var stream2 = new Kefir.Stream();
+    var combined = stream1.combine([stream2], function(a, b) { return a + b });
+
+    var result = helpers.getOutputAndErrors(combined);
+
+    stream1.__sendError('e1');
+    stream2.__sendError('e2');
+    stream1.__sendError('e3');
+    stream2.__sendError('e4');
+
+    expect(result).toEqual({ended: false, xs: [], errors: ['e1', 'e2', 'e3', 'e4']});
+  })
+
+
+
 });

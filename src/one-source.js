@@ -20,9 +20,11 @@ var WithSourceStreamMixin = {
   },
   __onFirstIn: function(){
     this.__source.onNewValue('__handle', this);
+    this.__source.onError('__sendError', this);
   },
   __onLastOut: function(){
     this.__source.offValue('__handle', this);
+    this.__source.offError('__sendError', this);
   },
   __clear: function(){
     Observable.prototype.__clear.call(this);
@@ -289,6 +291,7 @@ Observable.prototype.skipWhile = function(fn) {
 
 
 // .sampledBy(observable, fn)
+// TODO:
 
 Observable.prototype.sampledBy = function(observable, fn) {
   var lastVal = NOTHING;
@@ -297,11 +300,14 @@ Observable.prototype.sampledBy = function(observable, fn) {
   observable.onEnd(function(){
     this.offValue(saveLast);
   }, this);
-  return observable.map(function(x){
+  var result = observable.map(function(x){
     if (lastVal !== NOTHING) {
       return fn ? fn(lastVal, x) : lastVal;
     } else {
       return NOTHING;
     }
   });
+  // firstIn/firstOut ???
+  this.onError('__sendError', result);
+  return result;
 }

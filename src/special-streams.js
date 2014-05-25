@@ -18,6 +18,7 @@ Kefir.never = function() {
 
 
 // Once
+// TODO: fix onError ???
 
 Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
@@ -47,6 +48,7 @@ Kefir.once = function(x) {
 
 
 // fromBinder
+// TODO: is all ok with errors?
 
 Kefir.FromBinderStream = function FromBinderStream(subscribe){
   Stream.call(this);

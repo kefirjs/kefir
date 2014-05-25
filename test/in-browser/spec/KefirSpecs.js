@@ -150,6 +150,15 @@ Kefir.bunch = function() {
   return new Kefir.BunchOfValues(firstArrOrToArr(arguments));
 }
 
+// Example:
+//   stream.__sendAny(Kefir.error('network error'))
+Kefir.Error = function(error) {
+  this.error = error;
+}
+
+Kefir.error = function(error) {
+  return new Kefir.Error(error);
+}
 
 
 
@@ -182,9 +191,12 @@ inherit(Observable, Object, {
 
   __on: function(type /*,callback [, context [, arg1, arg2 ...]]*/){
     if (!this.isEnded()) {
-      var firstValueSubscriber = (type === 'value' && !this.__hasSubscribers('value'));
+      var firstIn = (
+        (type === 'value' || type === 'error') &&
+        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
+      );
       this.__subscribers.push(arguments);
-      if (firstValueSubscriber) {
+      if (firstIn) {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
@@ -198,7 +210,10 @@ inherit(Observable, Object, {
           this.__subscribers[i] = null;
         }
       }
-      if (type === 'value' && !this.__hasSubscribers('value')) {
+      if (
+        (type === 'value' || type === 'error') &&
+        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
+      ) {
         this.__onLastOut();
       }
     }
@@ -246,6 +261,10 @@ inherit(Observable, Object, {
     this.__send('value', x);
     return this;
   },
+  __sendError: function(x){
+    this.__send('error', x);
+    return this;
+  },
   __sendEnd: function(){
     this.__send('end');
     return this;
@@ -257,6 +276,8 @@ inherit(Observable, Object, {
       for (var i = 0; i < x.values.length; i++) {
         this.__sendAny(x.values[i]);
       }
+    } else if (x instanceof Kefir.Error) {
+      this.__sendError(x.error);
     } else if (x !== NOTHING) {
       this.__sendValue(x);
     }
@@ -272,6 +293,14 @@ inherit(Observable, Object, {
     this.__off.apply(this, ['value'].concat(toArray(arguments)));
     return this;
   },
+  onError: function(){
+    this.__on.apply(this, ['error'].concat(toArray(arguments)));
+    return this;
+  },
+  offError: function(){
+    this.__off.apply(this, ['error'].concat(toArray(arguments)));
+    return this;
+  },
   onEnd: function(){
     this.__on.apply(this, ['end'].concat(toArray(arguments)));
     return this;
@@ -283,8 +312,7 @@ inherit(Observable, Object, {
 
   // for Property
   onNewValue: function(){
-    this.onValue.apply(this, arguments);
-    return this;
+    return this.onValue.apply(this, arguments);
   },
 
   isEnded: function() {
@@ -351,13 +379,17 @@ inherit(Property, Observable, {
 
 // Log
 
-Observable.prototype.log = function(text) {
-  if (!text) {
-    text = this.toString();
+var logHelper = function(name, type, x) {
+  console.log(text, type, x);
+}
+
+Observable.prototype.log = function(name) {
+  if (!name) {
+    name = this.toString();
   }
-  function log(x){  console.log(text, x)  }
-  this.onValue(log);
-  this.onEnd(function(){  log(END)  });
+  this.onValue(logHelper, null, name, '<value>');
+  this.onError(logHelper, null, name, '<error>');
+  this.onEnd(logHelper, null, name, '<end>');
   return this;
 }
 
@@ -381,6 +413,7 @@ Kefir.never = function() {
 
 
 // Once
+// TODO: fix onError ???
 
 Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
@@ -410,6 +443,7 @@ Kefir.once = function(x) {
 
 
 // fromBinder
+// TODO: is all ok with errors?
 
 Kefir.FromBinderStream = function FromBinderStream(subscribe){
   Stream.call(this);
@@ -464,9 +498,11 @@ var WithSourceStreamMixin = {
   },
   __onFirstIn: function(){
     this.__source.onNewValue('__handle', this);
+    this.__source.onError('__sendError', this);
   },
   __onLastOut: function(){
     this.__source.offValue('__handle', this);
+    this.__source.offError('__sendError', this);
   },
   __clear: function(){
     Observable.prototype.__clear.call(this);
@@ -733,6 +769,7 @@ Observable.prototype.skipWhile = function(fn) {
 
 
 // .sampledBy(observable, fn)
+// TODO:
 
 Observable.prototype.sampledBy = function(observable, fn) {
   var lastVal = NOTHING;
@@ -741,13 +778,16 @@ Observable.prototype.sampledBy = function(observable, fn) {
   observable.onEnd(function(){
     this.offValue(saveLast);
   }, this);
-  return observable.map(function(x){
+  var result = observable.map(function(x){
     if (lastVal !== NOTHING) {
       return fn ? fn(lastVal, x) : lastVal;
     } else {
       return NOTHING;
     }
   });
+  // firstIn/firstOut ???
+  this.onError('__sendError', result);
+  return result;
 }
 
 // TODO
@@ -781,6 +821,7 @@ var PluggableMixin = {
       var i = this.__plugged.length - 1;
       if (this.__hasSubscribers('value')) {
         stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
       }
       stream.onEnd('__unplugById', this, i);
     }
@@ -791,6 +832,7 @@ var PluggableMixin = {
       if (stream) {
         this.__plugged[i] = null;
         stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
         stream.offEnd('__unplugById', this, i);
       }
     }
@@ -809,6 +851,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
       }
     }
   },
@@ -817,6 +860,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
       }
     }
   },
@@ -851,6 +895,10 @@ inherit(Kefir.Bus, Stream, PluggableMixin, {
 
   push: function(x){
     this.__sendAny(x);
+    return this;
+  },
+  error: function(e){
+    this.__sendError(e);
     return this;
   },
   plug: function(stream){
@@ -905,10 +953,12 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
+    this.__sourceStream.onError('__sendError', this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function(){
     this.__sourceStream.offValue('__plugResult', this);
+    this.__sourceStream.offError('__sendError', this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplugById: function(i){
@@ -1182,6 +1232,23 @@ describe("Bus", function(){
 
 
 
+  it(".error()", function() {
+
+    var bus = new Kefir.Bus();
+
+    var result = helpers.getOutputAndErrors(bus);
+
+    bus.push(1);
+    bus.push(Kefir.error('e1'));
+    bus.error('e2');
+
+    expect(result).toEqual({ended: false, xs: [1], errors: ['e1', 'e2']});
+
+  });
+
+
+
+
   it(".plug()", function() {
 
     var mainBus = new Kefir.Bus();
@@ -1411,6 +1478,25 @@ describe(".combine()", function(){
     });
 
   });
+
+
+
+
+
+  it("errors", function(){
+    var stream1 = new Kefir.Stream();
+    var stream2 = new Kefir.Stream();
+    var combined = stream1.combine([stream2], function(a, b) { return a + b });
+
+    var result = helpers.getOutputAndErrors(combined);
+
+    stream1.__sendError('e1');
+    stream2.__sendError('e2');
+    stream1.__sendError('e3');
+    stream2.__sendError('e4');
+
+    expect(result).toEqual({ended: false, xs: [], errors: ['e1', 'e2', 'e3', 'e4']});
+  })
 
 
 
@@ -1691,6 +1777,35 @@ describe(".flatMap()", function(){
 
 
   });
+
+
+
+
+
+  it("errors", function(){
+    var stream = new Kefir.Stream();
+
+    var childStreams = [
+      new Kefir.Stream(),
+      new Kefir.Stream(),
+      new Kefir.Stream()
+    ]
+
+    var mapped = stream.flatMap(function(x){
+      return childStreams[x];
+    });
+
+    var result = helpers.getOutputAndErrors(mapped);
+
+    stream.__sendValue(2);
+    childStreams[0].__sendError('e0 - not delivered');
+    childStreams[2].__sendError('e1');
+    stream.__sendValue(0);
+    childStreams[0].__sendError('e2');
+    stream.__sendError('e3');
+
+    expect(result).toEqual({ended: false, xs: [], errors: ['e1', 'e2', 'e3']});
+  })
 
 
 });
@@ -2037,6 +2152,27 @@ describe(".map()", function(){
   });
 
 
+
+  it(".map() and errors", function(){
+
+    var stream = new Kefir.Stream();
+    var mapped = stream.map(x2);
+
+    var result = helpers.getOutputAndErrors(mapped);
+
+    stream.__sendValue(1);
+    stream.__sendError('e1');
+    stream.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [2],
+      errors: ['e1', 'e2']
+    });
+
+  });
+
+
 });
 
 },{"../../dist/kefir.js":1,"../test-helpers":28}],12:[function(require,module,exports){
@@ -2099,6 +2235,23 @@ describe(".merge()", function(){
     });
 
   });
+
+
+
+  it("errors", function(){
+    var stream1 = new Kefir.Stream();
+    var stream2 = new Kefir.Stream();
+    var merged = stream1.merge(stream2);
+
+    var result = helpers.getOutputAndErrors(merged);
+
+    stream1.__sendError('e1');
+    stream2.__sendError('e2');
+    stream1.__sendError('e3');
+    stream2.__sendError('e4');
+
+    expect(result).toEqual({ended: false, xs: [], errors: ['e1', 'e2', 'e3', 'e4']});
+  })
 
 
 });
@@ -2358,7 +2511,27 @@ describe("Observable/Stream", function(){
   });
 
 
-  it("_sendAny", function(){
+  it("errors", function(){
+
+    var obs = new Kefir.Observable();
+
+    var result = helpers.getOutputAndErrors(obs);
+
+    obs.__sendValue(1);
+    obs.__sendError('e1');
+    obs.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: ['e1', 'e2']
+    });
+
+  });
+
+
+
+  it("__sendAny", function(){
 
     var obs = new Kefir.Observable();
 
@@ -2589,6 +2762,29 @@ describe("Property", function(){
   });
 
 
+  it("stream.toProperty() and errors", function(){
+
+    var stream = new Kefir.Stream();
+    var prop = stream.toProperty();
+
+    expect(stream.__hasSubscribers('error')).toBe(false);
+
+    var result = helpers.getOutputAndErrors(prop);
+    expect(stream.__hasSubscribers('error')).toBe(true);
+
+    stream.__sendValue(1);
+    stream.__sendError('e1');
+    stream.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: ['e1', 'e2']
+    })
+
+  });
+
+
 
   it("property.changes()", function(){
 
@@ -2610,6 +2806,29 @@ describe("Property", function(){
     })
 
   });
+
+
+  it("property.changes() and errors", function(){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+    var changesStream = prop.changes();
+
+    expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
+
+    var result = helpers.getOutputAndErrors(changesStream);
+
+    prop.__sendValue(1);
+    prop.__sendError('e1');
+    prop.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: ['e1', 'e2']
+    })
+
+  });
+
 
 
 });
@@ -2719,7 +2938,7 @@ describe(".sampledBy()", function() {
       xs: [5, 6, 11]
     });
   });
-  return it("stream.sampledBy(property, fn)", function() {
+  it("stream.sampledBy(property, fn)", function() {
     var prop, result, sampled, stream;
     prop = new Kefir.Property();
     stream = new Kefir.Stream();
@@ -2747,6 +2966,22 @@ describe(".sampledBy()", function() {
     return expect(result).toEqual({
       ended: true,
       xs: [5, 6, 11]
+    });
+  });
+  return it(".scan() and errors", function() {
+    var result, sampled, stream1, stream2;
+    stream1 = new Kefir.Stream();
+    stream2 = new Kefir.Stream();
+    sampled = stream1.sampledBy(stream2);
+    result = helpers.getOutputAndErrors(sampled);
+    stream1.__sendError('e1-1');
+    stream2.__sendError('e2-1');
+    stream1.__sendError('e1-2');
+    stream2.__sendError('e2-2');
+    return expect(result).toEqual({
+      ended: false,
+      xs: [],
+      errors: ['e1-1', 'e2-1', 'e1-2', 'e2-2']
     });
   });
 });
@@ -2830,6 +3065,27 @@ describe(".scan()", function(){
     expect(result).toEqual({
       ended: true,
       xs: [5, 6, 8, 11]
+    });
+
+  });
+
+
+
+  it(".scan() and errors", function(){
+
+    var stream = new Kefir.Stream();
+    var scanned = stream.scan(0, sum);
+
+    var result = helpers.getOutputAndErrors(scanned);
+
+    stream.__sendValue(1);
+    stream.__sendError('e1');
+    stream.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [0, 1],
+      errors: ['e1', 'e2']
     });
 
   });
@@ -3239,6 +3495,26 @@ exports.getOutput = function(stream) {
   };
   stream.onValue(function(x){
     result.xs.push(x);
+  });
+  stream.onEnd(function(){
+    result.ended = true;
+  })
+  return result;
+}
+
+
+
+exports.getOutputAndErrors = function(stream) {
+  var result = {
+    xs: [],
+    errors: [],
+    ended: false
+  };
+  stream.onValue(function(x){
+    result.xs.push(x);
+  });
+  stream.onError(function(e){
+    result.errors.push(e);
   });
   stream.onEnd(function(){
     result.ended = true;

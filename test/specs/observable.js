@@ -182,7 +182,27 @@ describe("Observable/Stream", function(){
   });
 
 
-  it("_sendAny", function(){
+  it("errors", function(){
+
+    var obs = new Kefir.Observable();
+
+    var result = helpers.getOutputAndErrors(obs);
+
+    obs.__sendValue(1);
+    obs.__sendError('e1');
+    obs.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: ['e1', 'e2']
+    });
+
+  });
+
+
+
+  it("__sendAny", function(){
 
     var obs = new Kefir.Observable();
 

@@ -29,6 +29,7 @@ var PluggableMixin = {
       var i = this.__plugged.length - 1;
       if (this.__hasSubscribers('value')) {
         stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
       }
       stream.onEnd('__unplugById', this, i);
     }
@@ -39,6 +40,7 @@ var PluggableMixin = {
       if (stream) {
         this.__plugged[i] = null;
         stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
         stream.offEnd('__unplugById', this, i);
       }
     }
@@ -57,6 +59,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
       }
     }
   },
@@ -65,6 +68,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
       }
     }
   },
@@ -99,6 +103,10 @@ inherit(Kefir.Bus, Stream, PluggableMixin, {
 
   push: function(x){
     this.__sendAny(x);
+    return this;
+  },
+  error: function(e){
+    this.__sendError(e);
     return this;
   },
   plug: function(stream){
@@ -153,10 +161,12 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
+    this.__sourceStream.onError('__sendError', this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function(){
     this.__sourceStream.offValue('__plugResult', this);
+    this.__sourceStream.offError('__sendError', this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplugById: function(i){

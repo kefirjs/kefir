@@ -44,7 +44,7 @@ For detailed descriptions of features see
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | `observable.onValue(f)` | :rocket: | `observable.onValue(f)` |
-| `observable.onError(f)` | :broken_heart: |  |
+| `observable.onError(f)` | :rocket: | `observable.onError(f)` |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
 | `observable.map(f)` | :rocket: | `observable.map(f)` |
 | `stream.map(property) / property.sampledBy(stream)` | :rocket: | property.sampledBy(stream)` |
@@ -160,14 +160,14 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 | `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` / `Kefir.bus()` |
 | `bus.push(x)` | :rocket: | `bus.push(x)` |
 | `bus.end()` | :rocket: | `bus.end()` |
-| `bus.error(e)` | :broken_heart: |  |
+| `bus.error(e)` | :rocket: | `bus.error(e)` |
 | `bus.plug(stream)` | :rocket: | `bus.plug(stream)` |
 
 
 
 ### Events, Errors
 
-:broken_heart:
+:bike:
 
 
 

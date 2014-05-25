@@ -83,4 +83,25 @@ describe(".map()", function(){
   });
 
 
+
+  it(".map() and errors", function(){
+
+    var stream = new Kefir.Stream();
+    var mapped = stream.map(x2);
+
+    var result = helpers.getOutputAndErrors(mapped);
+
+    stream.__sendValue(1);
+    stream.__sendError('e1');
+    stream.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [2],
+      errors: ['e1', 'e2']
+    });
+
+  });
+
+
 });

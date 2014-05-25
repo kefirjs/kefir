@@ -118,6 +118,29 @@ describe("Property", function(){
   });
 
 
+  it("stream.toProperty() and errors", function(){
+
+    var stream = new Kefir.Stream();
+    var prop = stream.toProperty();
+
+    expect(stream.__hasSubscribers('error')).toBe(false);
+
+    var result = helpers.getOutputAndErrors(prop);
+    expect(stream.__hasSubscribers('error')).toBe(true);
+
+    stream.__sendValue(1);
+    stream.__sendError('e1');
+    stream.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: ['e1', 'e2']
+    })
+
+  });
+
+
 
   it("property.changes()", function(){
 
@@ -139,6 +162,29 @@ describe("Property", function(){
     })
 
   });
+
+
+  it("property.changes() and errors", function(){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+    var changesStream = prop.changes();
+
+    expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
+
+    var result = helpers.getOutputAndErrors(changesStream);
+
+    prop.__sendValue(1);
+    prop.__sendError('e1');
+    prop.__sendAny(Kefir.error('e2'));
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: ['e1', 'e2']
+    })
+
+  });
+
 
 
 });
