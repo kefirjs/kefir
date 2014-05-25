@@ -88,7 +88,7 @@ function callFn(fnMeta, moreArgs){
   //   ...
   // ]
   var fn, context, args;
-  if (typeof fnMeta === 'function') {
+  if (isFn(fnMeta)) {
     fn = fnMeta;
     context = null;
     args = [];
@@ -96,8 +96,8 @@ function callFn(fnMeta, moreArgs){
     fn = fnMeta[0];
     context = fnMeta[1];
     args = restArgs(fnMeta, 2);
-    if (typeof fn === 'string') {
-      fn = context[fn]
+    if (!isFn(fn)) {
+      fn = context[fn];
     }
     if (moreArgs){
       args = args.concat(toArray(moreArgs));
@@ -1033,12 +1033,15 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
 
 // FromPoll
 
-var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFn){
+var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
   Stream.call(this);
   this.__interval = interval;
   this.__intervalId = null;
   var _this = this;
-  this.__bindedSend = function(){  _this.__sendAny(sourceFn())  }
+  if (sourceFnMeta.length === 1) {
+    sourceFnMeta = sourceFnMeta[0];
+  }
+  this.__bindedSend = function(){  _this.__sendAny(callFn(sourceFnMeta))  }
 }
 
 inherit(FromPollStream, Stream, {
@@ -1060,8 +1063,8 @@ inherit(FromPollStream, Stream, {
 
 });
 
-Kefir.fromPoll = function(interval, fn){
-  return new FromPollStream(interval, fn);
+Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/){
+  return new FromPollStream(interval, restArgs(arguments, 1));
 }
 
 
@@ -1069,35 +1072,38 @@ Kefir.fromPoll = function(interval, fn){
 // Interval
 
 Kefir.interval = function(interval, x){
-  return new FromPollStream(interval, function(){  return x });
+  return new FromPollStream(interval, [id, null, x]);
 }
 
 
 
 // Sequentially
 
+var sequentiallyHelperFn = function(){
+  if (this.xs.length === 0) {
+    return END;
+  }
+  if (this.xs.length === 1){
+    return Kefir.bunch(this.xs[0], END);
+  }
+  return this.xs.shift();
+}
+
 Kefir.sequentially = function(interval, xs){
-  xs = xs.slice(0);
-  return new FromPollStream(interval, function(){
-    if (xs.length === 0) {
-      return END;
-    }
-    if (xs.length === 1){
-      return Kefir.bunch(xs[0], END);
-    }
-    return xs.shift();
-  });
+  return new FromPollStream(interval, [sequentiallyHelperFn, {xs: xs.slice(0)}]);
 }
 
 
 
 // Repeatedly
 
+var repeatedlyHelperFn = function(){
+  this.i = (this.i + 1) % this.xs.length;
+  return this.xs[this.i];
+}
+
 Kefir.repeatedly = function(interval, xs){
-  var i = -1;
-  return new FromPollStream(interval, function(){
-    return xs[++i % xs.length];
-  });
+  return new FromPollStream(interval, [repeatedlyHelperFn, {i: -1, xs: xs}]);
 }
 
 // TODO
