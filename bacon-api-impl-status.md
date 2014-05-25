@@ -47,7 +47,7 @@ For detailed descriptions of features see
 | `observable.onError(f)` | :broken_heart: |  |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
 | `observable.map(f)` | :rocket: | `observable.map(f)` |
-| `stream.map(property) / property.sampledBy(stream)` | :broken_heart: |  |
+| `stream.map(property) / property.sampledBy(stream)` | :rocket: | property.sampledBy(stream)` |
 | `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |
 | `observable.skipErrors()` | :broken_heart: |  |
@@ -118,9 +118,9 @@ For detailed descriptions of features see
 | `property.onValues(f)` | :broken_heart: |  |
 | `property.assign(obj, method [, param...])` | :broken_heart: |  |
 | `property.sample(interval)` | :broken_heart: |  |
-| `property.sampledBy(stream)` | :broken_heart: |  |
-| `property.sampledBy(property)` | :broken_heart: |  |
-| `property.sampledBy(streamOrProperty, f)` | :broken_heart: |  |
+| `property.sampledBy(stream)` | :rocket: | `property.sampledBy(stream)` |
+| `property.sampledBy(property)` | :rocket: | `property.sampledBy(property)` |
+| `property.sampledBy(streamOrProperty, f)` | :rocket: | `property.sampledBy(streamOrProperty, f)` |
 | `property.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
 | `property.changes()` | :rocket: | `property.changes()` |
 | `property.and(other)` | :broken_heart: |  |

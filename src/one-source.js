@@ -1,6 +1,10 @@
 // TODO
 //
 // observable.fold(seed, f) / observable.reduce(seed, f)
+//
+// observable.filter(property)
+// observable.takeWhile(property)
+// observable.skipWhile(property)
 
 
 var WithSourceStreamMixin = {
@@ -280,4 +284,27 @@ var skipWhileMapFn = function(x){
 
 Observable.prototype.skipWhile = function(fn) {
   return this.map(skipWhileMapFn, {skip: true, fn: fn});
+}
+
+
+
+
+
+
+// .sampledBy(observable, fn)
+
+Observable.prototype.sampledBy = function(observable, fn) {
+  var lastVal = Kefir.NOTHING;
+  var saveLast = function(x){ lastVal = x }
+  this.onValue(saveLast);
+  observable.onEnd(function(){
+    this.offValue(saveLast);
+  }, this);
+  return observable.map(function(x){
+    if (lastVal !== Kefir.NOTHING) {
+      return fn ? fn(lastVal, x) : lastVal;
+    } else {
+      return Kefir.NOTHING;
+    }
+  });
 }

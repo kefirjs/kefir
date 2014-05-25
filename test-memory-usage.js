@@ -327,6 +327,20 @@ createNObservable('Bacon', 700, function(){
 
 
 
+
+title('.toProperty(1).sampledBy(stream, noop)')
+
+createNObservable('Kefir', 700, function(){
+  return baseKefir().toProperty(1).sampledBy(baseKefir(), noop);
+})
+
+createNObservable('Bacon', 700, function(){
+  return baseBacon().toProperty(1).sampledBy(baseBacon(), noop);
+})
+
+
+
+
 title('.combineAsArray(stream1, stream2, stream3, stream4)')
 
 createNObservable('Kefir', 500, function(){
