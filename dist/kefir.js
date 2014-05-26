@@ -861,7 +861,7 @@ Kefir.SampledByStream = function SampledByStream(){
 }
 
 inherit(Kefir.SampledByStream, Stream, SampledByMixin, {
-  __ClassName: 'SampledByStream',
+  __ClassName: 'SampledByStream'
 })
 
 Kefir.SampledByProperty = function SampledByProperty(){
@@ -869,7 +869,7 @@ Kefir.SampledByProperty = function SampledByProperty(){
 }
 
 inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
-  __ClassName: 'SampledByProperty',
+  __ClassName: 'SampledByProperty'
 })
 
 Observable.prototype.sampledBy = function(observable/*fn[, context[, arg1, arg2, ...]]*/) {
