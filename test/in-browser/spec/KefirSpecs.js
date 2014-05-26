@@ -108,7 +108,7 @@ function callFn(fnMeta, moreArgs){
     }
   }
   if (isFn(fn)) {
-    return fn.apply(context, args);
+    return args ? fn.apply(context, args) : fn.call(context);
   } else {
     return fn;
   }
@@ -145,7 +145,7 @@ var isArguments = function(xs) {
 // For IE
 if (!isArguments(arguments)) {
   isArguments = function(obj) {
-    return !!(obj && has(obj, 'callee'));
+    return !!(obj && own(obj, 'callee'));
   }
 }
 
