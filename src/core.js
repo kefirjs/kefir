@@ -247,7 +247,7 @@ inherit(Property, Observable, {
 // Log
 
 var logHelper = function(name, type, x) {
-  console.log(text, type, x);
+  console.log(name, type, x);
 }
 
 Observable.prototype.log = function(name) {
