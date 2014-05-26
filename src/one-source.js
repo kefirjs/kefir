@@ -52,7 +52,7 @@ Stream.prototype.toProperty = function(initial){
 }
 
 Property.prototype.toProperty = function(initial){
-  if (typeof initial === 'undefined') {
+  if (isUndefined(initial)) {
     return this
   } else {
     var prop = new Kefir.PropertyFromStream(this);
@@ -291,23 +291,71 @@ Observable.prototype.skipWhile = function(fn) {
 
 
 // .sampledBy(observable, fn)
-// TODO:
+
+var SampledByMixin = {
+  __Constructor: function(main, sampler, fn){
+    if (this instanceof Property) {
+      Property.call(this);
+    } else {
+      Stream.call(this);
+    }
+    WithSourceStreamMixin.__Constructor.call(this, sampler);
+    this.__lastValue = NOTHING;
+    this.__fn = fn;
+    this.__mainStream = main;
+  },
+  __handle: function(y){
+    if (this.__lastValue !== NOTHING) {
+      var x = this.__lastValue;
+      if (this.__fn) {
+        x = this.__fn(x, y);
+      }
+      this.__sendValue(x);
+    }
+  },
+  __onFirstIn: function(){
+    WithSourceStreamMixin.__onFirstIn.call(this);
+    this.__mainStream.onValue('__saveValue', this);
+    this.__mainStream.onError('__sendError', this);
+  },
+  __onLastOut: function(){
+    WithSourceStreamMixin.__onLastOut.call(this);
+    this.__mainStream.offValue('__saveValue', this);
+    this.__mainStream.offError('__sendError', this);
+  },
+  __saveValue: function(x){
+    this.__lastValue = x;
+  },
+  __clear: function(){
+    WithSourceStreamMixin.__clear.call(this);
+    this.__lastValue = null;
+    this.__fn = null;
+    this.__mainStream = null;
+  }
+}
+
+inheritMixin(SampledByMixin, WithSourceStreamMixin);
+
+Kefir.SampledByStream = function SampledByStream(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.SampledByStream, Stream, SampledByMixin, {
+  __ClassName: 'SampledByStream',
+})
+
+Kefir.SampledByProperty = function SampledByProperty(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
+  __ClassName: 'SampledByProperty',
+})
 
 Observable.prototype.sampledBy = function(observable, fn) {
-  var lastVal = NOTHING;
-  var saveLast = function(x){ lastVal = x }
-  this.onValue(saveLast);
-  observable.onEnd(function(){
-    this.offValue(saveLast);
-  }, this);
-  var result = observable.map(function(x){
-    if (lastVal !== NOTHING) {
-      return fn ? fn(lastVal, x) : lastVal;
-    } else {
-      return NOTHING;
-    }
-  });
-  // firstIn/firstOut ???
-  this.onError('__sendError', result);
-  return result;
+  if (observable instanceof Stream) {
+    return new Kefir.SampledByStream(this, observable, fn);
+  } else {
+    return new Kefir.SampledByProperty(this, observable, fn);
+  }
 }

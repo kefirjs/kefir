@@ -47,7 +47,7 @@ For detailed descriptions of features see
 | `observable.onError(f)` | :rocket: | `observable.onError(f)` |
 | `observable.onEnd(f)` | :rocket: | `observable.onEnd(f)` |
 | `observable.map(f)` | :rocket: | `observable.map(f)` |
-| `stream.map(property) / property.sampledBy(stream)` | :rocket: | property.sampledBy(stream)` |
+| `stream.map(property) / property.sampledBy(stream)` | :rocket: | `property.sampledBy(stream)` |
 | `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |
 | `observable.skipErrors()` | :broken_heart: |  |

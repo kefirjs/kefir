@@ -7,7 +7,7 @@ function own(obj, prop){
 }
 
 function toArray(arrayLike){
-  if (arrayLike instanceof Array) {
+  if (isArray(arrayLike)) {
     return arrayLike;
   } else {
     return Array.prototype.slice.call(arrayLike);
@@ -21,22 +21,21 @@ function createObj(proto) {
 }
 
 function extend() {
-  var objects = toArray(arguments);
-  if (objects.length === 1) {
-    return objects[0];
+  if (arguments.length === 1) {
+    return arguments[0];
   }
-  var result = objects.shift();
-  for (var i = 0; i < objects.length; i++) {
-    for (var prop in objects[i]) {
-      if(own(objects[i], prop)) {
-        result[prop] = objects[i][prop];
+  var result = arguments[0];
+  for (var i = 1; i < arguments.length; i++) {
+    for (var prop in arguments[i]) {
+      if(own(arguments[i], prop)) {
+        result[prop] = arguments[i][prop];
       }
     }
   }
   return result;
 }
 
-function inherit(Child, Parent) { // (Child, Parent[, mixin1, mixin2, ...])
+function inherit(Child, Parent/*[, mixin1, mixin2, ...]*/) {
   Child.prototype = createObj(Parent.prototype);
   Child.prototype.constructor = Child;
   for (var i = 2; i < arguments.length; i++) {
@@ -55,7 +54,7 @@ function inheritMixin(Child, Parent) {
 }
 
 function firstArrOrToArr(args) {
-  if (Object.prototype.toString.call(args[0]) === '[object Array]') {
+  if (isArray(args[0])) {
     return args[0];
   }
   return toArray(args);
@@ -88,12 +87,16 @@ function callFn(fnMeta, moreArgs){
   } else {
     fn = fnMeta[0];
     context = fnMeta[1];
-    args = restArgs(fnMeta, 2);
+    args = restArgs(fnMeta, 2, true);
     if (!isFn(fn)) {
       fn = context[fn];
     }
     if (moreArgs){
-      args = args.concat(toArray(moreArgs));
+      if (args) {
+        args = args.concat(toArray(moreArgs));
+      } else {
+        args = moreArgs;
+      }
     }
   }
   return fn.apply(context, args);
@@ -103,7 +106,15 @@ function isFn(fn) {
   return typeof fn === 'function';
 }
 
-function isEqualArrays(a, b){
+function isUndefined(x) {
+  return typeof x === 'undefined';
+}
+
+function isArray(xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+}
+
+function isEqualArrays(a, b) {
   /*jshint eqnull:true */
   if (a == null && b == null) {
     return true;

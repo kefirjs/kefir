@@ -14,7 +14,7 @@ function own(obj, prop){
 }
 
 function toArray(arrayLike){
-  if (arrayLike instanceof Array) {
+  if (isArray(arrayLike)) {
     return arrayLike;
   } else {
     return Array.prototype.slice.call(arrayLike);
@@ -28,22 +28,21 @@ function createObj(proto) {
 }
 
 function extend() {
-  var objects = toArray(arguments);
-  if (objects.length === 1) {
-    return objects[0];
+  if (arguments.length === 1) {
+    return arguments[0];
   }
-  var result = objects.shift();
-  for (var i = 0; i < objects.length; i++) {
-    for (var prop in objects[i]) {
-      if(own(objects[i], prop)) {
-        result[prop] = objects[i][prop];
+  var result = arguments[0];
+  for (var i = 1; i < arguments.length; i++) {
+    for (var prop in arguments[i]) {
+      if(own(arguments[i], prop)) {
+        result[prop] = arguments[i][prop];
       }
     }
   }
   return result;
 }
 
-function inherit(Child, Parent) { // (Child, Parent[, mixin1, mixin2, ...])
+function inherit(Child, Parent/*[, mixin1, mixin2, ...]*/) {
   Child.prototype = createObj(Parent.prototype);
   Child.prototype.constructor = Child;
   for (var i = 2; i < arguments.length; i++) {
@@ -62,7 +61,7 @@ function inheritMixin(Child, Parent) {
 }
 
 function firstArrOrToArr(args) {
-  if (Object.prototype.toString.call(args[0]) === '[object Array]') {
+  if (isArray(args[0])) {
     return args[0];
   }
   return toArray(args);
@@ -95,12 +94,16 @@ function callFn(fnMeta, moreArgs){
   } else {
     fn = fnMeta[0];
     context = fnMeta[1];
-    args = restArgs(fnMeta, 2);
+    args = restArgs(fnMeta, 2, true);
     if (!isFn(fn)) {
       fn = context[fn];
     }
     if (moreArgs){
-      args = args.concat(toArray(moreArgs));
+      if (args) {
+        args = args.concat(toArray(moreArgs));
+      } else {
+        args = moreArgs;
+      }
     }
   }
   return fn.apply(context, args);
@@ -110,7 +113,15 @@ function isFn(fn) {
   return typeof fn === 'function';
 }
 
-function isEqualArrays(a, b){
+function isUndefined(x) {
+  return typeof x === 'undefined';
+}
+
+function isArray(xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+}
+
+function isEqualArrays(a, b) {
   /*jshint eqnull:true */
   if (a == null && b == null) {
     return true;
@@ -342,7 +353,7 @@ inherit(Stream, Observable, {
 
 var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial){
   Observable.call(this, onFirstIn, onLastOut);
-  this.__cached = (typeof initial !== 'undefined') ? initial : NOTHING;
+  this.__cached = isUndefined(initial) ? NOTHING : initial;
 }
 
 inherit(Property, Observable, {
@@ -530,7 +541,7 @@ Stream.prototype.toProperty = function(initial){
 }
 
 Property.prototype.toProperty = function(initial){
-  if (typeof initial === 'undefined') {
+  if (isUndefined(initial)) {
     return this
   } else {
     var prop = new Kefir.PropertyFromStream(this);
@@ -769,26 +780,94 @@ Observable.prototype.skipWhile = function(fn) {
 
 
 // .sampledBy(observable, fn)
-// TODO:
+
+var SampledByMixin = {
+  __Constructor: function(main, sampler, fn){
+    if (this instanceof Property) {
+      Property.call(this);
+    } else {
+      Stream.call(this);
+    }
+    WithSourceStreamMixin.__Constructor.call(this, sampler);
+    this.__lastValue = NOTHING;
+    this.__fn = fn;
+    this.__mainStream = main;
+  },
+  __handle: function(y){
+    if (this.__lastValue !== NOTHING) {
+      var x = this.__lastValue;
+      if (this.__fn) {
+        x = this.__fn(x, y);
+      }
+      this.__sendValue(x);
+    }
+  },
+  __onFirstIn: function(){
+    WithSourceStreamMixin.__onFirstIn.call(this);
+    this.__mainStream.onValue('__saveValue', this);
+    this.__mainStream.onError('__sendError', this);
+  },
+  __onLastOut: function(){
+    WithSourceStreamMixin.__onLastOut.call(this);
+    this.__mainStream.offValue('__saveValue', this);
+    this.__mainStream.offError('__sendError', this);
+  },
+  __saveValue: function(x){
+    this.__lastValue = x;
+  },
+  __clear: function(){
+    WithSourceStreamMixin.__clear.call(this);
+    this.__lastValue = null;
+    this.__fn = null;
+    this.__mainStream = null;
+  }
+}
+
+inheritMixin(SampledByMixin, WithSourceStreamMixin);
+
+Kefir.SampledByStream = function SampledByStream(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.SampledByStream, Stream, SampledByMixin, {
+  __ClassName: 'SampledByStream',
+})
+
+Kefir.SampledByProperty = function SampledByProperty(){
+  this.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
+  __ClassName: 'SampledByProperty',
+})
 
 Observable.prototype.sampledBy = function(observable, fn) {
-  var lastVal = NOTHING;
-  var saveLast = function(x){ lastVal = x }
-  this.onValue(saveLast);
-  observable.onEnd(function(){
-    this.offValue(saveLast);
-  }, this);
-  var result = observable.map(function(x){
-    if (lastVal !== NOTHING) {
-      return fn ? fn(lastVal, x) : lastVal;
-    } else {
-      return NOTHING;
-    }
-  });
-  // firstIn/firstOut ???
-  this.onError('__sendError', result);
-  return result;
+  if (observable instanceof Stream) {
+    return new Kefir.SampledByStream(this, observable, fn);
+  } else {
+    return new Kefir.SampledByProperty(this, observable, fn);
+  }
 }
+
+
+// Observable.prototype.sampledBy = function(observable, fn) {
+//   var lastVal = NOTHING;
+//   var saveLast = function(x){ lastVal = x }
+//   this.onValue(saveLast);
+//   observable.onEnd(function(){
+//     this.offValue(saveLast);
+//   }, this);
+//   var result = observable.map(function(x){
+//     if (lastVal !== NOTHING) {
+//       return fn ? fn(lastVal, x) : lastVal;
+//     } else {
+//       return NOTHING;
+//     }
+//   });
+//   // firstIn/firstOut ???
+//   this.onError('__sendError', result);
+//   return result;
+// }
 
 // TODO
 //

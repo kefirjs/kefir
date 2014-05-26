@@ -209,7 +209,7 @@ inherit(Stream, Observable, {
 
 var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial){
   Observable.call(this, onFirstIn, onLastOut);
-  this.__cached = (typeof initial !== 'undefined') ? initial : NOTHING;
+  this.__cached = isUndefined(initial) ? NOTHING : initial;
 }
 
 inherit(Property, Observable, {
