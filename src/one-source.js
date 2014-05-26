@@ -247,7 +247,7 @@ Observable.prototype.skip = function(n) {
 
 var skipDuplicatesMapFn = function(x){
   var result;
-  if (this.hasPrev && (this.fn ? this.fn(this.prev, x) : this.prev === x)) {
+  if (this.prev !== NOTHING && (this.fn ? this.fn(this.prev, x) : this.prev === x)) {
     result = NOTHING;
   } else {
     result = x;
@@ -258,7 +258,7 @@ var skipDuplicatesMapFn = function(x){
 }
 
 Observable.prototype.skipDuplicates = function(fn) {
-  return this.map(skipDuplicatesMapFn, {fn: fn, hasPrev: false, prev: null});
+  return this.map(skipDuplicatesMapFn, {fn: fn, prev: NOTHING});
 }
 
 

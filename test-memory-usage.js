@@ -245,6 +245,23 @@ createNObservable('Bacon', 700, function(){
 
 
 
+title('.skipDuplicates(noop)')
+
+createNObservable('Kefir', 700, function(){
+  return baseKefir().skipDuplicates(noop);
+})
+
+createNObservable('Rx', 700, function(){
+  return baseRx().distinctUntilChanged(noop);
+})
+
+createNObservable('Bacon', 700, function(){
+  return baseBacon().skipDuplicates(noop);
+})
+
+
+
+
 title('.scan(0, noop)')
 
 createNObservable('Kefir', 700, function(){
