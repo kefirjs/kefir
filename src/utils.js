@@ -83,23 +83,40 @@ function callFn(fnMeta, moreArgs){
   if (isFn(fnMeta)) {
     fn = fnMeta;
     context = null;
-    args = [];
+    args = null;
   } else {
     fn = fnMeta[0];
     context = fnMeta[1];
     args = restArgs(fnMeta, 2, true);
-    if (!isFn(fn)) {
+    /*jshint eqnull:true */
+    if (!isFn(fn) && context != null) {
       fn = context[fn];
     }
-    if (moreArgs){
-      if (args) {
-        args = args.concat(toArray(moreArgs));
-      } else {
-        args = moreArgs;
-      }
+  }
+  if (moreArgs){
+    if (args) {
+      args = args.concat(toArray(moreArgs));
+    } else {
+      args = moreArgs;
     }
   }
-  return fn.apply(context, args);
+  if (isFn(fn)) {
+    return fn.apply(context, args);
+  } else {
+    return fn;
+  }
+}
+
+function normFnMeta(fnMeta) {
+  if (isArray(fnMeta) || isArguments(fnMeta)) {
+    if (fnMeta.length === 1) {
+      return fnMeta[0];
+    }
+    if (fnMeta.length === 0) {
+      return null;
+    }
+  }
+  return fnMeta;
 }
 
 function isFn(fn) {
@@ -112,6 +129,17 @@ function isUndefined(x) {
 
 function isArray(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
+}
+
+var isArguments = function(xs) {
+  return Object.prototype.toString.call(xs) === '[object Arguments]';
+}
+
+// For IE
+if (!isArguments(arguments)) {
+  isArguments = function(obj) {
+    return !!(obj && has(obj, 'callee'));
+  }
 }
 
 function isEqualArrays(a, b) {

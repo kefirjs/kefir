@@ -52,19 +52,23 @@ describe("Kefir.fromBinder()", function(){
       return function(){};
     });
 
-    var result = helpers.getOutput(obs);
+    var result = helpers.getOutputAndErrors(obs);
 
     __send(1);
     __send(2);
+    __send(Kefir.error('e1'));
     __send(Kefir.NOTHING);
-    __send(Kefir.bunch(3, Kefir.NOTHING, 4, Kefir.END));
+    __send(Kefir.bunch(3, Kefir.NOTHING, Kefir.error('e2'), 4, Kefir.END));
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 2, 3, 4]
+      xs: [1, 2, 3, 4],
+      errors: ['e1', 'e2']
     });
 
   });
+
+
 
 
 

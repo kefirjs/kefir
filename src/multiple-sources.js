@@ -139,11 +139,11 @@ Kefir.bus = function(){
 
 // FlatMap
 
-Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFn){
+Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta){
   Stream.call(this);
   this.__initPluggable();
   this.__sourceStream = sourceStream;
-  this.__mapFn = mapFn;
+  this.__mapFnMeta = normFnMeta(mapFnMeta);
   sourceStream.onEnd(this.__onSourceEnds, this);
 }
 
@@ -157,7 +157,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     }
   },
   __plugResult: function(x){
-    this.__plug(  this.__mapFn(x)  );
+    this.__plug(  callFn(this.__mapFnMeta, [x]) );
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
@@ -179,13 +179,13 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
     this.__sourceStream = null;
-    this.__mapFn = null;
+    this.__mapFnMeta = null;
   }
 
 })
 
-Observable.prototype.flatMap = function(fn) {
-  return new Kefir.FlatMappedStream(this, fn);
+Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.FlatMappedStream(this, arguments);
 };
 
 
@@ -241,7 +241,7 @@ Observable.prototype.merge = function() {
 
 // Combine
 
-Kefir.CombinedStream = function CombinedStream(sources, mapFn){
+Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
   Stream.call(this);
   this.__initPluggable();
   for (var i = 0; i < sources.length; i++) {
@@ -249,7 +249,7 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFn){
   }
   this.__cachedValues = new Array(sources.length);
   this.__hasCached = new Array(sources.length);
-  this.__mapFn = mapFn;
+  this.__mapFnMeta = normFnMeta(mapFnMeta);
 }
 
 inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
@@ -266,8 +266,8 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     this.__hasCached[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
-      if (isFn(this.__mapFn)) {
-        this.__sendAny(this.__mapFn.apply(null, this.__cachedValues));
+      if (this.__mapFnMeta) {
+        this.__sendAny(callFn(this.__mapFnMeta, this.__cachedValues));
       } else {
         this.__sendValue(this.__cachedValues.slice(0));
       }
@@ -286,17 +286,17 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     this.__clearPluggable();
     this.__cachedValues = null;
     this.__hasCached = null;
-    this.__mapFn = null;
+    this.__mapFnMeta = null;
   }
 
 });
 
-Kefir.combine = function(sources, mapFn) {
-  return new Kefir.CombinedStream(sources, mapFn);
+Kefir.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.CombinedStream(sources, restArgs(arguments, 1));
 }
 
-Observable.prototype.combine = function(sources, mapFn) {
-  return Kefir.combine([this].concat(sources), mapFn);
+Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1));
 }
 
 
@@ -307,8 +307,6 @@ Observable.prototype.combine = function(sources, mapFn) {
 // Kefir.onValues()
 
 Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
-  var fnMeta = restArgs(arguments, 1)
-  return Kefir.combine(streams).onValue(function(xs){
-    return callFn(fnMeta, xs);
-  })
+  var fnMeta = normFnMeta(restArgs(arguments, 1))
+  return Kefir.combine(streams).onValue(callFn, null, fnMeta);
 }

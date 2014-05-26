@@ -5,9 +5,7 @@ var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, so
   this.__interval = interval;
   this.__intervalId = null;
   var _this = this;
-  if (sourceFnMeta.length === 1) {
-    sourceFnMeta = sourceFnMeta[0];
-  }
+  sourceFnMeta = normFnMeta(sourceFnMeta);
   this.__bindedSend = function(){  _this.__sendAny(callFn(sourceFnMeta))  }
 }
 

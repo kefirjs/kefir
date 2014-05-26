@@ -1,10 +1,6 @@
 // TODO
 //
 // observable.fold(seed, f) / observable.reduce(seed, f)
-//
-// observable.filter(property)
-// observable.takeWhile(property)
-// observable.skipWhile(property)
 
 
 var WithSourceStreamMixin = {
@@ -68,9 +64,9 @@ Property.prototype.toProperty = function(initial){
 
 // .scan(seed, fn)
 
-Kefir.ScanProperty = function ScanProperty(source, seed, fn){
+Kefir.ScanProperty = function ScanProperty(source, seed, fnMeta){
   Property.call(this, null, null, seed);
-  this.__fn = fn;
+  this.__fnMeta = normFnMeta(fnMeta);
   this.__Constructor(source);
 }
 
@@ -79,7 +75,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( this.__fn(this.getCached(), x) );
+    this.__sendValue( callFn(this.__fnMeta, [this.getCached(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
@@ -88,8 +84,8 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
 
 })
 
-Observable.prototype.scan = function(seed, fn) {
-  return new Kefir.ScanProperty(this, seed, fn);
+Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.ScanProperty(this, seed, restArgs(arguments, 1));
 }
 
 
@@ -104,11 +100,7 @@ var MapMixin = {
     } else {
       Stream.call(this);
     }
-    this.__mapFnMeta = mapFnMeta ? (
-      mapFnMeta.lenght === 1 ?
-        mapFnMeta[0] :
-        mapFnMeta
-    ) : null;
+    this.__mapFnMeta = normFnMeta(mapFnMeta);
     WithSourceStreamMixin.__Constructor.call(this, source);
   },
   __handle: function(x){
@@ -162,13 +154,16 @@ Property.prototype.changes = function() {
 // .diff(seed, fn)
 
 var diffMapFn = function(x){
-  var result = this.fn(this.prev, x);
+  var result = callFn(this.fnMeta, [this.prev, x]);
   this.prev = x;
   return result;
 }
 
-Observable.prototype.diff = function(start, fn) {
-  return this.map(diffMapFn, {prev: start, fn: fn});
+Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
+  return this.map(diffMapFn, {
+    prev: start,
+    fnMeta: normFnMeta(restArgs(arguments, 1))
+  });
 }
 
 
@@ -177,16 +172,16 @@ Observable.prototype.diff = function(start, fn) {
 
 // .filter(fn)
 
-var filterMapFn = function(filterFn, x){
-  if (filterFn(x)) {
+var filterMapFn = function(filterFnMeta, x){
+  if (callFn(filterFnMeta, [x])) {
     return x;
   } else {
     return NOTHING;
   }
 }
 
-Observable.prototype.filter = function(fn) {
-  return this.map(filterMapFn, null, fn);
+Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return this.map(filterMapFn, null, normFnMeta(arguments));
 }
 
 
@@ -194,16 +189,16 @@ Observable.prototype.filter = function(fn) {
 
 // .takeWhile(fn)
 
-var takeWhileMapFn = function(fn, x) {
-  if (fn(x)) {
+var takeWhileMapFn = function(fnMeta, x) {
+  if (callFn(fnMeta, [x])) {
     return x;
   } else {
     return END;
   }
 }
 
-Observable.prototype.takeWhile = function(fn) {
-  return this.map(takeWhileMapFn, null, fn);
+Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return this.map(takeWhileMapFn, null, normFnMeta(arguments));
 }
 
 
@@ -273,7 +268,7 @@ Observable.prototype.skipDuplicates = function(fn) {
 // .skipWhile(f)
 
 var skipWhileMapFn = function(x){
-  if (this.skip && this.fn(x)) {
+  if (this.skip && callFn(this.fnMeta, [x])) {
     return NOTHING;
   } else {
     this.skip = false;
@@ -281,8 +276,8 @@ var skipWhileMapFn = function(x){
   }
 }
 
-Observable.prototype.skipWhile = function(fn) {
-  return this.map(skipWhileMapFn, {skip: true, fn: fn});
+Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
 }
 
 
@@ -290,72 +285,3 @@ Observable.prototype.skipWhile = function(fn) {
 
 
 
-// .sampledBy(observable, fn)
-
-var SampledByMixin = {
-  __Constructor: function(main, sampler, fn){
-    if (this instanceof Property) {
-      Property.call(this);
-    } else {
-      Stream.call(this);
-    }
-    WithSourceStreamMixin.__Constructor.call(this, sampler);
-    this.__lastValue = NOTHING;
-    this.__fn = fn;
-    this.__mainStream = main;
-  },
-  __handle: function(y){
-    if (this.__lastValue !== NOTHING) {
-      var x = this.__lastValue;
-      if (this.__fn) {
-        x = this.__fn(x, y);
-      }
-      this.__sendValue(x);
-    }
-  },
-  __onFirstIn: function(){
-    WithSourceStreamMixin.__onFirstIn.call(this);
-    this.__mainStream.onValue('__saveValue', this);
-    this.__mainStream.onError('__sendError', this);
-  },
-  __onLastOut: function(){
-    WithSourceStreamMixin.__onLastOut.call(this);
-    this.__mainStream.offValue('__saveValue', this);
-    this.__mainStream.offError('__sendError', this);
-  },
-  __saveValue: function(x){
-    this.__lastValue = x;
-  },
-  __clear: function(){
-    WithSourceStreamMixin.__clear.call(this);
-    this.__lastValue = null;
-    this.__fn = null;
-    this.__mainStream = null;
-  }
-}
-
-inheritMixin(SampledByMixin, WithSourceStreamMixin);
-
-Kefir.SampledByStream = function SampledByStream(){
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(Kefir.SampledByStream, Stream, SampledByMixin, {
-  __ClassName: 'SampledByStream',
-})
-
-Kefir.SampledByProperty = function SampledByProperty(){
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
-  __ClassName: 'SampledByProperty',
-})
-
-Observable.prototype.sampledBy = function(observable, fn) {
-  if (observable instanceof Stream) {
-    return new Kefir.SampledByStream(this, observable, fn);
-  } else {
-    return new Kefir.SampledByProperty(this, observable, fn);
-  }
-}
