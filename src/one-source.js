@@ -1,8 +1,3 @@
-// TODO
-//
-// observable.fold(seed, f) / observable.reduce(seed, f)
-
-
 var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
@@ -79,13 +74,48 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__fn = null;
+    this.__fnMeta = null;
   }
 
 })
 
 Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
   return new Kefir.ScanProperty(this, seed, restArgs(arguments, 1));
+}
+
+
+
+
+// .reduce(seed, fn)
+
+Kefir.ReducedProperty = function ReducedProperty(source, seed, fnMeta){
+  Property.call(this);
+  this.__fnMeta = normFnMeta(fnMeta);
+  this.__result = seed;
+  source.onEnd('__sendResult', this);
+  this.__Constructor(source);
+}
+
+inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
+
+  __ClassName: 'ReducedProperty',
+
+  __handle: function(x){
+    this.__result = callFn(this.__fnMeta, [this.__result, x]);
+  },
+  __sendResult: function(){
+    this.__sendValue(this.__result);
+  },
+  __clear: function(){
+    WithSourceStreamMixin.__clear.call(this);
+    this.__fnMeta = null;
+    this.__result = null;
+  }
+
+});
+
+Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.ReducedProperty(this, seed, restArgs(arguments, 1));
 }
 
 
