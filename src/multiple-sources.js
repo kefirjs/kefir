@@ -1,6 +1,5 @@
 // TODO
 //
-// observable.flatMapLatest(f)
 // observable.flatMapFirst(f)
 //
 // observable.zip(other, f)
@@ -157,7 +156,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     }
   },
   __plugResult: function(x){
-    this.__plug(  callFn(this.__mapFnMeta, [x]) );
+    this.__plug( callFn(this.__mapFnMeta, [x]) );
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
@@ -191,6 +190,28 @@ Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 
 
+// FlatMapLatest
+
+Kefir.FlatMapLatestStream = function FlatMapLatestStream(){
+  Kefir.FlatMappedStream.apply(this, arguments);
+}
+
+inherit(Kefir.FlatMapLatestStream, Kefir.FlatMappedStream, {
+
+  __ClassName: 'FlatMapLatestStream',
+
+  __plugResult: function(x){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      this.__unplugById(i);
+    }
+    Kefir.FlatMappedStream.prototype.__plugResult.call(this, x);
+  }
+
+})
+
+Observable.prototype.flatMapLatest = function(/*fn[, context[, arg1, arg2, ...]]*/) {
+  return new Kefir.FlatMapLatestStream(this, arguments);
+};
 
 
 

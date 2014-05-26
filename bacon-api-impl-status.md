@@ -66,7 +66,7 @@ For detailed descriptions of features see
 | `observable.doAction(f)` | :broken_heart: |  |
 | `observable.not()` | :broken_heart: |  |
 | `observable.flatMap(f)` | :rocket: | `observable.flatMap(f)` |
-| `observable.flatMapLatest(f)` | :broken_heart: |  |
+| `observable.flatMapLatest(f)` | :rocket: | `observable.flatMapLatest(f)` |
 | `observable.flatMapFirst(f)` | :broken_heart: |  |
 | `observable.scan(seed, f)` | :rocket: | `observable.scan(seed, f)` |
 | `observable.fold(seed, f) / observable.reduce(seed, f)` | :rocket: | `observable.reduce(seed, f)` |
