@@ -5,81 +5,81 @@ memory that causes frequent garbage collection.
 
 
 very base stream
-Kefir: w/o subscr. 0.68 Kb, w/ subscr. +0.23 Kb
-Rx: w/o subscr. 0.25 Kb, w/ subscr. +0.43 Kb
-Bacon: w/o subscr. 3.04 Kb, w/ subscr. +0.92 Kb
+Kefir: w/o subscr. 0.68 KiB, w/ subscr. +0.23 KiB
+Rx: w/o subscr. 0.25 KiB, w/ subscr. +0.43 KiB
+Bacon: w/o subscr. 3.04 KiB, w/ subscr. +0.92 KiB
 
 new Bus()
-Kefir: w/o subscr. 0.10 Kb, w/ subscr. +0.22 Kb
-Bacon: w/o subscr. 3.72 Kb, w/ subscr. +0.76 Kb
+Kefir: w/o subscr. 0.10 KiB, w/ subscr. +0.22 KiB
+Bacon: w/o subscr. 3.72 KiB, w/ subscr. +0.76 KiB
 
 .once(1)
-Kefir: w/o subscr. 0.07 Kb, w/ subscr. +0.03 Kb
-Bacon: w/o subscr. 4.09 Kb, w/ subscr. +0.95 Kb
+Kefir: w/o subscr. 0.07 KiB, w/ subscr. +0.04 KiB
+Bacon: w/o subscr. 4.09 KiB, w/ subscr. +0.95 KiB
 
 .never()
-Kefir: w/o subscr. -0.00 Kb, w/ subscr. +0.00 Kb
-Rx: w/o subscr. 0.23 Kb, w/ subscr. -0.00 Kb
-Bacon: w/o subscr. 4.04 Kb, w/ subscr. +0.89 Kb
+Kefir: w/o subscr. -0.00 KiB, w/ subscr. -0.00 KiB
+Rx: w/o subscr. 0.23 KiB, w/ subscr. -0.00 KiB
+Bacon: w/o subscr. 4.03 KiB, w/ subscr. +0.89 KiB
 
 .toProperty(1)
-Kefir: w/o subscr. 0.97 Kb, w/ subscr. +0.36 Kb
-Rx: w/o subscr. 1.22 Kb, w/ subscr. +1.18 Kb
-Bacon: w/o subscr. 7.88 Kb, w/ subscr. +1.92 Kb
+Kefir: w/o subscr. 0.97 KiB, w/ subscr. +0.36 KiB
+Rx: w/o subscr. 1.22 KiB, w/ subscr. +1.18 KiB
+Bacon: w/o subscr. 7.88 KiB, w/ subscr. +1.92 KiB
 
 .toProperty(1).changes()
-Kefir: w/o subscr. 1.27 Kb, w/ subscr. +0.53 Kb
-Bacon: w/o subscr. 10.80 Kb, w/ subscr. +2.44 Kb
+Kefir: w/o subscr. 1.27 KiB, w/ subscr. +0.52 KiB
+Bacon: w/o subscr. 10.80 KiB, w/ subscr. +2.44 KiB
 
 .map(noop)
-Kefir: w/o subscr. 0.96 Kb, w/ subscr. +0.35 Kb
-Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.52 Kb
-Bacon: w/o subscr. 8.29 Kb, w/ subscr. +1.71 Kb
+Kefir: w/o subscr. 0.96 KiB, w/ subscr. +0.35 KiB
+Rx: w/o subscr. 0.52 KiB, w/ subscr. +1.52 KiB
+Bacon: w/o subscr. 8.29 KiB, w/ subscr. +1.71 KiB
 
 .filter(noop)
-Kefir: w/o subscr. 1.03 Kb, w/ subscr. +0.35 Kb
-Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.47 Kb
-Bacon: w/o subscr. 8.27 Kb, w/ subscr. +1.71 Kb
+Kefir: w/o subscr. 1.03 KiB, w/ subscr. +0.35 KiB
+Rx: w/o subscr. 0.52 KiB, w/ subscr. +1.47 KiB
+Bacon: w/o subscr. 8.27 KiB, w/ subscr. +1.71 KiB
 
 .skipDuplicates(noop)
-Kefir: w/o subscr. 1.06 Kb, w/ subscr. +0.41 Kb
-Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.48 Kb
-Bacon: w/o subscr. 9.11 Kb, w/ subscr. +1.71 Kb
+Kefir: w/o subscr. 1.06 KiB, w/ subscr. +0.41 KiB
+Rx: w/o subscr. 0.53 KiB, w/ subscr. +1.48 KiB
+Bacon: w/o subscr. 9.11 KiB, w/ subscr. +1.71 KiB
 
 .scan(0, noop)
-Kefir: w/o subscr. 0.97 Kb, w/ subscr. +0.35 Kb
-Rx: w/o subscr. 0.54 Kb, w/ subscr. +1.17 Kb
-Bacon: w/o subscr. 6.80 Kb, w/ subscr. +1.90 Kb
+Kefir: w/o subscr. 0.97 KiB, w/ subscr. +0.35 KiB
+Rx: w/o subscr. 0.54 KiB, w/ subscr. +1.17 KiB
+Bacon: w/o subscr. 6.80 KiB, w/ subscr. +1.90 KiB
 
 .sequentially(0, [1, 2])
-Kefir: w/o subscr. 0.38 Kb, w/ subscr. +0.55 Kb
-Bacon: w/o subscr. 5.02 Kb, w/ subscr. +1.32 Kb
+Kefir: w/o subscr. 0.38 KiB, w/ subscr. +0.55 KiB
+Bacon: w/o subscr. 5.02 KiB, w/ subscr. +1.31 KiB
 
 .take(5)
-Kefir: w/o subscr. 1.05 Kb, w/ subscr. +0.35 Kb
-Rx: w/o subscr. 0.52 Kb, w/ subscr. +1.55 Kb
-Bacon: w/o subscr. 8.20 Kb, w/ subscr. +1.71 Kb
+Kefir: w/o subscr. 1.05 KiB, w/ subscr. +0.35 KiB
+Rx: w/o subscr. 0.52 KiB, w/ subscr. +1.55 KiB
+Bacon: w/o subscr. 8.20 KiB, w/ subscr. +1.71 KiB
 
 .flatMap(noop)
-Kefir: w/o subscr. 1.00 Kb, w/ subscr. +0.36 Kb
-Rx: w/o subscr. 0.94 Kb, w/ subscr. +2.51 Kb
-Bacon: w/o subscr. 5.91 Kb, w/ subscr. +2.71 Kb
+Kefir: w/o subscr. 1.00 KiB, w/ subscr. +0.36 KiB
+Rx: w/o subscr. 0.94 KiB, w/ subscr. +2.51 KiB
+Bacon: w/o subscr. 5.91 KiB, w/ subscr. +2.70 KiB
 
 .combine(stream, noop)
-Kefir: w/o subscr. 2.18 Kb, w/ subscr. +0.51 Kb
-Rx: w/o subscr. 0.81 Kb, w/ subscr. +2.93 Kb
-Bacon: w/o subscr. 20.99 Kb, w/ subscr. +5.01 Kb
+Kefir: w/o subscr. 2.18 KiB, w/ subscr. +0.51 KiB
+Rx: w/o subscr. 0.82 KiB, w/ subscr. +2.93 KiB
+Bacon: w/o subscr. 20.99 KiB, w/ subscr. +5.01 KiB
 
 .toProperty(1).sampledBy(stream, noop)
-Kefir: w/o subscr. 1.91 Kb, w/ subscr. +0.91 Kb
-Bacon: w/o subscr. 15.19 Kb, w/ subscr. +5.03 Kb
+Kefir: w/o subscr. 1.91 KiB, w/ subscr. +0.92 KiB
+Bacon: w/o subscr. 15.19 KiB, w/ subscr. +5.03 KiB
 
 .combineAsArray(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.97 Kb, w/ subscr. +0.79 Kb
-Rx: w/o subscr. 1.26 Kb, w/ subscr. +3.70 Kb
-Bacon: w/o subscr. 21.45 Kb, w/ subscr. +6.71 Kb
+Kefir: w/o subscr. 3.97 KiB, w/ subscr. +0.79 KiB
+Rx: w/o subscr. 1.26 KiB, w/ subscr. +3.70 KiB
+Bacon: w/o subscr. 21.45 KiB, w/ subscr. +6.72 KiB
 
 .mergeAll(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.75 Kb, w/ subscr. +0.79 Kb
-Rx: w/o subscr. 1.56 Kb, w/ subscr. +5.67 Kb
-Bacon: w/o subscr. 14.62 Kb, w/ subscr. +4.59 Kb
+Kefir: w/o subscr. 3.75 KiB, w/ subscr. +0.80 KiB
+Rx: w/o subscr. 1.56 KiB, w/ subscr. +5.67 KiB
+Bacon: w/o subscr. 14.62 KiB, w/ subscr. +4.59 KiB

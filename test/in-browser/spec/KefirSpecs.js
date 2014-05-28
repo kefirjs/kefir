@@ -110,7 +110,7 @@ function callFn(fnMeta, moreArgs){
   if (isFn(fn)) {
     return args ? fn.apply(context, args) : fn.call(context);
   } else {
-    return fn;
+    throw new Error('not a function ' + fn);
   }
 }
 

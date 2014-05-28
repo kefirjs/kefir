@@ -10,11 +10,11 @@ var Rx = require('rx');
 
 
 function toMb(x) {
-  return ( x / 1024 / 1024 ).toFixed(2) + ' Mb';
+  return ( x / 1024 / 1024 ).toFixed(2) + ' MiB';
 }
 
 function toKb(x) {
-  return ( x / 1024 ).toFixed(2) + ' Kb';
+  return ( x / 1024 ).toFixed(2) + ' KiB';
 }
 
 var __lastMemoryUsage, __lastTime;
