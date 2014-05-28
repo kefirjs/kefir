@@ -34,8 +34,8 @@ describe(".map()", function(){
     var mapped = prop.map(x2);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(10);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(10);
 
     var result = helpers.getOutput(mapped);
 

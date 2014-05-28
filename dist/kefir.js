@@ -387,10 +387,10 @@ inherit(Property, Observable, {
 
   __ClassName: 'Property',
 
-  hasCached: function(){
+  hasValue: function(){
     return this.__cached !== NOTHING;
   },
-  getCached: function(){
+  getValue: function(){
     return this.__cached;
   },
 
@@ -405,7 +405,7 @@ inherit(Property, Observable, {
     return this;
   },
   onValue: function() {
-    if ( this.hasCached() ) {
+    if ( this.hasValue() ) {
       callFn(arguments, [this.__cached])
     }
     return this.onNewValue.apply(this, arguments);
@@ -517,8 +517,8 @@ var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
     source.onEnd(this.__sendEnd, this);
-    if (source instanceof Property && this instanceof Property && source.hasCached()) {
-      this.__handle(source.getCached());
+    if (source instanceof Property && this instanceof Property && source.hasValue()) {
+      this.__handle(source.getValue());
     }
   },
   __handle: function(x){
@@ -585,7 +585,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( callFn(this.__fnMeta, [this.getCached(), x]) );
+    this.__sendValue( callFn(this.__fnMeta, [this.getValue(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
@@ -1181,7 +1181,7 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
     this.__plug(sources[i]);
   }
   this.__cachedValues = new Array(sources.length);
-  this.__hasCached = new Array(sources.length);
+  this.__hasValue = new Array(sources.length);
   this.__mapFnMeta = normFnMeta(mapFnMeta);
 }
 
@@ -1196,7 +1196,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     }
   },
   __handlePlugged: function(i, x) {
-    this.__hasCached[i] = true;
+    this.__hasValue[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
       if (this.__mapFnMeta) {
@@ -1207,8 +1207,8 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     }
   },
   __allCached: function(){
-    for (var i = 0; i < this.__hasCached.length; i++) {
-      if (!this.__hasCached[i]) {
+    for (var i = 0; i < this.__hasValue.length; i++) {
+      if (!this.__hasValue[i]) {
         return false;
       }
     }
@@ -1218,7 +1218,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
     this.__cachedValues = null;
-    this.__hasCached = null;
+    this.__hasValue = null;
     this.__mapFnMeta = null;
   }
 

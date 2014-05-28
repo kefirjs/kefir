@@ -36,8 +36,8 @@ describe(".diff()", function(){
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));
-    expect(diffs.hasCached()).toBe(true);
-    expect(diffs.getCached()).toBe(1);
+    expect(diffs.hasValue()).toBe(true);
+    expect(diffs.getValue()).toBe(1);
 
     var result = helpers.getOutput(diffs);
 
@@ -60,8 +60,8 @@ describe(".diff()", function(){
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));
-    expect(diffs.hasCached()).toBe(false);
-    expect(diffs.getCached()).toBe(Kefir.NOTHING);
+    expect(diffs.hasValue()).toBe(false);
+    expect(diffs.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(diffs);
 

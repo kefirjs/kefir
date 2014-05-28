@@ -2,8 +2,8 @@ var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
     source.onEnd(this.__sendEnd, this);
-    if (source instanceof Property && this instanceof Property && source.hasCached()) {
-      this.__handle(source.getCached());
+    if (source instanceof Property && this instanceof Property && source.hasValue()) {
+      this.__handle(source.getValue());
     }
   },
   __handle: function(x){
@@ -70,7 +70,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( callFn(this.__fnMeta, [this.getCached(), x]) );
+    this.__sendValue( callFn(this.__fnMeta, [this.getValue(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);

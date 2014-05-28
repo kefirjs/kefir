@@ -388,10 +388,10 @@ inherit(Property, Observable, {
 
   __ClassName: 'Property',
 
-  hasCached: function(){
+  hasValue: function(){
     return this.__cached !== NOTHING;
   },
-  getCached: function(){
+  getValue: function(){
     return this.__cached;
   },
 
@@ -406,7 +406,7 @@ inherit(Property, Observable, {
     return this;
   },
   onValue: function() {
-    if ( this.hasCached() ) {
+    if ( this.hasValue() ) {
       callFn(arguments, [this.__cached])
     }
     return this.onNewValue.apply(this, arguments);
@@ -518,8 +518,8 @@ var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
     source.onEnd(this.__sendEnd, this);
-    if (source instanceof Property && this instanceof Property && source.hasCached()) {
-      this.__handle(source.getCached());
+    if (source instanceof Property && this instanceof Property && source.hasValue()) {
+      this.__handle(source.getValue());
     }
   },
   __handle: function(x){
@@ -586,7 +586,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( callFn(this.__fnMeta, [this.getCached(), x]) );
+    this.__sendValue( callFn(this.__fnMeta, [this.getValue(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
@@ -1182,7 +1182,7 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
     this.__plug(sources[i]);
   }
   this.__cachedValues = new Array(sources.length);
-  this.__hasCached = new Array(sources.length);
+  this.__hasValue = new Array(sources.length);
   this.__mapFnMeta = normFnMeta(mapFnMeta);
 }
 
@@ -1197,7 +1197,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     }
   },
   __handlePlugged: function(i, x) {
-    this.__hasCached[i] = true;
+    this.__hasValue[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
       if (this.__mapFnMeta) {
@@ -1208,8 +1208,8 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     }
   },
   __allCached: function(){
-    for (var i = 0; i < this.__hasCached.length; i++) {
-      if (!this.__hasCached[i]) {
+    for (var i = 0; i < this.__hasValue.length; i++) {
+      if (!this.__hasValue[i]) {
         return false;
       }
     }
@@ -1219,7 +1219,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
     this.__cachedValues = null;
-    this.__hasCached = null;
+    this.__hasValue = null;
     this.__mapFnMeta = null;
   }
 
@@ -1679,8 +1679,8 @@ describe(".diff()", function(){
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));
-    expect(diffs.hasCached()).toBe(true);
-    expect(diffs.getCached()).toBe(1);
+    expect(diffs.hasValue()).toBe(true);
+    expect(diffs.getValue()).toBe(1);
 
     var result = helpers.getOutput(diffs);
 
@@ -1703,8 +1703,8 @@ describe(".diff()", function(){
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));
-    expect(diffs.hasCached()).toBe(false);
-    expect(diffs.getCached()).toBe(Kefir.NOTHING);
+    expect(diffs.hasValue()).toBe(false);
+    expect(diffs.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(diffs);
 
@@ -1764,8 +1764,8 @@ describe(".filter()", function(){
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
-    expect(filtered.hasCached()).toBe(true);
-    expect(filtered.getCached()).toBe(6);
+    expect(filtered.hasValue()).toBe(true);
+    expect(filtered.getValue()).toBe(6);
 
     var result = helpers.getOutput(filtered);
 
@@ -1790,8 +1790,8 @@ describe(".filter()", function(){
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
-    expect(filtered.hasCached()).toBe(false);
-    expect(filtered.getCached()).toBe(Kefir.NOTHING);
+    expect(filtered.hasValue()).toBe(false);
+    expect(filtered.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(filtered);
 
@@ -2384,8 +2384,8 @@ describe(".map()", function(){
     var mapped = prop.map(x2);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(10);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(10);
 
     var result = helpers.getOutput(mapped);
 
@@ -2930,21 +2930,21 @@ var helpers = require('../test-helpers');
 
 describe("Property", function(){
 
-  it("hasCached, getCached", function(){
+  it("hasValue, getValue", function(){
 
     var prop = new Kefir.Property();
 
-    expect(prop.hasCached()).toBe(false);
-    expect(prop.getCached()).toBe(Kefir.NOTHING);
+    expect(prop.hasValue()).toBe(false);
+    expect(prop.getValue()).toBe(Kefir.NOTHING);
 
     prop.__sendValue(1)
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(1);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(1);
 
     prop = new Kefir.Property(null, null, 2);
 
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(2);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(2);
 
   });
 
@@ -2992,35 +2992,35 @@ describe("Property", function(){
       log.push(x);
     })
 
-    expect(prop.hasCached()).toBe(false);
-    expect(prop.getCached()).toBe(Kefir.NOTHING);
+    expect(prop.hasValue()).toBe(false);
+    expect(prop.getValue()).toBe(Kefir.NOTHING);
     expect(log).toEqual([]);
 
     stream.__sendValue(1);
 
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(1);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(1);
     expect(log).toEqual([1]);
 
     stream.__sendValue(2);
 
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(2);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(2);
     expect(log).toEqual([1, 2]);
 
     stream.__sendEnd();
 
     expect(prop.isEnded()).toBe(true);
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(2);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(2);
 
 
     // with initial
 
     var prop2 = stream.toProperty(5);
 
-    expect(prop2.hasCached()).toBe(true);
-    expect(prop2.getCached()).toBe(5);
+    expect(prop2.hasValue()).toBe(true);
+    expect(prop2.getValue()).toBe(5);
 
   });
 
@@ -3037,8 +3037,8 @@ describe("Property", function(){
 
     var prop2 = prop.toProperty(5);
 
-    expect(prop2.hasCached()).toBe(true);
-    expect(prop2.getCached()).toBe(5);
+    expect(prop2.hasValue()).toBe(true);
+    expect(prop2.getValue()).toBe(5);
 
   });
 
@@ -3132,8 +3132,8 @@ describe(".reduce()", function(){
     var reduced = stream.reduce(0, sum);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
-    expect(reduced.hasCached()).toBe(false);
-    expect(reduced.getCached()).toBe(Kefir.NOTHING);
+    expect(reduced.hasValue()).toBe(false);
+    expect(reduced.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(reduced);
 
@@ -3155,8 +3155,8 @@ describe(".reduce()", function(){
     var reduced = prop.reduce(5, sum);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
-    expect(reduced.hasCached()).toBe(false);
-    expect(reduced.getCached()).toBe(Kefir.NOTHING);
+    expect(reduced.hasValue()).toBe(false);
+    expect(reduced.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(reduced);
 
@@ -3179,8 +3179,8 @@ describe(".reduce()", function(){
     var reduced = prop.reduce(5, sum);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
-    expect(reduced.hasCached()).toBe(false);
-    expect(reduced.getCached()).toBe(Kefir.NOTHING);
+    expect(reduced.hasValue()).toBe(false);
+    expect(reduced.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(reduced);
 
@@ -3333,8 +3333,8 @@ describe(".sampledBy()", function() {
       return a + b;
     });
     expect(sampled).toEqual(jasmine.any(Kefir.Property));
-    expect(sampled.hasCached()).toEqual(false);
-    expect(sampled.getCached()).toEqual(Kefir.NOTHING);
+    expect(sampled.hasValue()).toEqual(false);
+    expect(sampled.getValue()).toEqual(Kefir.NOTHING);
     result = helpers.getOutput(sampled);
     expect(result.xs).toEqual([]);
     prop.__sendValue(1);
@@ -3392,8 +3392,8 @@ describe(".scan()", function(){
     var scanned = stream.scan(0, sum);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
-    expect(scanned.hasCached()).toBe(true);
-    expect(scanned.getCached()).toBe(0);
+    expect(scanned.hasValue()).toBe(true);
+    expect(scanned.getValue()).toBe(0);
 
     var result = helpers.getOutput(scanned);
 
@@ -3415,8 +3415,8 @@ describe(".scan()", function(){
     var scanned = prop.scan(5, sum);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
-    expect(scanned.hasCached()).toBe(true);
-    expect(scanned.getCached()).toBe(11);
+    expect(scanned.hasValue()).toBe(true);
+    expect(scanned.getValue()).toBe(11);
 
     var result = helpers.getOutput(scanned);
 
@@ -3439,8 +3439,8 @@ describe(".scan()", function(){
     var scanned = prop.scan(5, sum);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
-    expect(scanned.hasCached()).toBe(true);
-    expect(scanned.getCached()).toBe(5);
+    expect(scanned.hasValue()).toBe(true);
+    expect(scanned.getValue()).toBe(5);
 
     var result = helpers.getOutput(scanned);
 
@@ -3558,8 +3558,8 @@ describe(".skipDuplicates()", function(){
     var mapped = prop.skipDuplicates();
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(5);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(5);
 
     var result = helpers.getOutput(mapped);
 
@@ -3591,8 +3591,8 @@ describe(".skipDuplicates()", function(){
     var mapped = prop.skipDuplicates();
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(false);
-    expect(mapped.getCached()).toBe(Kefir.NOTHING);
+    expect(mapped.hasValue()).toBe(false);
+    expect(mapped.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(mapped);
 
@@ -3653,8 +3653,8 @@ describe(".skipDuplicates()", function(){
     var mapped = prop.skipDuplicates(function(a, b){ return a == b });
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(5);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(5);
 
     var result = helpers.getOutput(mapped);
 
@@ -3722,8 +3722,8 @@ describe(".skipWhile(fn)", function(){
     var mapped = prop.skipWhile(lessThan3);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(false);
-    expect(mapped.getCached()).toBe(Kefir.NOTHING);
+    expect(mapped.hasValue()).toBe(false);
+    expect(mapped.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(mapped);
 
@@ -3747,8 +3747,8 @@ describe(".skipWhile(fn)", function(){
     var mapped = prop.skipWhile(lessThan3);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(5);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(5);
 
     var result = helpers.getOutput(mapped);
 

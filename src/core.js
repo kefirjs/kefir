@@ -216,10 +216,10 @@ inherit(Property, Observable, {
 
   __ClassName: 'Property',
 
-  hasCached: function(){
+  hasValue: function(){
     return this.__cached !== NOTHING;
   },
-  getCached: function(){
+  getValue: function(){
     return this.__cached;
   },
 
@@ -234,7 +234,7 @@ inherit(Property, Observable, {
     return this;
   },
   onValue: function() {
-    if ( this.hasCached() ) {
+    if ( this.hasValue() ) {
       callFn(arguments, [this.__cached])
     }
     return this.onNewValue.apply(this, arguments);

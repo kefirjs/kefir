@@ -15,8 +15,8 @@ describe(".scan()", function(){
     var scanned = stream.scan(0, sum);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
-    expect(scanned.hasCached()).toBe(true);
-    expect(scanned.getCached()).toBe(0);
+    expect(scanned.hasValue()).toBe(true);
+    expect(scanned.getValue()).toBe(0);
 
     var result = helpers.getOutput(scanned);
 
@@ -38,8 +38,8 @@ describe(".scan()", function(){
     var scanned = prop.scan(5, sum);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
-    expect(scanned.hasCached()).toBe(true);
-    expect(scanned.getCached()).toBe(11);
+    expect(scanned.hasValue()).toBe(true);
+    expect(scanned.getValue()).toBe(11);
 
     var result = helpers.getOutput(scanned);
 
@@ -62,8 +62,8 @@ describe(".scan()", function(){
     var scanned = prop.scan(5, sum);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
-    expect(scanned.hasCached()).toBe(true);
-    expect(scanned.getCached()).toBe(5);
+    expect(scanned.hasValue()).toBe(true);
+    expect(scanned.getValue()).toBe(5);
 
     var result = helpers.getOutput(scanned);
 

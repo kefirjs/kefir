@@ -40,8 +40,8 @@ describe(".skipDuplicates()", function(){
     var mapped = prop.skipDuplicates();
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(5);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(5);
 
     var result = helpers.getOutput(mapped);
 
@@ -73,8 +73,8 @@ describe(".skipDuplicates()", function(){
     var mapped = prop.skipDuplicates();
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(false);
-    expect(mapped.getCached()).toBe(Kefir.NOTHING);
+    expect(mapped.hasValue()).toBe(false);
+    expect(mapped.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(mapped);
 
@@ -135,8 +135,8 @@ describe(".skipDuplicates()", function(){
     var mapped = prop.skipDuplicates(function(a, b){ return a == b });
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
-    expect(mapped.hasCached()).toBe(true);
-    expect(mapped.getCached()).toBe(5);
+    expect(mapped.hasValue()).toBe(true);
+    expect(mapped.getValue()).toBe(5);
 
     var result = helpers.getOutput(mapped);
 

@@ -15,8 +15,8 @@ describe(".reduce()", function(){
     var reduced = stream.reduce(0, sum);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
-    expect(reduced.hasCached()).toBe(false);
-    expect(reduced.getCached()).toBe(Kefir.NOTHING);
+    expect(reduced.hasValue()).toBe(false);
+    expect(reduced.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(reduced);
 
@@ -38,8 +38,8 @@ describe(".reduce()", function(){
     var reduced = prop.reduce(5, sum);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
-    expect(reduced.hasCached()).toBe(false);
-    expect(reduced.getCached()).toBe(Kefir.NOTHING);
+    expect(reduced.hasValue()).toBe(false);
+    expect(reduced.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(reduced);
 
@@ -62,8 +62,8 @@ describe(".reduce()", function(){
     var reduced = prop.reduce(5, sum);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
-    expect(reduced.hasCached()).toBe(false);
-    expect(reduced.getCached()).toBe(Kefir.NOTHING);
+    expect(reduced.hasValue()).toBe(false);
+    expect(reduced.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(reduced);
 

@@ -5,21 +5,21 @@ var helpers = require('../test-helpers');
 
 describe("Property", function(){
 
-  it("hasCached, getCached", function(){
+  it("hasValue, getValue", function(){
 
     var prop = new Kefir.Property();
 
-    expect(prop.hasCached()).toBe(false);
-    expect(prop.getCached()).toBe(Kefir.NOTHING);
+    expect(prop.hasValue()).toBe(false);
+    expect(prop.getValue()).toBe(Kefir.NOTHING);
 
     prop.__sendValue(1)
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(1);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(1);
 
     prop = new Kefir.Property(null, null, 2);
 
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(2);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(2);
 
   });
 
@@ -67,35 +67,35 @@ describe("Property", function(){
       log.push(x);
     })
 
-    expect(prop.hasCached()).toBe(false);
-    expect(prop.getCached()).toBe(Kefir.NOTHING);
+    expect(prop.hasValue()).toBe(false);
+    expect(prop.getValue()).toBe(Kefir.NOTHING);
     expect(log).toEqual([]);
 
     stream.__sendValue(1);
 
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(1);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(1);
     expect(log).toEqual([1]);
 
     stream.__sendValue(2);
 
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(2);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(2);
     expect(log).toEqual([1, 2]);
 
     stream.__sendEnd();
 
     expect(prop.isEnded()).toBe(true);
-    expect(prop.hasCached()).toBe(true);
-    expect(prop.getCached()).toBe(2);
+    expect(prop.hasValue()).toBe(true);
+    expect(prop.getValue()).toBe(2);
 
 
     // with initial
 
     var prop2 = stream.toProperty(5);
 
-    expect(prop2.hasCached()).toBe(true);
-    expect(prop2.getCached()).toBe(5);
+    expect(prop2.hasValue()).toBe(true);
+    expect(prop2.getValue()).toBe(5);
 
   });
 
@@ -112,8 +112,8 @@ describe("Property", function(){
 
     var prop2 = prop.toProperty(5);
 
-    expect(prop2.hasCached()).toBe(true);
-    expect(prop2.getCached()).toBe(5);
+    expect(prop2.hasValue()).toBe(true);
+    expect(prop2.getValue()).toBe(5);
 
   });
 

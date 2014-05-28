@@ -38,8 +38,8 @@ describe(".filter()", function(){
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
-    expect(filtered.hasCached()).toBe(true);
-    expect(filtered.getCached()).toBe(6);
+    expect(filtered.hasValue()).toBe(true);
+    expect(filtered.getValue()).toBe(6);
 
     var result = helpers.getOutput(filtered);
 
@@ -64,8 +64,8 @@ describe(".filter()", function(){
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
-    expect(filtered.hasCached()).toBe(false);
-    expect(filtered.getCached()).toBe(Kefir.NOTHING);
+    expect(filtered.hasValue()).toBe(false);
+    expect(filtered.getValue()).toBe(Kefir.NOTHING);
 
     var result = helpers.getOutput(filtered);
 

@@ -269,7 +269,7 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
     this.__plug(sources[i]);
   }
   this.__cachedValues = new Array(sources.length);
-  this.__hasCached = new Array(sources.length);
+  this.__hasValue = new Array(sources.length);
   this.__mapFnMeta = normFnMeta(mapFnMeta);
 }
 
@@ -284,7 +284,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     }
   },
   __handlePlugged: function(i, x) {
-    this.__hasCached[i] = true;
+    this.__hasValue[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
       if (this.__mapFnMeta) {
@@ -295,8 +295,8 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     }
   },
   __allCached: function(){
-    for (var i = 0; i < this.__hasCached.length; i++) {
-      if (!this.__hasCached[i]) {
+    for (var i = 0; i < this.__hasValue.length; i++) {
+      if (!this.__hasValue[i]) {
         return false;
       }
     }
@@ -306,7 +306,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
     this.__cachedValues = null;
-    this.__hasCached = null;
+    this.__hasValue = null;
     this.__mapFnMeta = null;
   }
 

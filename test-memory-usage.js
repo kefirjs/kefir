@@ -1,6 +1,4 @@
-// I am not sure this tests are correct
-//
-// Run: node --expose-gc test-memory-usage.js
+// node --expose-gc test-memory-usage.js
 
 
 var Kefir = require('./dist/kefir.js');

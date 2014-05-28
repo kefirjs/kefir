@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Kefir.js &mdash; Bacon.js / RxJS inspired FRP library with focus on performance and low memory usage</title>
+    <meta name="description" content="Kefir.js &mdash; Bacon.js / RxJS inspired FRP library with focus on performance and low memory usage">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style type="text/css">
+      /*! normalize.css v3.0.1 | MIT License | git.io/normalize */
+      html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
+      body{margin:0}
+      article,aside,details,figcaption,figure,
+      footer,header,hgroup,main,nav,section,summary{display:block}
+      audio,canvas,progress,video{display:inline-block;vertical-align:baseline}
+      audio:not([controls]){display:none;height:0}[hidden],template{display:none}
+      a{background:0 0}
+      a:active,a:hover{outline:0}
+      abbr[title]{border-bottom:1px dotted}
+      b,strong{font-weight:700}
+      dfn{font-style:italic}
+      h1{font-size:2em;margin:.67em 0}
+      mark{background:#ff0;color:#000}
+      small{font-size:80%}
+      sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+      sup{top:-.5em}
+      sub{bottom:-.25em}
+      img{border:0}svg:not(:root){overflow:hidden}
+      figure{margin:1em 40px}
+      hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+      pre{overflow:auto}
+      code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}
+      button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}
+      button{overflow:visible}
+      button,select{text-transform:none}
+      button,html input[type=button],input[type=reset],input[type=submit]{
+        -webkit-appearance:button;cursor:pointer}
+      button[disabled],html input[disabled]{cursor:default}
+      button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+      input{line-height:normal}
+      input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button{height:auto}
+      input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;
+        -webkit-box-sizing:content-box;box-sizing:content-box}
+      input[type=search]::-webkit-search-cancel-button,
+      input[type=search]::-webkit-search-decoration{-webkit-appearance:none}
+      fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+      legend{border:0;padding:0}
+      textarea{overflow:auto}
+      optgroup{font-weight:700}
+      table{border-collapse:collapse;border-spacing:0}
+      td,th{padding:0}
+
+
+      body {
+        font-size: 14px;
+        line-height: 22px;
+        background: #f4f4f4;
+        color: #000;
+      }
+      a {
+        color: #476cff;
+        text-decoration: none;
+      }
+        a:hover {
+          text-decoration: underline;
+        }
+      p {
+        margin: 20px 0;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        padding-top: 20px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+        h2 small, h2 sup, h2 sub {
+          font-weight: normal;
+        }
+      table, tr, td {
+        margin: 0; padding: 0;
+      }
+        td {
+          padding: 2px 12px 2px 0;
+        }
+        table .rule {
+          height: 1px;
+          background: #ccc;
+          margin: 5px 0;
+        }
+      ul {
+        list-style-type: circle;
+        padding: 0 0 0 20px;
+      }
+        li {
+          margin-bottom: 10px;
+        }
+      code, pre, tt {
+        font-family: Monaco, Consolas, "Lucida Console", monospace;
+        font-size: 12px;
+        line-height: 18px;
+        font-style: normal;
+      }
+        tt {
+          padding: 0px 3px;
+          background: #fff;
+          border: 1px solid #ddd;
+          zoom: 1;
+          font-size: .8em;
+        }
+      code {
+        margin-left: 20px;
+      }
+      pre {
+        font-size: 12px;
+        padding: 2px 0 2px 15px;
+        border-left: 5px solid #bbb;
+        margin: 0px 0 30px;
+        overflow: auto;
+      }
+
+
+      .sidebar {
+        background: #fff;
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 170px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 15px 0 30px 30px;
+        border-right: 1px solid #bbb;
+        box-shadow: 0 0 20px #ccc;
+        font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
+      }
+        .sidebar a {
+          color: inherit;
+        }
+        .toc-title {
+          display: block;
+          font-weight: bold;
+          margin-top: 15px;
+        }
+        .toc-section {
+          font-size: 11px;
+          line-height: 14px;
+          margin: 5px 0 0 0;
+          padding-left: 0px;
+          list-style-type: none;
+        }
+          .toc-section li {
+            cursor: pointer;
+            margin: 0 0 3px 0;
+          }
+            .toc-section a {
+              text-decoration: none;
+            }
+              .toc-section a:hover {
+                text-decoration: underline;
+              }
+
+      .container {
+        max-width: 550px;
+        margin: 40px 10px 50px 230px;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+        .warning {
+          margin-top: 15px;
+          font: bold 11px Arial;
+          color: #770000;
+        }
+        .header {
+          font-size: 16px;
+          line-height: 30px;
+        }
+        .alias {
+          font-size: 14px;
+          font-style: italic;
+          margin-left: 20px;
+        }
+    </style>
+
+  </head>
+  <body>
+    <div class="sidebar">
+
+      <a class="toc-title" href="#">
+        Kefir.js <span class="version">(0.1.9)</span>
+      </a>
+
+      <ul class="toc-section">
+        <li><a href="#download">Download</a></li>
+        <li><a href="#npm">Install via NPM</a></li>
+        <li><a href="#bower">Install via Bower</a></li>
+      </ul>
+
+      <!-- <a class="toc-title" href="#introduction">
+        Introduction
+      </a> -->
+
+      <a class="toc-title" href="#static-methods">
+        Static methods<br>(Kefir.&mdash;)
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#from-poll">fromPoll</a></li>
+        <li>- <a href="#interval">interval</a></li>
+        <li>- <a href="#sequentially">sequentially</a></li>
+        <li>- <a href="#repeatedly">repeatedly</a></li>
+        <li>- <a href="#bus">bus</a></li>
+        <li>- <a href="#once">once</a></li>
+        <li>- <a href="#never">never</a></li>
+        <li>- <a href="#from-binder">fromBinder</a></li>
+        <li>- <a href="#kefir-merge">merge</a></li>
+        <li>- <a href="#kefir-combine">combine</a></li>
+        <li>- <a href="#on-values">onValues</a></li>
+      </ul>
+
+
+      <a class="toc-title" href="#observable">
+        Observable
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#on-value">onValue</a></li>
+        <li>- <a href="#off-value">offValue</a></li>
+        <li>- <a href="#on-error">onError</a></li>
+        <li>- <a href="#off-error">offError</a></li>
+        <li>- <a href="#on-end">onEnd</a></li>
+        <li>- <a href="#off-end">offEnd</a></li>
+
+        <li>- <a href="#map">map</a></li>
+        <li>- <a href="#filter">filter</a></li>
+        <li>- <a href="#take">take</a></li>
+        <li>- <a href="#take-while">takeWhile</a></li>
+        <li>- <a href="#skip">skip</a></li>
+        <li>- <a href="#skip-while">skipWhile</a></li>
+        <li>- <a href="#skip-duplicates">skipDuplicates</a></li>
+        <li>- <a href="#diff">diff</a></li>
+        <li>- <a href="#scan">scan</a></li>
+        <li>- <a href="#reduce">reduce</a></li>
+
+        <li>- <a href="#merge">merge</a></li>
+        <li>- <a href="#combine">combine</a></li>
+        <li>- <a href="#flat-map">flatMap</a></li>
+        <li>- <a href="#flat-map-latest">flatMapLatest</a></li>
+        <li>- <a href="#sampled-by">sampledBy</a></li>
+
+        <li>- <a href="#log">log</a></li>
+      </ul>
+
+
+
+      <a class="toc-title" href="#stream">
+        Stream
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#stream-on-new-value">onNewValue</a></li>
+        <li>- <a href="#stream-to-property">toProperty</a></li>
+      </ul>
+
+
+      <a class="toc-title" href="#property">
+        Property
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#property-on-new-value">onNewValue</a></li>
+        <li>- <a href="#has-value">hasValue</a></li>
+        <li>- <a href="#get-value">getValue</a></li>
+        <li>- <a href="#property-to-property">toProperty</a></li>
+        <li>- <a href="#changes">changes</a></li>
+      </ul>
+
+      <a class="toc-title" href="#bus">
+        Bus
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#push">push</a></li>
+        <li>- <a href="#bus-error">error</a></li>
+        <li>- <a href="#bus-end">end</a></li>
+        <li>- <a href="#plug">plug</a></li>
+        <li>- <a href="#unplug">unplug</a></li>
+      </ul>
+
+
+      <a class="toc-title" href="#special-values">
+        Special values
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#nothing">NOTHING</a></li>
+        <li>- <a href="#end">END</a></li>
+        <li>- <a href="#error">error</a></li>
+        <li>- <a href="#bunch">bunch</a></li>
+        <li>- <a href="#no-more">NO_MORE</a></li>
+      </ul>
+
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- =================================================================== -->
+    <!-- =================================================================== -->
+
+    <div class="container">
+
+      <h1>Kefir.js</h1>
+
+      <p>
+        Kefir &mdash; is an
+        <a href="http://en.wikipedia.org/wiki/Functional_reactive_programming"
+        >FRP (functional reactive programming)</a> library for
+        JavaScript inspired by
+        <a href="https://github.com/baconjs/bacon.js">Bacon.js</a>
+        and
+        <a href="http://reactive-extensions.github.io/RxJS/">RxJS</a>
+        with focus on high perfomance and low memory usage.<br>
+        It has nice Bacon.js like API and
+        RxJS's performance / memory usage characteristics.
+      </p>
+
+      <p>
+        Kefir has
+        <a href="https://github.com/pozadi/kefir"><img class="emoji" title=":octocat:" alt=":octocat:" src="https://assets-cdn.github.com/images/icons/emoji/octocat.png" height="20" width="20" align="absmiddle">
+        GitHub repository</a>, where you can
+        <a href="https://github.com/pozadi/kefir/pulls">send pull requests</a>,
+        <a href="https://github.com/pozadi/kefir/issues">report bugs</a>,
+        and have fun reading <a href="https://github.com/pozadi/kefir/tree/master/src">source code</a>.
+      </p>
+
+      <h2 id="download">Download <sup>(0.1.9)</sup></h2>
+
+      <table>
+        <tr>
+          <td><a href="dist/kefir.js">kefir.js</a></td>
+          <td><i>~ 30 kb</i></td>
+        </tr>
+        <tr>
+          <td><a href="dist/kefir.min.js">kefir.min.js</a></td>
+          <td><i>~ 5 kb (when gzipped)</i></td>
+        </tr>
+      </table>
+
+      <p>You can also
+        <a href="https://github.com/pozadi/kefir/tree/master/dist">get edge version from GitHub</a>,
+        but use it at your own risk</p>
+
+      <h2 id="npm">NPM</h2>
+
+      <pre>
+npm install kefir
+</pre>
+
+      <h2 id="bower">Bower</h2>
+
+      <pre>
+bower install kefir
+</pre>
+
+
+      <!-- <h2 id="introduction">Introduction</h2>
+
+      <p>TODO</p> -->
+
+      <p>
+        <img class="emoji" title=":construction:" alt=":construction:" src="https://assets-cdn.github.com/images/icons/emoji/construction.png" height="20" width="20" align="absmiddle">
+        As you can see docs aren't finished yet, but you can already get some info here.
+        If you have questions feel free to talk to me on
+        <a href="https://twitter.com/rpominov">twitter</a>,
+        <a href="https://github.com/pozadi/kefir/issues">github issues</a> or via
+        <a href="mailto:rpomionv@gmail.com">email</a>.
+      </p>
+
+      <p>
+        <a href="test/in-browser/SpecRunner.html">tests</a>
+      </p>
+
+
+
+      <h2 id="static-methods">Static methods (Kefir.&mdash;)</h2>
+
+      <p id="from-poll">
+        <b class="header">fromPoll</b><code>Kefir.fromPoll(interval, fn, [context], arg*)</code>
+      </p>
+
+      <p id="interval">
+        <b class="header">interval</b><code>Kefir.interval(interval, x)</code>
+      </p>
+
+      <p id="sequentially">
+        <b class="header">sequentially</b><code>Kefir.sequentially(interval, xs)</code>
+      </p>
+
+      <p id="repeatedly">
+        <b class="header">repeatedly</b><code>Kefir.repeatedly(interval, xs)</code>
+      </p>
+
+      <p id="bus">
+        <b class="header">bus</b><code>Kefir.bus()</code>
+      </p>
+
+      <p id="once">
+        <b class="header">once</b><code>Kefir.once(x)</code>
+      </p>
+
+      <p id="never">
+        <b class="header">never</b><code>Kefir.never()</code>
+      </p>
+
+      <p id="from-binder">
+        <b class="header">fromBinder</b><code>Kefir.fromBinder(fn)</code>
+      </p>
+
+      <p id="kefir-merge">
+        <b class="header">merge</b><code>Kefir.merge(observables), Kefir.merge(observable*)</code>
+      </p>
+
+      <p id="kefir-combine">
+        <b class="header">combine</b><code>Kefir.combine(observables, [fn], [context], arg*)</code>
+      </p>
+
+      <p id="on-values">
+        <b class="header">onValues</b><code>Kefir.onValues(observables, fn, [context], arg*)</code>
+      </p>
+
+
+
+
+      <h2 id="observable">Observable</h2>
+
+      <!-- <p>TODO: intro, what is Observable</p> -->
+
+
+      <p id="on-value">
+        <b class="header">onValue</b><code>observable.onValue(fn, [context], arg*)</code>
+      </p>
+      <p id="off-value">
+        <b class="header">offValue</b><code>observable.offValue(fn, [context], arg*)</code>
+      </p>
+      <p id="on-error">
+        <b class="header">onError</b><code>observable.onError(fn, [context], arg*)</code>
+      </p>
+      <p id="off-error">
+        <b class="header">offError</b><code>observable.offError(fn, [context], arg*)</code>
+      </p>
+      <p id="on-end">
+        <b class="header">onEnd</b><code>observable.onEnd(fn, [context], arg*)</code>
+      </p>
+      <p id="off-end">
+        <b class="header">offEnd</b><code>observable.offEnd(fn, [context], arg*)</code>
+      </p>
+
+      <p id="map">
+        <b class="header">map</b><code>observable.map(fn, [context], arg*)</code>
+      </p>
+      <p id="filter">
+        <b class="header">filter</b><code>observable.filter(fn, [context], arg*)</code>
+      </p>
+      <p id="take">
+        <b class="header">take</b><code>observable.take(n)</code>
+      </p>
+      <p id="take-while">
+        <b class="header">takeWhile</b><code>observable.takeWhile(fn, [context], arg*)</code>
+      </p>
+      <p id="skip">
+        <b class="header">skip</b><code>observable.skip(n)</code>
+      </p>
+      <p id="skip-while">
+        <b class="header">skipWhile</b><code>observable.skipWhile(fn, [context], arg*)</code>
+      </p>
+      <p id="skip-duplicates">
+        <b class="header">skipDuplicates</b><code>observable.skipDuplicates([fn])</code>
+      </p>
+      <p id="diff">
+        <b class="header">diff</b><code>observable.diff(start, fn, [context], arg*)</code>
+      </p>
+      <p id="scan">
+        <b class="header">scan</b><code>observable.scan(seed, fn, [context], arg*)</code>
+      </p>
+      <p id="reduce">
+        <b class="header">reduce</b><code>observable.reduce(seed, fn, [context], arg*)</code>
+      </p>
+
+      <p id="merge">
+        <b class="header">merge</b><code>observable.merge(observables), observable.merge(observable*)</code>
+      </p>
+      <p id="combine">
+        <b class="header">combine</b><code>observable.combine(observables, [fn], [context], arg*)</code>
+      </p>
+      <p id="flat-map">
+        <b class="header">flatMap</b><code>observable.flatMap(fn, [context], arg*)</code>
+      </p>
+      <p id="flat-map-latest">
+        <b class="header">flatMapLatest</b><code>observable.flatMapLatest(fn, [context], arg*)</code>
+      </p>
+      <p id="sampled-by">
+        <b class="header">sampledBy</b><code>observable.sampledBy(observable)</code>
+      </p>
+
+      <p id="log">
+        <b class="header">log</b><code>observable.log([name])</code>
+      </p>
+
+
+
+
+      <h2 id="stream">Stream</h2>
+
+      <!-- <p>TODO</p> -->
+
+
+      <p id="stream-on-new-value">
+        <b class="header">onNewValue</b><code>stream.onNewValue(fn, [context], arg*)</code>
+      </p>
+      <p id="stream-to-property">
+        <b class="header">toProperty</b><code>stream.toProperty([initial])</code>
+      </p>
+
+
+
+
+      <h2 id="property">Property</h2>
+
+      <!-- <p>TODO</p> -->
+
+
+      <p id="property-on-new-value">
+        <b class="header">onNewValue</b><code>property.onNewValue(fn, [context], arg*)</code>
+      </p>
+      <p id="has-value">
+        <b class="header">hasValue</b><code>property.hasValue()</code>
+      </p>
+      <p id="get-value">
+        <b class="header">getValue</b><code>property.getValue()</code>
+      </p>
+      <p id="property-to-property">
+        <b class="header">toProperty</b><code>property.toProperty([initial])</code>
+      </p>
+      <p id="changes">
+        <b class="header">changes</b><code>property.changes()</code>
+      </p>
+
+
+
+
+      <h2 id="bus">Bus</h2>
+
+      <!-- <p>TODO</p> -->
+
+
+      <p id="push">
+        <b class="header">push</b><code>bus.push(x)</code>
+      </p>
+      <p id="bus-error">
+        <b class="header">error</b><code>bus.error(e)</code>
+      </p>
+      <p id="bus-end">
+        <b class="header">end</b><code>bus.end()</code>
+      </p>
+      <p id="plug">
+        <b class="header">plug</b><code>bus.plug(observable)</code>
+      </p>
+      <p id="unplug">
+        <b class="header">unplug</b><code>bus.unplug(observable)</code>
+      </p>
+
+
+
+
+      <h2 id="special-values">Special values</h2>
+
+      <!-- <p>
+        Whenever you pass around <b>values</b>, for example
+        pass to <tt>bus.push()</tt>, you can use
+        <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">
+        <b>Special Values</b>
+        <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">.
+      </p> -->
+
+      <!-- full list
+      <ul>
+        <li><tt>.push()</tt>'ing to <tt>Bus</tt>,</li>
+        <li>returning from <tt>.map()</tt> callback,</li>
+        <li>or passing to <tt>sink()</tt> function in <tt>.fromBinder(),</tt></li>
+      </ul> -->
+
+
+      <!-- <p>TODO</p> -->
+
+
+      <p id="nothing">
+        <b class="header">NOTHING</b><code>Kefir.NOTHING</code>
+      </p>
+      <p id="end">
+        <b class="header">END</b><code>Kefir.END</code>
+      </p>
+      <p id="error">
+        <b class="header">error</b><code>Kefir.error(e)</code>
+      </p>
+      <p id="bunch">
+        <b class="header">bunch</b><code>Kefir.bunch(xs), Kefir.bunch(x*)</code>
+      </p>
+      <p id="no-more">
+        <b class="header">NO_MORE</b><code>Kefir.NO_MORE</code>
+      </p>
+
+
+    </div>
+
+  </body>
+</html>

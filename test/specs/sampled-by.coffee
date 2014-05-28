@@ -91,8 +91,8 @@ describe ".sampledBy()", ->
     sampled = stream.sampledBy(prop, (a, b) -> a + b)
 
     expect(sampled).toEqual(jasmine.any(Kefir.Property))
-    expect(sampled.hasCached()).toEqual(false)
-    expect(sampled.getCached()).toEqual(Kefir.NOTHING)
+    expect(sampled.hasValue()).toEqual(false)
+    expect(sampled.getValue()).toEqual(Kefir.NOTHING)
 
     result = helpers.getOutput(sampled)
 
