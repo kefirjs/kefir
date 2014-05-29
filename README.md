@@ -21,3 +21,15 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 [Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html)
 
+
+
+# Development
+
+To build `/dist` from `/src` and run tests on Node.js type this in console:
+
+    grunt
+
+To run memory usage tests:
+
+    node --expose-gc test-memory-usage.js
+
