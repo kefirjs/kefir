@@ -384,47 +384,168 @@ bower install kefir
       <h2 id="static-methods">Static methods (Kefir.&mdash;)</h2>
 
       <p id="from-poll">
-        <b class="header">fromPoll</b><code>Kefir.fromPoll(interval, fn, [context], arg*)</code>
+        <b class="header">fromPoll</b><code>stream = Kefir.fromPoll(interval, fn, [context], *arg)</code>
+        <br>
+        Returns a <b>Stream</b>.
+        When <b>stream</b> has subscribers, <b>fn</b> being polled with given <b>interval</b> (in milliseconds).
+        Values returned by <b>fn</b> will be delivered to subscribers.
+        <b>fn</b> can return <a href="#special-values">special values</a>.
+        When <b>fn</b> returns <tt>Kefir.END</tt> stream ends as well as polling of <b>fn</b>.
       </p>
+      <pre>
+var values = [1, 2, 3, Kefir.END];
+var stream = Kefir.fromPoll(100, function(){
+  return values.shift();
+});
+stream.log();
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [FromPollStream] &lt;value&gt; 2
+=&gt; [FromPollStream] &lt;value&gt; 3
+=&gt; [FromPollStream] &lt;end&gt;
+</pre>
 
       <p id="interval">
-        <b class="header">interval</b><code>Kefir.interval(interval, x)</code>
+        <b class="header">interval</b><code>stream = Kefir.interval(interval, value)</code>
+        <br>
+        Returns a <b>Stream</b>. Delivers <b>value</b> to <b>stream's</b> subscribers every
+        milliseconds <b>interval</b>. Never ends.
       </p>
+      <pre>
+var stream = Kefir.interval(100, 1);
+stream.log();
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; ...
+</pre>
 
       <p id="sequentially">
-        <b class="header">sequentially</b><code>Kefir.sequentially(interval, xs)</code>
+        <b class="header">sequentially</b><code>stream = Kefir.sequentially(interval, values)</code>
+        <br>
+        Returns a <b>Stream</b> containing given <b>values</b> (array).
+        Delivered with given <b>interval</b> in milliseconds. Ends after all values delivered.
       </p>
+      <pre>
+var stream = Kefir.sequentially(100, [1, 2, 3]);
+stream.log();
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [FromPollStream] &lt;value&gt; 2
+=&gt; [FromPollStream] &lt;value&gt; 3
+=&gt; [FromPollStream] &lt;end&gt;
+</pre>
 
       <p id="repeatedly">
-        <b class="header">repeatedly</b><code>Kefir.repeatedly(interval, xs)</code>
+        <b class="header">repeatedly</b><code>stream = Kefir.repeatedly(interval, values)</code>
+        <br>
+        Returns a <b>Stream</b>. Repeats given <b>values</b> (array) indefinitely with given <b>interval</b> in milliseconds. Never ends.
       </p>
+      <pre>
+var stream = Kefir.repeatedly(100, [1, 2]);
+stream.log();
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [FromPollStream] &lt;value&gt; 2
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [FromPollStream] &lt;value&gt; 2
+=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; ...
+</pre>
 
       <p id="bus">
-        <b class="header">bus</b><code>Kefir.bus()</code>
+        <b class="header">bus</b><code>bus = Kefir.bus()</code>
+        <br>
+        Returns a <b>Bus</b>. See <a href="#bus">Bus</a>.
       </p>
 
       <p id="once">
-        <b class="header">once</b><code>Kefir.once(x)</code>
+        <b class="header">once</b><code>stream = Kefir.once(value)</code>
+        <br>
+        Returns a <b>Stream</b>. Delivers <b>value</b> to first subscriber then ends.
       </p>
+      <pre>
+var stream = Kefir.once(1);
+stream.log();
+=&gt; [OnceStream] &lt;value&gt; 1
+=&gt; [OnceStream] &lt;end&gt;
+</pre>
 
       <p id="never">
-        <b class="header">never</b><code>Kefir.never()</code>
+        <b class="header">never</b><code>stream = Kefir.never()</code>
+        <br>
+        Returns a <b>Stream</b> that already ended.
       </p>
+      <pre>
+var stream = Kefir.never();
+stream.log();
+=&gt; [Stream | Kefir.never()] &lt;end&gt;
+</pre>
 
       <p id="from-binder">
-        <b class="header">fromBinder</b><code>Kefir.fromBinder(fn)</code>
+        <b class="header">fromBinder</b><code>stream = Kefir.fromBinder(subscribe)</code>
+        <br>
+        Returns a <b>Stream</b>.
+        The parameter <b>subscribe</b> is a function that accepts a sink
+        which is a function that your <b>subscribe</b> funtion can "push" values to.
+      </p>
+      <pre>
+var stream = Kefir.fromBinder(function(sink){
+  setTimeout(function(){
+    sink(1);
+    sink(2);
+    sink(Kefir.error('oops'));
+    sink(3);
+    sink(Kefir.END);
+  }, 0);
+});
+stream.log();
+=&gt; [FromBinderStream] &lt;value&gt; 1
+=&gt; [FromBinderStream] &lt;value&gt; 2
+=&gt; [FromBinderStream] &lt;error&gt; oops
+=&gt; [FromBinderStream] &lt;value&gt; 3
+=&gt; [FromBinderStream] &lt;end&gt;
+</pre>
+      <p>
+        You can pass <a href="#special-values">special values</a> to <b>sink</b>.
+      </p>
+      <p>
+        The <b>subscribe</b> function may return a function.
+        Let's call that function <b>unsubscribe</b>. This function will be called
+        when the last listener unsubscribes from <b>stream</b>.
+        You can use <b>unsubscribe</b> function to unsubscribe from your original
+        source of values, for example jQuery events listener.
+      </p>
+      <pre>
+var stream = Kefir.fromBinder(function(sink){
+  $('#button').on('click', sink);
+  return function(){
+    $('#button').off('click', sink);
+  }
+});
+stream.log();
+=&gt; [FromBinderStream] jQuery.Event {type: "click"...}
+=&gt; [FromBinderStream] jQuery.Event {type: "click"...}
+</pre>
+      <p>
+        The <b>subscribe</b> function will be called when the first stream
+        listener is added, and the <b>unsubscribe</b> function is called only
+        after the last listener has been removed. The subscribe-unsubscribe
+        cycle may of course be repeated indefinitely,
+        so prepare for multiple calls to the <b>subscribe</b> function.
+      </p>
+      <p>
+        <b>Kefir.fromBinder()</b> is a base build block upon which
+        you can build your own <b>Stream</b> with any original source of values.
       </p>
 
       <p id="kefir-merge">
-        <b class="header">merge</b><code>Kefir.merge(observables), Kefir.merge(observable*)</code>
+        <b class="header">merge</b><code>stream = Kefir.merge(observables), stream = Kefir.merge(*observable)</code>
       </p>
 
       <p id="kefir-combine">
-        <b class="header">combine</b><code>Kefir.combine(observables, [fn], [context], arg*)</code>
+        <b class="header">combine</b><code>stream = Kefir.combine(observables, [fn], [context], *arg)</code>
       </p>
 
       <p id="on-values">
-        <b class="header">onValues</b><code>Kefir.onValues(observables, fn, [context], arg*)</code>
+        <b class="header">onValues</b><code>Kefir.onValues(observables, fn, [context], *arg)</code>
       </p>
 
 
@@ -436,69 +557,69 @@ bower install kefir
 
 
       <p id="on-value">
-        <b class="header">onValue</b><code>observable.onValue(fn, [context], arg*)</code>
+        <b class="header">onValue</b><code>observable.onValue(fn, [context], *arg)</code>
       </p>
       <p id="off-value">
-        <b class="header">offValue</b><code>observable.offValue(fn, [context], arg*)</code>
+        <b class="header">offValue</b><code>observable.offValue(fn, [context], *arg)</code>
       </p>
       <p id="on-error">
-        <b class="header">onError</b><code>observable.onError(fn, [context], arg*)</code>
+        <b class="header">onError</b><code>observable.onError(fn, [context], *arg)</code>
       </p>
       <p id="off-error">
-        <b class="header">offError</b><code>observable.offError(fn, [context], arg*)</code>
+        <b class="header">offError</b><code>observable.offError(fn, [context], *arg)</code>
       </p>
       <p id="on-end">
-        <b class="header">onEnd</b><code>observable.onEnd(fn, [context], arg*)</code>
+        <b class="header">onEnd</b><code>observable.onEnd(fn, [context], *arg)</code>
       </p>
       <p id="off-end">
-        <b class="header">offEnd</b><code>observable.offEnd(fn, [context], arg*)</code>
+        <b class="header">offEnd</b><code>observable.offEnd(fn, [context], *arg)</code>
       </p>
 
       <p id="map">
-        <b class="header">map</b><code>observable.map(fn, [context], arg*)</code>
+        <b class="header">map</b><code>observable = observable.map(fn, [context], *arg)</code>
       </p>
       <p id="filter">
-        <b class="header">filter</b><code>observable.filter(fn, [context], arg*)</code>
+        <b class="header">filter</b><code>observable = observable.filter(fn, [context], *arg)</code>
       </p>
       <p id="take">
-        <b class="header">take</b><code>observable.take(n)</code>
+        <b class="header">take</b><code>observable = observable.take(n)</code>
       </p>
       <p id="take-while">
-        <b class="header">takeWhile</b><code>observable.takeWhile(fn, [context], arg*)</code>
+        <b class="header">takeWhile</b><code>observable = observable.takeWhile(fn, [context], *arg)</code>
       </p>
       <p id="skip">
-        <b class="header">skip</b><code>observable.skip(n)</code>
+        <b class="header">skip</b><code>observable = observable.skip(n)</code>
       </p>
       <p id="skip-while">
-        <b class="header">skipWhile</b><code>observable.skipWhile(fn, [context], arg*)</code>
+        <b class="header">skipWhile</b><code>observable = observable.skipWhile(fn, [context], *arg)</code>
       </p>
       <p id="skip-duplicates">
-        <b class="header">skipDuplicates</b><code>observable.skipDuplicates([fn])</code>
+        <b class="header">skipDuplicates</b><code>observable = observable.skipDuplicates([fn])</code>
       </p>
       <p id="diff">
-        <b class="header">diff</b><code>observable.diff(start, fn, [context], arg*)</code>
+        <b class="header">diff</b><code>observable = observable.diff(start, fn, [context], *arg)</code>
       </p>
       <p id="scan">
-        <b class="header">scan</b><code>observable.scan(seed, fn, [context], arg*)</code>
+        <b class="header">scan</b><code>property = observable.scan(seed, fn, [context], *arg)</code>
       </p>
       <p id="reduce">
-        <b class="header">reduce</b><code>observable.reduce(seed, fn, [context], arg*)</code>
+        <b class="header">reduce</b><code>property = observable.reduce(seed, fn, [context], *arg)</code>
       </p>
 
       <p id="merge">
-        <b class="header">merge</b><code>observable.merge(observables), observable.merge(observable*)</code>
+        <b class="header">merge</b><code>stream = observable.merge(observables), stream = observable.merge(*observable)</code>
       </p>
       <p id="combine">
-        <b class="header">combine</b><code>observable.combine(observables, [fn], [context], arg*)</code>
+        <b class="header">combine</b><code>stream = observable.combine(observables, [fn], [context], *arg)</code>
       </p>
       <p id="flat-map">
-        <b class="header">flatMap</b><code>observable.flatMap(fn, [context], arg*)</code>
+        <b class="header">flatMap</b><code>stream = observable.flatMap(fn, [context], *arg)</code>
       </p>
       <p id="flat-map-latest">
-        <b class="header">flatMapLatest</b><code>observable.flatMapLatest(fn, [context], arg*)</code>
+        <b class="header">flatMapLatest</b><code>stream = observable.flatMapLatest(fn, [context], *arg)</code>
       </p>
       <p id="sampled-by">
-        <b class="header">sampledBy</b><code>observable.sampledBy(observable)</code>
+        <b class="header">sampledBy</b><code>observable = observable.sampledBy(observable)</code>
       </p>
 
       <p id="log">
@@ -514,10 +635,10 @@ bower install kefir
 
 
       <p id="stream-on-new-value">
-        <b class="header">onNewValue</b><code>stream.onNewValue(fn, [context], arg*)</code>
+        <b class="header">onNewValue</b><code>stream.onNewValue(fn, [context], *arg)</code>
       </p>
       <p id="stream-to-property">
-        <b class="header">toProperty</b><code>stream.toProperty([initial])</code>
+        <b class="header">toProperty</b><code>property = stream.toProperty([initial])</code>
       </p>
 
 
@@ -529,19 +650,19 @@ bower install kefir
 
 
       <p id="property-on-new-value">
-        <b class="header">onNewValue</b><code>property.onNewValue(fn, [context], arg*)</code>
+        <b class="header">onNewValue</b><code>property.onNewValue(fn, [context], *arg)</code>
       </p>
       <p id="has-value">
-        <b class="header">hasValue</b><code>property.hasValue()</code>
+        <b class="header">hasValue</b><code>boolean = property.hasValue()</code>
       </p>
       <p id="get-value">
-        <b class="header">getValue</b><code>property.getValue()</code>
+        <b class="header">getValue</b><code>x = property.getValue()</code>
       </p>
       <p id="property-to-property">
-        <b class="header">toProperty</b><code>property.toProperty([initial])</code>
+        <b class="header">toProperty</b><code>property = property.toProperty([initial])</code>
       </p>
       <p id="changes">
-        <b class="header">changes</b><code>property.changes()</code>
+        <b class="header">changes</b><code>stream = property.changes()</code>
       </p>
 
 
@@ -553,7 +674,7 @@ bower install kefir
 
 
       <p id="push">
-        <b class="header">push</b><code>bus.push(x)</code>
+        <b class="header">push</b><code>bus.push(value)</code>
       </p>
       <p id="bus-error">
         <b class="header">error</b><code>bus.error(e)</code>
@@ -573,24 +694,13 @@ bower install kefir
 
       <h2 id="special-values">Special values</h2>
 
-      <!-- <p>
+      <p>
         Whenever you pass around <b>values</b>, for example
-        pass to <tt>bus.push()</tt>, you can use
+        pass to <b>bus.push()</b>, you can use
         <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">
         <b>Special Values</b>
         <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">.
-      </p> -->
-
-      <!-- full list
-      <ul>
-        <li><tt>.push()</tt>'ing to <tt>Bus</tt>,</li>
-        <li>returning from <tt>.map()</tt> callback,</li>
-        <li>or passing to <tt>sink()</tt> function in <tt>.fromBinder(),</tt></li>
-      </ul> -->
-
-
-      <!-- <p>TODO</p> -->
-
+      </p>
 
       <p id="nothing">
         <b class="header">NOTHING</b><code>Kefir.NOTHING</code>
@@ -602,7 +712,7 @@ bower install kefir
         <b class="header">error</b><code>Kefir.error(e)</code>
       </p>
       <p id="bunch">
-        <b class="header">bunch</b><code>Kefir.bunch(xs), Kefir.bunch(x*)</code>
+        <b class="header">bunch</b><code>Kefir.bunch(values), Kefir.bunch(*value)</code>
       </p>
       <p id="no-more">
         <b class="header">NO_MORE</b><code>Kefir.NO_MORE</code>
@@ -611,5 +721,8 @@ bower install kefir
 
     </div>
 
+
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="dist/kefir.js"></script>
   </body>
 </html>
