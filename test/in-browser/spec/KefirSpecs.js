@@ -850,10 +850,13 @@ var SampledByMixin = {
     } else {
       Stream.call(this);
     }
-    WithSourceStreamMixin.__Constructor.call(this, sampler);
-    this.__lastValue = NOTHING;
     this.__fnMeta = normFnMeta(fnMeta);
     this.__mainStream = main;
+    this.__lastValue = NOTHING;
+    if (main instanceof Property && main.hasValue()) {
+      this.__lastValue = main.getValue();
+    }
+    WithSourceStreamMixin.__Constructor.call(this, sampler);
   },
   __handle: function(y){
     if (this.__lastValue !== NOTHING) {
@@ -3355,7 +3358,20 @@ describe(".sampledBy()", function() {
       xs: [5, 6, 11]
     });
   });
-  return it(".scan() and errors", function() {
+  it("propert.sampledBy(property, fn) both has initial values", function() {
+    var prop1, prop2, result, sampled;
+    prop1 = new Kefir.Property(null, null, 1);
+    prop2 = new Kefir.Property(null, null, 2);
+    sampled = prop1.sampledBy(prop2, function(a, b) {
+      return a + b;
+    });
+    expect(sampled).toEqual(jasmine.any(Kefir.Property));
+    expect(sampled.hasValue()).toEqual(true);
+    expect(sampled.getValue()).toEqual(3);
+    result = helpers.getOutput(sampled);
+    return expect(result.xs).toEqual([3]);
+  });
+  return it(".sampledBy() and errors", function() {
     var result, sampled, stream1, stream2;
     stream1 = new Kefir.Stream();
     stream2 = new Kefir.Stream();
