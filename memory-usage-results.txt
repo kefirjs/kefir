@@ -20,12 +20,12 @@ Bacon: w/o subscr. 4.09 KiB, w/ subscr. +0.95 KiB
 .never()
 Kefir: w/o subscr. -0.00 KiB, w/ subscr. -0.00 KiB
 Rx: w/o subscr. 0.23 KiB, w/ subscr. -0.00 KiB
-Bacon: w/o subscr. 4.03 KiB, w/ subscr. +0.89 KiB
+Bacon: w/o subscr. 4.04 KiB, w/ subscr. +0.89 KiB
 
 .toProperty(1)
-Kefir: w/o subscr. 0.97 KiB, w/ subscr. +0.36 KiB
+Kefir: w/o subscr. 0.98 KiB, w/ subscr. +0.36 KiB
 Rx: w/o subscr. 1.22 KiB, w/ subscr. +1.18 KiB
-Bacon: w/o subscr. 7.88 KiB, w/ subscr. +1.92 KiB
+Bacon: w/o subscr. 7.88 KiB, w/ subscr. +1.91 KiB
 
 .toProperty(1).changes()
 Kefir: w/o subscr. 1.27 KiB, w/ subscr. +0.52 KiB
@@ -43,7 +43,7 @@ Bacon: w/o subscr. 8.27 KiB, w/ subscr. +1.71 KiB
 
 .skipDuplicates(noop)
 Kefir: w/o subscr. 1.06 KiB, w/ subscr. +0.41 KiB
-Rx: w/o subscr. 0.53 KiB, w/ subscr. +1.48 KiB
+Rx: w/o subscr. 0.52 KiB, w/ subscr. +1.48 KiB
 Bacon: w/o subscr. 9.11 KiB, w/ subscr. +1.71 KiB
 
 .scan(0, noop)
@@ -53,7 +53,11 @@ Bacon: w/o subscr. 6.80 KiB, w/ subscr. +1.90 KiB
 
 .sequentially(0, [1, 2])
 Kefir: w/o subscr. 0.38 KiB, w/ subscr. +0.55 KiB
-Bacon: w/o subscr. 5.02 KiB, w/ subscr. +1.31 KiB
+Bacon: w/o subscr. 5.02 KiB, w/ subscr. +1.32 KiB
+
+.later(0, 1)
+Kefir: w/o subscr. 0.08 KiB, w/ subscr. +0.44 KiB
+Bacon: w/o subscr. 4.85 KiB, w/ subscr. +1.32 KiB
 
 .take(5)
 Kefir: w/o subscr. 1.05 KiB, w/ subscr. +0.35 KiB
@@ -67,7 +71,7 @@ Bacon: w/o subscr. 5.91 KiB, w/ subscr. +2.70 KiB
 
 .combine(stream, noop)
 Kefir: w/o subscr. 2.18 KiB, w/ subscr. +0.51 KiB
-Rx: w/o subscr. 0.82 KiB, w/ subscr. +2.93 KiB
+Rx: w/o subscr. 0.81 KiB, w/ subscr. +2.93 KiB
 Bacon: w/o subscr. 20.99 KiB, w/ subscr. +5.01 KiB
 
 .toProperty(1).sampledBy(stream, noop)
@@ -77,9 +81,9 @@ Bacon: w/o subscr. 15.19 KiB, w/ subscr. +5.03 KiB
 .combineAsArray(stream1, stream2, stream3, stream4)
 Kefir: w/o subscr. 3.97 KiB, w/ subscr. +0.79 KiB
 Rx: w/o subscr. 1.26 KiB, w/ subscr. +3.70 KiB
-Bacon: w/o subscr. 21.45 KiB, w/ subscr. +6.72 KiB
+Bacon: w/o subscr. 21.45 KiB, w/ subscr. +6.71 KiB
 
 .mergeAll(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.75 KiB, w/ subscr. +0.80 KiB
+Kefir: w/o subscr. 3.75 KiB, w/ subscr. +0.79 KiB
 Rx: w/o subscr. 1.56 KiB, w/ subscr. +5.67 KiB
 Bacon: w/o subscr. 14.62 KiB, w/ subscr. +4.59 KiB

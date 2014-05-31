@@ -212,6 +212,7 @@
         <li>- <a href="#bus">bus</a></li>
         <li>- <a href="#once">once</a></li>
         <li>- <a href="#never">never</a></li>
+        <li>- <a href="#later">later</a></li>
         <li>- <a href="#from-binder">fromBinder</a></li>
         <li>- <a href="#kefir-merge">merge</a></li>
         <li>- <a href="#kefir-combine">combine</a></li>
@@ -475,6 +476,18 @@ stream.log();
 var stream = Kefir.never();
 stream.log();
 =&gt; [Stream | Kefir.never()] &lt;end&gt;
+</pre>
+
+      <p id="later">
+        <b class="header">later</b><code>stream = Kefir.later(wait, value)</code>
+        <br>
+        TODO: description
+      </p>
+      <pre>
+var stream = Kefir.later(100, 1);
+stream.log();
+=&gt; [LaterStream] &lt;value&gt; 1
+=&gt; [LaterStream] &lt;end&gt;
 </pre>
 
       <p id="from-binder">

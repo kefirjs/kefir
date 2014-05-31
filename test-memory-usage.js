@@ -289,6 +289,18 @@ createNObservable('Bacon', 700, function(){
 
 
 
+title('.later(0, 1)')
+
+createNObservable('Kefir', 700, function(){
+  return Kefir.later(0, 1);
+})
+
+createNObservable('Bacon', 700, function(){
+  return Bacon.later(0, 1);
+})
+
+
+
 
 
 title('.take(5)')

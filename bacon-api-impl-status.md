@@ -31,7 +31,7 @@ For detailed descriptions of features see
 | `Bacon.sequentially(interval, values)` | :rocket: | `Kefir.sequentially(interval, values)` |
 | `Bacon.repeatedly(interval, values)` | :rocket: | `Kefir.repeatedly(interval, values)` |
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
-| `Bacon.later(delay, value)` | :broken_heart: |  |
+| `Bacon.later(delay, value)` | :rocket: | `Kefir.later(delay, value)` |
 | `new Bacon.EventStream(subscribe)` | :broken_heart: |  |
 | `property.changes()` | :rocket: | `property.changes()` |
 | `property.toEventStream()` | :broken_heart: |  |
