@@ -445,7 +445,7 @@ Observable.prototype.log = function(name) {
 
 
 
-// Never
+// Kefir.never()
 
 var neverObj = new Stream();
 neverObj.__sendEnd();
@@ -457,7 +457,7 @@ Kefir.never = function() {
 
 
 
-// Once
+// Kefir.once(x)
 
 Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
@@ -487,11 +487,11 @@ Kefir.once = function(x) {
 
 
 
-// fromBinder
+// Kefir.fromBinder(fn)
 
-Kefir.FromBinderStream = function FromBinderStream(subscribe){
+Kefir.FromBinderStream = function FromBinderStream(subscribeFnMeta){
   Stream.call(this);
-  this.__subscribe = subscribe;
+  this.__subscribeFnMeta = normFnMeta(subscribeFnMeta);
 }
 
 inherit(Kefir.FromBinderStream, Stream, {
@@ -499,9 +499,9 @@ inherit(Kefir.FromBinderStream, Stream, {
   __ClassName: 'FromBinderStream',
   __onFirstIn: function(){
     var _this = this;
-    this.__usubscriber = this.__subscribe(function(x){
+    this.__usubscriber = callFn(this.__subscribeFnMeta, [function(x){
       _this.__sendAny(x);
-    });
+    }]);
   },
   __onLastOut: function(){
     if (isFn(this.__usubscriber)) {
@@ -511,13 +511,13 @@ inherit(Kefir.FromBinderStream, Stream, {
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__subscribe = null;
+    this.__subscribeFnMeta = null;
   }
 
 })
 
-Kefir.fromBinder = function(subscribe){
-  return new Kefir.FromBinderStream(subscribe);
+Kefir.fromBinder = function(/*subscribe[, context[, arg1, arg2...]]*/){
+  return new Kefir.FromBinderStream(arguments);
 }
 
 var WithSourceStreamMixin = {
@@ -817,7 +817,7 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 
 
-// .skipWhile(f)
+// .skipWhile(fn)
 
 var skipWhileMapFn = function(x){
   if (this.skip && callFn(this.fnMeta, [x])) {
@@ -831,12 +831,6 @@ var skipWhileMapFn = function(x){
 Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
   return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
 }
-
-
-
-
-
-
 
 // TODO
 //
@@ -1014,7 +1008,7 @@ var PluggableMixin = {
 
 
 
-// Bus
+// Kefir.bus()
 
 Kefir.Bus = function Bus(){
   Stream.call(this);
@@ -1061,7 +1055,7 @@ Kefir.bus = function(){
 
 
 
-// FlatMap
+// .flatMap()
 
 Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta){
   Stream.call(this);
@@ -1115,7 +1109,7 @@ Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 
 
-// FlatMapLatest
+// .flatMapLatest()
 
 Kefir.FlatMapLatestStream = function FlatMapLatestStream(){
   Kefir.FlatMappedStream.apply(this, arguments);
@@ -1141,7 +1135,7 @@ Observable.prototype.flatMapLatest = function(/*fn[, context[, arg1, arg2, ...]]
 
 
 
-// Merge
+// .merge()
 
 Kefir.MergedStream = function MergedStream(){
   Stream.call(this);
@@ -1185,7 +1179,7 @@ Observable.prototype.merge = function() {
 
 
 
-// Combine
+// .combine()
 
 Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
   Stream.call(this);
@@ -1259,7 +1253,6 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
 
 // TODO
 //
-// observable.delay(wait)
 // observable.throttle(wait, leading, trailing)
 // observable.debounce(wait, immediate)
 // http://underscorejs.org/#defer
@@ -1373,7 +1366,7 @@ Property.prototype.delay = function(wait) {
 
 
 
-// FromPoll
+// Kefir.fromPoll()
 
 var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
   Stream.call(this);
@@ -1409,7 +1402,7 @@ Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/){
 
 
 
-// Interval
+// Kefir.interval()
 
 Kefir.interval = function(interval, x){
   return new FromPollStream(interval, [id, null, x]);
@@ -1417,7 +1410,7 @@ Kefir.interval = function(interval, x){
 
 
 
-// Sequentially
+// Kefir.sequentially()
 
 var sequentiallyHelperFn = function(){
   if (this.xs.length === 0) {
@@ -1435,7 +1428,7 @@ Kefir.sequentially = function(interval, xs){
 
 
 
-// Repeatedly
+// Kefir.repeatedly()
 
 var repeatedlyHelperFn = function(){
   this.i = (this.i + 1) % this.xs.length;
@@ -2416,6 +2409,37 @@ describe("Kefir.fromBinder()", function(){
       ended: true,
       xs: [1, 2, 3, 4],
       errors: ['e1', 'e2']
+    });
+
+  });
+
+
+
+
+  it("with context and args", function() {
+
+    var context = {
+      send: null
+    }
+
+    var obs = Kefir.fromBinder(function(a, b, send){
+      context.send = send;
+      context.a = a;
+      context.b = b;
+    }, context, 'a', 'b');
+
+    var result = helpers.getOutputAndErrors(obs);
+
+    expect(context.send).toEqual(jasmine.any(Function))
+    expect(context.a).toBe('a')
+    expect(context.b).toBe('b')
+
+    context.send(1);
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: []
     });
 
   });

@@ -1,6 +1,5 @@
 // TODO
 //
-// observable.delay(wait)
 // observable.throttle(wait, leading, trailing)
 // observable.debounce(wait, immediate)
 // http://underscorejs.org/#defer
@@ -114,7 +113,7 @@ Property.prototype.delay = function(wait) {
 
 
 
-// FromPoll
+// Kefir.fromPoll()
 
 var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
   Stream.call(this);
@@ -150,7 +149,7 @@ Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/){
 
 
 
-// Interval
+// Kefir.interval()
 
 Kefir.interval = function(interval, x){
   return new FromPollStream(interval, [id, null, x]);
@@ -158,7 +157,7 @@ Kefir.interval = function(interval, x){
 
 
 
-// Sequentially
+// Kefir.sequentially()
 
 var sequentiallyHelperFn = function(){
   if (this.xs.length === 0) {
@@ -176,7 +175,7 @@ Kefir.sequentially = function(interval, xs){
 
 
 
-// Repeatedly
+// Kefir.repeatedly()
 
 var repeatedlyHelperFn = function(){
   this.i = (this.i + 1) % this.xs.length;

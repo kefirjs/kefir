@@ -71,6 +71,37 @@ describe("Kefir.fromBinder()", function(){
 
 
 
+  it("with context and args", function() {
+
+    var context = {
+      send: null
+    }
+
+    var obs = Kefir.fromBinder(function(a, b, send){
+      context.send = send;
+      context.a = a;
+      context.b = b;
+    }, context, 'a', 'b');
+
+    var result = helpers.getOutputAndErrors(obs);
+
+    expect(context.send).toEqual(jasmine.any(Function))
+    expect(context.a).toBe('a')
+    expect(context.b).toBe('b')
+
+    context.send(1);
+
+    expect(result).toEqual({
+      ended: false,
+      xs: [1],
+      errors: []
+    });
+
+  });
+
+
+
+
 
 
 });
