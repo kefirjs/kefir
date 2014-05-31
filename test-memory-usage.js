@@ -399,3 +399,15 @@ createNObservable('Bacon', 500, function(){
   return Bacon.mergeAll(baseBacon(), baseBacon(), baseBacon(), baseBacon());
 })
 
+
+
+
+title('.fromBinder(noop)')
+
+createNObservable('Kefir', 700, function(){
+  return Kefir.fromBinder(noop);
+})
+
+createNObservable('Bacon', 700, function(){
+  return Bacon.fromBinder(noop);
+})
