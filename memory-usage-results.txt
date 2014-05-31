@@ -43,12 +43,12 @@ Bacon: w/o subscr. 8.27 KiB, w/ subscr. +1.71 KiB
 
 .skipDuplicates(noop)
 Kefir: w/o subscr. 1.06 KiB, w/ subscr. +0.41 KiB
-Rx: w/o subscr. 0.52 KiB, w/ subscr. +1.48 KiB
+Rx: w/o subscr. 0.53 KiB, w/ subscr. +1.48 KiB
 Bacon: w/o subscr. 9.11 KiB, w/ subscr. +1.71 KiB
 
 .scan(0, noop)
 Kefir: w/o subscr. 0.97 KiB, w/ subscr. +0.35 KiB
-Rx: w/o subscr. 0.54 KiB, w/ subscr. +1.16 KiB
+Rx: w/o subscr. 0.54 KiB, w/ subscr. +1.17 KiB
 Bacon: w/o subscr. 6.80 KiB, w/ subscr. +1.90 KiB
 
 .sequentially(0, [1, 2])
@@ -64,28 +64,33 @@ Kefir: w/o subscr. 1.06 KiB, w/ subscr. +0.35 KiB
 Rx: w/o subscr. 0.52 KiB, w/ subscr. +1.55 KiB
 Bacon: w/o subscr. 8.20 KiB, w/ subscr. +1.71 KiB
 
+.delay(1)
+Kefir: w/o subscr. 0.97 KiB, w/ subscr. +0.36 KiB
+Rx: w/o subscr. 0.56 KiB, w/ subscr. +3.08 KiB
+Bacon: w/o subscr. 7.11 KiB, w/ subscr. +2.71 KiB
+
 .flatMap(noop)
 Kefir: w/o subscr. 1.00 KiB, w/ subscr. +0.36 KiB
 Rx: w/o subscr. 0.94 KiB, w/ subscr. +2.51 KiB
-Bacon: w/o subscr. 5.91 KiB, w/ subscr. +2.70 KiB
+Bacon: w/o subscr. 5.90 KiB, w/ subscr. +2.68 KiB
 
 .combine(stream, noop)
 Kefir: w/o subscr. 2.18 KiB, w/ subscr. +0.51 KiB
-Rx: w/o subscr. 0.81 KiB, w/ subscr. +2.93 KiB
+Rx: w/o subscr. 0.81 KiB, w/ subscr. +3.06 KiB
 Bacon: w/o subscr. 20.99 KiB, w/ subscr. +5.01 KiB
 
 .toProperty(1).sampledBy(stream, noop)
-Kefir: w/o subscr. 1.91 KiB, w/ subscr. +0.92 KiB
+Kefir: w/o subscr. 1.91 KiB, w/ subscr. +0.79 KiB
 Bacon: w/o subscr. 15.19 KiB, w/ subscr. +5.03 KiB
 
 .combineAsArray(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.97 KiB, w/ subscr. +0.79 KiB
+Kefir: w/o subscr. 3.98 KiB, w/ subscr. +0.79 KiB
 Rx: w/o subscr. 1.26 KiB, w/ subscr. +3.70 KiB
-Bacon: w/o subscr. 21.46 KiB, w/ subscr. +6.71 KiB
+Bacon: w/o subscr. 21.45 KiB, w/ subscr. +6.72 KiB
 
 .mergeAll(stream1, stream2, stream3, stream4)
-Kefir: w/o subscr. 3.75 KiB, w/ subscr. +0.79 KiB
-Rx: w/o subscr. 1.56 KiB, w/ subscr. +5.67 KiB
+Kefir: w/o subscr. 3.75 KiB, w/ subscr. +1.06 KiB
+Rx: w/o subscr. 1.56 KiB, w/ subscr. +5.41 KiB
 Bacon: w/o subscr. 14.62 KiB, w/ subscr. +4.59 KiB
 
 .fromBinder(noop)

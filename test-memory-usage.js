@@ -320,6 +320,23 @@ createNObservable('Bacon', 700, function(){
 
 
 
+title('.delay(1)')
+
+createNObservable('Kefir', 700, function(){
+  return baseKefir().delay(1);
+})
+
+createNObservable('Rx', 700, function(){
+  return baseRx().delay(1);
+})
+
+createNObservable('Bacon', 700, function(){
+  return baseBacon().delay(1);
+})
+
+
+
+
 title('.flatMap(noop)')
 
 createNObservable('Kefir', 700, function(){

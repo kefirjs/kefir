@@ -1256,6 +1256,122 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
   return Kefir.combine(streams).onValue(callFn, null, fnMeta);
 }
 
+// TODO
+//
+// observable.delay(wait)
+// observable.throttle(wait, leading, trailing)
+// observable.debounce(wait, immediate)
+// http://underscorejs.org/#defer
+
+
+
+
+
+// Kefir.later()
+
+Kefir.LaterStream = function LaterStream(wait, value) {
+  Stream.call(this);
+  this.__value = value;
+  this.__wait = wait;
+}
+
+inherit(Kefir.LaterStream, Stream, {
+
+  __ClassName: 'LaterStream',
+
+  __onFirstIn: function(){
+    var _this = this;
+    setTimeout(function(){
+      _this.__sendAny(_this.__value);
+      _this.__sendEnd();
+    }, this.__wait);
+  },
+
+  __clear: function(){
+    Stream.prototype.__clear.call(this);
+    this.__value = null;
+    this.__wait = null;
+  }
+
+});
+
+Kefir.later = function(wait, value) {
+  return new Kefir.LaterStream(wait, value);
+}
+
+
+
+
+
+// .delay()
+
+var DelayedMixin = {
+  __Constructor: function(source, wait) {
+    this.__source = source;
+    this.__wait = wait;
+    source.onEnd(this.__sendEndLater, this);
+  },
+  __sendLater: function(x){
+    var _this = this;
+    setTimeout(function(){  _this.__sendValue(x)  }, this.__wait);
+  },
+  __sendEndLater: function(){
+    var _this = this;
+    setTimeout(function(){  _this.__sendEnd()  }, this.__wait);
+  },
+  __onFirstIn: function(){
+    this.__source.onNewValue('__sendLater', this);
+    this.__source.onError('__sendError', this);
+  },
+  __onLastOut: function(){
+    this.__source.offValue('__sendLater', this);
+    this.__source.offError('__sendError', this);
+  },
+  __clear: function(){
+    Observable.prototype.__clear.call(this);
+    this.__source = null;
+    this.__wait = null;
+  }
+}
+
+
+Kefir.DelayedStream = function DelayedStream(source, wait) {
+  Stream.call(this);
+  DelayedMixin.__Constructor.call(this, source, wait);
+}
+
+inherit(Kefir.DelayedStream, Stream, DelayedMixin, {
+  __ClassName: 'DelayedStream'
+});
+
+Stream.prototype.delay = function(wait) {
+  return new Kefir.DelayedStream(this, wait);
+}
+
+
+Kefir.DelayedProperty = function DelayedProperty(source, wait) {
+  Property.call(this);
+  DelayedMixin.__Constructor.call(this, source, wait);
+  if (source.hasValue()) {
+    this.__sendValue(source.getValue());
+  }
+}
+
+inherit(Kefir.DelayedProperty, Property, DelayedMixin, {
+  __ClassName: 'DelayedProperty'
+});
+
+Property.prototype.delay = function(wait) {
+  return new Kefir.DelayedProperty(this, wait);
+}
+
+
+
+
+
+
+
+
 // FromPoll
 
 var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
@@ -1327,44 +1443,6 @@ var repeatedlyHelperFn = function(){
 
 Kefir.repeatedly = function(interval, xs){
   return new FromPollStream(interval, [repeatedlyHelperFn, {i: -1, xs: xs}]);
-}
-
-// TODO
-//
-// observable.delay(wait)
-// observable.throttle(wait, leading, trailing)
-// observable.debounce(wait, immediate)
-// http://underscorejs.org/#defer
-
-
-Kefir.LaterStream = function LaterStream(wait, value) {
-  Stream.call(this);
-  this.__value = value;
-  this.__wait = wait;
-}
-
-inherit(Kefir.LaterStream, Stream, {
-
-  __ClassName: 'LaterStream',
-
-  __onFirstIn: function(){
-    var _this = this;
-    setTimeout(function(){
-      _this.__sendAny(_this.__value);
-      _this.__sendEnd();
-    }, this.__wait);
-  },
-
-  __clear: function(){
-    Stream.prototype.__clear.call(this);
-    this.__value = null;
-    this.__wait = null;
-  }
-
-});
-
-Kefir.later = function(wait, value) {
-  return new Kefir.LaterStream(wait, value);
 }
 
 // TODO

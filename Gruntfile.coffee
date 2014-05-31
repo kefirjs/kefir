@@ -63,7 +63,6 @@ module.exports = (grunt) ->
             'src/one-source.js'
             'src/sampled-by.js'
             'src/multiple-sources.js'
-            'src/poll.js'
             'src/time.js'
             'src/buffer.js'
             'src/errors.js'
