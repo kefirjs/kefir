@@ -3,6 +3,9 @@
 // observable.filter(property)
 // observable.takeWhile(property)
 // observable.skipWhile(property)
+//
+// observable.awaiting(otherObservable)
+// stream.skipUntil(stream2)
 
 
 

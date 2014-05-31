@@ -2,6 +2,7 @@
 //
 // Kefir.constant(x)
 // Kefir.fromArray(values)
+// Kefir.fromCallback(fn)
 
 
 

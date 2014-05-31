@@ -436,6 +436,7 @@ Observable.prototype.log = function(name) {
 //
 // Kefir.constant(x)
 // Kefir.fromArray(values)
+// Kefir.fromCallback(fn)
 
 
 
@@ -837,6 +838,9 @@ Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) 
 // observable.filter(property)
 // observable.takeWhile(property)
 // observable.skipWhile(property)
+//
+// observable.awaiting(otherObservable)
+// stream.skipUntil(stream2)
 
 
 
@@ -1323,7 +1327,7 @@ Kefir.repeatedly = function(interval, xs){
 
 // TODO
 //
-// observable.wait(wait)
+// observable.delay(wait)
 // observable.throttle(wait, leading, trailing)
 // observable.debounce(wait, immediate)
 // http://underscorejs.org/#defer
@@ -1358,6 +1362,33 @@ inherit(Kefir.LaterStream, Stream, {
 Kefir.later = function(wait, value) {
   return new Kefir.LaterStream(wait, value);
 }
+
+// TODO
+//
+// stream.bufferWithTime(delay)
+// stream.bufferWithTime(f)
+// stream.bufferWithCount(count)
+// stream.bufferWithTimeOrCount(delay, count)
+
+// TODO
+//
+// observable.mapError(f)
+// observable.errors()
+// observable.skipErrors()
+// observable.endOnError(f)
+
+// TODO
+//
+// observable.not()
+// property.and(other)
+// property.or(other)
+//
+// http://underscorejs.org/#pluck
+// http://underscorejs.org/#invoke
+
+// TODO
+//
+// Model = Bus + Property + lenses
 
 
   if (typeof define === 'function' && define.amd) {

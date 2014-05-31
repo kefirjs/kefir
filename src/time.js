@@ -1,6 +1,6 @@
 // TODO
 //
-// observable.wait(wait)
+// observable.delay(wait)
 // observable.throttle(wait, leading, trailing)
 // observable.debounce(wait, immediate)
 // http://underscorejs.org/#defer

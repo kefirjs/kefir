@@ -65,6 +65,10 @@ module.exports = (grunt) ->
             'src/multiple-sources.js'
             'src/poll.js'
             'src/time.js'
+            'src/buffer.js'
+            'src/errors.js'
+            'src/sugar.js'
+            'src/model.js'
           ]
 
     jasmine_node:
