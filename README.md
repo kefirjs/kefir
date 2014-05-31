@@ -19,7 +19,7 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
 
-[Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html)
+[Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch)
 
 
 
