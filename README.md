@@ -31,5 +31,9 @@ To build `/dist` from `/src` and run tests on Node.js type this in console:
 
 To run memory tests:
 
-    node --expose-gc test-memory-usage.js
+    node --expose-gc test/perf/memory.js
+
+To run perfomance tests:
+
+    node test/perf/benchmark.js
 
