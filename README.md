@@ -5,7 +5,7 @@ inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high perfomance and low memory usage.
 It has nice Bacon.js like API
-and RxJS's performance / memory usage characteristics (see [memory test results](https://github.com/pozadi/kefir/blob/master/memory-usage-results.txt)).
+and RxJS's performance / memory usage characteristics.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
