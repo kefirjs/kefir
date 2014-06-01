@@ -181,16 +181,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.toProperty(1)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().toProperty(1);
+  return tmpSingleBase.toProperty(1);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().publishValue(1).refCount()
+  return tmpSingleBase.publishValue(1).refCount()
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().toProperty(1);
+  return tmpSingleBase.toProperty(1);
 })
 
 
@@ -198,12 +201,14 @@ createNObservable('Bacon', 700, function(){
 
 title('.toProperty(1).changes()')
 
+var tmpSingleBase = baseKefir().toProperty(1);
 createNObservable('Kefir', 700, function(){
-  return baseKefir().toProperty(1).changes();
+  return tmpSingleBase.changes();
 })
 
+var tmpSingleBase = baseBacon().toProperty(1);
 createNObservable('Bacon', 700, function(){
-  return baseBacon().toProperty(1).changes();
+  return tmpSingleBase.changes();
 })
 
 
@@ -211,16 +216,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.map(noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().map(noop);
+  return tmpSingleBase.map(noop);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().map(noop);
+  return tmpSingleBase.map(noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().map(noop);
+  return tmpSingleBase.map(noop);
 })
 
 
@@ -228,16 +236,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.filter(noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().filter(noop);
+  return tmpSingleBase.filter(noop);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().filter(noop);
+  return tmpSingleBase.filter(noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().filter(noop);
+  return tmpSingleBase.filter(noop);
 })
 
 
@@ -245,16 +256,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.skipDuplicates(noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().skipDuplicates(noop);
+  return tmpSingleBase.skipDuplicates(noop);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().distinctUntilChanged(noop);
+  return tmpSingleBase.distinctUntilChanged(noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().skipDuplicates(noop);
+  return tmpSingleBase.skipDuplicates(noop);
 })
 
 
@@ -262,16 +276,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.scan(0, noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().scan(0, noop);
+  return tmpSingleBase.scan(0, noop);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().scan(0, noop);
+  return tmpSingleBase.scan(0, noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().scan(0, noop);
+  return tmpSingleBase.scan(0, noop);
 })
 
 
@@ -305,16 +322,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.take(5)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().take(5);
+  return tmpSingleBase.take(5);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().take(5);
+  return tmpSingleBase.take(5);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().take(5);
+  return tmpSingleBase.take(5);
 })
 
 
@@ -322,32 +342,38 @@ createNObservable('Bacon', 700, function(){
 
 title('.delay(1)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().delay(1);
+  return tmpSingleBase.delay(1);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().delay(1);
+  return tmpSingleBase.delay(1);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().delay(1);
+  return tmpSingleBase.delay(1);
 })
 
 
 
 title('.throttle(1)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().throttle(1);
+  return tmpSingleBase.throttle(1);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().throttle(1);
+  return tmpSingleBase.throttle(1);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().throttle(1);
+  return tmpSingleBase.throttle(1);
 })
 
 
@@ -355,16 +381,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.flatMap(noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().flatMap(noop);
+  return tmpSingleBase.flatMap(noop);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().flatMap(noop);
+  return tmpSingleBase.flatMap(noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().flatMap(noop);
+  return tmpSingleBase.flatMap(noop);
 })
 
 
@@ -372,16 +401,19 @@ createNObservable('Bacon', 700, function(){
 
 title('.combine(stream, noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().combine(baseKefir(), noop);
+  return tmpSingleBase.combine(baseKefir(), noop);
 })
 
+var tmpSingleBase = baseRx();
 createNObservable('Rx', 700, function(){
-  return baseRx().combineLatest(baseRx(), noop);
+  return tmpSingleBase.combineLatest(baseRx(), noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().combine(baseBacon(), noop);
+  return tmpSingleBase.combine(baseBacon(), noop);
 })
 
 
@@ -390,12 +422,14 @@ createNObservable('Bacon', 700, function(){
 
 title('.toProperty(1).sampledBy(stream, noop)')
 
+var tmpSingleBase = baseKefir();
 createNObservable('Kefir', 700, function(){
-  return baseKefir().toProperty(1).sampledBy(baseKefir(), noop);
+  return tmpSingleBase.toProperty(1).sampledBy(baseKefir(), noop);
 })
 
+var tmpSingleBase = baseBacon();
 createNObservable('Bacon', 700, function(){
-  return baseBacon().toProperty(1).sampledBy(baseBacon(), noop);
+  return tmpSingleBase.toProperty(1).sampledBy(baseBacon(), noop);
 })
 
 
