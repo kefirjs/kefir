@@ -1375,7 +1375,7 @@ Property.prototype.delay = function(wait) {
 
 // .throttle(wait, {leading, trailing})
 
-var ThrotledMixin = {
+var ThrottledMixin = {
 
   __Constructor: function(source, wait, options){
     this.__source = source;
@@ -1457,34 +1457,34 @@ var ThrotledMixin = {
 
 };
 
-Kefir.ThrotledStream = function ThrotledStream() {
+Kefir.ThrottledStream = function ThrottledStream() {
   Stream.call(this);
-  ThrotledMixin.__Constructor.apply(this, arguments);
+  ThrottledMixin.__Constructor.apply(this, arguments);
 }
 
-inherit(Kefir.ThrotledStream, Stream, ThrotledMixin, {
-  __ClassName: 'ThrotledStream'
+inherit(Kefir.ThrottledStream, Stream, ThrottledMixin, {
+  __ClassName: 'ThrottledStream'
 });
 
 Stream.prototype.throttle = function(wait, options) {
-  return new Kefir.ThrotledStream(this, wait, options);
+  return new Kefir.ThrottledStream(this, wait, options);
 }
 
 
-Kefir.ThrotledProperty = function ThrotledProperty(source) {
+Kefir.ThrottledProperty = function ThrottledProperty(source) {
   Property.call(this);
-  ThrotledMixin.__Constructor.apply(this, arguments);
+  ThrottledMixin.__Constructor.apply(this, arguments);
   if (source.hasValue()) {
     this.__sendValue(source.getValue());
   }
 }
 
-inherit(Kefir.ThrotledProperty, Property, ThrotledMixin, {
-  __ClassName: 'ThrotledProperty'
+inherit(Kefir.ThrottledProperty, Property, ThrottledMixin, {
+  __ClassName: 'ThrottledProperty'
 });
 
 Property.prototype.throttle = function(wait, options) {
-  return new Kefir.ThrotledProperty(this, wait, options);
+  return new Kefir.ThrottledProperty(this, wait, options);
 }
 
 
