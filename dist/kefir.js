@@ -172,7 +172,17 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+var now = Date.now ?
+  function() { return Date.now() } :
+  function() { return new Date().getTime() };
 
+function get(map, key, notFound){
+  if (map && key in map) {
+    return map[key];
+  } else {
+    return notFound;
+  }
+}
 
 var Kefir = {};
 
@@ -1252,7 +1262,6 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
 
 // TODO
 //
-// observable.throttle(wait, leading, trailing)
 // observable.debounce(wait, immediate)
 // http://underscorejs.org/#defer
 
@@ -1359,6 +1368,123 @@ Property.prototype.delay = function(wait) {
 }
 
 
+
+
+
+
+// .throttle(wait, {leading, trailing})
+
+var ThrotledMixin = {
+
+  __Constructor: function(source, wait, options){
+    this.__source = source;
+    this.__wait = wait;
+    this.__trailingCallValue = null;
+    this.__trailingCallTimeoutId = null;
+    this.__endAfterTrailingCall = false;
+    this.__lastCallTime = 0;
+    this.__leading = get(options, 'leading', true);
+    this.__trailing = get(options, 'trailing', true);
+    var _this = this;
+    this.__makeTrailingCallBinded = function(){  _this.__makeTrailingCall()  };
+    source.onEnd(this.__sendEndLater, this);
+  },
+
+  __sendEndLater: function(){
+    if (this.__trailingCallTimeoutId) {
+      this.__endAfterTrailingCall = true;
+    } else {
+      this.__sendEnd();
+    }
+  },
+
+  __scheduleTralingCall: function(value, wait){
+    if (this.__trailingCallTimeoutId) {
+      this.__cancelTralingCall();
+    }
+    this.__trailingCallValue = value;
+    this.__trailingCallTimeoutId = setTimeout(this.__makeTrailingCallBinded, wait);
+  },
+  __cancelTralingCall: function(){
+    if (this.__trailingCallTimeoutId !== null) {
+      clearTimeout(this.__trailingCallTimeoutId);
+      this.__trailingCallTimeoutId = null;
+    }
+  },
+  __makeTrailingCall: function(){
+    this.__sendValue(this.__trailingCallValue);
+    this.__trailingCallTimeoutId = null;
+    this.__trailingCallValue = null;
+    this.__lastCallTime = !this.__leading ? 0 : now();
+    if (this.__endAfterTrailingCall) {
+      this.__sendEnd();
+    }
+  },
+
+  __handleValueFromSource: function(x){
+    var curTime = now();
+    if (this.__lastCallTime === 0 && !this.__leading) {
+      this.__lastCallTime = curTime;
+    }
+    var remaining = this.__wait - (curTime - this.__lastCallTime);
+    if (remaining <= 0) {
+      this.__cancelTralingCall();
+      this.__lastCallTime = curTime;
+      this.__sendValue(x);
+    } else if (this.__trailing) {
+      this.__scheduleTralingCall(x, remaining);
+    }
+  },
+
+  __onFirstIn: function(){
+    this.__source.onNewValue('__handleValueFromSource', this);
+    this.__source.onError('__sendError', this);
+  },
+  __onLastOut: function(){
+    this.__source.offValue('__handleValueFromSource', this);
+    this.__source.offError('__sendError', this);
+  },
+
+  __clear: function(){
+    Observable.prototype.__clear.call(this);
+    this.__source = null;
+    this.__wait = null;
+    this.__trailingCallValue = null;
+    this.__trailingCallTimeoutId = null;
+    this.__makeTrailingCallBinded = null;
+  }
+
+};
+
+Kefir.ThrotledStream = function ThrotledStream() {
+  Stream.call(this);
+  ThrotledMixin.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.ThrotledStream, Stream, ThrotledMixin, {
+  __ClassName: 'ThrotledStream'
+});
+
+Stream.prototype.throttle = function(wait, options) {
+  return new Kefir.ThrotledStream(this, wait, options);
+}
+
+
+Kefir.ThrotledProperty = function ThrotledProperty(source) {
+  Property.call(this);
+  ThrotledMixin.__Constructor.apply(this, arguments);
+  if (source.hasValue()) {
+    this.__sendValue(source.getValue());
+  }
+}
+
+inherit(Kefir.ThrotledProperty, Property, ThrotledMixin, {
+  __ClassName: 'ThrotledProperty'
+});
+
+Property.prototype.throttle = function(wait, options) {
+  return new Kefir.ThrotledProperty(this, wait, options);
+}
 
 
 

@@ -1,12 +1,19 @@
 var Kefir = require('../../dist/kefir.js');
 var helpers = require('../test-helpers');
+var sinon = require('sinon');
 
 
 
 describe("Kefir.fromPoll()", function(){
 
+  var clock;
+
   beforeEach(function() {
-    jasmine.Clock.useMock();
+    clock = sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    clock.restore();
   });
 
   function pollArray(values, interval){
@@ -30,19 +37,19 @@ describe("Kefir.fromPoll()", function(){
 
     expect(log).toEqual([]);
 
-    jasmine.Clock.tick(10);
+    clock.tick(10);
     expect(log).toEqual([]);
 
-    jasmine.Clock.tick(21);
+    clock.tick(21);
     expect(log).toEqual([1]);
 
-    jasmine.Clock.tick(30);
+    clock.tick(30);
     expect(log).toEqual([1, 2]);
 
-    jasmine.Clock.tick(30);
+    clock.tick(30);
     expect(log).toEqual([1, 2, 3]);
 
-    jasmine.Clock.tick(30);
+    clock.tick(30);
     expect(stream.isEnded()).toBe(true);
     expect(log).toEqual([1, 2, 3]);
 

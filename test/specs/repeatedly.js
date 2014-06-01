@@ -1,12 +1,19 @@
 var Kefir = require('../../dist/kefir.js');
 var helpers = require('../test-helpers');
+var sinon = require('sinon');
 
 
 
 describe("Kefir.repeatedly()", function(){
 
+  var clock;
+
   beforeEach(function() {
-    jasmine.Clock.useMock();
+    clock = sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    clock.restore();
   });
 
   it("ok", function(){
@@ -17,22 +24,22 @@ describe("Kefir.repeatedly()", function(){
 
     expect(result.xs).toEqual([]);
 
-    jasmine.Clock.tick(10);
+    clock.tick(10);
     expect(result.xs).toEqual([]);
 
-    jasmine.Clock.tick(21);
+    clock.tick(21);
     expect(result.xs).toEqual([2]);
 
-    jasmine.Clock.tick(30);
+    clock.tick(30);
     expect(result.xs).toEqual([2, 4]);
 
-    jasmine.Clock.tick(15);
+    clock.tick(15);
     expect(result.xs).toEqual([2, 4]);
 
-    jasmine.Clock.tick(15);
+    clock.tick(15);
     expect(result.xs).toEqual([2, 4, 2]);
 
-    jasmine.Clock.tick(90);
+    clock.tick(90);
     expect(result.xs).toEqual([2, 4, 2, 4, 2, 4]);
 
   });

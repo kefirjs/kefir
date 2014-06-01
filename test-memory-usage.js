@@ -336,6 +336,22 @@ createNObservable('Bacon', 700, function(){
 
 
 
+title('.throttle(1)')
+
+createNObservable('Kefir', 700, function(){
+  return baseKefir().throttle(1);
+})
+
+createNObservable('Rx', 700, function(){
+  return baseRx().throttle(1);
+})
+
+createNObservable('Bacon', 700, function(){
+  return baseBacon().throttle(1);
+})
+
+
+
 
 title('.flatMap(noop)')
 

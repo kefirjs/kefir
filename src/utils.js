@@ -166,4 +166,14 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+var now = Date.now ?
+  function() { return Date.now() } :
+  function() { return new Date().getTime() };
 
+function get(map, key, notFound){
+  if (map && key in map) {
+    return map[key];
+  } else {
+    return notFound;
+  }
+}

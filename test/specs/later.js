@@ -1,12 +1,19 @@
 var Kefir = require('../../dist/kefir.js');
 var helpers = require('../test-helpers');
+var sinon = require('sinon');
 
 
 
 describe("Kefir.later()", function(){
 
+  var clock;
+
   beforeEach(function() {
-    jasmine.Clock.useMock();
+    clock = sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    clock.restore();
   });
 
   it("ok", function(){
@@ -17,10 +24,10 @@ describe("Kefir.later()", function(){
 
     expect(result.xs).toEqual([]);
 
-    jasmine.Clock.tick(10);
+    clock.tick(10);
     expect(result.xs).toEqual([]);
 
-    jasmine.Clock.tick(21);
+    clock.tick(21);
     expect(result.xs).toEqual([2]);
     expect(result.ended).toEqual(true);
 
@@ -40,11 +47,11 @@ describe("Kefir.later()", function(){
     expect(result.xs).toEqual([]);
     expect(result2).toBe(null);
 
-    jasmine.Clock.tick(16);
+    clock.tick(16);
     expect(result.xs).toEqual([]);
     expect(result2.xs).toEqual([]);
 
-    jasmine.Clock.tick(15);
+    clock.tick(15);
     expect(result.xs).toEqual([2]);
     expect(result2.xs).toEqual([2]);
     expect(result.ended).toEqual(true);
@@ -63,7 +70,7 @@ describe("Kefir.later()", function(){
     stream.onValue(fn);
     stream.offValue(fn);
 
-    jasmine.Clock.tick(31);
+    clock.tick(31);
 
     expect(calls).toBe(0);
     expect(stream.isEnded()).toBe(true);
@@ -79,11 +86,11 @@ describe("Kefir.later()", function(){
     expect(result.xs).toEqual([]);
     expect(result.errors).toEqual([]);
 
-    jasmine.Clock.tick(10);
+    clock.tick(10);
     expect(result.xs).toEqual([]);
     expect(result.errors).toEqual([]);
 
-    jasmine.Clock.tick(21);
+    clock.tick(21);
     expect(result.xs).toEqual([]);
     expect(result.errors).toEqual(['e']);
     expect(result.ended).toEqual(true);

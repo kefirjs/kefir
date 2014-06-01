@@ -1,13 +1,20 @@
 var Kefir = require('../../dist/kefir.js');
 var helpers = require('../test-helpers');
+var sinon = require('sinon');
 
 
 
 describe(".delay()", function(){
 
 
+  var clock;
+
   beforeEach(function() {
-    jasmine.Clock.useMock();
+    clock = sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    clock.restore();
   });
 
   it("stream.delay()", function(){
@@ -24,28 +31,28 @@ describe(".delay()", function(){
     stream.__sendValue(1);
     expect(result.xs).toEqual([]);
 
-    jasmine.Clock.tick(50);
+    clock.tick(50);
     expect(result.xs).toEqual([]);
 
-    jasmine.Clock.tick(51);
+    clock.tick(51);
     expect(result.xs).toEqual([1]);
 
     stream.__sendValue(2);
-    jasmine.Clock.tick(20);
+    clock.tick(20);
     stream.__sendValue(3);
 
     expect(result.xs).toEqual([1]);
 
-    jasmine.Clock.tick(81);
+    clock.tick(81);
     expect(result.xs).toEqual([1, 2]);
 
-    jasmine.Clock.tick(20);
+    clock.tick(20);
     expect(result.xs).toEqual([1, 2, 3]);
 
     stream.__sendEnd();
     expect(result.ended).toBe(false);
 
-    jasmine.Clock.tick(101);
+    clock.tick(101);
     expect(result.ended).toBe(true);
 
   });
@@ -69,28 +76,28 @@ describe(".delay()", function(){
     property.__sendValue(1);
     expect(result.xs).toEqual([0]);
 
-    jasmine.Clock.tick(50);
+    clock.tick(50);
     expect(result.xs).toEqual([0]);
 
-    jasmine.Clock.tick(51);
+    clock.tick(51);
     expect(result.xs).toEqual([0, 1]);
 
     property.__sendValue(2);
-    jasmine.Clock.tick(20);
+    clock.tick(20);
     property.__sendValue(3);
 
     expect(result.xs).toEqual([0, 1]);
 
-    jasmine.Clock.tick(81);
+    clock.tick(81);
     expect(result.xs).toEqual([0, 1, 2]);
 
-    jasmine.Clock.tick(20);
+    clock.tick(20);
     expect(result.xs).toEqual([0, 1, 2, 3]);
 
     property.__sendEnd();
     expect(result.ended).toBe(false);
 
-    jasmine.Clock.tick(101);
+    clock.tick(101);
     expect(result.ended).toBe(true);
 
   });

@@ -60,7 +60,7 @@ For detailed descriptions of features see
 | `observable.takeUntil(stream)` | :broken_heart: |  |
 | `observable.skip(n)` | :rocket: | `observable.skip(n)` |
 | `observable.delay(delay)` | :rocket: | `observable.delay(delay)` |
-| `observable.throttle(delay)` | :broken_heart: |  |
+| `observable.throttle(delay)` | :rocket: | `observable.throttle(delay)` |
 | `observable.debounce(delay)` | :broken_heart: |  |
 | `observable.debounceImmediate(delay)` | :broken_heart: |  |
 | `observable.doAction(f)` | :broken_heart: |  |
