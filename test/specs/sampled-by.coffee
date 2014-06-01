@@ -123,9 +123,25 @@ describe ".sampledBy()", ->
     )
 
 
+  it "propert.sampledBy(property, fn) both has initial values", ->
+
+    prop1 = new Kefir.Property(null, null, 1)
+    prop2 = new Kefir.Property(null, null, 2)
+
+    sampled = prop1.sampledBy(prop2, (a, b) -> a + b)
+
+    expect(sampled).toEqual(jasmine.any(Kefir.Property))
+    expect(sampled.hasValue()).toEqual(true)
+    expect(sampled.getValue()).toEqual(3)
+
+    result = helpers.getOutput(sampled)
+
+    expect(result.xs).toEqual [3]
 
 
-  it ".scan() and errors", ->
+
+
+  it ".sampledBy() and errors", ->
 
     stream1 = new Kefir.Stream()
     stream2 = new Kefir.Stream()

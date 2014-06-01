@@ -3,6 +3,9 @@
 // observable.filter(property)
 // observable.takeWhile(property)
 // observable.skipWhile(property)
+//
+// observable.awaiting(otherObservable)
+// stream.skipUntil(stream2)
 
 
 
@@ -16,10 +19,13 @@ var SampledByMixin = {
     } else {
       Stream.call(this);
     }
-    WithSourceStreamMixin.__Constructor.call(this, sampler);
-    this.__lastValue = NOTHING;
     this.__fnMeta = normFnMeta(fnMeta);
     this.__mainStream = main;
+    this.__lastValue = NOTHING;
+    if (main instanceof Property && main.hasValue()) {
+      this.__lastValue = main.getValue();
+    }
+    WithSourceStreamMixin.__Constructor.call(this, sampler);
   },
   __handle: function(y){
     if (this.__lastValue !== NOTHING) {

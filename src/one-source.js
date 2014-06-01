@@ -295,7 +295,7 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 
 
-// .skipWhile(f)
+// .skipWhile(fn)
 
 var skipWhileMapFn = function(x){
   if (this.skip && callFn(this.fnMeta, [x])) {
@@ -309,9 +309,3 @@ var skipWhileMapFn = function(x){
 Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
   return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
 }
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-/*! kefir - 0.1.10
+/*! kefir - 0.1.11
  *  https://github.com/pozadi/kefir
  */
 (function(global){
@@ -77,6 +77,19 @@ function restArgs(args, start, nullOnEmpty){
   }
 }
 
+function getFn(fn, context) {
+  if (isFn(fn)) {
+    return fn;
+  } else {
+    /*jshint eqnull:true */
+    if (context == null || !isFn(context[fn])) {
+      throw new Error('not a function: ' + fn + ' in ' + context);
+    } else {
+      return context[fn];
+    }
+  }
+}
+
 function callFn(fnMeta, moreArgs){
   // fnMeta = [
   //   fn,
@@ -91,13 +104,9 @@ function callFn(fnMeta, moreArgs){
     context = null;
     args = null;
   } else {
-    fn = fnMeta[0];
     context = fnMeta[1];
+    fn = getFn(fnMeta[0], context);
     args = restArgs(fnMeta, 2, true);
-    /*jshint eqnull:true */
-    if (!isFn(fn) && context != null) {
-      fn = context[fn];
-    }
   }
   if (moreArgs){
     if (args) {
@@ -106,11 +115,7 @@ function callFn(fnMeta, moreArgs){
       args = moreArgs;
     }
   }
-  if (isFn(fn)) {
-    return args ? fn.apply(context, args) : fn.call(context);
-  } else {
-    throw new Error('not a function ' + fn);
-  }
+  return args ? fn.apply(context, args) : fn.call(context);
 }
 
 function normFnMeta(fnMeta) {
@@ -167,7 +172,17 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+var now = Date.now ?
+  function() { return Date.now() } :
+  function() { return new Date().getTime() };
 
+function get(map, key, notFound){
+  if (map && key in map) {
+    return map[key];
+  } else {
+    return notFound;
+  }
+}
 
 var Kefir = {};
 
@@ -435,10 +450,11 @@ Observable.prototype.log = function(name) {
 //
 // Kefir.constant(x)
 // Kefir.fromArray(values)
+// Kefir.fromCallback(fn)
 
 
 
-// Never
+// Kefir.never()
 
 var neverObj = new Stream();
 neverObj.__sendEnd();
@@ -450,7 +466,7 @@ Kefir.never = function() {
 
 
 
-// Once
+// Kefir.once(x)
 
 Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
@@ -480,11 +496,11 @@ Kefir.once = function(x) {
 
 
 
-// fromBinder
+// Kefir.fromBinder(fn)
 
-Kefir.FromBinderStream = function FromBinderStream(subscribe){
+Kefir.FromBinderStream = function FromBinderStream(subscribeFnMeta){
   Stream.call(this);
-  this.__subscribe = subscribe;
+  this.__subscribeFnMeta = normFnMeta(subscribeFnMeta);
 }
 
 inherit(Kefir.FromBinderStream, Stream, {
@@ -492,9 +508,9 @@ inherit(Kefir.FromBinderStream, Stream, {
   __ClassName: 'FromBinderStream',
   __onFirstIn: function(){
     var _this = this;
-    this.__usubscriber = this.__subscribe(function(x){
+    this.__usubscriber = callFn(this.__subscribeFnMeta, [function(x){
       _this.__sendAny(x);
-    });
+    }]);
   },
   __onLastOut: function(){
     if (isFn(this.__usubscriber)) {
@@ -504,13 +520,13 @@ inherit(Kefir.FromBinderStream, Stream, {
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__subscribe = null;
+    this.__subscribeFnMeta = null;
   }
 
 })
 
-Kefir.fromBinder = function(subscribe){
-  return new Kefir.FromBinderStream(subscribe);
+Kefir.fromBinder = function(/*subscribe[, context[, arg1, arg2...]]*/){
+  return new Kefir.FromBinderStream(arguments);
 }
 
 var WithSourceStreamMixin = {
@@ -810,7 +826,7 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 
 
-// .skipWhile(f)
+// .skipWhile(fn)
 
 var skipWhileMapFn = function(x){
   if (this.skip && callFn(this.fnMeta, [x])) {
@@ -825,17 +841,14 @@ Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) 
   return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
 }
 
-
-
-
-
-
-
 // TODO
 //
 // observable.filter(property)
 // observable.takeWhile(property)
 // observable.skipWhile(property)
+//
+// observable.awaiting(otherObservable)
+// stream.skipUntil(stream2)
 
 
 
@@ -849,10 +862,13 @@ var SampledByMixin = {
     } else {
       Stream.call(this);
     }
-    WithSourceStreamMixin.__Constructor.call(this, sampler);
-    this.__lastValue = NOTHING;
     this.__fnMeta = normFnMeta(fnMeta);
     this.__mainStream = main;
+    this.__lastValue = NOTHING;
+    if (main instanceof Property && main.hasValue()) {
+      this.__lastValue = main.getValue();
+    }
+    WithSourceStreamMixin.__Constructor.call(this, sampler);
   },
   __handle: function(y){
     if (this.__lastValue !== NOTHING) {
@@ -1001,7 +1017,7 @@ var PluggableMixin = {
 
 
 
-// Bus
+// Kefir.bus()
 
 Kefir.Bus = function Bus(){
   Stream.call(this);
@@ -1048,7 +1064,7 @@ Kefir.bus = function(){
 
 
 
-// FlatMap
+// .flatMap()
 
 Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta){
   Stream.call(this);
@@ -1102,7 +1118,7 @@ Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 
 
-// FlatMapLatest
+// .flatMapLatest()
 
 Kefir.FlatMapLatestStream = function FlatMapLatestStream(){
   Kefir.FlatMappedStream.apply(this, arguments);
@@ -1128,7 +1144,7 @@ Observable.prototype.flatMapLatest = function(/*fn[, context[, arg1, arg2, ...]]
 
 
 
-// Merge
+// .merge()
 
 Kefir.MergedStream = function MergedStream(){
   Stream.call(this);
@@ -1172,7 +1188,7 @@ Observable.prototype.merge = function() {
 
 
 
-// Combine
+// .combine()
 
 Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
   Stream.call(this);
@@ -1244,7 +1260,238 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
   return Kefir.combine(streams).onValue(callFn, null, fnMeta);
 }
 
-// FromPoll
+// TODO
+//
+// observable.debounce(wait, immediate)
+// http://underscorejs.org/#defer
+
+
+
+
+
+// Kefir.later()
+
+Kefir.LaterStream = function LaterStream(wait, value) {
+  Stream.call(this);
+  this.__value = value;
+  this.__wait = wait;
+}
+
+inherit(Kefir.LaterStream, Stream, {
+
+  __ClassName: 'LaterStream',
+
+  __onFirstIn: function(){
+    var _this = this;
+    setTimeout(function(){
+      _this.__sendAny(_this.__value);
+      _this.__sendEnd();
+    }, this.__wait);
+  },
+
+  __clear: function(){
+    Stream.prototype.__clear.call(this);
+    this.__value = null;
+    this.__wait = null;
+  }
+
+});
+
+Kefir.later = function(wait, value) {
+  return new Kefir.LaterStream(wait, value);
+}
+
+
+
+
+
+// .delay()
+
+var DelayedMixin = {
+  __Constructor: function(source, wait) {
+    this.__source = source;
+    this.__wait = wait;
+    source.onEnd(this.__sendEndLater, this);
+  },
+  __sendLater: function(x){
+    var _this = this;
+    setTimeout(function(){  _this.__sendValue(x)  }, this.__wait);
+  },
+  __sendEndLater: function(){
+    var _this = this;
+    setTimeout(function(){  _this.__sendEnd()  }, this.__wait);
+  },
+  __onFirstIn: function(){
+    this.__source.onNewValue('__sendLater', this);
+    this.__source.onError('__sendError', this);
+  },
+  __onLastOut: function(){
+    this.__source.offValue('__sendLater', this);
+    this.__source.offError('__sendError', this);
+  },
+  __clear: function(){
+    Observable.prototype.__clear.call(this);
+    this.__source = null;
+    this.__wait = null;
+  }
+}
+
+
+Kefir.DelayedStream = function DelayedStream(source, wait) {
+  Stream.call(this);
+  DelayedMixin.__Constructor.call(this, source, wait);
+}
+
+inherit(Kefir.DelayedStream, Stream, DelayedMixin, {
+  __ClassName: 'DelayedStream'
+});
+
+Stream.prototype.delay = function(wait) {
+  return new Kefir.DelayedStream(this, wait);
+}
+
+
+Kefir.DelayedProperty = function DelayedProperty(source, wait) {
+  Property.call(this);
+  DelayedMixin.__Constructor.call(this, source, wait);
+  if (source.hasValue()) {
+    this.__sendValue(source.getValue());
+  }
+}
+
+inherit(Kefir.DelayedProperty, Property, DelayedMixin, {
+  __ClassName: 'DelayedProperty'
+});
+
+Property.prototype.delay = function(wait) {
+  return new Kefir.DelayedProperty(this, wait);
+}
+
+
+
+
+
+
+// .throttle(wait, {leading, trailing})
+
+var ThrottledMixin = {
+
+  __Constructor: function(source, wait, options){
+    this.__source = source;
+    this.__wait = wait;
+    this.__trailingCallValue = null;
+    this.__trailingCallTimeoutId = null;
+    this.__endAfterTrailingCall = false;
+    this.__lastCallTime = 0;
+    this.__leading = get(options, 'leading', true);
+    this.__trailing = get(options, 'trailing', true);
+    var _this = this;
+    this.__makeTrailingCallBinded = function(){  _this.__makeTrailingCall()  };
+    source.onEnd(this.__sendEndLater, this);
+  },
+
+  __sendEndLater: function(){
+    if (this.__trailingCallTimeoutId) {
+      this.__endAfterTrailingCall = true;
+    } else {
+      this.__sendEnd();
+    }
+  },
+
+  __scheduleTralingCall: function(value, wait){
+    if (this.__trailingCallTimeoutId) {
+      this.__cancelTralingCall();
+    }
+    this.__trailingCallValue = value;
+    this.__trailingCallTimeoutId = setTimeout(this.__makeTrailingCallBinded, wait);
+  },
+  __cancelTralingCall: function(){
+    if (this.__trailingCallTimeoutId !== null) {
+      clearTimeout(this.__trailingCallTimeoutId);
+      this.__trailingCallTimeoutId = null;
+    }
+  },
+  __makeTrailingCall: function(){
+    this.__sendValue(this.__trailingCallValue);
+    this.__trailingCallTimeoutId = null;
+    this.__trailingCallValue = null;
+    this.__lastCallTime = !this.__leading ? 0 : now();
+    if (this.__endAfterTrailingCall) {
+      this.__sendEnd();
+    }
+  },
+
+  __handleValueFromSource: function(x){
+    var curTime = now();
+    if (this.__lastCallTime === 0 && !this.__leading) {
+      this.__lastCallTime = curTime;
+    }
+    var remaining = this.__wait - (curTime - this.__lastCallTime);
+    if (remaining <= 0) {
+      this.__cancelTralingCall();
+      this.__lastCallTime = curTime;
+      this.__sendValue(x);
+    } else if (this.__trailing) {
+      this.__scheduleTralingCall(x, remaining);
+    }
+  },
+
+  __onFirstIn: function(){
+    this.__source.onNewValue('__handleValueFromSource', this);
+    this.__source.onError('__sendError', this);
+  },
+  __onLastOut: function(){
+    this.__source.offValue('__handleValueFromSource', this);
+    this.__source.offError('__sendError', this);
+  },
+
+  __clear: function(){
+    Observable.prototype.__clear.call(this);
+    this.__source = null;
+    this.__wait = null;
+    this.__trailingCallValue = null;
+    this.__trailingCallTimeoutId = null;
+    this.__makeTrailingCallBinded = null;
+  }
+
+};
+
+Kefir.ThrottledStream = function ThrottledStream() {
+  Stream.call(this);
+  ThrottledMixin.__Constructor.apply(this, arguments);
+}
+
+inherit(Kefir.ThrottledStream, Stream, ThrottledMixin, {
+  __ClassName: 'ThrottledStream'
+});
+
+Stream.prototype.throttle = function(wait, options) {
+  return new Kefir.ThrottledStream(this, wait, options);
+}
+
+
+Kefir.ThrottledProperty = function ThrottledProperty(source) {
+  Property.call(this);
+  ThrottledMixin.__Constructor.apply(this, arguments);
+  if (source.hasValue()) {
+    this.__sendValue(source.getValue());
+  }
+}
+
+inherit(Kefir.ThrottledProperty, Property, ThrottledMixin, {
+  __ClassName: 'ThrottledProperty'
+});
+
+Property.prototype.throttle = function(wait, options) {
+  return new Kefir.ThrottledProperty(this, wait, options);
+}
+
+
+
+
+
+
+// Kefir.fromPoll()
 
 var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
   Stream.call(this);
@@ -1280,7 +1527,7 @@ Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/){
 
 
 
-// Interval
+// Kefir.interval()
 
 Kefir.interval = function(interval, x){
   return new FromPollStream(interval, [id, null, x]);
@@ -1288,7 +1535,7 @@ Kefir.interval = function(interval, x){
 
 
 
-// Sequentially
+// Kefir.sequentially()
 
 var sequentiallyHelperFn = function(){
   if (this.xs.length === 0) {
@@ -1306,7 +1553,7 @@ Kefir.sequentially = function(interval, xs){
 
 
 
-// Repeatedly
+// Kefir.repeatedly()
 
 var repeatedlyHelperFn = function(){
   this.i = (this.i + 1) % this.xs.length;
@@ -1319,13 +1566,30 @@ Kefir.repeatedly = function(interval, xs){
 
 // TODO
 //
-// // more underscore-style maybe?
-// observable.delay(delay)
-// observable.throttle(delay)
-// observable.debounce(delay)
-// observable.debounceImmediate(delay)
+// stream.bufferWithTime(delay)
+// stream.bufferWithTime(f)
+// stream.bufferWithCount(count)
+// stream.bufferWithTimeOrCount(delay, count)
+
+// TODO
 //
-// Kefir.later(delay, value)
+// observable.mapError(f)
+// observable.errors()
+// observable.skipErrors()
+// observable.endOnError(f)
+
+// TODO
+//
+// observable.not()
+// property.and(other)
+// property.or(other)
+//
+// http://underscorejs.org/#pluck
+// http://underscorejs.org/#invoke
+
+// TODO
+//
+// Model = Bus + Property + lenses
 
 
   if (typeof define === 'function' && define.amd) {

@@ -162,7 +162,7 @@
               }
 
       .container {
-        max-width: 550px;
+        max-width: 680px;
         margin: 40px 10px 50px 230px;
         font-family: Helvetica, Arial, sans-serif;
       }
@@ -187,7 +187,7 @@
     <div class="sidebar">
 
       <a class="toc-title" href="#">
-        Kefir.js <span class="version">(0.1.10)</span>
+        Kefir.js <span class="version">(0.1.11)</span>
       </a>
 
       <ul class="toc-section">
@@ -212,6 +212,7 @@
         <li>- <a href="#bus">bus</a></li>
         <li>- <a href="#once">once</a></li>
         <li>- <a href="#never">never</a></li>
+        <li>- <a href="#later">later</a></li>
         <li>- <a href="#from-binder">fromBinder</a></li>
         <li>- <a href="#kefir-merge">merge</a></li>
         <li>- <a href="#kefir-combine">combine</a></li>
@@ -241,6 +242,8 @@
         <li>- <a href="#diff">diff</a></li>
         <li>- <a href="#scan">scan</a></li>
         <li>- <a href="#reduce">reduce</a></li>
+        <li>- <a href="#delay">delay</a></li>
+        <li>- <a href="#throttle">throttle</a></li>
 
         <li>- <a href="#merge">merge</a></li>
         <li>- <a href="#combine">combine</a></li>
@@ -332,7 +335,7 @@
         and have fun reading <a href="https://github.com/pozadi/kefir/tree/master/src">source code</a>.
       </p>
 
-      <h2 id="download">Download <sup>(0.1.10)</sup></h2>
+      <h2 id="download">Download <sup>(0.1.11)</sup></h2>
 
       <table>
         <tr>
@@ -477,8 +480,20 @@ stream.log();
 =&gt; [Stream | Kefir.never()] &lt;end&gt;
 </pre>
 
+      <p id="later">
+        <b class="header">later</b><code>stream = Kefir.later(wait, value)</code>
+        <br>
+        TODO: description
+      </p>
+      <pre>
+var stream = Kefir.later(100, 1);
+stream.log();
+=&gt; [LaterStream] &lt;value&gt; 1
+=&gt; [LaterStream] &lt;end&gt;
+</pre>
+
       <p id="from-binder">
-        <b class="header">fromBinder</b><code>stream = Kefir.fromBinder(subscribe)</code>
+        <b class="header">fromBinder</b><code>stream = Kefir.fromBinder(subscribe, [context], *arg)</code>
         <br>
         Returns a <b>Stream</b>.
         The parameter <b>subscribe</b> is a function that accepts a <b>sink</b>
@@ -607,6 +622,12 @@ var stream
       </p>
       <p id="reduce">
         <b class="header">reduce</b><code>property = observable.reduce(seed, fn, [context], *arg)</code>
+      </p>
+      <p id="delay">
+        <b class="header">delay</b><code>observable = observable.delay(wait)</code>
+      </p>
+      <p id="trottle">
+        <b class="header">trottle</b><code>observable = observable.trottle(wait, options)</code>
       </p>
 
       <p id="merge">

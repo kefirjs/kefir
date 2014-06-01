@@ -31,11 +31,11 @@ For detailed descriptions of features see
 | `Bacon.sequentially(interval, values)` | :rocket: | `Kefir.sequentially(interval, values)` |
 | `Bacon.repeatedly(interval, values)` | :rocket: | `Kefir.repeatedly(interval, values)` |
 | `Bacon.never()` | :rocket: | `Kefir.never()` |
-| `Bacon.later(delay, value)` | :broken_heart: |  |
+| `Bacon.later(delay, value)` | :rocket: | `Kefir.later(delay, value)` |
 | `new Bacon.EventStream(subscribe)` | :broken_heart: |  |
 | `property.changes()` | :rocket: | `property.changes()` |
 | `property.toEventStream()` | :broken_heart: |  |
-| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` / `Kefir.bus()` |
+| `new Bacon.Bus()` | :rocket: | `Kefir.bus()` |
 | `Bacon.fromBinder(subscribe)` | :rocket: | `Kefir.fromBinder(subscribe)` |
 
 
@@ -59,8 +59,8 @@ For detailed descriptions of features see
 | `observable.take(n)` | :rocket: | `observable.take(n)` |
 | `observable.takeUntil(stream)` | :broken_heart: |  |
 | `observable.skip(n)` | :rocket: | `observable.skip(n)` |
-| `observable.delay(delay)` | :broken_heart: |  |
-| `observable.throttle(delay)` | :broken_heart: |  |
+| `observable.delay(delay)` | :rocket: | `observable.delay(delay)` |
+| `observable.throttle(delay)` | :rocket: | `observable.throttle(delay)` |
 | `observable.debounce(delay)` | :broken_heart: |  |
 | `observable.debounceImmediate(delay)` | :broken_heart: |  |
 | `observable.doAction(f)` | :broken_heart: |  |
@@ -142,7 +142,7 @@ For detailed descriptions of features see
 | `Bacon.zipAsArray(stream1, stream2...)` | :broken_heart: |  |
 | `Bacon.zipWith(streams, f)` | :broken_heart: |  |
 | `Bacon.zipWith(f, stream1, stream1...)` | :broken_heart: |  |
-| `Bacon.onValues(a, b [, c...], f)` | :rocket: | Kefir.onValues(observables, f) |
+| `Bacon.onValues(a, b [, c...], f)` | :rocket: | `Kefir.onValues(observables, f)` |
 
 
 

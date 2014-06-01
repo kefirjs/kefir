@@ -2,10 +2,11 @@
 //
 // Kefir.constant(x)
 // Kefir.fromArray(values)
+// Kefir.fromCallback(fn)
 
 
 
-// Never
+// Kefir.never()
 
 var neverObj = new Stream();
 neverObj.__sendEnd();
@@ -17,7 +18,7 @@ Kefir.never = function() {
 
 
 
-// Once
+// Kefir.once(x)
 
 Kefir.OnceStream = function OnceStream(value){
   Stream.call(this);
@@ -47,11 +48,11 @@ Kefir.once = function(x) {
 
 
 
-// fromBinder
+// Kefir.fromBinder(fn)
 
-Kefir.FromBinderStream = function FromBinderStream(subscribe){
+Kefir.FromBinderStream = function FromBinderStream(subscribeFnMeta){
   Stream.call(this);
-  this.__subscribe = subscribe;
+  this.__subscribeFnMeta = normFnMeta(subscribeFnMeta);
 }
 
 inherit(Kefir.FromBinderStream, Stream, {
@@ -59,9 +60,9 @@ inherit(Kefir.FromBinderStream, Stream, {
   __ClassName: 'FromBinderStream',
   __onFirstIn: function(){
     var _this = this;
-    this.__usubscriber = this.__subscribe(function(x){
+    this.__usubscriber = callFn(this.__subscribeFnMeta, [function(x){
       _this.__sendAny(x);
-    });
+    }]);
   },
   __onLastOut: function(){
     if (isFn(this.__usubscriber)) {
@@ -71,11 +72,11 @@ inherit(Kefir.FromBinderStream, Stream, {
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__subscribe = null;
+    this.__subscribeFnMeta = null;
   }
 
 })
 
-Kefir.fromBinder = function(subscribe){
-  return new Kefir.FromBinderStream(subscribe);
+Kefir.fromBinder = function(/*subscribe[, context[, arg1, arg2...]]*/){
+  return new Kefir.FromBinderStream(arguments);
 }

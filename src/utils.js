@@ -71,6 +71,19 @@ function restArgs(args, start, nullOnEmpty){
   }
 }
 
+function getFn(fn, context) {
+  if (isFn(fn)) {
+    return fn;
+  } else {
+    /*jshint eqnull:true */
+    if (context == null || !isFn(context[fn])) {
+      throw new Error('not a function: ' + fn + ' in ' + context);
+    } else {
+      return context[fn];
+    }
+  }
+}
+
 function callFn(fnMeta, moreArgs){
   // fnMeta = [
   //   fn,
@@ -85,13 +98,9 @@ function callFn(fnMeta, moreArgs){
     context = null;
     args = null;
   } else {
-    fn = fnMeta[0];
     context = fnMeta[1];
+    fn = getFn(fnMeta[0], context);
     args = restArgs(fnMeta, 2, true);
-    /*jshint eqnull:true */
-    if (!isFn(fn) && context != null) {
-      fn = context[fn];
-    }
   }
   if (moreArgs){
     if (args) {
@@ -100,11 +109,7 @@ function callFn(fnMeta, moreArgs){
       args = moreArgs;
     }
   }
-  if (isFn(fn)) {
-    return args ? fn.apply(context, args) : fn.call(context);
-  } else {
-    throw new Error('not a function ' + fn);
-  }
+  return args ? fn.apply(context, args) : fn.call(context);
 }
 
 function normFnMeta(fnMeta) {
@@ -161,4 +166,14 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+var now = Date.now ?
+  function() { return Date.now() } :
+  function() { return new Date().getTime() };
 
+function get(map, key, notFound){
+  if (map && key in map) {
+    return map[key];
+  } else {
+    return notFound;
+  }
+}
