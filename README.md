@@ -5,11 +5,11 @@ inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high perfomance and low memory usage.
 It has nice Bacon.js like API
-and RxJS's performance / memory usage characteristics (see [memory usage test results](https://github.com/pozadi/kefir/blob/master/memory-usage-results.txt)).
+and RxJS's performance / memory usage characteristics (see [memory test results](https://github.com/pozadi/kefir/blob/master/memory-usage-results.txt)).
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
-:construction: It still in alfa developnet stage. See [Bacon.js API implementation status](https://github.com/pozadi/kefir/blob/master/bacon-api-impl-status.md).
+:construction: It still in alpha developnet stage. See [Bacon.js API implementation status](https://github.com/pozadi/kefir/blob/master/bacon-api-impl-status.md).
 
 
 
@@ -29,7 +29,7 @@ To build `/dist` from `/src` and run tests on Node.js type this in console:
 
     grunt
 
-To run memory usage tests:
+To run memory tests:
 
     node --expose-gc test-memory-usage.js
 
