@@ -183,16 +183,13 @@ Property.prototype.changes = function() {
 
 // .diff(seed, fn)
 
-var diffMapFn = function(x){
-  var result = callFn(this.fnMeta, [this.prev, x]);
-  this.prev = x;
-  return result;
-}
-
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(diffMapFn, {
-    prev: start,
-    fnMeta: normFnMeta(restArgs(arguments, 1))
+  var fnMeta = normFnMeta(restArgs(arguments, 1));
+  var prev = start;
+  return this.map(function(x){
+    var result = callFn(fnMeta, [prev, x]);
+    prev = x;
+    return result;
   });
 }
 
@@ -202,16 +199,15 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 
 // .filter(fn)
 
-var filterMapFn = function(filterFnMeta, x){
-  if (callFn(filterFnMeta, [x])) {
-    return x;
-  } else {
-    return NOTHING;
-  }
-}
-
 Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(filterMapFn, null, normFnMeta(arguments));
+  var fnMeta = normFnMeta(arguments);
+  return this.map(function(x){
+    if (callFn(fnMeta, [x])) {
+      return x;
+    } else {
+      return NOTHING;
+    }
+  });
 }
 
 
@@ -282,12 +278,12 @@ var skipDuplicatesMapFn = function(x){
   } else {
     result = x;
   }
-  this.hasPrev = true;
   this.prev = x;
   return result;
 }
 
 Observable.prototype.skipDuplicates = function(fn) {
+  var prev = NOTHING;
   return this.map(skipDuplicatesMapFn, {fn: fn, prev: NOTHING});
 }
 

@@ -70,8 +70,8 @@
       p {
         margin: 20px 0;
       }
-      h1, h2, h3, h4, h5, h6 {
-        padding-top: 20px;
+      h1, h2 {
+        padding-top: 1em;
       }
       h2 {
         font-size: 20px;
@@ -119,6 +119,7 @@
         border-left: 5px solid #bbb;
         margin: 0px 0 30px;
         overflow: auto;
+        background: white
       }
 
 
@@ -174,12 +175,24 @@
         .header {
           font-size: 16px;
           line-height: 30px;
+          font-weight: bold;
+          color: inherit;
         }
         .alias {
           font-size: 14px;
           font-style: italic;
           margin-left: 20px;
         }
+
+      p[id] {
+        margin-top: 4em;
+      }
+      h2[id]:not(.no-extra-padding) {
+        margin-top: 3em;
+      }
+      h2[id] + p[id]{
+        margin-top: 3em;
+      }
     </style>
 
   </head>
@@ -335,7 +348,7 @@
         and have fun reading <a href="https://github.com/pozadi/kefir/tree/master/src">source code</a>.
       </p>
 
-      <h2 id="download">Download <sup>(0.1.11)</sup></h2>
+      <h2 class="no-extra-padding" id="download">Download <sup>(0.1.11)</sup></h2>
 
       <table>
         <tr>
@@ -352,13 +365,13 @@
         <a href="https://github.com/pozadi/kefir/tree/master/dist">get edge version from GitHub</a>,
         but use it at your own risk</p>
 
-      <h2 id="npm">NPM</h2>
+      <h2 class="no-extra-padding" id="npm">NPM</h2>
 
       <pre>
 npm install kefir
 </pre>
 
-      <h2 id="bower">Bower</h2>
+      <h2 class="no-extra-padding" id="bower">Bower</h2>
 
       <pre>
 bower install kefir
@@ -385,7 +398,7 @@ bower install kefir
       <h2 id="static-methods">Static methods (Kefir.&mdash;)</h2>
 
       <p id="from-poll">
-        <b class="header">fromPoll</b><code>stream = Kefir.fromPoll(interval, fn, [context], *arg)</code>
+        <a href="#from-poll" class="header">fromPoll</a><code>stream = Kefir.fromPoll(interval, fn, [context], *arg)</code>
         <br>
         Returns a <b>Stream</b>.
         When <b>stream</b> has subscribers, <b>fn</b> being polled with given <b>interval</b> (in milliseconds).
@@ -406,7 +419,7 @@ stream.log();
 </pre>
 
       <p id="interval">
-        <b class="header">interval</b><code>stream = Kefir.interval(interval, value)</code>
+        <a href="#interval" class="header">interval</a><code>stream = Kefir.interval(interval, value)</code>
         <br>
         Returns a <b>Stream</b>. Delivers <b>value</b> to <b>stream's</b> subscribers every
         milliseconds <b>interval</b>. Never ends.
@@ -421,7 +434,7 @@ stream.log();
 </pre>
 
       <p id="sequentially">
-        <b class="header">sequentially</b><code>stream = Kefir.sequentially(interval, values)</code>
+        <a href="#sequentially" class="header">sequentially</a><code>stream = Kefir.sequentially(interval, values)</code>
         <br>
         Returns a <b>Stream</b> containing given <b>values</b> (array).
         Delivered with given <b>interval</b> in milliseconds. Ends after all <b>values</b> delivered.
@@ -436,7 +449,7 @@ stream.log();
 </pre>
 
       <p id="repeatedly">
-        <b class="header">repeatedly</b><code>stream = Kefir.repeatedly(interval, values)</code>
+        <a href="#repeatedly" class="header">repeatedly</a><code>stream = Kefir.repeatedly(interval, values)</code>
         <br>
         Returns a <b>Stream</b>. Repeats given <b>values</b> (array) indefinitely with given <b>interval</b> in milliseconds. Never ends.
       </p>
@@ -452,13 +465,13 @@ stream.log();
 </pre>
 
       <p id="bus">
-        <b class="header">bus</b><code>bus = Kefir.bus()</code>
+        <a href="#bus" class="header">bus</a><code>bus = Kefir.bus()</code>
         <br>
         Returns a <b>Bus</b>. See <a href="#bus">Bus</a>.
       </p>
 
       <p id="once">
-        <b class="header">once</b><code>stream = Kefir.once(value)</code>
+        <a href="#" class="header">once</a><code>stream = Kefir.once(value)</code>
         <br>
         Returns a <b>Stream</b>. Delivers <b>value</b> to first subscriber then ends.
       </p>
@@ -470,7 +483,7 @@ stream.log();
 </pre>
 
       <p id="never">
-        <b class="header">never</b><code>stream = Kefir.never()</code>
+        <a href="#never" class="header">never</a><code>stream = Kefir.never()</code>
         <br>
         Returns a <b>Stream</b> that already ended.
       </p>
@@ -481,7 +494,7 @@ stream.log();
 </pre>
 
       <p id="later">
-        <b class="header">later</b><code>stream = Kefir.later(wait, value)</code>
+        <a href="#later" class="header">later</a><code>stream = Kefir.later(wait, value)</code>
         <br>
         TODO: description
       </p>
@@ -493,7 +506,7 @@ stream.log();
 </pre>
 
       <p id="from-binder">
-        <b class="header">fromBinder</b><code>stream = Kefir.fromBinder(subscribe, [context], *arg)</code>
+        <a href="#from-binder" class="header">fromBinder</a><code>stream = Kefir.fromBinder(subscribe, [context], *arg)</code>
         <br>
         Returns a <b>Stream</b>.
         The parameter <b>subscribe</b> is a function that accepts a <b>sink</b>
@@ -552,18 +565,18 @@ stream.log();
       </p>
 
       <p id="kefir-merge">
-        <b class="header">merge</b><code>stream = Kefir.merge(observables), stream = Kefir.merge(*observable)</code>
+        <a href="#" class="header">merge</a><code>stream = Kefir.merge(observables), stream = Kefir.merge(*observable)</code>
       </p>
       <!-- <pre>
 var stream
 </pre> -->
 
       <p id="kefir-combine">
-        <b class="header">combine</b><code>stream = Kefir.combine(observables, [fn], [context], *arg)</code>
+        <a href="#kefir-combine" class="header">combine</a><code>stream = Kefir.combine(observables, [fn], [context], *arg)</code>
       </p>
 
       <p id="on-values">
-        <b class="header">onValues</b><code>Kefir.onValues(observables, fn, [context], *arg)</code>
+        <a href="#on-values" class="header">onValues</a><code>Kefir.onValues(observables, fn, [context], *arg)</code>
       </p>
 
 
@@ -575,79 +588,79 @@ var stream
 
 
       <p id="on-value">
-        <b class="header">onValue</b><code>observable.onValue(fn, [context], *arg)</code>
+        <a href="#on-value" class="header">onValue</a><code>observable.onValue(fn, [context], *arg)</code>
       </p>
       <p id="off-value">
-        <b class="header">offValue</b><code>observable.offValue(fn, [context], *arg)</code>
+        <a href="#off-value" class="header">offValue</a><code>observable.offValue(fn, [context], *arg)</code>
       </p>
       <p id="on-error">
-        <b class="header">onError</b><code>observable.onError(fn, [context], *arg)</code>
+        <a href="#" class="header">onError</a><code>observable.onError(fn, [context], *arg)</code>
       </p>
       <p id="off-error">
-        <b class="header">offError</b><code>observable.offError(fn, [context], *arg)</code>
+        <a href="#" class="header">offError</a><code>observable.offError(fn, [context], *arg)</code>
       </p>
       <p id="on-end">
-        <b class="header">onEnd</b><code>observable.onEnd(fn, [context], *arg)</code>
+        <a href="#" class="header">onEnd</a><code>observable.onEnd(fn, [context], *arg)</code>
       </p>
       <p id="off-end">
-        <b class="header">offEnd</b><code>observable.offEnd(fn, [context], *arg)</code>
+        <a href="#" class="header">offEnd</a><code>observable.offEnd(fn, [context], *arg)</code>
       </p>
 
       <p id="map">
-        <b class="header">map</b><code>observable = observable.map(fn, [context], *arg)</code>
+        <a href="#" class="header">map</a><code>observable = observable.map(fn, [context], *arg)</code>
       </p>
       <p id="filter">
-        <b class="header">filter</b><code>observable = observable.filter(fn, [context], *arg)</code>
+        <a href="#" class="header">filter</a><code>observable = observable.filter(fn, [context], *arg)</code>
       </p>
       <p id="take">
-        <b class="header">take</b><code>observable = observable.take(n)</code>
+        <a href="#" class="header">take</a><code>observable = observable.take(n)</code>
       </p>
       <p id="take-while">
-        <b class="header">takeWhile</b><code>observable = observable.takeWhile(fn, [context], *arg)</code>
+        <a href="#" class="header">takeWhile</a><code>observable = observable.takeWhile(fn, [context], *arg)</code>
       </p>
       <p id="skip">
-        <b class="header">skip</b><code>observable = observable.skip(n)</code>
+        <a href="#" class="header">skip</a><code>observable = observable.skip(n)</code>
       </p>
       <p id="skip-while">
-        <b class="header">skipWhile</b><code>observable = observable.skipWhile(fn, [context], *arg)</code>
+        <a href="#" class="header">skipWhile</a><code>observable = observable.skipWhile(fn, [context], *arg)</code>
       </p>
       <p id="skip-duplicates">
-        <b class="header">skipDuplicates</b><code>observable = observable.skipDuplicates([fn])</code>
+        <a href="#" class="header">skipDuplicates</a><code>observable = observable.skipDuplicates([fn])</code>
       </p>
       <p id="diff">
-        <b class="header">diff</b><code>observable = observable.diff(start, fn, [context], *arg)</code>
+        <a href="#" class="header">diff</a><code>observable = observable.diff(start, fn, [context], *arg)</code>
       </p>
       <p id="scan">
-        <b class="header">scan</b><code>property = observable.scan(seed, fn, [context], *arg)</code>
+        <a href="#" class="header">scan</a><code>property = observable.scan(seed, fn, [context], *arg)</code>
       </p>
       <p id="reduce">
-        <b class="header">reduce</b><code>property = observable.reduce(seed, fn, [context], *arg)</code>
+        <a href="#" class="header">reduce</a><code>property = observable.reduce(seed, fn, [context], *arg)</code>
       </p>
       <p id="delay">
-        <b class="header">delay</b><code>observable = observable.delay(wait)</code>
+        <a href="#" class="header">delay</a><code>observable = observable.delay(wait)</code>
       </p>
       <p id="trottle">
-        <b class="header">trottle</b><code>observable = observable.trottle(wait, options)</code>
+        <a href="#" class="header">trottle</a><code>observable = observable.trottle(wait, options)</code>
       </p>
 
       <p id="merge">
-        <b class="header">merge</b><code>stream = observable.merge(observables), stream = observable.merge(*observable)</code>
+        <a href="#" class="header">merge</a><code>stream = observable.merge(observables), stream = observable.merge(*observable)</code>
       </p>
       <p id="combine">
-        <b class="header">combine</b><code>stream = observable.combine(observables, [fn], [context], *arg)</code>
+        <a href="#" class="header">combine</a><code>stream = observable.combine(observables, [fn], [context], *arg)</code>
       </p>
       <p id="flat-map">
-        <b class="header">flatMap</b><code>stream = observable.flatMap(fn, [context], *arg)</code>
+        <a href="#" class="header">flatMap</a><code>stream = observable.flatMap(fn, [context], *arg)</code>
       </p>
       <p id="flat-map-latest">
-        <b class="header">flatMapLatest</b><code>stream = observable.flatMapLatest(fn, [context], *arg)</code>
+        <a href="#" class="header">flatMapLatest</a><code>stream = observable.flatMapLatest(fn, [context], *arg)</code>
       </p>
       <p id="sampled-by">
-        <b class="header">sampledBy</b><code>observable = observable.sampledBy(observable)</code>
+        <a href="#" class="header">sampledBy</a><code>observable = observable.sampledBy(observable)</code>
       </p>
 
       <p id="log">
-        <b class="header">log</b><code>observable.log([name])</code>
+        <a href="#" class="header">log</a><code>observable.log([name])</code>
       </p>
 
 
@@ -659,10 +672,10 @@ var stream
 
 
       <p id="stream-on-new-value">
-        <b class="header">onNewValue</b><code>stream.onNewValue(fn, [context], *arg)</code>
+        <a href="#" class="header">onNewValue</a><code>stream.onNewValue(fn, [context], *arg)</code>
       </p>
       <p id="stream-to-property">
-        <b class="header">toProperty</b><code>property = stream.toProperty([initial])</code>
+        <a href="#" class="header">toProperty</a><code>property = stream.toProperty([initial])</code>
       </p>
 
 
@@ -674,19 +687,19 @@ var stream
 
 
       <p id="property-on-new-value">
-        <b class="header">onNewValue</b><code>property.onNewValue(fn, [context], *arg)</code>
+        <a href="#" class="header">onNewValue</a><code>property.onNewValue(fn, [context], *arg)</code>
       </p>
       <p id="has-value">
-        <b class="header">hasValue</b><code>boolean = property.hasValue()</code>
+        <a href="#" class="header">hasValue</a><code>boolean = property.hasValue()</code>
       </p>
       <p id="get-value">
-        <b class="header">getValue</b><code>x = property.getValue()</code>
+        <a href="#" class="header">getValue</a><code>x = property.getValue()</code>
       </p>
       <p id="property-to-property">
-        <b class="header">toProperty</b><code>property = property.toProperty([initial])</code>
+        <a href="#" class="header">toProperty</a><code>property = property.toProperty([initial])</code>
       </p>
       <p id="changes">
-        <b class="header">changes</b><code>stream = property.changes()</code>
+        <a href="#" class="header">changes</a><code>stream = property.changes()</code>
       </p>
 
 
@@ -698,19 +711,19 @@ var stream
 
 
       <p id="push">
-        <b class="header">push</b><code>bus.push(value)</code>
+        <a href="#" class="header">push</a><code>bus.push(value)</code>
       </p>
       <p id="bus-error">
-        <b class="header">error</b><code>bus.error(e)</code>
+        <a href="#" class="header">error</a><code>bus.error(e)</code>
       </p>
       <p id="bus-end">
-        <b class="header">end</b><code>bus.end()</code>
+        <a href="#" class="header">end</a><code>bus.end()</code>
       </p>
       <p id="plug">
-        <b class="header">plug</b><code>bus.plug(observable)</code>
+        <a href="#" class="header">plug</a><code>bus.plug(observable)</code>
       </p>
       <p id="unplug">
-        <b class="header">unplug</b><code>bus.unplug(observable)</code>
+        <a href="#" class="header">unplug</a><code>bus.unplug(observable)</code>
       </p>
 
 
@@ -727,19 +740,19 @@ var stream
       </p>
 
       <p id="nothing">
-        <b class="header">NOTHING</b><code>Kefir.NOTHING</code>
+        <a href="#" class="header">NOTHING</a><code>Kefir.NOTHING</code>
       </p>
       <p id="end">
-        <b class="header">END</b><code>Kefir.END</code>
+        <a href="#" class="header">END</a><code>Kefir.END</code>
       </p>
       <p id="error">
-        <b class="header">error</b><code>Kefir.error(e)</code>
+        <a href="#" class="header">error</a><code>Kefir.error(e)</code>
       </p>
       <p id="bunch">
-        <b class="header">bunch</b><code>Kefir.bunch(values), Kefir.bunch(*value)</code>
+        <a href="#" class="header">bunch</a><code>Kefir.bunch(values), Kefir.bunch(*value)</code>
       </p>
       <p id="no-more">
-        <b class="header">NO_MORE</b><code>Kefir.NO_MORE</code>
+        <a href="#" class="header">NO_MORE</a><code>Kefir.NO_MORE</code>
       </p>
 
 

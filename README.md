@@ -35,5 +35,9 @@ To run memory tests:
 
 To run perfomance tests:
 
-    node test/perf/benchmark.js
+    coffee test/perf/benchmarks/[some benchmark].coffee
+
+To run all perfomance tests:
+
+    coffee test/perf/all-benchmarks.coffee
 

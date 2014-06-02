@@ -94,7 +94,6 @@ function baseKefir(){
 
 function baseRx(){
   return new Rx.Observable.create(function(observer){
-    debugger
     var send = function(x){
       observer.onNext(x);
     }

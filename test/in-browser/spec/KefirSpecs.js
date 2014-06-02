@@ -116,6 +116,18 @@ function callFn(fnMeta, moreArgs){
       args = moreArgs;
     }
   }
+  /*jshint eqnull:true */
+  if (context == null) {
+    if (!args || args.length === 0) {
+      return fn();
+    } else if (args.length === 1) {
+      return fn(args[0]);
+    } else if (args.length === 2) {
+      return fn(args[0], args[1]);
+    } else if (args.length === 3) {
+      return fn(args[0], args[1], args[2]);
+    }
+  }
   return args ? fn.apply(context, args) : fn.call(context);
 }
 
@@ -290,13 +302,12 @@ inherit(Observable, Object, {
   __send: function(type, x) {
     if (!this.isEnded()) {
       if (this.__subscribers[type]) {
-        for (var i = 0; i < this.__subscribers[type].length && i >= 0; i++) {
+        for (var i = 0, l = this.__subscribers[type].length; i < l; i++) {
           var fnMeta = this.__subscribers[type][i];
           if (fnMeta !== null) {
             var result = callFn(fnMeta, type === 'end' ? null : [x]);
             if (result === NO_MORE) {
               this.__off(type, fnMeta);
-              i--;
             }
           }
         }
@@ -342,17 +353,16 @@ inherit(Observable, Object, {
     return this;
   },
   __sendAny: function(x){
-    if (x === END) {
-      this.__sendEnd();
-    } else if (x instanceof Kefir.BunchOfValues) {
+    if (x === NOTHING) {  return this  }
+    if (x === END) {  this.__sendEnd(); return this  }
+    if (x instanceof Kefir.Error) {  this.__sendError(x.error); return this  }
+    if (x instanceof Kefir.BunchOfValues) {
       for (var i = 0; i < x.values.length; i++) {
         this.__sendAny(x.values[i]);
       }
-    } else if (x instanceof Kefir.Error) {
-      this.__sendError(x.error);
-    } else if (x !== NOTHING) {
-      this.__sendValue(x);
+      return this;
     }
+    this.__sendValue(x);
     return this;
   },
 
@@ -733,16 +743,13 @@ Property.prototype.changes = function() {
 
 // .diff(seed, fn)
 
-var diffMapFn = function(x){
-  var result = callFn(this.fnMeta, [this.prev, x]);
-  this.prev = x;
-  return result;
-}
-
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(diffMapFn, {
-    prev: start,
-    fnMeta: normFnMeta(restArgs(arguments, 1))
+  var fnMeta = normFnMeta(restArgs(arguments, 1));
+  var prev = start;
+  return this.map(function(x){
+    var result = callFn(fnMeta, [prev, x]);
+    prev = x;
+    return result;
   });
 }
 
@@ -752,16 +759,15 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 
 // .filter(fn)
 
-var filterMapFn = function(filterFnMeta, x){
-  if (callFn(filterFnMeta, [x])) {
-    return x;
-  } else {
-    return NOTHING;
-  }
-}
-
 Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(filterMapFn, null, normFnMeta(arguments));
+  var fnMeta = normFnMeta(arguments);
+  return this.map(function(x){
+    if (callFn(fnMeta, [x])) {
+      return x;
+    } else {
+      return NOTHING;
+    }
+  });
 }
 
 
@@ -832,12 +838,12 @@ var skipDuplicatesMapFn = function(x){
   } else {
     result = x;
   }
-  this.hasPrev = true;
   this.prev = x;
   return result;
 }
 
 Observable.prototype.skipDuplicates = function(fn) {
+  var prev = NOTHING;
   return this.map(skipDuplicatesMapFn, {fn: fn, prev: NOTHING});
 }
 

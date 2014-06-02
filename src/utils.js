@@ -109,6 +109,18 @@ function callFn(fnMeta, moreArgs){
       args = moreArgs;
     }
   }
+  /*jshint eqnull:true */
+  if (context == null) {
+    if (!args || args.length === 0) {
+      return fn();
+    } else if (args.length === 1) {
+      return fn(args[0]);
+    } else if (args.length === 2) {
+      return fn(args[0], args[1]);
+    } else if (args.length === 3) {
+      return fn(args[0], args[1], args[2]);
+    }
+  }
   return args ? fn.apply(context, args) : fn.call(context);
 }
 
