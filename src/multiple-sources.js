@@ -49,6 +49,7 @@ var PluggableMixin = {
       for (var i = 0; i < this.__plugged.length; i++) {
         if (this.__plugged[i] === stream) {
           this.__unplugById(i);
+          return;
         }
       }
     }

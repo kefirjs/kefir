@@ -228,7 +228,7 @@ var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut){
     this.__onLastOut = onLastOut;
   }
 
-  this.__subscribers = [];
+  this.__subscribers = {};
 
 }
 
@@ -243,43 +243,61 @@ inherit(Observable, Object, {
   __onFirstIn: noop,
   __onLastOut: noop,
 
-  __on: function(type /*,callback [, context [, arg1, arg2 ...]]*/){
+  __addSubscriber: function(type, fnMeta){
+    if (!this.__subscribers[type]) {
+      this.__subscribers[type] = [];
+    }
+    this.__subscribers[type].push(normFnMeta(fnMeta));
+  },
+
+  __removeSubscriber: function(type, fnMeta){
+    fnMeta = normFnMeta(fnMeta);
+    if (this.__subscribers[type]) {
+      for (var i = 0; i < this.__subscribers[type].length; i++) {
+        var subscriberFnMeta = this.__subscribers[type][i];
+        if (subscriberFnMeta === fnMeta || isEqualArrays(subscriberFnMeta, fnMeta)) {
+          this.__subscribers[type][i] = null;
+          return;
+        }
+      }
+    }
+  },
+
+  __isFirsOrLast: function(type) {
+    return (type === 'value' || type === 'error') &&
+      !this.__hasSubscribers('value') &&
+      !this.__hasSubscribers('error');
+  },
+  __on: function(type, fnMeta){
     if (!this.isEnded()) {
-      var firstIn = (
-        (type === 'value' || type === 'error') &&
-        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
-      );
-      this.__subscribers.push(arguments);
+      var firstIn = this.__isFirsOrLast(type);
+      this.__addSubscriber(type, fnMeta);
       if (firstIn) {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
-      callFn(restArgs(arguments, 1));
+      callFn(fnMeta);
     }
   },
-  __off: function(type /*,callback [, context [, arg1, arg2 ...]]*/){
+  __off: function(type, fnMeta){
     if (!this.isEnded()) {
-      for (var i = 0; i < this.__subscribers.length; i++) {
-        if (isEqualArrays(this.__subscribers[i], arguments)) {
-          this.__subscribers[i] = null;
-        }
-      }
-      if (
-        (type === 'value' || type === 'error') &&
-        !(this.__hasSubscribers('value') || this.__hasSubscribers('error'))
-      ) {
+      this.__removeSubscriber(type, fnMeta);
+      if (this.__isFirsOrLast(type)) {
         this.__onLastOut();
       }
     }
   },
-  __send: function(type /*[, arg1, arg2, ...]*/) {
+  __send: function(type, x) {
     if (!this.isEnded()) {
-      for (var i = 0; i < this.__subscribers.length; i++) {
-        var subscriber = this.__subscribers[i];
-        if (subscriber && subscriber[0] === type) {
-          var result = callFn(restArgs(subscriber, 1), restArgs(arguments, 1));
-          if (result === NO_MORE) {
-            this.__off.apply(this, subscriber)
+      if (this.__subscribers[type]) {
+        for (var i = 0; i < this.__subscribers[type].length && i >= 0; i++) {
+          var fnMeta = this.__subscribers[type][i];
+          if (fnMeta !== null) {
+            var result = callFn(fnMeta, type === 'end' ? null : [x]);
+            if (result === NO_MORE) {
+              this.__off(type, fnMeta);
+              i--;
+            }
           }
         }
       }
@@ -289,11 +307,11 @@ inherit(Observable, Object, {
     }
   },
   __hasSubscribers: function(type) {
-    if (this.isEnded()) {
+    if (this.isEnded() || !this.__subscribers[type]) {
       return false;
     }
-    for (var i = 0; i < this.__subscribers.length; i++) {
-      if (this.__subscribers[i] && this.__subscribers[i][0] === type) {
+    for (var i = 0; i < this.__subscribers[type].length; i++) {
+      if (this.__subscribers[type][i] !== null) {
         return true;
       }
     }
@@ -340,27 +358,27 @@ inherit(Observable, Object, {
 
 
   onValue: function(){
-    this.__on.apply(this, ['value'].concat(toArray(arguments)));
+    this.__on('value', arguments);
     return this;
   },
   offValue: function(){
-    this.__off.apply(this, ['value'].concat(toArray(arguments)));
+    this.__off('value', arguments);
     return this;
   },
   onError: function(){
-    this.__on.apply(this, ['error'].concat(toArray(arguments)));
+    this.__on('error', arguments);
     return this;
   },
   offError: function(){
-    this.__off.apply(this, ['error'].concat(toArray(arguments)));
+    this.__off('error', arguments);
     return this;
   },
   onEnd: function(){
-    this.__on.apply(this, ['end'].concat(toArray(arguments)));
+    this.__on('end', arguments);
     return this;
   },
   offEnd: function(){
-    this.__off.apply(this, ['end'].concat(toArray(arguments)));
+    this.__off('end', arguments);
     return this;
   },
 
@@ -417,7 +435,7 @@ inherit(Property, Observable, {
     Observable.prototype.__sendValue.call(this, x);
   },
   onNewValue: function(){
-    this.__on.apply(this, ['value'].concat(toArray(arguments)));
+    this.__on('value', arguments);
     return this;
   },
   onValue: function() {
@@ -978,6 +996,7 @@ var PluggableMixin = {
       for (var i = 0; i < this.__plugged.length; i++) {
         if (this.__plugged[i] === stream) {
           this.__unplugById(i);
+          return;
         }
       }
     }
