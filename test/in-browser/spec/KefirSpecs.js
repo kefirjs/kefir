@@ -972,7 +972,7 @@ var PluggableMixin = {
   __clearPluggable: function(){
     this.__plugged = null;
   },
-  __handlePlugged: function(i, value){
+  __handlePlugged: function(value){
     this.__sendAny(value);
   },
   __plug: function(stream){
@@ -980,7 +980,7 @@ var PluggableMixin = {
       this.__plugged.push(stream);
       var i = this.__plugged.length - 1;
       if (this.__hasSubscribers('value')) {
-        stream.onValue('__handlePlugged', this, i);
+        stream.onValue('__handlePlugged', this);
         stream.onError('__sendError', this);
       }
       stream.onEnd('__unplugById', this, i);
@@ -991,7 +991,7 @@ var PluggableMixin = {
       var stream = this.__plugged[i];
       if (stream) {
         this.__plugged[i] = null;
-        stream.offValue('__handlePlugged', this, i);
+        stream.offValue('__handlePlugged', this);
         stream.offError('__sendError', this);
         stream.offEnd('__unplugById', this, i);
       }
@@ -1011,7 +1011,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue('__handlePlugged', this, i);
+        stream.onValue('__handlePlugged', this);
         stream.onError('__sendError', this);
       }
     }
@@ -1020,7 +1020,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue('__handlePlugged', this, i);
+        stream.offValue('__handlePlugged', this);
         stream.offError('__sendError', this);
       }
     }
@@ -1218,23 +1218,58 @@ Observable.prototype.merge = function() {
 
 Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
   Stream.call(this);
-  this.__initPluggable();
-  for (var i = 0; i < sources.length; i++) {
-    this.__plug(sources[i]);
+  this.__plugged = sources;
+  for (var i = 0; i < this.__plugged.length; i++) {
+    sources[i].onEnd('__unplugById', this, i);
   }
   this.__cachedValues = new Array(sources.length);
   this.__hasValue = new Array(sources.length);
   this.__mapFnMeta = normFnMeta(mapFnMeta);
 }
 
-inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
+inherit(Kefir.CombinedStream, Stream, {
 
   __ClassName: 'CombinedStream',
 
+  __onFirstIn: function(){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      var stream = this.__plugged[i];
+      if (stream) {
+        stream.onValue('__handlePlugged', this, i);
+        stream.onError('__sendError', this);
+      }
+    }
+  },
+  __onLastOut: function(){
+    for (var i = 0; i < this.__plugged.length; i++) {
+      var stream = this.__plugged[i];
+      if (stream) {
+        stream.offValue('__handlePlugged', this, i);
+        stream.offError('__sendError', this);
+      }
+    }
+  },
+  __hasNoPlugged: function(){
+    if (this.isEnded()) {
+      return true;
+    }
+    for (var i = 0; i < this.__plugged.length; i++) {
+      if (this.__plugged[i]) {
+        return false;
+      }
+    }
+    return true;
+  },
   __unplugById: function(i){
-    PluggableMixin.__unplugById.call(this, i);
-    if (this.__hasNoPlugged()) {
-      this.__sendEnd();
+    var stream = this.__plugged[i];
+    if (stream) {
+      this.__plugged[i] = null;
+      stream.offValue('__handlePlugged', this, i);
+      stream.offError('__sendError', this);
+      stream.offEnd('__unplugById', this, i);
+      if (this.__hasNoPlugged()) {
+        this.__sendEnd();
+      }
     }
   },
   __handlePlugged: function(i, x) {
@@ -1258,7 +1293,7 @@ inherit(Kefir.CombinedStream, Stream, PluggableMixin, {
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__clearPluggable();
+    this.__plugged = null;
     this.__cachedValues = null;
     this.__hasValue = null;
     this.__mapFnMeta = null;
