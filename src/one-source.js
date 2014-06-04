@@ -80,7 +80,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
 })
 
 Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.ScanProperty(this, seed, restArgs(arguments, 1));
+  return new Kefir.ScanProperty(this, seed, rest(arguments, 1));
 }
 
 
@@ -115,7 +115,7 @@ inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
 });
 
 Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.ReducedProperty(this, seed, restArgs(arguments, 1));
+  return new Kefir.ReducedProperty(this, seed, rest(arguments, 1));
 }
 
 
@@ -184,7 +184,7 @@ Property.prototype.changes = function() {
 // .diff(seed, fn)
 
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fn = new Callable(restArgs(arguments, 1));
+  var fn = new Callable(rest(arguments, 1));
   var prev = start;
   return this.map(function(x){
     var result = fn.apply(null, [prev, x]);

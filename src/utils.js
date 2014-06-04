@@ -60,15 +60,11 @@ function firstArrOrToArr(args) {
   return toArray(args);
 }
 
-function restArgs(args, start, nullOnEmpty){
-  if (args.length > start) {
-    return Array.prototype.slice.call(args, start);
+function rest(arr, start, onEmpty){
+  if (arr.length > start) {
+    return Array.prototype.slice.call(arr, start);
   }
-  if (nullOnEmpty) {
-    return null;
-  } else {
-    return [];
-  }
+  return onEmpty;
 }
 
 function getFn(fn, context) {

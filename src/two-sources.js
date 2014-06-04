@@ -77,8 +77,8 @@ inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
 
 Observable.prototype.sampledBy = function(observable/*fn[, context[, arg1, arg2, ...]]*/) {
   if (observable instanceof Stream) {
-    return new Kefir.SampledByStream(this, observable, restArgs(arguments, 1, true));
+    return new Kefir.SampledByStream(this, observable, rest(arguments, 1));
   } else {
-    return new Kefir.SampledByProperty(this, observable, restArgs(arguments, 1, true));
+    return new Kefir.SampledByProperty(this, observable, rest(arguments, 1));
   }
 }

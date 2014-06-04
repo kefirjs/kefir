@@ -260,7 +260,7 @@ inherit(FromPollStream, Stream, {
 });
 
 Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/){
-  return new FromPollStream(interval, restArgs(arguments, 1));
+  return new FromPollStream(interval, rest(arguments, 1));
 }
 
 

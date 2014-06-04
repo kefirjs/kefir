@@ -349,11 +349,11 @@ inherit(Kefir.CombinedStream, Stream, {
 });
 
 Kefir.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream(sources, restArgs(arguments, 1, true));
+  return new Kefir.CombinedStream(sources, rest(arguments, 1));
 }
 
 Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1, true));
+  return new Kefir.CombinedStream([this].concat(sources), rest(arguments, 1));
 }
 
 
@@ -364,7 +364,7 @@ Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ..
 // Kefir.onValues()
 
 Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
-  var fn = new Callable(restArgs(arguments, 1, true))
+  var fn = new Callable(rest(arguments, 1))
   return Kefir.combine(streams).onValue(function(xs){
     return fn.apply(null, xs);
   });

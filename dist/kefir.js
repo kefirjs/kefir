@@ -66,15 +66,11 @@ function firstArrOrToArr(args) {
   return toArray(args);
 }
 
-function restArgs(args, start, nullOnEmpty){
-  if (args.length > start) {
-    return Array.prototype.slice.call(args, start);
+function rest(arr, start, onEmpty){
+  if (arr.length > start) {
+    return Array.prototype.slice.call(arr, start);
   }
-  if (nullOnEmpty) {
-    return null;
-  } else {
-    return [];
-  }
+  return onEmpty;
 }
 
 function getFn(fn, context) {
@@ -195,7 +191,7 @@ function Callable(fnMeta) {
     }
     this.fn = getFn(fnMeta[0], fnMeta[1]);
     this.context = fnMeta[1];
-    this.args = restArgs(fnMeta, 2, true);
+    this.args = rest(fnMeta, 2);
   } else {
     throw new Error('can\'t convert to Callable ' + fnMeta);
   }
@@ -639,7 +635,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
 })
 
 Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.ScanProperty(this, seed, restArgs(arguments, 1));
+  return new Kefir.ScanProperty(this, seed, rest(arguments, 1));
 }
 
 
@@ -674,7 +670,7 @@ inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
 });
 
 Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.ReducedProperty(this, seed, restArgs(arguments, 1));
+  return new Kefir.ReducedProperty(this, seed, rest(arguments, 1));
 }
 
 
@@ -743,7 +739,7 @@ Property.prototype.changes = function() {
 // .diff(seed, fn)
 
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fn = new Callable(restArgs(arguments, 1));
+  var fn = new Callable(rest(arguments, 1));
   var prev = start;
   return this.map(function(x){
     var result = fn.apply(null, [prev, x]);
@@ -944,9 +940,9 @@ inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
 
 Observable.prototype.sampledBy = function(observable/*fn[, context[, arg1, arg2, ...]]*/) {
   if (observable instanceof Stream) {
-    return new Kefir.SampledByStream(this, observable, restArgs(arguments, 1, true));
+    return new Kefir.SampledByStream(this, observable, rest(arguments, 1));
   } else {
-    return new Kefir.SampledByProperty(this, observable, restArgs(arguments, 1, true));
+    return new Kefir.SampledByProperty(this, observable, rest(arguments, 1));
   }
 }
 
@@ -1301,11 +1297,11 @@ inherit(Kefir.CombinedStream, Stream, {
 });
 
 Kefir.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream(sources, restArgs(arguments, 1, true));
+  return new Kefir.CombinedStream(sources, rest(arguments, 1));
 }
 
 Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1, true));
+  return new Kefir.CombinedStream([this].concat(sources), rest(arguments, 1));
 }
 
 
@@ -1316,7 +1312,7 @@ Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ..
 // Kefir.onValues()
 
 Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
-  var fn = new Callable(restArgs(arguments, 1, true))
+  var fn = new Callable(rest(arguments, 1))
   return Kefir.combine(streams).onValue(function(xs){
     return fn.apply(null, xs);
   });
@@ -1584,7 +1580,7 @@ inherit(FromPollStream, Stream, {
 });
 
 Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/){
-  return new FromPollStream(interval, restArgs(arguments, 1));
+  return new FromPollStream(interval, rest(arguments, 1));
 }
 
 

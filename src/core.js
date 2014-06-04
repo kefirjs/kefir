@@ -49,7 +49,7 @@ function Callable(fnMeta) {
     }
     this.fn = getFn(fnMeta[0], fnMeta[1]);
     this.context = fnMeta[1];
-    this.args = restArgs(fnMeta, 2, true);
+    this.args = rest(fnMeta, 2);
   } else {
     throw new Error('can\'t convert to Callable ' + fnMeta);
   }
