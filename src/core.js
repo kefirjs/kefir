@@ -29,6 +29,60 @@ Kefir.error = function(error) {
 
 
 
+
+// Callable
+
+function Callable(fnMeta) {
+  if (isFn(fnMeta) || (fnMeta instanceof Callable)) {
+    return fnMeta;
+  }
+  if (isArray(fnMeta) || isArguments(fnMeta)) {
+    if (fnMeta.length === 0) {
+      throw new Error('can\'t convert to Callable ' + fnMeta);
+    }
+    if (fnMeta.length === 1) {
+      if (isFn(fnMeta[0])) {
+        return fnMeta[0];
+      } else {
+        throw new Error('can\'t convert to Callable ' + fnMeta);
+      }
+    }
+    this.fn = getFn(fnMeta[0], fnMeta[1]);
+    this.context = fnMeta[1];
+    this.args = restArgs(fnMeta, 2, true);
+  } else {
+    throw new Error('can\'t convert to Callable ' + fnMeta);
+  }
+}
+
+Callable.prototype.apply = function(_, args) {
+  if (this.args) {
+    if (args) {
+      args = this.args.concat(toArray(args));
+    } else {
+      args = this.args;
+    }
+  }
+  return this.fn.apply(this.context, args || []);
+}
+
+function isEqualCallables(a, b) {
+  if (a === b) {
+    return true;
+  }
+  a = new Callable(a);
+  b = new Callable(b);
+  if (a.fn === b.fn && a.context === b.context && isEqualArrays(a.args, b.args)) {
+    return true;
+  }
+  return false;
+}
+
+
+
+
+
+
 // Observable
 
 var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut){
@@ -60,15 +114,13 @@ inherit(Observable, Object, {
     if (!this.__subscribers[type]) {
       this.__subscribers[type] = [];
     }
-    this.__subscribers[type].push(normFnMeta(fnMeta));
+    this.__subscribers[type].push(new Callable(fnMeta));
   },
 
   __removeSubscriber: function(type, fnMeta){
-    fnMeta = normFnMeta(fnMeta);
     if (this.__subscribers[type]) {
       for (var i = 0; i < this.__subscribers[type].length; i++) {
-        var subscriberFnMeta = this.__subscribers[type][i];
-        if (subscriberFnMeta === fnMeta || isEqualArrays(subscriberFnMeta, fnMeta)) {
+        if (this.__subscribers[type][i] !== null && isEqualCallables(this.__subscribers[type][i], fnMeta)) {
           this.__subscribers[type][i] = null;
           return;
         }
@@ -89,7 +141,7 @@ inherit(Observable, Object, {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
-      callFn(fnMeta);
+      new Callable(fnMeta).apply();
     }
   },
   __off: function(type, fnMeta){
@@ -106,7 +158,7 @@ inherit(Observable, Object, {
         for (var i = 0, l = this.__subscribers[type].length; i < l; i++) {
           var fnMeta = this.__subscribers[type][i];
           if (fnMeta !== null) {
-            var result = callFn(fnMeta, type === 'end' ? null : [x]);
+            var result = fnMeta.apply(null, type === 'end' ? null : [x]);
             if (result === NO_MORE) {
               this.__off(type, fnMeta);
             }
@@ -251,7 +303,7 @@ inherit(Property, Observable, {
   },
   onValue: function() {
     if ( this.hasValue() ) {
-      callFn(arguments, [this.__cached])
+      new Callable(arguments).apply(null, [this.__cached]);
     }
     return this.onNewValue.apply(this, arguments);
   }

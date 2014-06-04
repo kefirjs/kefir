@@ -84,58 +84,6 @@ function getFn(fn, context) {
   }
 }
 
-function callFn(fnMeta, moreArgs){
-  // fnMeta = [
-  //   fn,
-  //   context,
-  //   arg1,
-  //   arg2,
-  //   ...
-  // ]
-  var fn, context, args;
-  if (isFn(fnMeta)) {
-    fn = fnMeta;
-    context = null;
-    args = null;
-  } else {
-    context = fnMeta[1];
-    fn = getFn(fnMeta[0], context);
-    args = restArgs(fnMeta, 2, true);
-  }
-  if (moreArgs){
-    if (args) {
-      args = args.concat(toArray(moreArgs));
-    } else {
-      args = moreArgs;
-    }
-  }
-  /*jshint eqnull:true */
-  if (context == null) {
-    if (!args || args.length === 0) {
-      return fn();
-    } else if (args.length === 1) {
-      return fn(args[0]);
-    } else if (args.length === 2) {
-      return fn(args[0], args[1]);
-    } else if (args.length === 3) {
-      return fn(args[0], args[1], args[2]);
-    }
-  }
-  return args ? fn.apply(context, args) : fn.call(context);
-}
-
-function normFnMeta(fnMeta) {
-  if (isArray(fnMeta) || isArguments(fnMeta)) {
-    if (fnMeta.length === 1) {
-      return fnMeta[0];
-    }
-    if (fnMeta.length === 0) {
-      return null;
-    }
-  }
-  return fnMeta;
-}
-
 function isFn(fn) {
   return typeof fn === 'function';
 }

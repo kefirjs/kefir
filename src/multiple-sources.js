@@ -143,7 +143,7 @@ Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta){
   Stream.call(this);
   this.__initPluggable();
   this.__sourceStream = sourceStream;
-  this.__mapFnMeta = normFnMeta(mapFnMeta);
+  this.__mapFn = new Callable(mapFnMeta);
   sourceStream.onEnd(this.__onSourceEnds, this);
 }
 
@@ -157,7 +157,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     }
   },
   __plugResult: function(x){
-    this.__plug( callFn(this.__mapFnMeta, [x]) );
+    this.__plug( this.__mapFn.apply(null, [x]) );
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
@@ -179,7 +179,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
     this.__sourceStream = null;
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 
 })
@@ -271,7 +271,7 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
   }
   this.__cachedValues = new Array(sources.length);
   this.__hasValue = new Array(sources.length);
-  this.__mapFnMeta = normFnMeta(mapFnMeta);
+  this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
 }
 
 inherit(Kefir.CombinedStream, Stream, {
@@ -323,8 +323,8 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__hasValue[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
-      if (this.__mapFnMeta) {
-        this.__sendAny(callFn(this.__mapFnMeta, this.__cachedValues));
+      if (this.__mapFn) {
+        this.__sendAny(this.__mapFn.apply(null, this.__cachedValues));
       } else {
         this.__sendValue(this.__cachedValues.slice(0));
       }
@@ -343,17 +343,17 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__plugged = null;
     this.__cachedValues = null;
     this.__hasValue = null;
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 
 });
 
 Kefir.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream(sources, restArgs(arguments, 1));
+  return new Kefir.CombinedStream(sources, restArgs(arguments, 1, true));
 }
 
 Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1));
+  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1, true));
 }
 
 
@@ -364,6 +364,8 @@ Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ..
 // Kefir.onValues()
 
 Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
-  var fnMeta = normFnMeta(restArgs(arguments, 1))
-  return Kefir.combine(streams).onValue(callFn, null, fnMeta);
+  var fn = new Callable(restArgs(arguments, 1, true))
+  return Kefir.combine(streams).onValue(function(xs){
+    return fn.apply(null, xs);
+  });
 }

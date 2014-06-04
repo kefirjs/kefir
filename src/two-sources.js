@@ -19,7 +19,7 @@ var SampledByMixin = {
     } else {
       Stream.call(this);
     }
-    this.__fnMeta = normFnMeta(fnMeta);
+    this.__transformer = fnMeta && (new Callable(fnMeta));
     this.__mainStream = main;
     this.__lastValue = NOTHING;
     if (main instanceof Property && main.hasValue()) {
@@ -30,8 +30,8 @@ var SampledByMixin = {
   __handle: function(y){
     if (this.__lastValue !== NOTHING) {
       var x = this.__lastValue;
-      if (this.__fnMeta) {
-        x = callFn(this.__fnMeta, [x, y]);
+      if (this.__transformer) {
+        x = this.__transformer.apply(null, [x, y]);
       }
       this.__sendValue(x);
     }
@@ -77,8 +77,8 @@ inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
 
 Observable.prototype.sampledBy = function(observable/*fn[, context[, arg1, arg2, ...]]*/) {
   if (observable instanceof Stream) {
-    return new Kefir.SampledByStream(this, observable, restArgs(arguments, 1));
+    return new Kefir.SampledByStream(this, observable, restArgs(arguments, 1, true));
   } else {
-    return new Kefir.SampledByProperty(this, observable, restArgs(arguments, 1));
+    return new Kefir.SampledByProperty(this, observable, restArgs(arguments, 1, true));
   }
 }

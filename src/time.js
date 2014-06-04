@@ -231,13 +231,13 @@ Property.prototype.throttle = function(wait, options) {
 
 // Kefir.fromPoll()
 
-var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
+var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFn){
   Stream.call(this);
   this.__interval = interval;
   this.__intervalId = null;
   var _this = this;
-  sourceFnMeta = normFnMeta(sourceFnMeta);
-  this.__bindedSend = function(){  _this.__sendAny(callFn(sourceFnMeta))  }
+  sourceFn = new Callable(sourceFn);
+  this.__bindedSend = function(){  _this.__sendAny(sourceFn.apply())  }
 }
 
 inherit(FromPollStream, Stream, {

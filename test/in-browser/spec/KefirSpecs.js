@@ -91,58 +91,6 @@ function getFn(fn, context) {
   }
 }
 
-function callFn(fnMeta, moreArgs){
-  // fnMeta = [
-  //   fn,
-  //   context,
-  //   arg1,
-  //   arg2,
-  //   ...
-  // ]
-  var fn, context, args;
-  if (isFn(fnMeta)) {
-    fn = fnMeta;
-    context = null;
-    args = null;
-  } else {
-    context = fnMeta[1];
-    fn = getFn(fnMeta[0], context);
-    args = restArgs(fnMeta, 2, true);
-  }
-  if (moreArgs){
-    if (args) {
-      args = args.concat(toArray(moreArgs));
-    } else {
-      args = moreArgs;
-    }
-  }
-  /*jshint eqnull:true */
-  if (context == null) {
-    if (!args || args.length === 0) {
-      return fn();
-    } else if (args.length === 1) {
-      return fn(args[0]);
-    } else if (args.length === 2) {
-      return fn(args[0], args[1]);
-    } else if (args.length === 3) {
-      return fn(args[0], args[1], args[2]);
-    }
-  }
-  return args ? fn.apply(context, args) : fn.call(context);
-}
-
-function normFnMeta(fnMeta) {
-  if (isArray(fnMeta) || isArguments(fnMeta)) {
-    if (fnMeta.length === 1) {
-      return fnMeta[0];
-    }
-    if (fnMeta.length === 0) {
-      return null;
-    }
-  }
-  return fnMeta;
-}
-
 function isFn(fn) {
   return typeof fn === 'function';
 }
@@ -228,6 +176,60 @@ Kefir.error = function(error) {
 
 
 
+
+// Callable
+
+function Callable(fnMeta) {
+  if (isFn(fnMeta) || (fnMeta instanceof Callable)) {
+    return fnMeta;
+  }
+  if (isArray(fnMeta) || isArguments(fnMeta)) {
+    if (fnMeta.length === 0) {
+      throw new Error('can\'t convert to Callable ' + fnMeta);
+    }
+    if (fnMeta.length === 1) {
+      if (isFn(fnMeta[0])) {
+        return fnMeta[0];
+      } else {
+        throw new Error('can\'t convert to Callable ' + fnMeta);
+      }
+    }
+    this.fn = getFn(fnMeta[0], fnMeta[1]);
+    this.context = fnMeta[1];
+    this.args = restArgs(fnMeta, 2, true);
+  } else {
+    throw new Error('can\'t convert to Callable ' + fnMeta);
+  }
+}
+
+Callable.prototype.apply = function(_, args) {
+  if (this.args) {
+    if (args) {
+      args = this.args.concat(toArray(args));
+    } else {
+      args = this.args;
+    }
+  }
+  return this.fn.apply(this.context, args || []);
+}
+
+function isEqualCallables(a, b) {
+  if (a === b) {
+    return true;
+  }
+  a = new Callable(a);
+  b = new Callable(b);
+  if (a.fn === b.fn && a.context === b.context && isEqualArrays(a.args, b.args)) {
+    return true;
+  }
+  return false;
+}
+
+
+
+
+
+
 // Observable
 
 var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut){
@@ -259,15 +261,13 @@ inherit(Observable, Object, {
     if (!this.__subscribers[type]) {
       this.__subscribers[type] = [];
     }
-    this.__subscribers[type].push(normFnMeta(fnMeta));
+    this.__subscribers[type].push(new Callable(fnMeta));
   },
 
   __removeSubscriber: function(type, fnMeta){
-    fnMeta = normFnMeta(fnMeta);
     if (this.__subscribers[type]) {
       for (var i = 0; i < this.__subscribers[type].length; i++) {
-        var subscriberFnMeta = this.__subscribers[type][i];
-        if (subscriberFnMeta === fnMeta || isEqualArrays(subscriberFnMeta, fnMeta)) {
+        if (this.__subscribers[type][i] !== null && isEqualCallables(this.__subscribers[type][i], fnMeta)) {
           this.__subscribers[type][i] = null;
           return;
         }
@@ -288,7 +288,7 @@ inherit(Observable, Object, {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
-      callFn(fnMeta);
+      new Callable(fnMeta).apply();
     }
   },
   __off: function(type, fnMeta){
@@ -305,7 +305,7 @@ inherit(Observable, Object, {
         for (var i = 0, l = this.__subscribers[type].length; i < l; i++) {
           var fnMeta = this.__subscribers[type][i];
           if (fnMeta !== null) {
-            var result = callFn(fnMeta, type === 'end' ? null : [x]);
+            var result = fnMeta.apply(null, type === 'end' ? null : [x]);
             if (result === NO_MORE) {
               this.__off(type, fnMeta);
             }
@@ -450,7 +450,7 @@ inherit(Property, Observable, {
   },
   onValue: function() {
     if ( this.hasValue() ) {
-      callFn(arguments, [this.__cached])
+      new Callable(arguments).apply(null, [this.__cached]);
     }
     return this.onNewValue.apply(this, arguments);
   }
@@ -507,7 +507,7 @@ inherit(Kefir.OnceStream, Stream, {
   __ClassName: 'OnceStream',
   onValue: function(){
     if (!this.isEnded()) {
-      callFn(arguments, [this.__value]);
+      new Callable(arguments).apply(null, [this.__value]);
       this.__value = null;
       this.__sendEnd();
     }
@@ -529,7 +529,7 @@ Kefir.once = function(x) {
 
 Kefir.FromBinderStream = function FromBinderStream(subscribeFnMeta){
   Stream.call(this);
-  this.__subscribeFnMeta = normFnMeta(subscribeFnMeta);
+  this.__subscribeFn = new Callable(subscribeFnMeta);
 }
 
 inherit(Kefir.FromBinderStream, Stream, {
@@ -537,7 +537,7 @@ inherit(Kefir.FromBinderStream, Stream, {
   __ClassName: 'FromBinderStream',
   __onFirstIn: function(){
     var _this = this;
-    this.__usubscriber = callFn(this.__subscribeFnMeta, [function(x){
+    this.__usubscriber = this.__subscribeFn.apply(null, [function(x){
       _this.__sendAny(x);
     }]);
   },
@@ -549,7 +549,7 @@ inherit(Kefir.FromBinderStream, Stream, {
   },
   __clear: function(){
     Stream.prototype.__clear.call(this);
-    this.__subscribeFnMeta = null;
+    this.__subscribeFn = null;
   }
 
 })
@@ -621,7 +621,7 @@ Property.prototype.toProperty = function(initial){
 
 Kefir.ScanProperty = function ScanProperty(source, seed, fnMeta){
   Property.call(this, null, null, seed);
-  this.__fnMeta = normFnMeta(fnMeta);
+  this.__fn = new Callable(fnMeta);
   this.__Constructor(source);
 }
 
@@ -630,11 +630,11 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( callFn(this.__fnMeta, [this.getValue(), x]) );
+    this.__sendValue( this.__fn.apply(null, [this.getValue(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__fnMeta = null;
+    this.__fn = null;
   }
 
 })
@@ -650,7 +650,7 @@ Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
 
 Kefir.ReducedProperty = function ReducedProperty(source, seed, fnMeta){
   Property.call(this);
-  this.__fnMeta = normFnMeta(fnMeta);
+  this.__fn = new Callable(fnMeta);
   this.__result = seed;
   source.onEnd('__sendResult', this);
   this.__Constructor(source);
@@ -661,14 +661,14 @@ inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ReducedProperty',
 
   __handle: function(x){
-    this.__result = callFn(this.__fnMeta, [this.__result, x]);
+    this.__result = this.__fn.apply(null, [this.__result, x]);
   },
   __sendResult: function(){
     this.__sendValue(this.__result);
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__fnMeta = null;
+    this.__fn = null;
     this.__result = null;
   }
 
@@ -690,17 +690,17 @@ var MapMixin = {
     } else {
       Stream.call(this);
     }
-    this.__mapFnMeta = normFnMeta(mapFnMeta);
+    this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
     WithSourceStreamMixin.__Constructor.call(this, source);
   },
   __handle: function(x){
     this.__sendAny(
-      this.__mapFnMeta ? callFn(this.__mapFnMeta, [x]) : x
+      this.__mapFn ? this.__mapFn.apply(null, [x]) : x
     );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 }
 inheritMixin(MapMixin, WithSourceStreamMixin);
@@ -744,10 +744,10 @@ Property.prototype.changes = function() {
 // .diff(seed, fn)
 
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fnMeta = normFnMeta(restArgs(arguments, 1));
+  var fn = new Callable(restArgs(arguments, 1));
   var prev = start;
   return this.map(function(x){
-    var result = callFn(fnMeta, [prev, x]);
+    var result = fn.apply(null, [prev, x]);
     prev = x;
     return result;
   });
@@ -760,9 +760,9 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 // .filter(fn)
 
 Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fnMeta = normFnMeta(arguments);
+  var fn = new Callable(arguments);
   return this.map(function(x){
-    if (callFn(fnMeta, [x])) {
+    if (fn.apply(this, [x])) {
       return x;
     } else {
       return NOTHING;
@@ -775,8 +775,8 @@ Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .takeWhile(fn)
 
-var takeWhileMapFn = function(fnMeta, x) {
-  if (callFn(fnMeta, [x])) {
+var takeWhileMapFn = function(fn, x) {
+  if (fn.apply(null, [x])) {
     return x;
   } else {
     return END;
@@ -784,7 +784,7 @@ var takeWhileMapFn = function(fnMeta, x) {
 }
 
 Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(takeWhileMapFn, null, normFnMeta(arguments));
+  return this.map(takeWhileMapFn, null, new Callable(arguments));
 }
 
 
@@ -854,7 +854,7 @@ Observable.prototype.skipDuplicates = function(fn) {
 // .skipWhile(fn)
 
 var skipWhileMapFn = function(x){
-  if (this.skip && callFn(this.fnMeta, [x])) {
+  if (this.skip && this.fn.apply(null, [x])) {
     return NOTHING;
   } else {
     this.skip = false;
@@ -863,7 +863,7 @@ var skipWhileMapFn = function(x){
 }
 
 Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
+  return this.map(skipWhileMapFn, {skip: true, fn: new Callable(arguments)});
 }
 
 // TODO
@@ -887,7 +887,7 @@ var SampledByMixin = {
     } else {
       Stream.call(this);
     }
-    this.__fnMeta = normFnMeta(fnMeta);
+    this.__transformer = fnMeta && (new Callable(fnMeta));
     this.__mainStream = main;
     this.__lastValue = NOTHING;
     if (main instanceof Property && main.hasValue()) {
@@ -898,8 +898,8 @@ var SampledByMixin = {
   __handle: function(y){
     if (this.__lastValue !== NOTHING) {
       var x = this.__lastValue;
-      if (this.__fnMeta) {
-        x = callFn(this.__fnMeta, [x, y]);
+      if (this.__transformer) {
+        x = this.__transformer.apply(null, [x, y]);
       }
       this.__sendValue(x);
     }
@@ -945,9 +945,9 @@ inherit(Kefir.SampledByProperty, Property, SampledByMixin, {
 
 Observable.prototype.sampledBy = function(observable/*fn[, context[, arg1, arg2, ...]]*/) {
   if (observable instanceof Stream) {
-    return new Kefir.SampledByStream(this, observable, restArgs(arguments, 1));
+    return new Kefir.SampledByStream(this, observable, restArgs(arguments, 1, true));
   } else {
-    return new Kefir.SampledByProperty(this, observable, restArgs(arguments, 1));
+    return new Kefir.SampledByProperty(this, observable, restArgs(arguments, 1, true));
   }
 }
 
@@ -1096,7 +1096,7 @@ Kefir.FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta){
   Stream.call(this);
   this.__initPluggable();
   this.__sourceStream = sourceStream;
-  this.__mapFnMeta = normFnMeta(mapFnMeta);
+  this.__mapFn = new Callable(mapFnMeta);
   sourceStream.onEnd(this.__onSourceEnds, this);
 }
 
@@ -1110,7 +1110,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     }
   },
   __plugResult: function(x){
-    this.__plug( callFn(this.__mapFnMeta, [x]) );
+    this.__plug( this.__mapFn.apply(null, [x]) );
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
@@ -1132,7 +1132,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
     this.__sourceStream = null;
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 
 })
@@ -1224,7 +1224,7 @@ Kefir.CombinedStream = function CombinedStream(sources, mapFnMeta){
   }
   this.__cachedValues = new Array(sources.length);
   this.__hasValue = new Array(sources.length);
-  this.__mapFnMeta = normFnMeta(mapFnMeta);
+  this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
 }
 
 inherit(Kefir.CombinedStream, Stream, {
@@ -1276,8 +1276,8 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__hasValue[i] = true;
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
-      if (this.__mapFnMeta) {
-        this.__sendAny(callFn(this.__mapFnMeta, this.__cachedValues));
+      if (this.__mapFn) {
+        this.__sendAny(this.__mapFn.apply(null, this.__cachedValues));
       } else {
         this.__sendValue(this.__cachedValues.slice(0));
       }
@@ -1296,17 +1296,17 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__plugged = null;
     this.__cachedValues = null;
     this.__hasValue = null;
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 
 });
 
 Kefir.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream(sources, restArgs(arguments, 1));
+  return new Kefir.CombinedStream(sources, restArgs(arguments, 1, true));
 }
 
 Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1));
+  return new Kefir.CombinedStream([this].concat(sources), restArgs(arguments, 1, true));
 }
 
 
@@ -1317,8 +1317,10 @@ Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ..
 // Kefir.onValues()
 
 Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
-  var fnMeta = normFnMeta(restArgs(arguments, 1))
-  return Kefir.combine(streams).onValue(callFn, null, fnMeta);
+  var fn = new Callable(restArgs(arguments, 1, true))
+  return Kefir.combine(streams).onValue(function(xs){
+    return fn.apply(null, xs);
+  });
 }
 
 // TODO
@@ -1554,13 +1556,13 @@ Property.prototype.throttle = function(wait, options) {
 
 // Kefir.fromPoll()
 
-var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFnMeta){
+var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFn){
   Stream.call(this);
   this.__interval = interval;
   this.__intervalId = null;
   var _this = this;
-  sourceFnMeta = normFnMeta(sourceFnMeta);
-  this.__bindedSend = function(){  _this.__sendAny(callFn(sourceFnMeta))  }
+  sourceFn = new Callable(sourceFn);
+  this.__bindedSend = function(){  _this.__sendAny(sourceFn.apply())  }
 }
 
 inherit(FromPollStream, Stream, {

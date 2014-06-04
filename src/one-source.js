@@ -61,7 +61,7 @@ Property.prototype.toProperty = function(initial){
 
 Kefir.ScanProperty = function ScanProperty(source, seed, fnMeta){
   Property.call(this, null, null, seed);
-  this.__fnMeta = normFnMeta(fnMeta);
+  this.__fn = new Callable(fnMeta);
   this.__Constructor(source);
 }
 
@@ -70,11 +70,11 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( callFn(this.__fnMeta, [this.getValue(), x]) );
+    this.__sendValue( this.__fn.apply(null, [this.getValue(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__fnMeta = null;
+    this.__fn = null;
   }
 
 })
@@ -90,7 +90,7 @@ Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
 
 Kefir.ReducedProperty = function ReducedProperty(source, seed, fnMeta){
   Property.call(this);
-  this.__fnMeta = normFnMeta(fnMeta);
+  this.__fn = new Callable(fnMeta);
   this.__result = seed;
   source.onEnd('__sendResult', this);
   this.__Constructor(source);
@@ -101,14 +101,14 @@ inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ReducedProperty',
 
   __handle: function(x){
-    this.__result = callFn(this.__fnMeta, [this.__result, x]);
+    this.__result = this.__fn.apply(null, [this.__result, x]);
   },
   __sendResult: function(){
     this.__sendValue(this.__result);
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__fnMeta = null;
+    this.__fn = null;
     this.__result = null;
   }
 
@@ -130,17 +130,17 @@ var MapMixin = {
     } else {
       Stream.call(this);
     }
-    this.__mapFnMeta = normFnMeta(mapFnMeta);
+    this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
     WithSourceStreamMixin.__Constructor.call(this, source);
   },
   __handle: function(x){
     this.__sendAny(
-      this.__mapFnMeta ? callFn(this.__mapFnMeta, [x]) : x
+      this.__mapFn ? this.__mapFn.apply(null, [x]) : x
     );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 }
 inheritMixin(MapMixin, WithSourceStreamMixin);
@@ -184,10 +184,10 @@ Property.prototype.changes = function() {
 // .diff(seed, fn)
 
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fnMeta = normFnMeta(restArgs(arguments, 1));
+  var fn = new Callable(restArgs(arguments, 1));
   var prev = start;
   return this.map(function(x){
-    var result = callFn(fnMeta, [prev, x]);
+    var result = fn.apply(null, [prev, x]);
     prev = x;
     return result;
   });
@@ -200,9 +200,9 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 // .filter(fn)
 
 Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fnMeta = normFnMeta(arguments);
+  var fn = new Callable(arguments);
   return this.map(function(x){
-    if (callFn(fnMeta, [x])) {
+    if (fn.apply(this, [x])) {
       return x;
     } else {
       return NOTHING;
@@ -215,8 +215,8 @@ Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .takeWhile(fn)
 
-var takeWhileMapFn = function(fnMeta, x) {
-  if (callFn(fnMeta, [x])) {
+var takeWhileMapFn = function(fn, x) {
+  if (fn.apply(null, [x])) {
     return x;
   } else {
     return END;
@@ -224,7 +224,7 @@ var takeWhileMapFn = function(fnMeta, x) {
 }
 
 Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(takeWhileMapFn, null, normFnMeta(arguments));
+  return this.map(takeWhileMapFn, null, new Callable(arguments));
 }
 
 
@@ -294,7 +294,7 @@ Observable.prototype.skipDuplicates = function(fn) {
 // .skipWhile(fn)
 
 var skipWhileMapFn = function(x){
-  if (this.skip && callFn(this.fnMeta, [x])) {
+  if (this.skip && this.fn.apply(null, [x])) {
     return NOTHING;
   } else {
     this.skip = false;
@@ -303,5 +303,5 @@ var skipWhileMapFn = function(x){
 }
 
 Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
+  return this.map(skipWhileMapFn, {skip: true, fn: new Callable(arguments)});
 }
