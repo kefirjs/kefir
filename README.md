@@ -40,11 +40,3 @@ To run perfomance tests:
 To run all perfomance tests:
 
     coffee test/perf/all-benchmarks.coffee
-
-
-
-TMP: идеи
-
-1) __onValueOrError
-2) уррать обход по "дырявому" __plugged в flatMap и прочем
-3) Callable: call(args), isEqual(Callable | fnMeta)
