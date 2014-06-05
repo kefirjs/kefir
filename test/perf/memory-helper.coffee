@@ -56,10 +56,12 @@ baseKefir = ->
   stream
 
 baseRx = ->
-  new Rx.Observable.create (observer) ->
-    send = (x) -> observer.onNext x
-    fakeSource.subscribe send
-    -> fakeSource.unsubscribe send
+  (
+    new Rx.Observable.create (observer) ->
+      send = (x) -> observer.onNext x
+      fakeSource.subscribe send
+      -> fakeSource.unsubscribe send
+  ).publish().refCount()
 
 baseBacon = ->
   new Bacon.EventStream (sink) ->

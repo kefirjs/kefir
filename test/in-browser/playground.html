@@ -36,7 +36,6 @@
 
             function baseRx(){
               return new Rx.Observable.create(function(observer){
-                debugger
                 var send = function(x){
                   observer.onNext(x);
                 }
@@ -44,7 +43,7 @@
                 return function(){
                   fakeSource.unsubscribe(send);
                 }
-              });
+              }).publish().refCount();
             }
 
             function baseBacon(){

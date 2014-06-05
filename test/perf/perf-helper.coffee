@@ -25,7 +25,7 @@ buildRx = (modify) ->
   observer = null
   stream = Rx.Observable.create (newObserver) ->
     observer = newObserver
-  modify(stream).subscribe(noop)
+  modify(stream.publish().refCount()).subscribe(noop)
   -> observer.onNext(1)
 
 
