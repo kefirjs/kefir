@@ -31,11 +31,15 @@ To build `/dist` from `/src` and run tests on Node.js type this in console:
 
 To run memory tests:
 
-    node --expose-gc test/perf/memory.js
+    coffee --nodejs '--expose-gc' test/perf/memory-specs/[some spec].coffee
+
+To run all memory tests:
+
+    coffee --nodejs '--expose-gc' test/perf/memory-all.coffee
 
 To run perfomance tests:
 
-    coffee test/perf/benchmarks/[some benchmark].coffee
+    coffee test/perf/benchmarks/[some spec].coffee
 
 To run all perfomance tests:
 

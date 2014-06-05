@@ -3,6 +3,10 @@ Kefir = require('../../dist/kefir.js')
 Bacon = require('baconjs')
 Rx = require('rx')
 
+Benchmark.options.maxTime = 1;
+Benchmark.options.minSamples = 15;
+
+
 noop = ->
 
 buildKefir = (modify) ->
@@ -25,25 +29,38 @@ buildRx = (modify) ->
   -> observer.onNext(1)
 
 
-exports.setupTest = (title, modifyFns) ->
-  console.log "\n#{title}"
+exports.setupTest = (title, options) ->
+  console.log ""
+  console.log "#{title}"
   console.log "----------------------------------------------------------------"
 
   suite = new Benchmark.Suite()
 
-  if modifyFns.kefir
-    suite.add('Kefir', buildKefir(modifyFns.kefir))
+  if options.kefir
+    suite.add('Kefir', buildKefir(options.kefir))
 
-  if modifyFns.bacon
-    suite.add('Bacon', buildBacon(modifyFns.bacon))
+  if options.bacon
+    suite.add('Bacon', buildBacon(options.bacon))
 
-  if modifyFns.rx
-    suite.add('RxJS', buildRx(modifyFns.rx))
+  if options.rx
+    suite.add('RxJS', buildRx(options.rx))
 
   suite.on 'cycle', (event) ->
     console.log String(event.target)
 
-  suite.run(async: false)
+  suite.on 'complete', ->
+    base = null
+    results = []
+    for result in this
+      if base == null
+        base = result.hz
+      results.push("#{result.name} #{(result.hz / base).toFixed(2)}")
+    console.log '-----------------------'
+    console.log results.join('   ')
+    console.log ''
+
+
+  suite.run(async: !!options.async)
 
 
 

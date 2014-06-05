@@ -1,6 +1,6 @@
 # eq = -> true
 
-require('../benchmark-helper.coffee').setupTest 'stream.skipDuplicates()', {
+require('../perf-helper.coffee').setupTest 'stream.skipDuplicates()', {
   kefir: (stream) -> stream.skipDuplicates()
   rx: (stream) -> stream.distinctUntilChanged()
   bacon: (stream) -> stream.skipDuplicates()
@@ -8,7 +8,7 @@ require('../benchmark-helper.coffee').setupTest 'stream.skipDuplicates()', {
 
 i = 0
 
-require('../benchmark-helper.coffee').setupTest 'stream.skipDuplicates(-> false)', {
+require('../perf-helper.coffee').setupTest 'stream.skipDuplicates(-> false)', {
   kefir: (stream) -> stream.skipDuplicates(-> false)
   rx: (stream) -> stream.distinctUntilChanged(-> ++i)
   bacon: (stream) -> stream.skipDuplicates(-> false)
