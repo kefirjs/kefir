@@ -33,7 +33,7 @@ To run memory tests:
 
     coffee --nodejs '--expose-gc' test/perf/memory-specs/[some spec].coffee
 
-To run all memory tests:
+To run all memory tests (see [results](https://github.com/pozadi/kefir/blob/master/test/perf/memory-results.txt)):
 
     coffee --nodejs '--expose-gc' test/perf/memory-all.coffee
 
