@@ -55,18 +55,46 @@ function Callable(fnMeta) {
   }
 }
 
-Callable.prototype.apply = function(_, args) {
-  if (this.args) {
-    if (args) {
-      args = this.args.concat(toArray(args));
+
+function callFast(fn, context, args) {
+  if (context) {
+    if (!args || args.length === 0) {
+      return fn.call(context);
     } else {
-      args = this.args;
+      return fn.apply(context, args);
     }
+  } else {
+    if (!args || args.length === 0) {
+      return fn();
+    } else if (args.length === 1) {
+      return fn(args[0]);
+    } else if (args.length === 2) {
+      return fn(args[0], args[1]);
+    } else if (args.length === 3) {
+      return fn(args[0], args[1], args[2]);
+    }
+    return fn.apply(null, args);
   }
-  return this.fn.apply(this.context, args || []);
 }
 
-function isEqualCallables(a, b) {
+Callable.call = function(callable, args) {
+  if (isFn(callable)) {
+    return callFast(callable, null, args);
+  } else if (callable instanceof Callable) {
+    if (callable.args) {
+      if (args) {
+        args = callable.args.concat(toArray(args));
+      } else {
+        args = callable.args;
+      }
+    }
+    return callFast(callable.fn, callable.context, args);
+  } else {
+    return Callable.call(new Callable(callable), args);
+  }
+}
+
+Callable.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
@@ -77,6 +105,7 @@ function isEqualCallables(a, b) {
   }
   return false;
 }
+
 
 
 
@@ -120,7 +149,7 @@ inherit(Observable, Object, {
   __removeSubscriber: function(type, fnMeta){
     if (this.__subscribers[type]) {
       for (var i = 0; i < this.__subscribers[type].length; i++) {
-        if (this.__subscribers[type][i] !== null && isEqualCallables(this.__subscribers[type][i], fnMeta)) {
+        if (this.__subscribers[type][i] !== null && Callable.isEqual(this.__subscribers[type][i], fnMeta)) {
           this.__subscribers[type][i] = null;
           return;
         }
@@ -141,7 +170,7 @@ inherit(Observable, Object, {
         this.__onFirstIn();
       }
     } else if (type === 'end') {
-      new Callable(fnMeta).apply();
+      Callable.call(fnMeta);
     }
   },
   __off: function(type, fnMeta){
@@ -156,11 +185,11 @@ inherit(Observable, Object, {
     if (!this.isEnded()) {
       if (this.__subscribers[type]) {
         for (var i = 0, l = this.__subscribers[type].length; i < l; i++) {
-          var fnMeta = this.__subscribers[type][i];
-          if (fnMeta !== null) {
-            var result = fnMeta.apply(null, type === 'end' ? null : [x]);
+          var callable = this.__subscribers[type][i];
+          if (callable !== null) {
+            var result = Callable.call(callable, type === 'end' ? null : [x]);
             if (result === NO_MORE) {
-              this.__off(type, fnMeta);
+              this.__off(type, callable);
             }
           }
         }
@@ -303,7 +332,7 @@ inherit(Property, Observable, {
   },
   onValue: function() {
     if ( this.hasValue() ) {
-      new Callable(arguments).apply(null, [this.__cached]);
+      Callable.call(arguments, [this.__cached]);
     }
     return this.onNewValue.apply(this, arguments);
   }

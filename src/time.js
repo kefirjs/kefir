@@ -237,7 +237,7 @@ var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, so
   this.__intervalId = null;
   var _this = this;
   sourceFn = new Callable(sourceFn);
-  this.__bindedSend = function(){  _this.__sendAny(sourceFn.apply())  }
+  this.__bindedSend = function(){  _this.__sendAny(Callable.call(sourceFn))  }
 }
 
 inherit(FromPollStream, Stream, {

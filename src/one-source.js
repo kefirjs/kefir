@@ -70,7 +70,7 @@ inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ScanProperty',
 
   __handle: function(x){
-    this.__sendValue( this.__fn.apply(null, [this.getValue(), x]) );
+    this.__sendValue( Callable.call(this.__fn, [this.getValue(), x]) );
   },
   __clear: function(){
     WithSourceStreamMixin.__clear.call(this);
@@ -101,7 +101,7 @@ inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
   __ClassName: 'ReducedProperty',
 
   __handle: function(x){
-    this.__result = this.__fn.apply(null, [this.__result, x]);
+    this.__result = Callable.call(this.__fn, [this.__result, x]);
   },
   __sendResult: function(){
     this.__sendValue(this.__result);
@@ -135,7 +135,7 @@ var MapMixin = {
   },
   __handle: function(x){
     this.__sendAny(
-      this.__mapFn ? this.__mapFn.apply(null, [x]) : x
+      this.__mapFn ? Callable.call(this.__mapFn, [x]) : x
     );
   },
   __clear: function(){
@@ -187,7 +187,7 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
   var fn = new Callable(rest(arguments, 1));
   var prev = start;
   return this.map(function(x){
-    var result = fn.apply(null, [prev, x]);
+    var result = Callable.call(fn, [prev, x]);
     prev = x;
     return result;
   });
@@ -215,16 +215,15 @@ Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .takeWhile(fn)
 
-var takeWhileMapFn = function(fn, x) {
-  if (fn.apply(null, [x])) {
-    return x;
-  } else {
-    return END;
-  }
-}
-
 Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(takeWhileMapFn, null, new Callable(arguments));
+  var fn = new Callable(arguments);
+  return this.map(function(x) {
+    if (Callable.call(fn, [x])) {
+      return x;
+    } else {
+      return END;
+    }
+  });
 }
 
 
@@ -232,19 +231,17 @@ Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) 
 
 // .take(n)
 
-var takeMapFn = function(x) {
-  if (this.n <= 0) {
-    return END;
-  }
-  if (this.n === 1) {
-    return Kefir.bunch(x, END);
-  }
-  this.n--;
-  return x;
-}
-
 Observable.prototype.take = function(n) {
-  return this.map(takeMapFn, {n: n});
+  return this.map(function(x) {
+    if (n <= 0) {
+      return END;
+    }
+    if (n === 1) {
+      return Kefir.bunch(x, END);
+    }
+    n--;
+    return x;
+  });
 }
 
 
@@ -252,17 +249,15 @@ Observable.prototype.take = function(n) {
 
 // .skip(n)
 
-var skipMapFn = function(x) {
-  if (this.n <= 0) {
-    return x;
-  } else {
-    this.n--;
-    return NOTHING;
-  }
-}
-
 Observable.prototype.skip = function(n) {
-  return this.map(skipMapFn, {n: n});
+  return this.map(function(x) {
+    if (n <= 0) {
+      return x;
+    } else {
+      n--;
+      return NOTHING;
+    }
+  });
 }
 
 
@@ -271,20 +266,18 @@ Observable.prototype.skip = function(n) {
 
 // .skipDuplicates([fn])
 
-var skipDuplicatesMapFn = function(x){
-  var result;
-  if (this.prev !== NOTHING && (this.fn ? this.fn(this.prev, x) : this.prev === x)) {
-    result = NOTHING;
-  } else {
-    result = x;
-  }
-  this.prev = x;
-  return result;
-}
-
 Observable.prototype.skipDuplicates = function(fn) {
   var prev = NOTHING;
-  return this.map(skipDuplicatesMapFn, {fn: fn, prev: NOTHING});
+  return this.map(function(x){
+    var result;
+    if (prev !== NOTHING && (fn ? fn(prev, x) : prev === x)) {
+      result = NOTHING;
+    } else {
+      result = x;
+    }
+    prev = x;
+    return result;
+  });
 }
 
 
@@ -293,15 +286,15 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 // .skipWhile(fn)
 
-var skipWhileMapFn = function(x){
-  if (this.skip && this.fn.apply(null, [x])) {
-    return NOTHING;
-  } else {
-    this.skip = false;
-    return x;
-  }
-}
-
 Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(skipWhileMapFn, {skip: true, fn: new Callable(arguments)});
+  var fn = new Callable(arguments);
+  var skip = true;
+  return this.map(function(x){
+    if (skip && Callable.call(fn, [x])) {
+      return NOTHING;
+    } else {
+      skip = false;
+      return x;
+    }
+  });
 }

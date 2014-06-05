@@ -157,7 +157,7 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     }
   },
   __plugResult: function(x){
-    this.__plug( this.__mapFn.apply(null, [x]) );
+    this.__plug( Callable.call(this.__mapFn, [x]) );
   },
   __onFirstIn: function(){
     this.__sourceStream.onValue('__plugResult', this);
@@ -324,7 +324,7 @@ inherit(Kefir.CombinedStream, Stream, {
     this.__cachedValues[i] = x;
     if (this.__allCached()) {
       if (this.__mapFn) {
-        this.__sendAny(this.__mapFn.apply(null, this.__cachedValues));
+        this.__sendAny(Callable.call(this.__mapFn, this.__cachedValues));
       } else {
         this.__sendValue(this.__cachedValues.slice(0));
       }
@@ -366,6 +366,6 @@ Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ..
 Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/){
   var fn = new Callable(rest(arguments, 1))
   return Kefir.combine(streams).onValue(function(xs){
-    return fn.apply(null, xs);
+    return Callable.call(fn, xs);
   });
 }

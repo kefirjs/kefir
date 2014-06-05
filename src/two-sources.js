@@ -31,7 +31,7 @@ var SampledByMixin = {
     if (this.__lastValue !== NOTHING) {
       var x = this.__lastValue;
       if (this.__transformer) {
-        x = this.__transformer.apply(null, [x, y]);
+        x = Callable.call(this.__transformer, [x, y]);
       }
       this.__sendValue(x);
     }

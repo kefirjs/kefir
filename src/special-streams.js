@@ -30,7 +30,7 @@ inherit(Kefir.OnceStream, Stream, {
   __ClassName: 'OnceStream',
   onValue: function(){
     if (!this.isEnded()) {
-      new Callable(arguments).apply(null, [this.__value]);
+      Callable.call(arguments, [this.__value]);
       this.__value = null;
       this.__sendEnd();
     }
@@ -60,7 +60,7 @@ inherit(Kefir.FromBinderStream, Stream, {
   __ClassName: 'FromBinderStream',
   __onFirstIn: function(){
     var _this = this;
-    this.__usubscriber = this.__subscribeFn.apply(null, [function(x){
+    this.__usubscriber = Callable.call(this.__subscribeFn, [function(x){
       _this.__sendAny(x);
     }]);
   },
