@@ -202,7 +202,7 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
   var fn = new Callable(arguments);
   return this.map(function(x){
-    if (fn.apply(this, [x])) {
+    if (Callable.call(fn, [x])) {
       return x;
     } else {
       return NOTHING;
