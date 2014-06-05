@@ -150,7 +150,7 @@ inherit(Observable, Object, {
     if (this.__subscribers[type]) {
       for (var i = 0; i < this.__subscribers[type].length; i++) {
         if (this.__subscribers[type][i] !== null && Callable.isEqual(this.__subscribers[type][i], fnMeta)) {
-          this.__subscribers[type][i] = null;
+          this.__subscribers[type].splice(i, 1);
           return;
         }
       }
@@ -184,13 +184,11 @@ inherit(Observable, Object, {
   __send: function(type, x) {
     if (!this.isEnded()) {
       if (this.__subscribers[type]) {
-        for (var i = 0, l = this.__subscribers[type].length; i < l; i++) {
-          var callable = this.__subscribers[type][i];
-          if (callable !== null) {
-            var result = Callable.call(callable, type === 'end' ? null : [x]);
-            if (result === NO_MORE) {
-              this.__off(type, callable);
-            }
+        var subscribers = this.__subscribers[type].slice(0);
+        for (var i = 0; i < subscribers.length; i++) {
+          var args = (type === 'end' ? null : [x]);
+          if (Callable.call(subscribers[i], args) === NO_MORE) {
+            this.__off(type, subscribers[i]);
           }
         }
       }
@@ -200,15 +198,9 @@ inherit(Observable, Object, {
     }
   },
   __hasSubscribers: function(type) {
-    if (this.isEnded() || !this.__subscribers[type]) {
-      return false;
-    }
-    for (var i = 0; i < this.__subscribers[type].length; i++) {
-      if (this.__subscribers[type][i] !== null) {
-        return true;
-      }
-    }
-    return false;
+    return !this.isEnded() &&
+      !!this.__subscribers[type] &&
+      this.__subscribers[type].length > 0;
   },
   __clear: function() {
     this.__onLastOut();

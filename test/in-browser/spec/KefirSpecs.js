@@ -293,7 +293,7 @@ inherit(Observable, Object, {
     if (this.__subscribers[type]) {
       for (var i = 0; i < this.__subscribers[type].length; i++) {
         if (this.__subscribers[type][i] !== null && Callable.isEqual(this.__subscribers[type][i], fnMeta)) {
-          this.__subscribers[type][i] = null;
+          this.__subscribers[type].splice(i, 1);
           return;
         }
       }
@@ -327,13 +327,11 @@ inherit(Observable, Object, {
   __send: function(type, x) {
     if (!this.isEnded()) {
       if (this.__subscribers[type]) {
-        for (var i = 0, l = this.__subscribers[type].length; i < l; i++) {
-          var callable = this.__subscribers[type][i];
-          if (callable !== null) {
-            var result = Callable.call(callable, type === 'end' ? null : [x]);
-            if (result === NO_MORE) {
-              this.__off(type, callable);
-            }
+        var subscribers = this.__subscribers[type].slice(0);
+        for (var i = 0; i < subscribers.length; i++) {
+          var args = (type === 'end' ? null : [x]);
+          if (Callable.call(subscribers[i], args) === NO_MORE) {
+            this.__off(type, subscribers[i]);
           }
         }
       }
@@ -343,15 +341,9 @@ inherit(Observable, Object, {
     }
   },
   __hasSubscribers: function(type) {
-    if (this.isEnded() || !this.__subscribers[type]) {
-      return false;
-    }
-    for (var i = 0; i < this.__subscribers[type].length; i++) {
-      if (this.__subscribers[type][i] !== null) {
-        return true;
-      }
-    }
-    return false;
+    return !this.isEnded() &&
+      !!this.__subscribers[type] &&
+      this.__subscribers[type].length > 0;
   },
   __clear: function() {
     this.__onLastOut();
@@ -996,30 +988,21 @@ var PluggableMixin = {
   __plug: function(stream){
     if ( !this.isEnded() ) {
       this.__plugged.push(stream);
-      var i = this.__plugged.length - 1;
-      if (this.__hasSubscribers('value')) {
+      if (this.__hasSubscribers('value') || this.__hasSubscribers('error')) {
         stream.onValue('__handlePlugged', this);
         stream.onError('__sendError', this);
       }
-      stream.onEnd('__unplugById', this, i);
-    }
-  },
-  __unplugById: function(i){
-    if ( !this.isEnded() ) {
-      var stream = this.__plugged[i];
-      if (stream) {
-        this.__plugged[i] = null;
-        stream.offValue('__handlePlugged', this);
-        stream.offError('__sendError', this);
-        stream.offEnd('__unplugById', this, i);
-      }
+      stream.onEnd('__unplug', this, stream);
     }
   },
   __unplug: function(stream){
     if ( !this.isEnded() ) {
       for (var i = 0; i < this.__plugged.length; i++) {
-        if (this.__plugged[i] === stream) {
-          this.__unplugById(i);
+        if (stream === this.__plugged[i]) {
+          stream.offValue('__handlePlugged', this);
+          stream.offError('__sendError', this);
+          stream.offEnd('__unplug', this, stream);
+          this.__plugged.splice(i, 1);
           return;
         }
       }
@@ -1044,15 +1027,7 @@ var PluggableMixin = {
     }
   },
   __hasNoPlugged: function(){
-    if (this.isEnded()) {
-      return true;
-    }
-    for (var i = 0; i < this.__plugged.length; i++) {
-      if (this.__plugged[i]) {
-        return false;
-      }
-    }
-    return true;
+    return this.isEnded() || this.__plugged.length === 0;
   }
 
 }
@@ -1140,9 +1115,9 @@ inherit(Kefir.FlatMappedStream, Stream, PluggableMixin, {
     this.__sourceStream.offError('__sendError', this);
     PluggableMixin.__onLastOut.call(this);
   },
-  __unplugById: function(i){
-    PluggableMixin.__unplugById.call(this, i);
-    if (!this.isEnded() && this.__hasNoPlugged() && this.__sourceStream.isEnded()) {
+  __unplug: function(stream){
+    PluggableMixin.__unplug.call(this, stream);
+    if (!this.isEnded() && this.__sourceStream.isEnded() && this.__hasNoPlugged()) {
       this.__sendEnd();
     }
   },
@@ -1173,8 +1148,8 @@ inherit(Kefir.FlatMapLatestStream, Kefir.FlatMappedStream, {
   __ClassName: 'FlatMapLatestStream',
 
   __plugResult: function(x){
-    for (var i = 0; i < this.__plugged.length; i++) {
-      this.__unplugById(i);
+    if (this.__plugged.length === 1) {
+      this.__unplug(this.__plugged[0]);
     }
     Kefir.FlatMappedStream.prototype.__plugResult.call(this, x);
   }
@@ -1207,8 +1182,8 @@ inherit(Kefir.MergedStream, Stream, PluggableMixin, {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
   },
-  __unplugById: function(i){
-    PluggableMixin.__unplugById.call(this, i);
+  __unplug: function(stream){
+    PluggableMixin.__unplug.call(this, stream);
     if (this.__hasNoPlugged()) {
       this.__sendEnd();
     }
