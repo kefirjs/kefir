@@ -157,7 +157,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `new Bacon.Bus()` | :rocket: | `new Kefir.Bus()` / `Kefir.bus()` |
+| `new Bacon.Bus()` | :rocket: | `Kefir.bus()` |
 | `bus.push(x)` | :rocket: | `bus.push(x)` |
 | `bus.end()` | :rocket: | `bus.end()` |
 | `bus.error(e)` | :rocket: | `bus.error(e)` |

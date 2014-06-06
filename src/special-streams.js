@@ -20,16 +20,16 @@ Kefir.never = function() {
 
 // Kefir.once(x)
 
-Kefir.OnceStream = function OnceStream(value){
+var OnceStream = function OnceStream(value) {
   Stream.call(this);
   this.__value = value;
 }
 
-inherit(Kefir.OnceStream, Stream, {
+inherit(OnceStream, Stream, {
 
   __ClassName: 'OnceStream',
-  onValue: function(){
-    if (!this.isEnded()) {
+  onValue: function() {
+    if (this.alive) {
       Callable.call(arguments, [this.__value]);
       this.__value = null;
       this.__sendEnd();
@@ -41,7 +41,7 @@ inherit(Kefir.OnceStream, Stream, {
 })
 
 Kefir.once = function(x) {
-  return new Kefir.OnceStream(x);
+  return new OnceStream(x);
 }
 
 
@@ -50,33 +50,33 @@ Kefir.once = function(x) {
 
 // Kefir.fromBinder(fn)
 
-Kefir.FromBinderStream = function FromBinderStream(subscribeFnMeta){
+var FromBinderStream = function FromBinderStream(subscribeFnMeta) {
   Stream.call(this);
   this.__subscribeFn = new Callable(subscribeFnMeta);
 }
 
-inherit(Kefir.FromBinderStream, Stream, {
+inherit(FromBinderStream, Stream, {
 
   __ClassName: 'FromBinderStream',
-  __onFirstIn: function(){
+  __onFirstIn: function() {
     var _this = this;
-    this.__usubscriber = Callable.call(this.__subscribeFn, [function(x){
+    this.__unsubscribe = Callable.call(this.__subscribeFn, [function(x) {
       _this.__sendAny(x);
     }]);
   },
-  __onLastOut: function(){
-    if (isFn(this.__usubscriber)) {
-      this.__usubscriber();
+  __onLastOut: function() {
+    if (isFn(this.__unsubscribe)) {
+      this.__unsubscribe();
     }
-    this.__usubscriber = null;
+    this.__unsubscribe = null;
   },
-  __clear: function(){
+  __clear: function() {
     Stream.prototype.__clear.call(this);
     this.__subscribeFn = null;
   }
 
 })
 
-Kefir.fromBinder = function(/*subscribe[, context[, arg1, arg2...]]*/){
-  return new Kefir.FromBinderStream(arguments);
+Kefir.fromBinder = function(/*subscribe[, context[, arg1, arg2...]]*/) {
+  return new FromBinderStream(arguments);
 }

@@ -1,12 +1,20 @@
-function noop(){}
+function noop() {}
 
-function id(x){return x}
+function id(x) {return x}
 
-function own(obj, prop){
+function get(map, key, notFound) {
+  if (map && key in map) {
+    return map[key];
+  } else {
+    return notFound;
+  }
+}
+
+function own(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-function toArray(arrayLike){
+function toArray(arrayLike) {
   if (isArray(arrayLike)) {
     return arrayLike;
   } else {
@@ -15,12 +23,12 @@ function toArray(arrayLike){
 }
 
 function createObj(proto) {
-  var F = function(){};
+  var F = function() {};
   F.prototype = proto;
   return new F();
 }
 
-function extend() {
+function extend(/*target, mixin1, mixin2...*/) {
   if (arguments.length === 1) {
     return arguments[0];
   }
@@ -53,14 +61,14 @@ function inheritMixin(Child, Parent) {
   return Child;
 }
 
-function firstArrOrToArr(args) {
-  if (isArray(args[0])) {
+function agrsToArray(args) {
+  if (args.length === 1 && isArray(args[0])) {
     return args[0];
   }
   return toArray(args);
 }
 
-function rest(arr, start, onEmpty){
+function rest(arr, start, onEmpty) {
   if (arr.length > start) {
     return Array.prototype.slice.call(arr, start);
   }
@@ -71,7 +79,6 @@ function getFn(fn, context) {
   if (isFn(fn)) {
     return fn;
   } else {
-    /*jshint eqnull:true */
     if (context == null || !isFn(context[fn])) {
       throw new Error('not a function: ' + fn + ' in ' + context);
     } else {
@@ -104,7 +111,6 @@ if (!isArguments(arguments)) {
 }
 
 function isEqualArrays(a, b) {
-  /*jshint eqnull:true */
   if (a == null && b == null) {
     return true;
   }
@@ -125,11 +131,3 @@ function isEqualArrays(a, b) {
 var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
-
-function get(map, key, notFound){
-  if (map && key in map) {
-    return map[key];
-  } else {
-    return notFound;
-  }
-}
