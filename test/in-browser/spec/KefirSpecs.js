@@ -1545,7 +1545,7 @@ Property.prototype.throttle = function(wait, options) {
 
 // Kefir.fromPoll()
 
-var FromPollStream = Kefir.FromPollStream = function FromPollStream(interval, sourceFn) {
+var FromPollStream = function FromPollStream(interval, sourceFn) {
   Stream.call(this);
   this.__interval = interval;
   this.__intervalId = null;
