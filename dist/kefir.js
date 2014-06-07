@@ -261,7 +261,12 @@ var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut) {
     this.__onLastOut = onLastOut;
   }
 
-  this.__subscribers = {};
+  this.__subscribers = {
+    value: null,
+    error: null,
+    both: null,
+    end: null
+  };
 
   this.alive = true;
   this.active = false;
@@ -280,18 +285,19 @@ inherit(Observable, Object, {
   __onLastOut: noop,
 
   __addSubscriber: function(type, fnMeta) {
-    if (!this.__subscribers[type]) {
+    if (this.__subscribers[type] === null) {
       this.__subscribers[type] = [];
     }
     this.__subscribers[type].push(new Callable(fnMeta));
   },
 
   __removeSubscriber: function(type, fnMeta) {
-    if (this.__subscribers[type]) {
+    var subs = this.__subscribers[type];
+    if (subs !== null) {
       var callable = new Callable(fnMeta);
-      for (var i = 0; i < this.__subscribers[type].length; i++) {
-        if (Callable.isEqual(this.__subscribers[type][i], callable)) {
-          this.__subscribers[type].splice(i, 1);
+      for (var i = 0; i < subs.length; i++) {
+        if (Callable.isEqual(subs[i], callable)) {
+          subs.splice(i, 1);
           return;
         }
       }
@@ -322,7 +328,7 @@ inherit(Observable, Object, {
     var i, subscribers;
     if (this.alive) {
       if (type === 'end') {
-        if (this.__subscribers.end) {
+        if (this.__subscribers.end !== null) {
           subscribers = this.__subscribers.end.slice(0);
           for (i = 0; i < subscribers.length; i++) {
             Callable.call(subscribers[i]);
@@ -330,7 +336,7 @@ inherit(Observable, Object, {
         }
         this.__clear();
       } else if (this.active) {
-        if (this.__subscribers[type]) {
+        if (this.__subscribers[type] !== null) {
           subscribers = this.__subscribers[type].slice(0);
           for (i = 0; i < subscribers.length; i++) {
             if (Callable.call(subscribers[i], [x]) === NO_MORE) {
@@ -338,7 +344,7 @@ inherit(Observable, Object, {
             }
           }
         }
-        if (this.__subscribers.both) {
+        if (this.__subscribers.both !== null) {
           subscribers = this.__subscribers.both.slice(0);
           for (i = 0; i < subscribers.length; i++) {
             if (Callable.call(subscribers[i], [type, x]) === NO_MORE) {
@@ -351,9 +357,9 @@ inherit(Observable, Object, {
   },
   __hasSubscribers: function() {
     var s = this.__subscribers;
-    return (s.value != null && s.value.length > 0) ||
-      (s.error != null && s.error.length > 0) ||
-      (s.both != null && s.both.length > 0);
+    return (s.value !== null && s.value.length > 0) ||
+      (s.error !== null && s.error.length > 0) ||
+      (s.both !== null && s.both.length > 0);
   },
   __clear: function() {
     if (this.active) {
