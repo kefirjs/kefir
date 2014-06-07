@@ -9,13 +9,18 @@ var WithSourceStreamMixin = {
   __handle: function(x) {
     this.__sendAny(x);
   },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__handle(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
   __onFirstIn: function() {
-    this.__source.onNewValue(this.__handle, this);
-    this.__source.onError(this.__sendError, this);
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
   __onLastOut: function() {
-    this.__source.offValue(this.__handle, this);
-    this.__source.offError(this.__sendError, this);
+    this.__source.offBoth(this.__handleBoth, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);

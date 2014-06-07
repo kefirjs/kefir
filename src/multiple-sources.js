@@ -19,15 +19,18 @@ var PluggableMixin = {
   __clearPluggable: function() {
     this.__plugged = null;
   },
-  __handlePlugged: function(value) {
-    this.__sendAny(value);
+  __handlePluggedBoth: function(type, value) {
+    if (type === 'value') {
+      this.__sendAny(value);
+    } else {
+      this.__sendError(value);
+    }
   },
   __plug: function(stream) {
     if (this.alive) {
       this.__plugged.push(stream);
       if (this.active) {
-        stream.onValue(this.__handlePlugged, this);
-        stream.onError(this.__sendError, this);
+        stream.onBoth(this.__handlePluggedBoth, this);
       }
       stream.onEnd('__unplug', this, stream);
     }
@@ -36,8 +39,7 @@ var PluggableMixin = {
     if (this.alive) {
       for (var i = 0; i < this.__plugged.length; i++) {
         if (stream === this.__plugged[i]) {
-          stream.offValue(this.__handlePlugged, this);
-          stream.offError(this.__sendError, this);
+          stream.offBoth(this.__handlePluggedBoth, this);
           stream.offEnd('__unplug', this, stream);
           this.__plugged.splice(i, 1);
           return;
@@ -49,8 +51,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue(this.__handlePlugged, this);
-        stream.onError(this.__sendError, this);
+        stream.onBoth(this.__handlePluggedBoth, this);
       }
     }
   },
@@ -58,8 +59,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue(this.__handlePlugged, this);
-        stream.offError(this.__sendError, this);
+        stream.offBoth(this.__handlePluggedBoth, this);
       }
     }
   },
@@ -141,14 +141,19 @@ inherit(FlatMappedStream, Stream, PluggableMixin, {
   __plugResult: function(x) {
     this.__plug(Callable.call(this.__mapFn, [x]));
   },
+  __hadleSourceBoth: function(type, x) {
+    if (type === 'value') {
+      this.__plugResult(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
   __onFirstIn: function() {
-    this.__sourceStream.onValue(this.__plugResult, this);
-    this.__sourceStream.onError(this.__sendError, this);
+    this.__sourceStream.onBoth(this.__hadleSourceBoth, this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function() {
-    this.__sourceStream.offValue(this.__plugResult, this);
-    this.__sourceStream.offError(this.__sendError, this);
+    this.__sourceStream.offBoth(this.__hadleSourceBoth, this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplug: function(stream) {
@@ -264,8 +269,7 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue(this.__handlePlugged, this, i);
-        stream.onError(this.__sendError, this);
+        stream.onBoth(this.__handlePluggedBoth, this, i);
       }
     }
   },
@@ -273,8 +277,7 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue(this.__handlePlugged, this, i);
-        stream.offError(this.__sendError, this);
+        stream.offBoth(this.__handlePluggedBoth, this, i);
       }
     }
   },
@@ -293,23 +296,26 @@ inherit(CombinedStream, Stream, {
     var stream = this.__plugged[i];
     if (stream) {
       this.__plugged[i] = null;
-      stream.offValue(this.__handlePlugged, this, i);
-      stream.offError(this.__sendError, this);
+      stream.offBoth(this.__handlePluggedBoth, this, i);
       stream.offEnd(this.__unplugById, this, i);
       if (this.__hasNoPlugged()) {
         this.__sendEnd();
       }
     }
   },
-  __handlePlugged: function(i, x) {
-    this.__hasValue[i] = true;
-    this.__cachedValues[i] = x;
-    if (this.__allCached()) {
-      if (this.__mapFn) {
-        this.__sendAny(Callable.call(this.__mapFn, this.__cachedValues));
-      } else {
-        this.__sendValue(this.__cachedValues.slice(0));
+  __handlePluggedBoth: function(i, type, x) {
+    if (type === 'value') {
+      this.__hasValue[i] = true;
+      this.__cachedValues[i] = x;
+      if (this.__allCached()) {
+        if (this.__mapFn) {
+          this.__sendAny(Callable.call(this.__mapFn, this.__cachedValues));
+        } else {
+          this.__sendValue(this.__cachedValues.slice(0));
+        }
       }
+    } else {
+      this.__sendError(x);
     }
   },
   __allCached: function() {

@@ -55,17 +55,22 @@ var DelayedMixin = {
     var _this = this;
     setTimeout(function() {  _this.__sendValue(x)  }, this.__wait);
   },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__sendLater(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
   __sendEndLater: function() {
     var _this = this;
     setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
   },
   __onFirstIn: function() {
-    this.__source.onNewValue(this.__sendLater, this);
-    this.__source.onError(this.__sendError, this);
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
   __onLastOut: function() {
-    this.__source.offValue(this.__sendLater, this);
-    this.__source.offError(this.__sendError, this);
+    this.__source.offBoth(this.__handleBoth, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);
@@ -159,7 +164,7 @@ var ThrottledMixin = {
     }
   },
 
-  __handleValueFromSource: function(x) {
+  __handle: function(x) {
     var curTime = now();
     if (this.__lastCallTime === 0 && !this.__leading) {
       this.__lastCallTime = curTime;
@@ -173,14 +178,19 @@ var ThrottledMixin = {
       this.__scheduleTralingCall(x, remaining);
     }
   },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__handle(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
 
   __onFirstIn: function() {
-    this.__source.onNewValue(this.__handleValueFromSource, this);
-    this.__source.onError(this.__sendError, this);
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
   __onLastOut: function() {
-    this.__source.offValue(this.__handleValueFromSource, this);
-    this.__source.offError(this.__sendError, this);
+    this.__source.offBoth(this.__handleBoth, this);
   },
 
   __clear: function() {

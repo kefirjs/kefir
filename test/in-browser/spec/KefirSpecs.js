@@ -631,13 +631,18 @@ var WithSourceStreamMixin = {
   __handle: function(x) {
     this.__sendAny(x);
   },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__handle(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
   __onFirstIn: function() {
-    this.__source.onNewValue(this.__handle, this);
-    this.__source.onError(this.__sendError, this);
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
   __onLastOut: function() {
-    this.__source.offValue(this.__handle, this);
-    this.__source.offError(this.__sendError, this);
+    this.__source.offBoth(this.__handleBoth, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);
@@ -959,18 +964,20 @@ var SampledByMixin = {
       this.__sendValue(x);
     }
   },
+  __handleMainBoth: function(type, x) {
+    if (type === 'value') {
+      this.__lastValue = x;
+    } else {
+      this.__sendError(x);
+    }
+  },
   __onFirstIn: function() {
     WithSourceStreamMixin.__onFirstIn.call(this);
-    this.__mainStream.onValue(this.__saveValue, this);
-    this.__mainStream.onError(this.__sendError, this);
+    this.__mainStream.onBoth(this.__handleMainBoth, this);
   },
   __onLastOut: function() {
     WithSourceStreamMixin.__onLastOut.call(this);
-    this.__mainStream.offValue(this.__saveValue, this);
-    this.__mainStream.offError(this.__sendError, this);
-  },
-  __saveValue: function(x) {
-    this.__lastValue = x;
+    this.__mainStream.offBoth(this.__handleMainBoth, this);
   },
   __clear: function() {
     WithSourceStreamMixin.__clear.call(this);
@@ -1027,15 +1034,18 @@ var PluggableMixin = {
   __clearPluggable: function() {
     this.__plugged = null;
   },
-  __handlePlugged: function(value) {
-    this.__sendAny(value);
+  __handlePluggedBoth: function(type, value) {
+    if (type === 'value') {
+      this.__sendAny(value);
+    } else {
+      this.__sendError(value);
+    }
   },
   __plug: function(stream) {
     if (this.alive) {
       this.__plugged.push(stream);
       if (this.active) {
-        stream.onValue(this.__handlePlugged, this);
-        stream.onError(this.__sendError, this);
+        stream.onBoth(this.__handlePluggedBoth, this);
       }
       stream.onEnd('__unplug', this, stream);
     }
@@ -1044,8 +1054,7 @@ var PluggableMixin = {
     if (this.alive) {
       for (var i = 0; i < this.__plugged.length; i++) {
         if (stream === this.__plugged[i]) {
-          stream.offValue(this.__handlePlugged, this);
-          stream.offError(this.__sendError, this);
+          stream.offBoth(this.__handlePluggedBoth, this);
           stream.offEnd('__unplug', this, stream);
           this.__plugged.splice(i, 1);
           return;
@@ -1057,8 +1066,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue(this.__handlePlugged, this);
-        stream.onError(this.__sendError, this);
+        stream.onBoth(this.__handlePluggedBoth, this);
       }
     }
   },
@@ -1066,8 +1074,7 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue(this.__handlePlugged, this);
-        stream.offError(this.__sendError, this);
+        stream.offBoth(this.__handlePluggedBoth, this);
       }
     }
   },
@@ -1149,14 +1156,19 @@ inherit(FlatMappedStream, Stream, PluggableMixin, {
   __plugResult: function(x) {
     this.__plug(Callable.call(this.__mapFn, [x]));
   },
+  __hadleSourceBoth: function(type, x) {
+    if (type === 'value') {
+      this.__plugResult(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
   __onFirstIn: function() {
-    this.__sourceStream.onValue(this.__plugResult, this);
-    this.__sourceStream.onError(this.__sendError, this);
+    this.__sourceStream.onBoth(this.__hadleSourceBoth, this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function() {
-    this.__sourceStream.offValue(this.__plugResult, this);
-    this.__sourceStream.offError(this.__sendError, this);
+    this.__sourceStream.offBoth(this.__hadleSourceBoth, this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplug: function(stream) {
@@ -1272,8 +1284,7 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue(this.__handlePlugged, this, i);
-        stream.onError(this.__sendError, this);
+        stream.onBoth(this.__handlePluggedBoth, this, i);
       }
     }
   },
@@ -1281,8 +1292,7 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue(this.__handlePlugged, this, i);
-        stream.offError(this.__sendError, this);
+        stream.offBoth(this.__handlePluggedBoth, this, i);
       }
     }
   },
@@ -1301,23 +1311,26 @@ inherit(CombinedStream, Stream, {
     var stream = this.__plugged[i];
     if (stream) {
       this.__plugged[i] = null;
-      stream.offValue(this.__handlePlugged, this, i);
-      stream.offError(this.__sendError, this);
+      stream.offBoth(this.__handlePluggedBoth, this, i);
       stream.offEnd(this.__unplugById, this, i);
       if (this.__hasNoPlugged()) {
         this.__sendEnd();
       }
     }
   },
-  __handlePlugged: function(i, x) {
-    this.__hasValue[i] = true;
-    this.__cachedValues[i] = x;
-    if (this.__allCached()) {
-      if (this.__mapFn) {
-        this.__sendAny(Callable.call(this.__mapFn, this.__cachedValues));
-      } else {
-        this.__sendValue(this.__cachedValues.slice(0));
+  __handlePluggedBoth: function(i, type, x) {
+    if (type === 'value') {
+      this.__hasValue[i] = true;
+      this.__cachedValues[i] = x;
+      if (this.__allCached()) {
+        if (this.__mapFn) {
+          this.__sendAny(Callable.call(this.__mapFn, this.__cachedValues));
+        } else {
+          this.__sendValue(this.__cachedValues.slice(0));
+        }
       }
+    } else {
+      this.__sendError(x);
     }
   },
   __allCached: function() {
@@ -1417,17 +1430,22 @@ var DelayedMixin = {
     var _this = this;
     setTimeout(function() {  _this.__sendValue(x)  }, this.__wait);
   },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__sendLater(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
   __sendEndLater: function() {
     var _this = this;
     setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
   },
   __onFirstIn: function() {
-    this.__source.onNewValue(this.__sendLater, this);
-    this.__source.onError(this.__sendError, this);
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
   __onLastOut: function() {
-    this.__source.offValue(this.__sendLater, this);
-    this.__source.offError(this.__sendError, this);
+    this.__source.offBoth(this.__handleBoth, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);
@@ -1521,7 +1539,7 @@ var ThrottledMixin = {
     }
   },
 
-  __handleValueFromSource: function(x) {
+  __handle: function(x) {
     var curTime = now();
     if (this.__lastCallTime === 0 && !this.__leading) {
       this.__lastCallTime = curTime;
@@ -1535,14 +1553,19 @@ var ThrottledMixin = {
       this.__scheduleTralingCall(x, remaining);
     }
   },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__handle(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
 
   __onFirstIn: function() {
-    this.__source.onNewValue(this.__handleValueFromSource, this);
-    this.__source.onError(this.__sendError, this);
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
   __onLastOut: function() {
-    this.__source.offValue(this.__handleValueFromSource, this);
-    this.__source.offError(this.__sendError, this);
+    this.__source.offBoth(this.__handleBoth, this);
   },
 
   __clear: function() {
@@ -8372,10 +8395,7 @@ describe("Property", function(){
     var stream = new Kefir.Stream();
     var prop = stream.toProperty();
 
-    expect(stream.__subscribers.error).toBe(undefined);
-
     var result = helpers.getOutputAndErrors(prop);
-    expect(stream.__subscribers.error.length > 0).toBe(true);
 
     stream.__sendValue(1);
     stream.__sendError('e1');
