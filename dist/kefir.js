@@ -325,30 +325,35 @@ inherit(Observable, Object, {
     }
   },
   __send: function(type, x) {
-    var i, subscribers;
+    var i, l, subs, args;
     if (this.alive) {
       if (type === 'end') {
-        if (this.__subscribers.end !== null) {
-          subscribers = this.__subscribers.end.slice(0);
-          for (i = 0; i < subscribers.length; i++) {
-            Callable.call(subscribers[i]);
+        subs = this.__subscribers.end;
+        if (subs !== null) {
+          subs = subs.slice(0);
+          for (i = 0, l = subs.length; i < l; i++) {
+            Callable.call(subs[i]);
           }
         }
         this.__clear();
       } else if (this.active) {
-        if (this.__subscribers[type] !== null) {
-          subscribers = this.__subscribers[type].slice(0);
-          for (i = 0; i < subscribers.length; i++) {
-            if (Callable.call(subscribers[i], [x]) === NO_MORE) {
-              this.__off(type, subscribers[i]);
+        subs = (type === 'value') ? this.__subscribers.value : this.__subscribers.error;
+        if (subs !== null) {
+          subs = subs.slice(0);
+          args = [x];
+          for (i = 0, l = subs.length; i < l; i++) {
+            if (Callable.call(subs[i], args) === NO_MORE) {
+              this.__off(type, subs[i]);
             }
           }
         }
-        if (this.__subscribers.both !== null) {
-          subscribers = this.__subscribers.both.slice(0);
-          for (i = 0; i < subscribers.length; i++) {
-            if (Callable.call(subscribers[i], [type, x]) === NO_MORE) {
-              this.__off('both', subscribers[i]);
+        subs = this.__subscribers.both;
+        if (subs !== null) {
+          subs = subs.slice(0);
+          args = [type, x];
+          for (i = 0, l = subs.length; i < l; i++) {
+            if (Callable.call(subs[i], args) === NO_MORE) {
+              this.__off('both', subs[i]);
             }
           }
         }
