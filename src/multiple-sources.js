@@ -25,9 +25,9 @@ var PluggableMixin = {
   __plug: function(stream) {
     if (this.alive) {
       this.__plugged.push(stream);
-      if (this.__hasSubscribers('value') || this.__hasSubscribers('error')) {
-        stream.onValue('__handlePlugged', this);
-        stream.onError('__sendError', this);
+      if (this.active) {
+        stream.onValue(this.__handlePlugged, this);
+        stream.onError(this.__sendError, this);
       }
       stream.onEnd('__unplug', this, stream);
     }
@@ -36,8 +36,8 @@ var PluggableMixin = {
     if (this.alive) {
       for (var i = 0; i < this.__plugged.length; i++) {
         if (stream === this.__plugged[i]) {
-          stream.offValue('__handlePlugged', this);
-          stream.offError('__sendError', this);
+          stream.offValue(this.__handlePlugged, this);
+          stream.offError(this.__sendError, this);
           stream.offEnd('__unplug', this, stream);
           this.__plugged.splice(i, 1);
           return;
@@ -49,8 +49,8 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue('__handlePlugged', this);
-        stream.onError('__sendError', this);
+        stream.onValue(this.__handlePlugged, this);
+        stream.onError(this.__sendError, this);
       }
     }
   },
@@ -58,8 +58,8 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue('__handlePlugged', this);
-        stream.offError('__sendError', this);
+        stream.offValue(this.__handlePlugged, this);
+        stream.offError(this.__sendError, this);
       }
     }
   },
@@ -107,7 +107,6 @@ inherit(Bus, Stream, PluggableMixin, {
   __clear: function() {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
-    this.push = noop;
   }
 
 });
@@ -143,13 +142,13 @@ inherit(FlatMappedStream, Stream, PluggableMixin, {
     this.__plug(Callable.call(this.__mapFn, [x]));
   },
   __onFirstIn: function() {
-    this.__sourceStream.onValue('__plugResult', this);
-    this.__sourceStream.onError('__sendError', this);
+    this.__sourceStream.onValue(this.__plugResult, this);
+    this.__sourceStream.onError(this.__sendError, this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function() {
-    this.__sourceStream.offValue('__plugResult', this);
-    this.__sourceStream.offError('__sendError', this);
+    this.__sourceStream.offValue(this.__plugResult, this);
+    this.__sourceStream.offError(this.__sendError, this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplug: function(stream) {
@@ -250,7 +249,7 @@ var CombinedStream = function CombinedStream(sources, mapFnMeta) {
   Stream.call(this);
   this.__plugged = sources;
   for (var i = 0; i < this.__plugged.length; i++) {
-    sources[i].onEnd('__unplugById', this, i);
+    sources[i].onEnd(this.__unplugById, this, i);
   }
   this.__cachedValues = new Array(sources.length);
   this.__hasValue = new Array(sources.length);
@@ -265,8 +264,8 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue('__handlePlugged', this, i);
-        stream.onError('__sendError', this);
+        stream.onValue(this.__handlePlugged, this, i);
+        stream.onError(this.__sendError, this);
       }
     }
   },
@@ -274,8 +273,8 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue('__handlePlugged', this, i);
-        stream.offError('__sendError', this);
+        stream.offValue(this.__handlePlugged, this, i);
+        stream.offError(this.__sendError, this);
       }
     }
   },
@@ -294,9 +293,9 @@ inherit(CombinedStream, Stream, {
     var stream = this.__plugged[i];
     if (stream) {
       this.__plugged[i] = null;
-      stream.offValue('__handlePlugged', this, i);
-      stream.offError('__sendError', this);
-      stream.offEnd('__unplugById', this, i);
+      stream.offValue(this.__handlePlugged, this, i);
+      stream.offError(this.__sendError, this);
+      stream.offEnd(this.__unplugById, this, i);
       if (this.__hasNoPlugged()) {
         this.__sendEnd();
       }

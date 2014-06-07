@@ -38,13 +38,13 @@ var SampledByMixin = {
   },
   __onFirstIn: function() {
     WithSourceStreamMixin.__onFirstIn.call(this);
-    this.__mainStream.onValue('__saveValue', this);
-    this.__mainStream.onError('__sendError', this);
+    this.__mainStream.onValue(this.__saveValue, this);
+    this.__mainStream.onError(this.__sendError, this);
   },
   __onLastOut: function() {
     WithSourceStreamMixin.__onLastOut.call(this);
-    this.__mainStream.offValue('__saveValue', this);
-    this.__mainStream.offError('__sendError', this);
+    this.__mainStream.offValue(this.__saveValue, this);
+    this.__mainStream.offError(this.__sendError, this);
   },
   __saveValue: function(x) {
     this.__lastValue = x;

@@ -59,9 +59,9 @@ describe(".map()", function(){
 
     var result1 = helpers.getOutput(mapped.take(2));
     stream.__sendValue(1)
-    expect(stream.__hasSubscribers('value')).toBe(true);
+    expect(stream.active).toBe(true);
     stream.__sendValue(2)
-    expect(stream.__hasSubscribers('value')).toBe(false);
+    expect(stream.active).toBe(false);
     stream.__sendValue(3)
 
     var result2 = helpers.getOutput(mapped);

@@ -171,7 +171,7 @@ function Callable(fnMeta) {
   if (isFn(fnMeta) || (fnMeta instanceof Callable)) {
     return fnMeta;
   }
-  if (isArray(fnMeta) || isArguments(fnMeta)) {
+  if (fnMeta && fnMeta.length !== null) {
     if (fnMeta.length === 0) {
       throw new Error('can\'t convert to Callable ' + fnMeta);
     }
@@ -235,10 +235,12 @@ Callable.isEqual = function(a, b) {
   }
   a = new Callable(a);
   b = new Callable(b);
-  if (a.fn === b.fn && a.context === b.context && isEqualArrays(a.args, b.args)) {
-    return true;
+  if (isFn(a) || isFn(b)) {
+    return a === b;
   }
-  return false;
+  return a.fn === b.fn &&
+    a.context === b.context &&
+    isEqualArrays(a.args, b.args);
 }
 
 
@@ -262,6 +264,7 @@ var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut) {
   this.__subscribers = {};
 
   this.alive = true;
+  this.active = false;
 
 }
 
@@ -285,8 +288,9 @@ inherit(Observable, Object, {
 
   __removeSubscriber: function(type, fnMeta) {
     if (this.__subscribers[type]) {
+      var callable = new Callable(fnMeta);
       for (var i = 0; i < this.__subscribers[type].length; i++) {
-        if (this.__subscribers[type][i] !== null && Callable.isEqual(this.__subscribers[type][i], fnMeta)) {
+        if (Callable.isEqual(this.__subscribers[type][i], callable)) {
           this.__subscribers[type].splice(i, 1);
           return;
         }
@@ -294,16 +298,11 @@ inherit(Observable, Object, {
     }
   },
 
-  __isFirsOrLast: function(type) {
-    return (type === 'value' || type === 'error') &&
-      !this.__hasSubscribers('value') &&
-      !this.__hasSubscribers('error');
-  },
   __on: function(type, fnMeta) {
     if (this.alive) {
-      var firstIn = this.__isFirsOrLast(type);
       this.__addSubscriber(type, fnMeta);
-      if (firstIn) {
+      if (!this.active && type !== 'end') {
+        this.active = true;
         this.__onFirstIn();
       }
     } else if (type === 'end') {
@@ -313,34 +312,42 @@ inherit(Observable, Object, {
   __off: function(type, fnMeta) {
     if (this.alive) {
       this.__removeSubscriber(type, fnMeta);
-      if (this.__isFirsOrLast(type)) {
+      if (this.active && type !== 'end' && !this.__hasSubscribers()) {
+        this.active = false;
         this.__onLastOut();
       }
     }
   },
   __send: function(type, x) {
+    var i, subscribers;
     if (this.alive) {
-      if (this.__subscribers[type]) {
-        var subscribers = this.__subscribers[type].slice(0);
-        for (var i = 0; i < subscribers.length; i++) {
-          var args = (type === 'end' ? null : [x]);
-          if (Callable.call(subscribers[i], args) === NO_MORE) {
+      if (type === 'end') {
+        if (this.__subscribers.end) {
+          subscribers = this.__subscribers.end.slice(0);
+          for (i = 0; i < subscribers.length; i++) {
+            Callable.call(subscribers[i]);
+          }
+        }
+        this.__clear();
+      } else if (this.active && this.__subscribers[type]) {
+        subscribers = this.__subscribers[type].slice(0);
+        for (i = 0; i < subscribers.length; i++) {
+          if (Callable.call(subscribers[i], [x]) === NO_MORE) {
             this.__off(type, subscribers[i]);
           }
         }
       }
-      if (type === 'end') {
-        this.__clear();
-      }
     }
   },
-  __hasSubscribers: function(type) {
-    return this.alive &&
-      !!this.__subscribers[type] &&
-      this.__subscribers[type].length > 0;
+  __hasSubscribers: function() {
+    return (this.__subscribers.value != null && this.__subscribers.value.length > 0) ||
+      (this.__subscribers.error != null && this.__subscribers.error.length > 0);
   },
   __clear: function() {
-    this.__onLastOut();
+    if (this.active) {
+      this.active = false;
+      this.__onLastOut();
+    }
     if (own(this, '__onFirstIn')) {
       this.__onFirstIn = null;
     }
@@ -582,12 +589,12 @@ var WithSourceStreamMixin = {
     this.__sendAny(x);
   },
   __onFirstIn: function() {
-    this.__source.onNewValue('__handle', this);
-    this.__source.onError('__sendError', this);
+    this.__source.onNewValue(this.__handle, this);
+    this.__source.onError(this.__sendError, this);
   },
   __onLastOut: function() {
-    this.__source.offValue('__handle', this);
-    this.__source.offError('__sendError', this);
+    this.__source.offValue(this.__handle, this);
+    this.__source.offError(this.__sendError, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);
@@ -911,13 +918,13 @@ var SampledByMixin = {
   },
   __onFirstIn: function() {
     WithSourceStreamMixin.__onFirstIn.call(this);
-    this.__mainStream.onValue('__saveValue', this);
-    this.__mainStream.onError('__sendError', this);
+    this.__mainStream.onValue(this.__saveValue, this);
+    this.__mainStream.onError(this.__sendError, this);
   },
   __onLastOut: function() {
     WithSourceStreamMixin.__onLastOut.call(this);
-    this.__mainStream.offValue('__saveValue', this);
-    this.__mainStream.offError('__sendError', this);
+    this.__mainStream.offValue(this.__saveValue, this);
+    this.__mainStream.offError(this.__sendError, this);
   },
   __saveValue: function(x) {
     this.__lastValue = x;
@@ -983,9 +990,9 @@ var PluggableMixin = {
   __plug: function(stream) {
     if (this.alive) {
       this.__plugged.push(stream);
-      if (this.__hasSubscribers('value') || this.__hasSubscribers('error')) {
-        stream.onValue('__handlePlugged', this);
-        stream.onError('__sendError', this);
+      if (this.active) {
+        stream.onValue(this.__handlePlugged, this);
+        stream.onError(this.__sendError, this);
       }
       stream.onEnd('__unplug', this, stream);
     }
@@ -994,8 +1001,8 @@ var PluggableMixin = {
     if (this.alive) {
       for (var i = 0; i < this.__plugged.length; i++) {
         if (stream === this.__plugged[i]) {
-          stream.offValue('__handlePlugged', this);
-          stream.offError('__sendError', this);
+          stream.offValue(this.__handlePlugged, this);
+          stream.offError(this.__sendError, this);
           stream.offEnd('__unplug', this, stream);
           this.__plugged.splice(i, 1);
           return;
@@ -1007,8 +1014,8 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue('__handlePlugged', this);
-        stream.onError('__sendError', this);
+        stream.onValue(this.__handlePlugged, this);
+        stream.onError(this.__sendError, this);
       }
     }
   },
@@ -1016,8 +1023,8 @@ var PluggableMixin = {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue('__handlePlugged', this);
-        stream.offError('__sendError', this);
+        stream.offValue(this.__handlePlugged, this);
+        stream.offError(this.__sendError, this);
       }
     }
   },
@@ -1065,7 +1072,6 @@ inherit(Bus, Stream, PluggableMixin, {
   __clear: function() {
     Stream.prototype.__clear.call(this);
     this.__clearPluggable();
-    this.push = noop;
   }
 
 });
@@ -1101,13 +1107,13 @@ inherit(FlatMappedStream, Stream, PluggableMixin, {
     this.__plug(Callable.call(this.__mapFn, [x]));
   },
   __onFirstIn: function() {
-    this.__sourceStream.onValue('__plugResult', this);
-    this.__sourceStream.onError('__sendError', this);
+    this.__sourceStream.onValue(this.__plugResult, this);
+    this.__sourceStream.onError(this.__sendError, this);
     PluggableMixin.__onFirstIn.call(this);
   },
   __onLastOut: function() {
-    this.__sourceStream.offValue('__plugResult', this);
-    this.__sourceStream.offError('__sendError', this);
+    this.__sourceStream.offValue(this.__plugResult, this);
+    this.__sourceStream.offError(this.__sendError, this);
     PluggableMixin.__onLastOut.call(this);
   },
   __unplug: function(stream) {
@@ -1208,7 +1214,7 @@ var CombinedStream = function CombinedStream(sources, mapFnMeta) {
   Stream.call(this);
   this.__plugged = sources;
   for (var i = 0; i < this.__plugged.length; i++) {
-    sources[i].onEnd('__unplugById', this, i);
+    sources[i].onEnd(this.__unplugById, this, i);
   }
   this.__cachedValues = new Array(sources.length);
   this.__hasValue = new Array(sources.length);
@@ -1223,8 +1229,8 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.onValue('__handlePlugged', this, i);
-        stream.onError('__sendError', this);
+        stream.onValue(this.__handlePlugged, this, i);
+        stream.onError(this.__sendError, this);
       }
     }
   },
@@ -1232,8 +1238,8 @@ inherit(CombinedStream, Stream, {
     for (var i = 0; i < this.__plugged.length; i++) {
       var stream = this.__plugged[i];
       if (stream) {
-        stream.offValue('__handlePlugged', this, i);
-        stream.offError('__sendError', this);
+        stream.offValue(this.__handlePlugged, this, i);
+        stream.offError(this.__sendError, this);
       }
     }
   },
@@ -1252,9 +1258,9 @@ inherit(CombinedStream, Stream, {
     var stream = this.__plugged[i];
     if (stream) {
       this.__plugged[i] = null;
-      stream.offValue('__handlePlugged', this, i);
-      stream.offError('__sendError', this);
-      stream.offEnd('__unplugById', this, i);
+      stream.offValue(this.__handlePlugged, this, i);
+      stream.offError(this.__sendError, this);
+      stream.offEnd(this.__unplugById, this, i);
       if (this.__hasNoPlugged()) {
         this.__sendEnd();
       }
@@ -1373,12 +1379,12 @@ var DelayedMixin = {
     setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
   },
   __onFirstIn: function() {
-    this.__source.onNewValue('__sendLater', this);
-    this.__source.onError('__sendError', this);
+    this.__source.onNewValue(this.__sendLater, this);
+    this.__source.onError(this.__sendError, this);
   },
   __onLastOut: function() {
-    this.__source.offValue('__sendLater', this);
-    this.__source.offError('__sendError', this);
+    this.__source.offValue(this.__sendLater, this);
+    this.__source.offError(this.__sendError, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);
@@ -1488,12 +1494,12 @@ var ThrottledMixin = {
   },
 
   __onFirstIn: function() {
-    this.__source.onNewValue('__handleValueFromSource', this);
-    this.__source.onError('__sendError', this);
+    this.__source.onNewValue(this.__handleValueFromSource, this);
+    this.__source.onError(this.__sendError, this);
   },
   __onLastOut: function() {
-    this.__source.offValue('__handleValueFromSource', this);
-    this.__source.offError('__sendError', this);
+    this.__source.offValue(this.__handleValueFromSource, this);
+    this.__source.offError(this.__sendError, this);
   },
 
   __clear: function() {

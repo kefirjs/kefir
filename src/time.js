@@ -60,12 +60,12 @@ var DelayedMixin = {
     setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
   },
   __onFirstIn: function() {
-    this.__source.onNewValue('__sendLater', this);
-    this.__source.onError('__sendError', this);
+    this.__source.onNewValue(this.__sendLater, this);
+    this.__source.onError(this.__sendError, this);
   },
   __onLastOut: function() {
-    this.__source.offValue('__sendLater', this);
-    this.__source.offError('__sendError', this);
+    this.__source.offValue(this.__sendLater, this);
+    this.__source.offError(this.__sendError, this);
   },
   __clear: function() {
     Observable.prototype.__clear.call(this);
@@ -175,12 +175,12 @@ var ThrottledMixin = {
   },
 
   __onFirstIn: function() {
-    this.__source.onNewValue('__handleValueFromSource', this);
-    this.__source.onError('__sendError', this);
+    this.__source.onNewValue(this.__handleValueFromSource, this);
+    this.__source.onError(this.__sendError, this);
   },
   __onLastOut: function() {
-    this.__source.offValue('__handleValueFromSource', this);
-    this.__source.offError('__sendError', this);
+    this.__source.offValue(this.__handleValueFromSource, this);
+    this.__source.offError(this.__sendError, this);
   },
 
   __clear: function() {

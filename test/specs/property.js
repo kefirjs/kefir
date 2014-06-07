@@ -123,10 +123,10 @@ describe("Property", function(){
     var stream = new Kefir.Stream();
     var prop = stream.toProperty();
 
-    expect(stream.__hasSubscribers('error')).toBe(false);
+    expect(stream.__subscribers.error).toBe(undefined);
 
     var result = helpers.getOutputAndErrors(prop);
-    expect(stream.__hasSubscribers('error')).toBe(true);
+    expect(stream.__subscribers.error.length > 0).toBe(true);
 
     stream.__sendValue(1);
     stream.__sendError('e1');
