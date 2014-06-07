@@ -11,9 +11,7 @@
 var neverObj = new Stream();
 neverObj.__sendEnd();
 neverObj.__objName = 'Kefir.never()'
-Kefir.never = function() {
-  return neverObj;
-}
+Kefir.never = function() {  return neverObj  }
 
 
 
@@ -31,6 +29,14 @@ inherit(OnceStream, Stream, {
   onValue: function() {
     if (this.alive) {
       Callable.call(arguments, [this.__value]);
+      this.__value = null;
+      this.__sendEnd();
+    }
+    return this;
+  },
+  onBoth: function() {
+    if (this.alive) {
+      Callable.call(arguments, ['value', this.__value]);
       this.__value = null;
       this.__sendEnd();
     }

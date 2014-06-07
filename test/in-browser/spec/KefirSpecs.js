@@ -330,19 +330,31 @@ inherit(Observable, Object, {
           }
         }
         this.__clear();
-      } else if (this.active && this.__subscribers[type]) {
-        subscribers = this.__subscribers[type].slice(0);
-        for (i = 0; i < subscribers.length; i++) {
-          if (Callable.call(subscribers[i], [x]) === NO_MORE) {
-            this.__off(type, subscribers[i]);
+      } else if (this.active) {
+        if (this.__subscribers[type]) {
+          subscribers = this.__subscribers[type].slice(0);
+          for (i = 0; i < subscribers.length; i++) {
+            if (Callable.call(subscribers[i], [x]) === NO_MORE) {
+              this.__off(type, subscribers[i]);
+            }
+          }
+        }
+        if (this.__subscribers.both) {
+          subscribers = this.__subscribers.both.slice(0);
+          for (i = 0; i < subscribers.length; i++) {
+            if (Callable.call(subscribers[i], [type, x]) === NO_MORE) {
+              this.__off('both', subscribers[i]);
+            }
           }
         }
       }
     }
   },
   __hasSubscribers: function() {
-    return (this.__subscribers.value != null && this.__subscribers.value.length > 0) ||
-      (this.__subscribers.error != null && this.__subscribers.error.length > 0);
+    var s = this.__subscribers;
+    return (s.value != null && s.value.length > 0) ||
+      (s.error != null && s.error.length > 0) ||
+      (s.both != null && s.both.length > 0);
   },
   __clear: function() {
     if (this.active) {
@@ -403,6 +415,14 @@ inherit(Observable, Object, {
     this.__off('error', arguments);
     return this;
   },
+  onBoth: function() {
+    this.__on('both', arguments);
+    return this;
+  },
+  offBoth: function() {
+    this.__off('both', arguments);
+    return this;
+  },
   onEnd: function() {
     this.__on('end', arguments);
     return this;
@@ -412,9 +432,15 @@ inherit(Observable, Object, {
     return this;
   },
 
-  // for Property
+  // for same interface as in Property
   onNewValue: function() {
     return this.onValue.apply(this, arguments);
+  },
+  onNewBoth: function() {
+    return this.onBoth.apply(this, arguments);
+  },
+  changes: function() {
+    return this;
   },
 
   isEnded: function() {
@@ -470,9 +496,19 @@ inherit(Property, Observable, {
   },
   onValue: function() {
     if (this.hasValue()) {
-      Callable.call(arguments, [this.__cached]);
+      Callable.call(arguments, [this.getValue()]);
     }
     return this.onNewValue.apply(this, arguments);
+  },
+  onNewBoth: function() {
+    this.__on('both', arguments);
+    return this;
+  },
+  onBoth: function() {
+    if (this.hasValue()) {
+      Callable.call(arguments, ['value', this.getValue()]);
+    }
+    return this.onNewBoth.apply(this, arguments);
   }
 
 })
@@ -508,9 +544,7 @@ Observable.prototype.log = function(name) {
 var neverObj = new Stream();
 neverObj.__sendEnd();
 neverObj.__objName = 'Kefir.never()'
-Kefir.never = function() {
-  return neverObj;
-}
+Kefir.never = function() {  return neverObj  }
 
 
 
@@ -528,6 +562,14 @@ inherit(OnceStream, Stream, {
   onValue: function() {
     if (this.alive) {
       Callable.call(arguments, [this.__value]);
+      this.__value = null;
+      this.__sendEnd();
+    }
+    return this;
+  },
+  onBoth: function() {
+    if (this.alive) {
+      Callable.call(arguments, ['value', this.__value]);
       this.__value = null;
       this.__sendEnd();
     }
@@ -7738,6 +7780,10 @@ describe("Kefir.never()", function(){
       valueCall++;
     });
 
+    stream.onBoth(function(){
+      valueCall++;
+    });
+
     stream.onEnd(function(){
       endCall++;
     });
@@ -8012,6 +8058,39 @@ describe("Observable/Stream", function(){
 
 
 
+  it("onBoth/offBoth", function(){
+
+    var log = [];
+    var obs = new Kefir.Observable();
+
+    var subscriber = function(type, x){  log.push([type, x])  }
+
+    obs.__sendValue(1);
+    expect(log).toEqual([]);
+
+    obs.onBoth(subscriber);
+    expect(log).toEqual([]);
+
+    obs.__sendValue(2);
+    expect(log).toEqual([['value', 2]]);
+
+    obs.__sendError(3);
+    expect(log).toEqual([['value', 2], ['error', 3]]);
+
+    obs.offBoth(subscriber);
+    obs.__sendValue(4);
+    expect(log).toEqual([['value', 2], ['error', 3]]);
+
+    obs.onBoth(subscriber);
+    expect(log).toEqual([['value', 2], ['error', 3]]);
+
+    obs.__sendValue(5);
+    expect(log).toEqual([['value', 2], ['error', 3], ['value', 5]]);
+
+
+  });
+
+
 });
 
 },{"../../dist/kefir.js":1,"../test-helpers":52}],38:[function(require,module,exports){
@@ -8100,6 +8179,37 @@ describe("Kefir.once()", function(){
   });
 
 
+  it("onBoth", function(){
+
+    var stream = Kefir.once(1);
+
+    var log = [];
+
+    expect(stream.isEnded()).toBe(false);
+
+    stream.onBoth(function(type, x){
+      log.push([type, x]);
+    });
+
+    expect(log).toEqual([['value', 1]]);
+    expect(stream.isEnded()).toBe(true);
+
+    log = [];
+
+    stream.onBoth(function(type, x){
+      log.push([type, x]);
+    });
+
+    stream.onValue(function(x){
+      log.push(x);
+    });
+
+    expect(log).toEqual([]);
+
+
+  });
+
+
 });
 
 },{"../../dist/kefir.js":1,"../test-helpers":52}],40:[function(require,module,exports){
@@ -8145,6 +8255,23 @@ describe("Property", function(){
   });
 
 
+  it("onBoth", function(){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    var calls = 0;
+
+    prop.onBoth(function(type, x){
+      expect(type).toBe('value');
+      expect(x).toBe('foo');
+      calls++;
+    })
+
+    expect(calls).toBe(1);
+
+  });
+
+
   it("onNewValue", function(){
 
     var log = [];
@@ -8158,6 +8285,23 @@ describe("Property", function(){
     prop.__sendValue(2);
 
     expect(log).toEqual([1, 2]);
+
+  });
+
+
+  it("onNewBoth", function(){
+
+    var log = [];
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    prop.onNewBoth(function(type, x){
+      log.push([type, x]);
+    });
+
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+
+    expect(log).toEqual([['value', 1], ['value', 2]]);
 
   });
 

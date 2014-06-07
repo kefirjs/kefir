@@ -18,6 +18,10 @@ describe("Kefir.never()", function(){
       valueCall++;
     });
 
+    stream.onBoth(function(){
+      valueCall++;
+    });
+
     stream.onEnd(function(){
       endCall++;
     });

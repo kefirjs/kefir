@@ -189,19 +189,31 @@ inherit(Observable, Object, {
           }
         }
         this.__clear();
-      } else if (this.active && this.__subscribers[type]) {
-        subscribers = this.__subscribers[type].slice(0);
-        for (i = 0; i < subscribers.length; i++) {
-          if (Callable.call(subscribers[i], [x]) === NO_MORE) {
-            this.__off(type, subscribers[i]);
+      } else if (this.active) {
+        if (this.__subscribers[type]) {
+          subscribers = this.__subscribers[type].slice(0);
+          for (i = 0; i < subscribers.length; i++) {
+            if (Callable.call(subscribers[i], [x]) === NO_MORE) {
+              this.__off(type, subscribers[i]);
+            }
+          }
+        }
+        if (this.__subscribers.both) {
+          subscribers = this.__subscribers.both.slice(0);
+          for (i = 0; i < subscribers.length; i++) {
+            if (Callable.call(subscribers[i], [type, x]) === NO_MORE) {
+              this.__off('both', subscribers[i]);
+            }
           }
         }
       }
     }
   },
   __hasSubscribers: function() {
-    return (this.__subscribers.value != null && this.__subscribers.value.length > 0) ||
-      (this.__subscribers.error != null && this.__subscribers.error.length > 0);
+    var s = this.__subscribers;
+    return (s.value != null && s.value.length > 0) ||
+      (s.error != null && s.error.length > 0) ||
+      (s.both != null && s.both.length > 0);
   },
   __clear: function() {
     if (this.active) {
@@ -262,6 +274,14 @@ inherit(Observable, Object, {
     this.__off('error', arguments);
     return this;
   },
+  onBoth: function() {
+    this.__on('both', arguments);
+    return this;
+  },
+  offBoth: function() {
+    this.__off('both', arguments);
+    return this;
+  },
   onEnd: function() {
     this.__on('end', arguments);
     return this;
@@ -271,9 +291,15 @@ inherit(Observable, Object, {
     return this;
   },
 
-  // for Property
+  // for same interface as in Property
   onNewValue: function() {
     return this.onValue.apply(this, arguments);
+  },
+  onNewBoth: function() {
+    return this.onBoth.apply(this, arguments);
+  },
+  changes: function() {
+    return this;
   },
 
   isEnded: function() {
@@ -329,9 +355,19 @@ inherit(Property, Observable, {
   },
   onValue: function() {
     if (this.hasValue()) {
-      Callable.call(arguments, [this.__cached]);
+      Callable.call(arguments, [this.getValue()]);
     }
     return this.onNewValue.apply(this, arguments);
+  },
+  onNewBoth: function() {
+    this.__on('both', arguments);
+    return this;
+  },
+  onBoth: function() {
+    if (this.hasValue()) {
+      Callable.call(arguments, ['value', this.getValue()]);
+    }
+    return this.onNewBoth.apply(this, arguments);
   }
 
 })

@@ -40,6 +40,23 @@ describe("Property", function(){
   });
 
 
+  it("onBoth", function(){
+
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    var calls = 0;
+
+    prop.onBoth(function(type, x){
+      expect(type).toBe('value');
+      expect(x).toBe('foo');
+      calls++;
+    })
+
+    expect(calls).toBe(1);
+
+  });
+
+
   it("onNewValue", function(){
 
     var log = [];
@@ -53,6 +70,23 @@ describe("Property", function(){
     prop.__sendValue(2);
 
     expect(log).toEqual([1, 2]);
+
+  });
+
+
+  it("onNewBoth", function(){
+
+    var log = [];
+    var prop = new Kefir.Property(null, null, 'foo');
+
+    prop.onNewBoth(function(type, x){
+      log.push([type, x]);
+    });
+
+    prop.__sendValue(1);
+    prop.__sendValue(2);
+
+    expect(log).toEqual([['value', 1], ['value', 2]]);
 
   });
 

@@ -222,4 +222,37 @@ describe("Observable/Stream", function(){
 
 
 
+  it("onBoth/offBoth", function(){
+
+    var log = [];
+    var obs = new Kefir.Observable();
+
+    var subscriber = function(type, x){  log.push([type, x])  }
+
+    obs.__sendValue(1);
+    expect(log).toEqual([]);
+
+    obs.onBoth(subscriber);
+    expect(log).toEqual([]);
+
+    obs.__sendValue(2);
+    expect(log).toEqual([['value', 2]]);
+
+    obs.__sendError(3);
+    expect(log).toEqual([['value', 2], ['error', 3]]);
+
+    obs.offBoth(subscriber);
+    obs.__sendValue(4);
+    expect(log).toEqual([['value', 2], ['error', 3]]);
+
+    obs.onBoth(subscriber);
+    expect(log).toEqual([['value', 2], ['error', 3]]);
+
+    obs.__sendValue(5);
+    expect(log).toEqual([['value', 2], ['error', 3], ['value', 5]]);
+
+
+  });
+
+
 });
