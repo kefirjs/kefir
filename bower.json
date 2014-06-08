@@ -39,12 +39,22 @@
     "src",
     "test-memory-usage.js",
     "Gruntfile.coffee",
-    "grunt-tasks"
+    "grunt-tasks",
+    "lib"
   ],
   "devDependencies": {
     "bacon": "~0.7.11",
     "jquery": "~1.11.1",
     "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#~0.4.1",
-    "rxjs": "~2.2.24"
+    "rxjs": "~2.2.24",
+    "coffeescript": "git@github.com:jashkenas/coffeescript.git#~1.7.1"
+  },
+  "exportsOverride": {
+    "coffeescript": {
+      ".": "extras/*.js"
+    },
+    "jasmine-reporters": {
+      ".": "src/*.js"
+    }
   }
 }
