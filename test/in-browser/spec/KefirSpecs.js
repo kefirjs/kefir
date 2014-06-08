@@ -172,10 +172,7 @@ function Callable(fnMeta) {
   if (isFn(fnMeta) || (fnMeta instanceof Callable)) {
     return fnMeta;
   }
-  if (fnMeta && fnMeta.length !== null) {
-    if (fnMeta.length === 0) {
-      throw new Error('can\'t convert to Callable ' + fnMeta);
-    }
+  if (fnMeta && fnMeta.length) {
     if (fnMeta.length === 1) {
       if (isFn(fnMeta[0])) {
         return fnMeta[0];
