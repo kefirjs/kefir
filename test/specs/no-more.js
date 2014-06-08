@@ -21,7 +21,7 @@ describe("Kefir.NO_MORE", function(){
     stream.__sendValue(2);
     stream.__sendValue(3);
 
-    expect(stream.__hasSubscribers('value')).toBe(false);
+    expect(stream.active).toBe(false);
 
     stream.__sendValue(4);
     stream.__sendValue(5);

@@ -1,7 +1,7 @@
 {
   "name": "kefir",
-  "version": "0.1.11",
-  "description": "Bacon.js inspired FRP library with less memory consumption",
+  "version": "0.1.12",
+  "description": "FRP library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory consumption",
   "main": "dist/kefir.js",
   "scripts": {
     "test": "grunt test"
@@ -30,9 +30,11 @@
   "license": "MIT",
   "devDependencies": {
     "baconjs": "^0.7.11",
+    "benchmark": "^1.0.0",
     "coffee-script": "~1.7.1",
     "coffeeify": "^0.6.0",
     "grunt": "~0.4.4",
+    "grunt-bower-task": "^0.3.4",
     "grunt-browserify": "~2.0.8",
     "grunt-cli": "~0.1.13",
     "grunt-contrib-clean": "~0.5.0",
@@ -53,7 +55,7 @@
       "test/in-browser/lib/jasmine-1.3.1/jasmine.js",
       "test/in-browser/lib/jasmine-1.3.1/jasmine-html.js",
       "test/in-browser/spec/KefirSpecs.js",
-      "bower_components/jasmine-reporters/src/jasmine.tap_reporter.js",
+      "lib/jasmine-reporters/jasmine.tap_reporter.js",
       "test/in-browser/boot.js"
     ],
     "browsers": [

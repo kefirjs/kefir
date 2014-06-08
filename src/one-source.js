@@ -6,18 +6,23 @@ var WithSourceStreamMixin = {
       this.__handle(source.getValue());
     }
   },
-  __handle: function(x){
+  __handle: function(x) {
     this.__sendAny(x);
   },
-  __onFirstIn: function(){
-    this.__source.onNewValue('__handle', this);
-    this.__source.onError('__sendError', this);
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__handle(x);
+    } else {
+      this.__sendError(x);
+    }
   },
-  __onLastOut: function(){
-    this.__source.offValue('__handle', this);
-    this.__source.offError('__sendError', this);
+  __onFirstIn: function() {
+    this.__source.onNewBoth(this.__handleBoth, this);
   },
-  __clear: function(){
+  __onLastOut: function() {
+    this.__source.offBoth(this.__handleBoth, this);
+  },
+  __clear: function() {
     Observable.prototype.__clear.call(this);
     this.__source = null;
   }
@@ -29,24 +34,24 @@ var WithSourceStreamMixin = {
 
 // observable.toProperty([initial])
 
-Kefir.PropertyFromStream = function PropertyFromStream(source, initial){
+var PropertyFromStream = function PropertyFromStream(source, initial) {
   Property.call(this, null, null, initial);
   this.__Constructor(source);
 }
 
-inherit(Kefir.PropertyFromStream, Property, WithSourceStreamMixin, {
+inherit(PropertyFromStream, Property, WithSourceStreamMixin, {
   __ClassName: 'PropertyFromStream'
 })
 
-Stream.prototype.toProperty = function(initial){
-  return new Kefir.PropertyFromStream(this, initial);
+Stream.prototype.toProperty = function(initial) {
+  return new PropertyFromStream(this, initial);
 }
 
-Property.prototype.toProperty = function(initial){
+Property.prototype.toProperty = function(initial) {
   if (isUndefined(initial)) {
     return this
   } else {
-    var prop = new Kefir.PropertyFromStream(this);
+    var prop = new PropertyFromStream(this);
     prop.__sendValue(initial);
     return prop;
   }
@@ -59,28 +64,28 @@ Property.prototype.toProperty = function(initial){
 
 // .scan(seed, fn)
 
-Kefir.ScanProperty = function ScanProperty(source, seed, fnMeta){
+var ScanProperty = function ScanProperty(source, seed, fnMeta) {
   Property.call(this, null, null, seed);
-  this.__fnMeta = normFnMeta(fnMeta);
+  this.__fn = new Callable(fnMeta);
   this.__Constructor(source);
 }
 
-inherit(Kefir.ScanProperty, Property, WithSourceStreamMixin, {
+inherit(ScanProperty, Property, WithSourceStreamMixin, {
 
   __ClassName: 'ScanProperty',
 
-  __handle: function(x){
-    this.__sendValue( callFn(this.__fnMeta, [this.getValue(), x]) );
+  __handle: function(x) {
+    this.__sendValue(Callable.call(this.__fn, [this.getValue(), x]));
   },
-  __clear: function(){
+  __clear: function() {
     WithSourceStreamMixin.__clear.call(this);
-    this.__fnMeta = null;
+    this.__fn = null;
   }
 
 })
 
 Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.ScanProperty(this, seed, restArgs(arguments, 1));
+  return new ScanProperty(this, seed, rest(arguments, 1));
 }
 
 
@@ -88,34 +93,34 @@ Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .reduce(seed, fn)
 
-Kefir.ReducedProperty = function ReducedProperty(source, seed, fnMeta){
+var ReducedProperty = function ReducedProperty(source, seed, fnMeta) {
   Property.call(this);
-  this.__fnMeta = normFnMeta(fnMeta);
+  this.__fn = new Callable(fnMeta);
   this.__result = seed;
   source.onEnd('__sendResult', this);
   this.__Constructor(source);
 }
 
-inherit(Kefir.ReducedProperty, Property, WithSourceStreamMixin, {
+inherit(ReducedProperty, Property, WithSourceStreamMixin, {
 
   __ClassName: 'ReducedProperty',
 
-  __handle: function(x){
-    this.__result = callFn(this.__fnMeta, [this.__result, x]);
+  __handle: function(x) {
+    this.__result = Callable.call(this.__fn, [this.__result, x]);
   },
-  __sendResult: function(){
+  __sendResult: function() {
     this.__sendValue(this.__result);
   },
-  __clear: function(){
+  __clear: function() {
     WithSourceStreamMixin.__clear.call(this);
-    this.__fnMeta = null;
+    this.__fn = null;
     this.__result = null;
   }
 
 });
 
 Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.ReducedProperty(this, seed, restArgs(arguments, 1));
+  return new ReducedProperty(this, seed, rest(arguments, 1));
 }
 
 
@@ -124,49 +129,49 @@ Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/)
 // .map(fn)
 
 var MapMixin = {
-  __Constructor: function(source, mapFnMeta){
+  __Constructor: function(source, mapFnMeta) {
     if (this instanceof Property) {
       Property.call(this);
     } else {
       Stream.call(this);
     }
-    this.__mapFnMeta = normFnMeta(mapFnMeta);
+    this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
     WithSourceStreamMixin.__Constructor.call(this, source);
   },
-  __handle: function(x){
+  __handle: function(x) {
     this.__sendAny(
-      this.__mapFnMeta ? callFn(this.__mapFnMeta, [x]) : x
+      this.__mapFn ? Callable.call(this.__mapFn, [x]) : x
     );
   },
-  __clear: function(){
+  __clear: function() {
     WithSourceStreamMixin.__clear.call(this);
-    this.__mapFnMeta = null;
+    this.__mapFn = null;
   }
 }
 inheritMixin(MapMixin, WithSourceStreamMixin);
 
-Kefir.MappedStream = function MappedStream(){
+var MappedStream = function MappedStream() {
   this.__Constructor.apply(this, arguments);
 }
 
-inherit(Kefir.MappedStream, Stream, MapMixin, {
+inherit(MappedStream, Stream, MapMixin, {
   __ClassName: 'MappedStream'
 });
 
-Kefir.MappedProperty = function MappedProperty(){
+var MappedProperty = function MappedProperty() {
   this.__Constructor.apply(this, arguments);
 }
 
-inherit(Kefir.MappedProperty, Property, MapMixin, {
+inherit(MappedProperty, Property, MapMixin, {
   __ClassName: 'MappedProperty'
 })
 
 Stream.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.MappedStream(this, arguments);
+  return new MappedStream(this, arguments);
 }
 
 Property.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new Kefir.MappedProperty(this, arguments);
+  return new MappedProperty(this, arguments);
 }
 
 
@@ -175,7 +180,7 @@ Property.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 // property.changes()
 
 Property.prototype.changes = function() {
-  return new Kefir.MappedStream(this);
+  return new MappedStream(this);
 }
 
 
@@ -183,16 +188,13 @@ Property.prototype.changes = function() {
 
 // .diff(seed, fn)
 
-var diffMapFn = function(x){
-  var result = callFn(this.fnMeta, [this.prev, x]);
-  this.prev = x;
-  return result;
-}
-
 Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(diffMapFn, {
-    prev: start,
-    fnMeta: normFnMeta(restArgs(arguments, 1))
+  var fn = new Callable(rest(arguments, 1));
+  var prev = start;
+  return this.map(function(x) {
+    var result = Callable.call(fn, [prev, x]);
+    prev = x;
+    return result;
   });
 }
 
@@ -202,16 +204,15 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 
 // .filter(fn)
 
-var filterMapFn = function(filterFnMeta, x){
-  if (callFn(filterFnMeta, [x])) {
-    return x;
-  } else {
-    return NOTHING;
-  }
-}
-
 Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(filterMapFn, null, normFnMeta(arguments));
+  var fn = new Callable(arguments);
+  return this.map(function(x) {
+    if (Callable.call(fn, [x])) {
+      return x;
+    } else {
+      return NOTHING;
+    }
+  });
 }
 
 
@@ -219,16 +220,15 @@ Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .takeWhile(fn)
 
-var takeWhileMapFn = function(fnMeta, x) {
-  if (callFn(fnMeta, [x])) {
-    return x;
-  } else {
-    return END;
-  }
-}
-
 Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(takeWhileMapFn, null, normFnMeta(arguments));
+  var fn = new Callable(arguments);
+  return this.map(function(x) {
+    if (Callable.call(fn, [x])) {
+      return x;
+    } else {
+      return END;
+    }
+  });
 }
 
 
@@ -236,19 +236,17 @@ Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) 
 
 // .take(n)
 
-var takeMapFn = function(x) {
-  if (this.n <= 0) {
-    return END;
-  }
-  if (this.n === 1) {
-    return Kefir.bunch(x, END);
-  }
-  this.n--;
-  return x;
-}
-
 Observable.prototype.take = function(n) {
-  return this.map(takeMapFn, {n: n});
+  return this.map(function(x) {
+    if (n <= 0) {
+      return END;
+    }
+    if (n === 1) {
+      return Kefir.bunch(x, END);
+    }
+    n--;
+    return x;
+  });
 }
 
 
@@ -256,17 +254,15 @@ Observable.prototype.take = function(n) {
 
 // .skip(n)
 
-var skipMapFn = function(x) {
-  if (this.n <= 0) {
-    return x;
-  } else {
-    this.n--;
-    return NOTHING;
-  }
-}
-
 Observable.prototype.skip = function(n) {
-  return this.map(skipMapFn, {n: n});
+  return this.map(function(x) {
+    if (n <= 0) {
+      return x;
+    } else {
+      n--;
+      return NOTHING;
+    }
+  });
 }
 
 
@@ -275,20 +271,18 @@ Observable.prototype.skip = function(n) {
 
 // .skipDuplicates([fn])
 
-var skipDuplicatesMapFn = function(x){
-  var result;
-  if (this.prev !== NOTHING && (this.fn ? this.fn(this.prev, x) : this.prev === x)) {
-    result = NOTHING;
-  } else {
-    result = x;
-  }
-  this.hasPrev = true;
-  this.prev = x;
-  return result;
-}
-
 Observable.prototype.skipDuplicates = function(fn) {
-  return this.map(skipDuplicatesMapFn, {fn: fn, prev: NOTHING});
+  var prev = NOTHING;
+  return this.map(function(x) {
+    var result;
+    if (prev !== NOTHING && (fn ? fn(prev, x) : prev === x)) {
+      result = NOTHING;
+    } else {
+      result = x;
+    }
+    prev = x;
+    return result;
+  });
 }
 
 
@@ -297,15 +291,15 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 // .skipWhile(fn)
 
-var skipWhileMapFn = function(x){
-  if (this.skip && callFn(this.fnMeta, [x])) {
-    return NOTHING;
-  } else {
-    this.skip = false;
-    return x;
-  }
-}
-
 Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return this.map(skipWhileMapFn, {skip: true, fnMeta: normFnMeta(arguments)});
+  var fn = new Callable(arguments);
+  var skip = true;
+  return this.map(function(x) {
+    if (skip && Callable.call(fn, [x])) {
+      return NOTHING;
+    } else {
+      skip = false;
+      return x;
+    }
+  });
 }

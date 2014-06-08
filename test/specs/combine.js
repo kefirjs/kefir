@@ -146,11 +146,11 @@ describe(".combine()", function(){
 
     stream1.__sendValue(1)
     stream2.__sendValue(2) // 1 + 2 = 3
-    expect(stream1.__hasSubscribers('value')).toBe(true);
-    expect(stream2.__hasSubscribers('value')).toBe(true);
+    expect(stream1.active).toBe(true);
+    expect(stream2.active).toBe(true);
     stream1.__sendValue(3) // 3 + 2 = 5
-    expect(stream1.__hasSubscribers('value')).toBe(false);
-    expect(stream2.__hasSubscribers('value')).toBe(false);
+    expect(stream1.active).toBe(false);
+    expect(stream2.active).toBe(false);
     stream2.__sendValue(4) // skipped
 
     var result2 = helpers.getOutput(combined);

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Tree / Kefir demo</title>
+        <script src="../../lib/jquery/jquery.js"></script>
+        <script src="../../lib/bacon/Bacon.js"></script>
+        <script src="../../lib/rxjs/rx.all.js"></script>
+        <script src="../../dist/kefir.js"></script>
+        <script src="../../lib/fabric.js/fabric.min.js"></script>
+        <script src="../../lib/coffeescript/coffee-script.js"></script>
+    </head>
+    <body>
+      <canvas id="canvas" width="500" height="500"></canvas>
+      <script type="text/coffeescript">
+
+
+          # Setup canvas
+
+          canvas = new fabric.StaticCanvas('canvas')
+
+          renderLoop = ->
+            canvas.renderAll()
+            requestAnimationFrame(renderLoop)
+          renderLoop()
+
+
+
+          # Utils
+
+          oscillation = (frequency) ->
+            min = 0
+            max = Math.PI * 2
+            cur = 0
+            add = Math.PI / 25 * frequency
+            Kefir.fromPoll 1000 / 25, ->
+              cur += add
+              if cur >= max
+                cur = min
+              Math.sin(cur)
+
+
+          constP = (x) ->
+            new Kefir.Property(null, null, x)
+
+
+
+
+          # Branch represents tree branch
+
+          class Branch
+
+            constructor: (parent, addAngle) ->
+
+              @length = parent.length * 2/3 * (Math.random()*.2 + .9)
+
+              @angle = Kefir.combine [parent.angle, oscillation(.5)], (parent, osc) ->
+                parent + addAngle + osc * Math.PI / 100
+
+              @top = Kefir.combine [parent.top, @angle], (bottom, angle) =>
+                x: bottom.x + Math.cos(angle) * @length
+                y: bottom.y + Math.sin(angle) * @length * -1
+
+              line = new fabric.Line([0, 0, 0, 0], {
+                left: 0
+                top: 0
+                stroke: 'green'
+              })
+
+              parent.top.onValue (p) ->
+                line.set(x1: p.x, y1: p.y)
+
+              @top.onValue (p) ->
+                line.set(x2: p.x, y2: p.y)
+
+              canvas.add(line)
+
+
+
+
+          # Setup world
+
+          root =
+            length: 150
+            angle: constP(Math.PI / 2)
+            top: constP(x: 250, y: 500)
+
+          addChildren = (parent, count) ->
+            if count > 0
+              a = new Branch(parent, Math.PI/5)
+              b = new Branch(parent, Math.PI/-5)
+              addChildren(a, count - 1)
+              addChildren(b, count - 1)
+
+          base = new Branch(root, 0)
+
+          addChildren(base, 6)
+
+
+        </script>
+    </body>
+</html>

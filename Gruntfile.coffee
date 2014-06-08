@@ -96,6 +96,12 @@ module.exports = (grunt) ->
       main:
         src: ['.grunt', 'dist']
 
+    bower:
+      install:
+        options:
+          cleanup: true
+          verbose: true
+
     release:
       options:
         bump: false, # default: true

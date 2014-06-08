@@ -8,7 +8,7 @@ describe("Bus", function(){
 
   it(".push()", function() {
 
-    var bus = new Kefir.Bus();
+    var bus = Kefir.bus();
 
     bus.push('no subscribers – will not be delivered');
 
@@ -27,7 +27,7 @@ describe("Bus", function(){
 
   it(".error()", function() {
 
-    var bus = new Kefir.Bus();
+    var bus = Kefir.bus();
 
     var result = helpers.getOutputAndErrors(bus);
 
@@ -44,9 +44,9 @@ describe("Bus", function(){
 
   it(".plug()", function() {
 
-    var mainBus = new Kefir.Bus();
-    var source1 = new Kefir.Bus();
-    var source2 = new Kefir.Bus();
+    var mainBus = Kefir.bus();
+    var source1 = Kefir.bus();
+    var source2 = Kefir.bus();
 
     mainBus.plug(source1);
 
@@ -74,8 +74,8 @@ describe("Bus", function(){
 
   it(".unplug()", function() {
 
-    var mainBus = new Kefir.Bus();
-    var source = new Kefir.Bus();
+    var mainBus = Kefir.bus();
+    var source = Kefir.bus();
 
     mainBus.plug(source);
 

@@ -1,11 +1,11 @@
 {
   "name": "kefir",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "homepage": "https://github.com/pozadi/kefir",
   "authors": [
     "Roman Pominov <rpominov@gmail.com>"
   ],
-  "description": "Bacon.js inspired FRP library with less memory consumption",
+  "description": "FRP library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory consumption",
   "main": "dist/kefir.js",
   "moduleType": [
     "amd",
@@ -30,21 +30,26 @@
   "license": "MIT",
   "ignore": [
     "**/.*",
-    "node_modules",
-    "bower_components",
     "test",
-    "playground",
-    ".grunt",
-    "dist/test",
     "src",
-    "test-memory-usage.js",
     "Gruntfile.coffee",
-    "grunt-tasks"
+    "grunt-tasks",
+    "lib"
   ],
   "devDependencies": {
     "bacon": "~0.7.11",
     "jquery": "~1.11.1",
     "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#~0.4.1",
-    "rxjs": "~2.2.24"
+    "rxjs": "~2.2.24",
+    "coffeescript": "git@github.com:jashkenas/coffeescript.git#~1.7.1",
+    "fabric.js": "git@github.com:kangax/fabric.js.git#~1.4.7"
+  },
+  "exportsOverride": {
+    "coffeescript": {
+      ".": "extras/*.js"
+    },
+    "jasmine-reporters": {
+      ".": "src/*.js"
+    }
   }
 }
