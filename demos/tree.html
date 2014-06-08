@@ -61,6 +61,9 @@
         </select>
       </label>
       <br>
+      Total branches: <strong id="total"></strong>
+      <br>
+
 
 
       <canvas id="canvas" width="500" height="300"></canvas>
@@ -162,6 +165,9 @@
             new Kefir.Property(null, null, x)
 
 
+          totalBranches = 0
+
+
 
 
           # Branch represents tree branch
@@ -169,6 +175,8 @@
           class BranchKefir
 
             constructor: (parent, addAngle) ->
+
+              totalBranches++
 
               @length = parent.length * 3/4 * (Math.random()*.2 + .9)
 
@@ -196,6 +204,8 @@
           class BranchBacon
 
             constructor: (parent, addAngle) ->
+
+              totalBranches++
 
               @length = parent.length * 3/4 * (Math.random()*.2 + .9)
 
@@ -263,6 +273,9 @@
             base = new BranchBacon(root, 0)
 
             addChildren(base, getParam('depth', DEFAULT_DEPTH))
+
+
+          $('#total').html totalBranches
 
         </script>
     </body>
