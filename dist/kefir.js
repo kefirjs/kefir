@@ -1,4 +1,4 @@
-/*! kefir - 0.1.11
+/*! kefir - 0.1.12
  *  https://github.com/pozadi/kefir
  */
 (function(global){
@@ -543,6 +543,8 @@ Observable.prototype.log = function(name) {
 // Kefir.constant(x)
 // Kefir.fromArray(values)
 // Kefir.fromCallback(fn)
+// Kefir.fromNodeCallback(fn)
+// Kefir.fromPromise(promise)
 
 
 

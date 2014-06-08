@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! kefir - 0.1.11
+/*! kefir - 0.1.12
  *  https://github.com/pozadi/kefir
  */
 (function(global){
@@ -544,6 +544,8 @@ Observable.prototype.log = function(name) {
 // Kefir.constant(x)
 // Kefir.fromArray(values)
 // Kefir.fromCallback(fn)
+// Kefir.fromNodeCallback(fn)
+// Kefir.fromPromise(promise)
 
 
 
