@@ -3,42 +3,159 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Tree / Kefir demo</title>
+        <title>Kefir.js / Bacon.js tree demo</title>
         <script src="../lib/jquery/jquery.js"></script>
         <script src="../lib/bacon/Bacon.js"></script>
         <script src="../lib/rxjs/rx.all.js"></script>
         <script src="../dist/kefir.js"></script>
-        <script src="../lib/fabric.js/fabric.min.js"></script>
         <script src="../lib/coffeescript/coffee-script.js"></script>
+        <script src="../lib/stats.js/stats.min.js"></script>
+        <style type="text/css">
+          body {
+            font-family: sans-serif;
+          }
+        </style>
     </head>
     <body>
-      <canvas id="canvas" width="500" height="500"></canvas>
+      <h1>Kefir.js / Bacon.js tree demo</h1>
+
+      <p>
+        In this demo each branch of tree represented by two streams
+        (Top and Angle) and has parent branch. Angle stream depends on
+        parent's Angle and additional Oscillation stream
+        (which changes over time in range from -1 to 1).
+        Top stream depends on parent's Top and self Angle.
+        Having parent Top and child Top we can draw a line,
+        all these lines form a tree, that you can see right now.
+      </p>
+
+
+      <label>
+        Library:
+        <select id="lib">
+          <option value="Kefir">Kefir</option>
+          <option value="Bacon">Bacon</option>
+        </select>
+      </label>
+      <br>
+      <label>
+        Depth:
+        <select id="depth">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="16">16</option>
+          <option value="17">17</option>
+          <option value="18">18</option>
+        </select>
+      </label>
+      <br>
+
+
+      <canvas id="canvas" width="500" height="300"></canvas>
       <script type="text/coffeescript">
+
+
+
+
+
+          # parse URL query
+
+          window.queryParams = do ->
+            result = {}
+            for param in location.search.slice(1).split('&')
+              [key, value] = param.split('=')
+              result[key] = value
+            result
+
+          window.getParam = (name, notFound) ->
+            if (name of queryParams)
+              queryParams[name]
+            else
+              notFound
+
+          DEFAULT_DEPTH = 7
+          DEFAULT_LIB = 'Kefir'
+
+
+
+          # Setup selects
+
+          $('#lib').val(getParam('lib', DEFAULT_LIB)).change ->
+            location.search = "?lib=#{ $(this).val() }&depth=#{ getParam('depth', DEFAULT_DEPTH) }"
+          $('#depth').val(getParam('depth', DEFAULT_DEPTH)).change ->
+            location.search = "?lib=#{ getParam('lib', DEFAULT_LIB) }&depth=#{ $(this).val() }"
+
+
+
 
 
           # Setup canvas
 
-          canvas = new fabric.StaticCanvas('canvas')
+          lines = []
+
+          canvasEl = document.getElementById('canvas')
+          ctx = canvasEl.getContext('2d')
+          ctx.strokeStyle = "green"
+
+
+          stats = new Stats()
+          document.body.appendChild( stats.domElement )
 
           renderLoop = ->
-            canvas.renderAll()
+            stats.begin()
+            stats.end()
+            ctx.clearRect(0, 0, 500, 300)
+            for line in lines
+              ctx.beginPath()
+              ctx.moveTo(line.x1, line.y1)
+              ctx.lineTo(line.x2, line.y2)
+              ctx.stroke()
             requestAnimationFrame(renderLoop)
           renderLoop()
 
 
 
+
           # Utils
 
-          oscillation = (frequency) ->
-            min = 0
-            max = Math.PI * 2
-            cur = 0
-            add = Math.PI / 25 * frequency
-            Kefir.fromPoll 1000 / 25, ->
-              cur += add
-              if cur >= max
-                cur = min
-              Math.sin(cur)
+          oscillationKefir = do ->
+            ticks = Kefir.interval(1000 / 25)
+            (frequency) ->
+              min = 0
+              max = Math.PI * 2
+              cur = 0
+              add = Math.PI / 25 * frequency
+              ticks.map ->
+                cur += add
+                if cur >= max
+                  cur = min
+                Math.sin(cur)
+
+
+          oscillationBacon = do ->
+            ticks = Bacon.interval(1000 / 25)
+            (frequency) ->
+              min = 0
+              max = Math.PI * 2
+              cur = 0
+              add = Math.PI / 25 * frequency
+              ticks.map ->
+                cur += add
+                if cur >= max
+                  cur = min
+                Math.sin(cur)
 
 
           constP = (x) ->
@@ -49,54 +166,103 @@
 
           # Branch represents tree branch
 
-          class Branch
+          class BranchKefir
 
             constructor: (parent, addAngle) ->
 
-              @length = parent.length * 2/3 * (Math.random()*.2 + .9)
+              @length = parent.length * 3/4 * (Math.random()*.2 + .9)
 
-              @angle = Kefir.combine [parent.angle, oscillation(.5)], (parent, osc) ->
+              @angle = parent.angle.sampledBy oscillationKefir(.5), (parent, osc) ->
                 parent + addAngle + osc * Math.PI / 100
 
-              @top = Kefir.combine [parent.top, @angle], (bottom, angle) =>
+              @top = parent.top.sampledBy @angle, (bottom, angle) =>
                 x: bottom.x + Math.cos(angle) * @length
                 y: bottom.y + Math.sin(angle) * @length * -1
 
-              line = new fabric.Line([0, 0, 0, 0], {
-                left: 0
-                top: 0
-                stroke: 'green'
-              })
+              line = {x1: 0, y1: 0, x2: 0, y2: 0}
 
               parent.top.onValue (p) ->
-                line.set(x1: p.x, y1: p.y)
+                line.x1 = p.x
+                line.y1 = p.y
 
               @top.onValue (p) ->
-                line.set(x2: p.x, y2: p.y)
+                line.x2 = p.x
+                line.y2 = p.y
 
-              canvas.add(line)
+              lines.push(line)
 
+
+
+          class BranchBacon
+
+            constructor: (parent, addAngle) ->
+
+              @length = parent.length * 3/4 * (Math.random()*.2 + .9)
+
+              @angle = parent.angle.sampledBy oscillationBacon(.5), (parent, osc) ->
+                parent + addAngle + osc * Math.PI / 100
+
+              @top = parent.top.sampledBy @angle, (bottom, angle) =>
+                x: bottom.x + Math.cos(angle) * @length
+                y: bottom.y + Math.sin(angle) * @length * -1
+
+              line = {x1: 0, y1: 0, x2: 0, y2: 0}
+
+              parent.top.onValue (p) ->
+                line.x1 = p.x
+                line.y1 = p.y
+
+              @top.onValue (p) ->
+                line.x2 = p.x
+                line.y2 = p.y
+
+              lines.push(line)
 
 
 
           # Setup world
 
-          root =
-            length: 150
-            angle: constP(Math.PI / 2)
-            top: constP(x: 250, y: 500)
+          lib = getParam('lib', DEFAULT_LIB)
 
-          addChildren = (parent, count) ->
-            if count > 0
-              a = new Branch(parent, Math.PI/5)
-              b = new Branch(parent, Math.PI/-5)
-              addChildren(a, count - 1)
-              addChildren(b, count - 1)
+          if lib == 'Kefir'
 
-          base = new Branch(root, 0)
+            console.log('Kefir')
 
-          addChildren(base, 6)
+            root =
+              length: 100
+              angle: constP(Math.PI / 2)
+              top: constP(x: 250, y: 300)
 
+            addChildren = (parent, count) ->
+              if count > 0
+                a = new BranchKefir(parent, Math.PI/5)
+                b = new BranchKefir(parent, Math.PI/-5)
+                addChildren(a, count - 1)
+                addChildren(b, count - 1)
+
+            base = new BranchKefir(root, 0)
+
+            addChildren(base, getParam('depth', DEFAULT_DEPTH))
+
+          else
+
+            console.log('Bacon')
+
+            root =
+              length: 100
+              angle: Bacon.constant(Math.PI / 2)
+              top: Bacon.constant(x: 250, y: 300)
+
+            addChildren = (parent, count) ->
+              if count > 0
+                a = new BranchBacon(parent, Math.PI/5)
+                b = new BranchBacon(parent, Math.PI/-5)
+                addChildren(a, count - 1)
+                addChildren(b, count - 1)
+
+            base = new BranchBacon(root, 0)
+
+            addChildren(base, getParam('depth', DEFAULT_DEPTH))
 
         </script>
     </body>
