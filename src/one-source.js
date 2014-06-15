@@ -8,7 +8,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   var defaultMethods = {
     __init: function(args) {},
-    __clean: function() {},
+    __free: function() {},
     __handleValue: function(x, initial) {  this.__sendValue(x)  },
     __handleError: function(e) {  this.__sendError(e)  },
     __handleEnd: function() {  this.__sendEnd()  }
@@ -43,7 +43,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     __clear: function() {
       Stream.prototype.__clear.call(this);
       this.__source = null;
-      this.__clean();
+      this.__free();
     }
   });
 
@@ -63,7 +63,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     __clear: function() {
       Property.prototype.__clear.call(this);
       this.__source = null;
-      this.__clean();
+      this.__free();
     }
   });
 
@@ -97,7 +97,7 @@ createOneSourceClasses(
     __init: function(args) {
       this.__fn = new Callable(args);
     },
-    __clean: function() {
+    __free: function() {
       this.__fn = null;
     },
     __handleValue: function(x) {
@@ -119,7 +119,7 @@ createOneSourceClasses(
     __init: function(args) {
       this.__fn = new Callable(args);
     },
-    __clean: function() {
+    __free: function() {
       this.__fn = null;
     },
     __handleValue: function(x) {
@@ -143,7 +143,7 @@ createOneSourceClasses(
       this.__prev = args[0];
       this.__fn = new Callable(rest(args, 1));
     },
-    __clean: function() {
+    __free: function() {
       this.__prev = null;
       this.__fn = null;
     },
@@ -166,7 +166,7 @@ createOneSourceClasses(
     __init: function(args) {
       this.__fn = new Callable(args);
     },
-    __clean: function() {
+    __free: function() {
       this.__fn = null;
     },
     __handleValue: function(x) {
@@ -247,7 +247,7 @@ createOneSourceClasses(
       }
       this.__prev = NOTHING;
     },
-    __clean: function() {
+    __free: function() {
       this.__fn = null;
       this.__prev = null;
     },
@@ -274,7 +274,7 @@ createOneSourceClasses(
       this.__fn = new Callable(args);
       this.__skip = true;
     },
-    __clean: function() {
+    __free: function() {
       this.__fn = null;
     },
     __handleValue: function(x) {
@@ -353,7 +353,7 @@ var ScanProperty = createOneSourceClasses(
       this.__sendValue(args[0]);
       this.__fn = new Callable(rest(args, 1));
     },
-    __clean: function(){
+    __free: function(){
       this.__fn = null;
     },
     __handleValue: function(x) {
@@ -380,7 +380,7 @@ var ReducedProperty = createOneSourceClasses(
       this.__result = args[0];
       this.__fn = new Callable(rest(args, 1));
     },
-    __clean: function(){
+    __free: function(){
       this.__fn = null;
       this.__result = null;
     },
@@ -420,7 +420,7 @@ createOneSourceClasses(
       var _this = this;
       this.__makeTrailingCallBinded = function() {  _this.__makeTrailingCall()  };
     },
-    __clean: function() {
+    __free: function() {
       this.__trailingCallValue = null;
       this.__makeTrailingCallBinded = null;
     },
