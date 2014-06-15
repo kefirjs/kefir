@@ -299,17 +299,6 @@ inherit(Observable, Object, {
     return this;
   },
 
-  // for same interface as in Property
-  onNewValue: function() {
-    return this.onValue.apply(this, arguments);
-  },
-  onNewBoth: function() {
-    return this.onBoth.apply(this, arguments);
-  },
-  changes: function() {
-    return this;
-  },
-
   isEnded: function() {
     return !this.alive;
   }
@@ -379,6 +368,15 @@ inherit(Property, Observable, {
   }
 
 })
+
+extend(Stream.prototype, {
+  onNewValue: function() {
+    return this.onValue.apply(this, arguments);
+  },
+  onNewBoth: function() {
+    return this.onBoth.apply(this, arguments);
+  }
+});
 
 
 
