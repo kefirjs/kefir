@@ -9,8 +9,43 @@
 
 
 
+// tmp
+var WithSourceStreamMixin = {
+  __Constructor: function(source) {
+    this.__source = source;
+    source.onEnd(this.__sendEnd, this);
+    if (source instanceof Property && this instanceof Property && source.hasValue()) {
+      this.__handle(source.getValue());
+    }
+  },
+  __handle: function(x) {
+    this.__sendAny(x);
+  },
+  __handleBoth: function(type, x) {
+    if (type === 'value') {
+      this.__handle(x);
+    } else {
+      this.__sendError(x);
+    }
+  },
+  __onFirstIn: function() {
+    this.__source.onNewBoth(this.__handleBoth, this);
+  },
+  __onLastOut: function() {
+    this.__source.offBoth(this.__handleBoth, this);
+  },
+  __clear: function() {
+    Observable.prototype.__clear.call(this);
+    this.__source = null;
+  }
+}
+
+
+
+
 
 // .sampledBy(observable, fn)
+// TODO: Kefir.sampledBy(streams, samplers, fn)
 
 var SampledByMixin = {
   __Constructor: function(main, sampler, fnMeta) {

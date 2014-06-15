@@ -675,11 +675,11 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   function AnonymousProperty(source, args) {
     Property.call(this);
     this.__source = source;
-    source.onEnd(this.__handleEnd, this);
     this.__init(args);
     if (source instanceof Property && source.hasValue()) {
       this.__handleValue(source.getValue(), true);
     }
+    source.onEnd(this.__handleEnd, this);
   }
 
   inherit(AnonymousProperty, Property, mixin, {
@@ -935,14 +935,105 @@ Property.prototype.changes = function() {
 
 
 
+// observable.toProperty([initial])
+
+var ToPropertyProperty = createOneSourceClasses(
+  'ToProperty',
+  null,
+  {
+    __init: function(initial) {
+      if (initial !== NOTHING && !isUndefined(initial)) {
+        this.__sendValue(initial);
+      }
+    }
+  }
+).Property;
+
+Stream.prototype.toProperty = function(initial) {
+  return new ToPropertyProperty(this, initial);
+}
+
+Property.prototype.toProperty = function(initial) {
+  if (isUndefined(initial) || initial === NOTHING) {
+    return this
+  } else {
+    var result = new ToPropertyProperty(this);
+    result.__sendValue(initial);
+    return result;
+  }
+}
 
 
 
 
-// To refactor using createOneSourceClasses() if posible:
+
+// .scan(seed, fn)
+
+var ScanProperty = createOneSourceClasses(
+  'Scan',
+  null,
+  {
+    __init: function(args) {
+      this.__sendValue(args[0]);
+      this.__fn = new Callable(rest(args, 1));
+    },
+    __clean: function(){
+      this.__fn = null;
+    },
+    __handleValue: function(x) {
+      this.__sendValue(Callable.call(this.__fn, [this.getValue(), x]));
+    }
+  }
+).Property;
+
+Observable.prototype.scan = function() {
+  return new ScanProperty(this, arguments);
+}
+
+
+
+
+
+// .reduce(seed, fn)
+
+var ReducedProperty = createOneSourceClasses(
+  'Reduced',
+  null,
+  {
+    __init: function(args) {
+      this.__result = args[0];
+      this.__fn = new Callable(rest(args, 1));
+    },
+    __clean: function(){
+      this.__fn = null;
+      this.__result = null;
+    },
+    __handleValue: function(x) {
+      this.__result = Callable.call(this.__fn, [this.__result, x]);
+    },
+    __handleEnd: function() {
+      this.__sendValue(this.__result);
+      this.__sendEnd();
+    }
+  }
+).Property;
+
+Observable.prototype.reduce = function() {
+  return new ReducedProperty(this, arguments);
+}
+
+// TODO
 //
+// observable.filter(property)
+// observable.takeWhile(property)
+// observable.skipWhile(property)
+//
+// observable.awaiting(otherObservable)
+// stream.skipUntil(stream2)
 
 
+
+// tmp
 var WithSourceStreamMixin = {
   __Constructor: function(source) {
     this.__source = source;
@@ -977,110 +1068,8 @@ var WithSourceStreamMixin = {
 
 
 
-// observable.toProperty([initial])
-
-var PropertyFromStream = function PropertyFromStream(source, initial) {
-  Property.call(this, null, null, initial);
-  this.__Constructor(source);
-}
-
-inherit(PropertyFromStream, Property, WithSourceStreamMixin, {
-  __ClassName: 'PropertyFromStream'
-})
-
-Stream.prototype.toProperty = function(initial) {
-  return new PropertyFromStream(this, initial);
-}
-
-Property.prototype.toProperty = function(initial) {
-  if (isUndefined(initial)) {
-    return this
-  } else {
-    var prop = new PropertyFromStream(this);
-    prop.__sendValue(initial);
-    return prop;
-  }
-}
-
-
-
-
-
-
-// .scan(seed, fn)
-
-var ScanProperty = function ScanProperty(source, seed, fnMeta) {
-  Property.call(this, null, null, seed);
-  this.__fn = new Callable(fnMeta);
-  this.__Constructor(source);
-}
-
-inherit(ScanProperty, Property, WithSourceStreamMixin, {
-
-  __ClassName: 'ScanProperty',
-
-  __handle: function(x) {
-    this.__sendValue(Callable.call(this.__fn, [this.getValue(), x]));
-  },
-  __clear: function() {
-    WithSourceStreamMixin.__clear.call(this);
-    this.__fn = null;
-  }
-
-})
-
-Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new ScanProperty(this, seed, rest(arguments, 1));
-}
-
-
-
-
-// .reduce(seed, fn)
-
-var ReducedProperty = function ReducedProperty(source, seed, fnMeta) {
-  Property.call(this);
-  this.__fn = new Callable(fnMeta);
-  this.__result = seed;
-  source.onEnd('__sendResult', this);
-  this.__Constructor(source);
-}
-
-inherit(ReducedProperty, Property, WithSourceStreamMixin, {
-
-  __ClassName: 'ReducedProperty',
-
-  __handle: function(x) {
-    this.__result = Callable.call(this.__fn, [this.__result, x]);
-  },
-  __sendResult: function() {
-    this.__sendValue(this.__result);
-  },
-  __clear: function() {
-    WithSourceStreamMixin.__clear.call(this);
-    this.__fn = null;
-    this.__result = null;
-  }
-
-});
-
-Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new ReducedProperty(this, seed, rest(arguments, 1));
-}
-
-// TODO
-//
-// observable.filter(property)
-// observable.takeWhile(property)
-// observable.skipWhile(property)
-//
-// observable.awaiting(otherObservable)
-// stream.skipUntil(stream2)
-
-
-
-
 // .sampledBy(observable, fn)
+// TODO: Kefir.sampledBy(streams, samplers, fn)
 
 var SampledByMixin = {
   __Constructor: function(main, sampler, fnMeta) {
@@ -8506,6 +8495,7 @@ describe("Property", function(){
 
     // with initial
 
+    stream = new Kefir.Stream();
     var prop2 = stream.toProperty(5);
 
     expect(prop2.hasValue()).toBe(true);

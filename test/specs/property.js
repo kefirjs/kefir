@@ -126,6 +126,7 @@ describe("Property", function(){
 
     // with initial
 
+    stream = new Kefir.Stream();
     var prop2 = stream.toProperty(5);
 
     expect(prop2.hasValue()).toBe(true);
