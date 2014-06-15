@@ -12,7 +12,7 @@
 
 var neverObj = new Stream();
 neverObj.__sendEnd();
-neverObj.__objName = 'Kefir.never()'
+neverObj.__ClassName = 'NeverStream'
 Kefir.never = function() {  return neverObj  }
 
 

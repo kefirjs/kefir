@@ -71,8 +71,15 @@ describe("Kefir.later()", function(){
     stream.offValue(fn);
 
     clock.tick(31);
-
     expect(calls).toBe(0);
+    expect(stream.isEnded()).toBe(false);
+
+    stream.onValue(fn);
+    expect(calls).toBe(0);
+    expect(stream.isEnded()).toBe(false);
+
+    clock.tick(31);
+    expect(calls).toBe(1);
     expect(stream.isEnded()).toBe(true);
 
   });

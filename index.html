@@ -427,9 +427,9 @@ stream.log();
       <pre>
 var stream = Kefir.interval(100, 1);
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [IntervalStream] &lt;value&gt; 1
+=&gt; [IntervalStream] &lt;value&gt; 1
+=&gt; [IntervalStream] &lt;value&gt; 1
 =&gt; ...
 </pre>
 
@@ -442,10 +442,10 @@ stream.log();
       <pre>
 var stream = Kefir.sequentially(100, [1, 2, 3]);
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 3
-=&gt; [FromPollStream] &lt;end&gt;
+=&gt; [SequentiallyStream] &lt;value&gt; 1
+=&gt; [SequentiallyStream] &lt;value&gt; 2
+=&gt; [SequentiallyStream] &lt;value&gt; 3
+=&gt; [SequentiallyStream] &lt;end&gt;
 </pre>
 
       <p id="repeatedly">
@@ -456,11 +456,11 @@ stream.log();
       <pre>
 var stream = Kefir.repeatedly(100, [1, 2]);
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 1
+=&gt; [RepeatedlyStream] &lt;value&gt; 1
+=&gt; [RepeatedlyStream] &lt;value&gt; 2
+=&gt; [RepeatedlyStream] &lt;value&gt; 1
+=&gt; [RepeatedlyStream] &lt;value&gt; 2
+=&gt; [RepeatedlyStream] &lt;value&gt; 1
 =&gt; ...
 </pre>
 
@@ -490,7 +490,7 @@ stream.log();
       <pre>
 var stream = Kefir.never();
 stream.log();
-=&gt; [Stream | Kefir.never()] &lt;end&gt;
+=&gt; [NeverStream] &lt;end&gt;
 </pre>
 
       <p id="later">
@@ -759,7 +759,7 @@ var stream
     </div>
 
 
-    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="lib/jquery/jquery.js"></script>
     <script src="dist/kefir.js"></script>
   </body>
 </html>

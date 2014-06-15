@@ -541,7 +541,7 @@ Observable.prototype.log = function(name) {
 
 var neverObj = new Stream();
 neverObj.__sendEnd();
-neverObj.__objName = 'Kefir.never()'
+neverObj.__ClassName = 'NeverStream'
 Kefir.never = function() {  return neverObj  }
 
 
@@ -652,7 +652,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   }, defaultMethods, methods);
 
 
-  function AnonymousStream(source, args) {
+  function AnonymousOneSourceStream(source, args) {
     Stream.call(this);
     this.__source = source;
     this.__init(args);
@@ -660,7 +660,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     source.onEnd(this.__handleEnd, this);
   }
 
-  inherit(AnonymousStream, Stream, mixin, {
+  inherit(AnonymousOneSourceStream, Stream, mixin, {
     __ClassName: classNamePrefix + 'Stream',
     __clear: function() {
       Stream.prototype.__clear.call(this);
@@ -670,7 +670,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   });
 
 
-  function AnonymousProperty(source, args) {
+  function AnonymousOneSourceProperty(source, args) {
     Property.call(this);
     this.__source = source;
     this.__init(args);
@@ -681,7 +681,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     source.onEnd(this.__handleEnd, this);
   }
 
-  inherit(AnonymousProperty, Property, mixin, {
+  inherit(AnonymousOneSourceProperty, Property, mixin, {
     __ClassName: classNamePrefix + 'Property',
     __clear: function() {
       Property.prototype.__clear.call(this);
@@ -693,17 +693,17 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   if (methodName) {
     Stream.prototype[methodName] = function() {
-      return new AnonymousStream(this, arguments);
+      return new AnonymousOneSourceStream(this, arguments);
     }
     Property.prototype[methodName] = function() {
-      return new AnonymousProperty(this, arguments);
+      return new AnonymousOneSourceProperty(this, arguments);
     }
   }
 
 
   return {
-    Stream: AnonymousStream,
-    Property: AnonymousProperty
+    Stream: AnonymousOneSourceStream,
+    Property: AnonymousOneSourceProperty
   };
 }
 
@@ -1612,120 +1612,187 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/) {
   });
 }
 
-// Kefir.later()
+function createIntervalBasedStream(classNamePrefix, methodName, methods) {
 
-var LaterStream = function LaterStream(wait, value) {
-  Stream.call(this);
-  this.__value = value;
-  this.__wait = wait;
-}
-
-inherit(LaterStream, Stream, {
-
-  __ClassName: 'LaterStream',
-
-  __onFirstIn: function() {
-    var _this = this;
-    setTimeout(function() {
-      _this.__sendAny(_this.__value);
-      _this.__sendEnd();
-    }, this.__wait);
-  },
-
-  __clear: function() {
-    Stream.prototype.__clear.call(this);
-    this.__value = null;
-    this.__wait = null;
+  var defaultMethods = {
+    __init: function(args) {},
+    __free: function() {},
+    __onTick: function() {}
   }
 
-});
+  var mixin = extend({
+    __onFirstIn: function() {
+      this.__intervalId = setInterval(this.__bindedOnTick, this.__wait);
+    },
+    __onLastOut: function() {
+      if (this.__intervalId !== null) {
+        clearInterval(this.__intervalId);
+        this.__intervalId = null;
+      }
+    }
+  }, defaultMethods, methods);
 
-Kefir.later = function(wait, value) {
-  return new LaterStream(wait, value);
+  function AnonymousIntervalBasedStream(wait, args) {
+    Stream.call(this);
+    this.__wait = wait;
+    this.__intervalId = null;
+    var _this = this;
+    this.__bindedOnTick = function() {  _this.__onTick()  }
+    this.__init(args);
+  }
+
+  inherit(AnonymousIntervalBasedStream, Stream, mixin, {
+    __ClassName: classNamePrefix + 'Stream',
+    __clear: function() {
+      Stream.prototype.__clear.call(this);
+      this.__bindedOnTick = null;
+      this.__free();
+    }
+  });
+
+  if (methodName) {
+    Kefir[methodName] = function(wait) {
+      return new AnonymousIntervalBasedStream(wait, rest(arguments, 1));
+    }
+  }
+
+  return AnonymousIntervalBasedStream;
+
 }
 
 
 
 
+// Kefir.tiks()
+// TODO: tests, docs
+
+createIntervalBasedStream(
+  'Tiks',
+  'tiks',
+  {
+    __onTick: function() {
+      this.__sendValue();
+    }
+  }
+)
 
 
-
-// TODO: rewrite with createIntervalBasedStream() helper
-//
 
 
 // Kefir.fromPoll()
 
-var FromPollStream = function FromPollStream(interval, sourceFn) {
-  Stream.call(this);
-  this.__interval = interval;
-  this.__intervalId = null;
-  var _this = this;
-  sourceFn = new Callable(sourceFn);
-  this.__bindedSend = function() {  _this.__sendAny(Callable.call(sourceFn))  }
-}
-
-inherit(FromPollStream, Stream, {
-
-  __ClassName: 'FromPollStream',
-  __onFirstIn: function() {
-    this.__intervalId = setInterval(this.__bindedSend, this.__interval);
-  },
-  __onLastOut: function() {
-    if (this.__intervalId !== null) {
-      clearInterval(this.__intervalId);
-      this.__intervalId = null;
+createIntervalBasedStream(
+  'FromPoll',
+  'fromPoll',
+  {
+    __init: function(args) {
+      this.__fn = new Callable(args);
+    },
+    __free: function() {
+      this.__fn = null;
+    },
+    __onTick: function() {
+      this.__sendAny(Callable.call(this.__fn));
     }
-  },
-  __clear: function() {
-    Stream.prototype.__clear.call(this);
-    this.__bindedSend = null;
   }
+)
 
-});
 
-Kefir.fromPoll = function(interval/*, fn[, context[, arg1, arg2, ...]]*/) {
-  return new FromPollStream(interval, rest(arguments, 1));
-}
 
 
 
 // Kefir.interval()
 
-Kefir.interval = function(interval, x) {
-  return new FromPollStream(interval, [id, null, x]);
-}
+createIntervalBasedStream(
+  'Interval',
+  'interval',
+  {
+    __init: function(args) {
+      this.__x = args[0];
+    },
+    __free: function() {
+      this.__x = null;
+    },
+    __onTick: function() {
+      this.__sendAny(this.__x);
+    }
+  }
+)
+
+
+
 
 
 
 // Kefir.sequentially()
 
-var sequentiallyHelperFn = function() {
-  if (this.xs.length === 0) {
-    return END;
+createIntervalBasedStream(
+  'Sequentially',
+  'sequentially',
+  {
+    __init: function(args) {
+      this.__xs = args[0].slice(0);
+    },
+    __free: function() {
+      this.__xs = null;
+    },
+    __onTick: function() {
+      if (this.__xs.length === 0) {
+        this.__sendEnd();
+        return;
+      }
+      this.__sendAny(this.__xs.shift());
+      if (this.__xs.length === 0) {
+        this.__sendEnd();
+      }
+    }
   }
-  if (this.xs.length === 1) {
-    return Kefir.bunch(this.xs[0], END);
-  }
-  return this.xs.shift();
-}
+)
 
-Kefir.sequentially = function(interval, xs) {
-  return new FromPollStream(interval, [sequentiallyHelperFn, {xs: xs.slice(0)}]);
-}
+
 
 
 
 // Kefir.repeatedly()
 
-var repeatedlyHelperFn = function() {
-  this.i = (this.i + 1) % this.xs.length;
-  return this.xs[this.i];
-}
+createIntervalBasedStream(
+  'Repeatedly',
+  'repeatedly',
+  {
+    __init: function(args) {
+      this.__xs = args[0].slice(0);
+      this.__i = -1;
+    },
+    __onTick: function() {
+      this.__i = (this.__i + 1) % this.__xs.length;
+      this.__sendAny(this.__xs[this.__i]);
+    }
+  }
+)
 
-Kefir.repeatedly = function(interval, xs) {
-  return new FromPollStream(interval, [repeatedlyHelperFn, {i: -1, xs: xs}]);
-}
+
+
+
+
+
+// Kefir.later()
+
+createIntervalBasedStream(
+  'Later',
+  'later',
+  {
+    __init: function(args) {
+      this.__x = args[0];
+    },
+    __free: function() {
+      this.__x = null
+    },
+    __onTick: function() {
+      this.__sendAny(this.__x);
+      this.__sendEnd();
+    }
+  }
+)
 
 // TODO
 //

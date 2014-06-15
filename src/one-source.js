@@ -32,7 +32,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   }, defaultMethods, methods);
 
 
-  function AnonymousStream(source, args) {
+  function AnonymousOneSourceStream(source, args) {
     Stream.call(this);
     this.__source = source;
     this.__init(args);
@@ -40,7 +40,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     source.onEnd(this.__handleEnd, this);
   }
 
-  inherit(AnonymousStream, Stream, mixin, {
+  inherit(AnonymousOneSourceStream, Stream, mixin, {
     __ClassName: classNamePrefix + 'Stream',
     __clear: function() {
       Stream.prototype.__clear.call(this);
@@ -50,7 +50,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   });
 
 
-  function AnonymousProperty(source, args) {
+  function AnonymousOneSourceProperty(source, args) {
     Property.call(this);
     this.__source = source;
     this.__init(args);
@@ -61,7 +61,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     source.onEnd(this.__handleEnd, this);
   }
 
-  inherit(AnonymousProperty, Property, mixin, {
+  inherit(AnonymousOneSourceProperty, Property, mixin, {
     __ClassName: classNamePrefix + 'Property',
     __clear: function() {
       Property.prototype.__clear.call(this);
@@ -73,17 +73,17 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   if (methodName) {
     Stream.prototype[methodName] = function() {
-      return new AnonymousStream(this, arguments);
+      return new AnonymousOneSourceStream(this, arguments);
     }
     Property.prototype[methodName] = function() {
-      return new AnonymousProperty(this, arguments);
+      return new AnonymousOneSourceProperty(this, arguments);
     }
   }
 
 
   return {
-    Stream: AnonymousStream,
-    Property: AnonymousProperty
+    Stream: AnonymousOneSourceStream,
+    Property: AnonymousOneSourceProperty
   };
 }
 
