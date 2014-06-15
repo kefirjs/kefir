@@ -638,10 +638,11 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   var defaultMethods = {
     __init: function(args) {},
+    __afterInitial: function(args) {},
     __free: function() {},
     __handleValue: function(x, initial) {  this.__sendValue(x)  },
     __handleError: function(e) {  this.__sendError(e)  },
-    __handleEnd: function() {  this.__sendEnd()  }
+    __handleEnd: function() {  this.__sendEnd()  },
   }
 
   var mixin = extend({
@@ -664,8 +665,9 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   function AnonymousStream(source, args) {
     Stream.call(this);
     this.__source = source;
-    source.onEnd(this.__handleEnd, this);
     this.__init(args);
+    this.__afterInitial(args);
+    source.onEnd(this.__handleEnd, this);
   }
 
   inherit(AnonymousStream, Stream, mixin, {
@@ -685,6 +687,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     if (source instanceof Property && source.hasValue()) {
       this.__handleValue(source.getValue(), true);
     }
+    this.__afterInitial(args);
     source.onEnd(this.__handleEnd, this);
   }
 
@@ -947,7 +950,7 @@ var ToPropertyProperty = createOneSourceClasses(
   'ToProperty',
   null,
   {
-    __init: function(initial) {
+    __afterInitial: function(initial) {
       if (initial !== NOTHING && !isUndefined(initial)) {
         this.__sendValue(initial);
       }
@@ -963,9 +966,7 @@ Property.prototype.toProperty = function(initial) {
   if (isUndefined(initial) || initial === NOTHING) {
     return this
   } else {
-    var result = new ToPropertyProperty(this);
-    result.__sendValue(initial);
-    return result;
+    return new ToPropertyProperty(this, initial);
   }
 }
 
@@ -6795,7 +6796,7 @@ var helpers = require('../test-helpers');
 describe(".diff()", function(){
 
   function subtract(prev, next){
-    return next - prev;
+    return prev - next;
   }
 
   it("stream.diff()", function(){
@@ -6814,7 +6815,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 1, 2]
+      xs: [-1, -1, -2]
     });
 
   });
@@ -6822,11 +6823,12 @@ describe(".diff()", function(){
   it("property.diff()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
+
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));
     expect(diffs.hasValue()).toBe(true);
-    expect(diffs.getValue()).toBe(1);
+    expect(diffs.getValue()).toBe(-1);
 
     var result = helpers.getOutput(diffs);
 
@@ -6837,7 +6839,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, -5, 1, 2]
+      xs: [-1, 5, -1, -2]
     });
 
   });
@@ -6861,7 +6863,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [-4, 1, 2]
+      xs: [4, -1, -2]
     });
 
   });
@@ -8516,14 +8518,14 @@ var helpers = require('../test-helpers');
 
 describe(".reduce()", function(){
 
-  function sum(a, b){
-    return a + b;
+  function subtract(a, b){
+    return a - b;
   }
 
   it("stream.reduce()", function(){
 
     var stream = new Kefir.Stream();
-    var reduced = stream.reduce(0, sum);
+    var reduced = stream.reduce(0, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
     expect(reduced.hasValue()).toBe(false);
@@ -8538,7 +8540,7 @@ describe(".reduce()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [6]
+      xs: [-6]
     });
 
   });
@@ -8546,7 +8548,7 @@ describe(".reduce()", function(){
   it("property.reduce()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
-    var reduced = prop.reduce(5, sum);
+    var reduced = prop.reduce(5, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
     expect(reduced.hasValue()).toBe(false);
@@ -8561,7 +8563,7 @@ describe(".reduce()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [17]
+      xs: [-7]
     });
 
   });
@@ -8570,7 +8572,7 @@ describe(".reduce()", function(){
   it("property.reduce() w/o initial", function(){
 
     var prop = new Kefir.Property(null, null);
-    var reduced = prop.reduce(5, sum);
+    var reduced = prop.reduce(5, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
     expect(reduced.hasValue()).toBe(false);
@@ -8585,7 +8587,7 @@ describe(".reduce()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [11]
+      xs: [-1]
     });
 
   });
@@ -8595,7 +8597,7 @@ describe(".reduce()", function(){
   it(".reduce() and errors", function(){
 
     var stream = new Kefir.Stream();
-    var reduced = stream.reduce(0, sum);
+    var reduced = stream.reduce(0, subtract);
 
     var result = helpers.getOutputAndErrors(reduced);
 
@@ -8796,14 +8798,14 @@ var helpers = require('../test-helpers');
 
 describe(".scan()", function(){
 
-  function sum(a, b){
-    return a + b;
+  function subtract(a, b){
+    return a - b;
   }
 
   it("stream.scan()", function(){
 
     var stream = new Kefir.Stream();
-    var scanned = stream.scan(0, sum);
+    var scanned = stream.scan(0, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
     expect(scanned.hasValue()).toBe(true);
@@ -8818,7 +8820,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [0, 1, 3, 6]
+      xs: [0, -1, -3, -6]
     });
 
   });
@@ -8826,11 +8828,11 @@ describe(".scan()", function(){
   it("property.scan()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
-    var scanned = prop.scan(5, sum);
+    var scanned = prop.scan(5, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
     expect(scanned.hasValue()).toBe(true);
-    expect(scanned.getValue()).toBe(11);
+    expect(scanned.getValue()).toBe(-1);
 
     var result = helpers.getOutput(scanned);
 
@@ -8841,7 +8843,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [11, 12, 14, 17]
+      xs: [-1, -2, -4, -7]
     });
 
   });
@@ -8850,7 +8852,7 @@ describe(".scan()", function(){
   it("property.scan() w/o initial", function(){
 
     var prop = new Kefir.Property(null, null);
-    var scanned = prop.scan(5, sum);
+    var scanned = prop.scan(5, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
     expect(scanned.hasValue()).toBe(true);
@@ -8865,7 +8867,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [5, 6, 8, 11]
+      xs: [5, 4, 2, -1]
     });
 
   });
@@ -8875,7 +8877,7 @@ describe(".scan()", function(){
   it(".scan() and errors", function(){
 
     var stream = new Kefir.Stream();
-    var scanned = stream.scan(0, sum);
+    var scanned = stream.scan(0, subtract);
 
     var result = helpers.getOutputAndErrors(scanned);
 
@@ -8885,7 +8887,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: false,
-      xs: [0, 1],
+      xs: [0, -1],
       errors: ['e1', 'e2']
     });
 

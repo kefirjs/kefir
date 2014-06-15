@@ -6,7 +6,7 @@ var helpers = require('../test-helpers');
 describe(".diff()", function(){
 
   function subtract(prev, next){
-    return next - prev;
+    return prev - next;
   }
 
   it("stream.diff()", function(){
@@ -25,7 +25,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 1, 2]
+      xs: [-1, -1, -2]
     });
 
   });
@@ -33,11 +33,12 @@ describe(".diff()", function(){
   it("property.diff()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
+
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));
     expect(diffs.hasValue()).toBe(true);
-    expect(diffs.getValue()).toBe(1);
+    expect(diffs.getValue()).toBe(-1);
 
     var result = helpers.getOutput(diffs);
 
@@ -48,7 +49,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, -5, 1, 2]
+      xs: [-1, 5, -1, -2]
     });
 
   });
@@ -72,7 +73,7 @@ describe(".diff()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [-4, 1, 2]
+      xs: [4, -1, -2]
     });
 
   });

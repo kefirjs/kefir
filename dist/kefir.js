@@ -637,10 +637,11 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   var defaultMethods = {
     __init: function(args) {},
+    __afterInitial: function(args) {},
     __free: function() {},
     __handleValue: function(x, initial) {  this.__sendValue(x)  },
     __handleError: function(e) {  this.__sendError(e)  },
-    __handleEnd: function() {  this.__sendEnd()  }
+    __handleEnd: function() {  this.__sendEnd()  },
   }
 
   var mixin = extend({
@@ -663,8 +664,9 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
   function AnonymousStream(source, args) {
     Stream.call(this);
     this.__source = source;
-    source.onEnd(this.__handleEnd, this);
     this.__init(args);
+    this.__afterInitial(args);
+    source.onEnd(this.__handleEnd, this);
   }
 
   inherit(AnonymousStream, Stream, mixin, {
@@ -684,6 +686,7 @@ function createOneSourceClasses(classNamePrefix, methodName, methods) {
     if (source instanceof Property && source.hasValue()) {
       this.__handleValue(source.getValue(), true);
     }
+    this.__afterInitial(args);
     source.onEnd(this.__handleEnd, this);
   }
 
@@ -946,7 +949,7 @@ var ToPropertyProperty = createOneSourceClasses(
   'ToProperty',
   null,
   {
-    __init: function(initial) {
+    __afterInitial: function(initial) {
       if (initial !== NOTHING && !isUndefined(initial)) {
         this.__sendValue(initial);
       }
@@ -962,9 +965,7 @@ Property.prototype.toProperty = function(initial) {
   if (isUndefined(initial) || initial === NOTHING) {
     return this
   } else {
-    var result = new ToPropertyProperty(this);
-    result.__sendValue(initial);
-    return result;
+    return new ToPropertyProperty(this, initial);
   }
 }
 

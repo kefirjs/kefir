@@ -5,14 +5,14 @@ var helpers = require('../test-helpers');
 
 describe(".scan()", function(){
 
-  function sum(a, b){
-    return a + b;
+  function subtract(a, b){
+    return a - b;
   }
 
   it("stream.scan()", function(){
 
     var stream = new Kefir.Stream();
-    var scanned = stream.scan(0, sum);
+    var scanned = stream.scan(0, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
     expect(scanned.hasValue()).toBe(true);
@@ -27,7 +27,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [0, 1, 3, 6]
+      xs: [0, -1, -3, -6]
     });
 
   });
@@ -35,11 +35,11 @@ describe(".scan()", function(){
   it("property.scan()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
-    var scanned = prop.scan(5, sum);
+    var scanned = prop.scan(5, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
     expect(scanned.hasValue()).toBe(true);
-    expect(scanned.getValue()).toBe(11);
+    expect(scanned.getValue()).toBe(-1);
 
     var result = helpers.getOutput(scanned);
 
@@ -50,7 +50,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [11, 12, 14, 17]
+      xs: [-1, -2, -4, -7]
     });
 
   });
@@ -59,7 +59,7 @@ describe(".scan()", function(){
   it("property.scan() w/o initial", function(){
 
     var prop = new Kefir.Property(null, null);
-    var scanned = prop.scan(5, sum);
+    var scanned = prop.scan(5, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
     expect(scanned.hasValue()).toBe(true);
@@ -74,7 +74,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [5, 6, 8, 11]
+      xs: [5, 4, 2, -1]
     });
 
   });
@@ -84,7 +84,7 @@ describe(".scan()", function(){
   it(".scan() and errors", function(){
 
     var stream = new Kefir.Stream();
-    var scanned = stream.scan(0, sum);
+    var scanned = stream.scan(0, subtract);
 
     var result = helpers.getOutputAndErrors(scanned);
 
@@ -94,7 +94,7 @@ describe(".scan()", function(){
 
     expect(result).toEqual({
       ended: false,
-      xs: [0, 1],
+      xs: [0, -1],
       errors: ['e1', 'e2']
     });
 

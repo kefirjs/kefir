@@ -5,14 +5,14 @@ var helpers = require('../test-helpers');
 
 describe(".reduce()", function(){
 
-  function sum(a, b){
-    return a + b;
+  function subtract(a, b){
+    return a - b;
   }
 
   it("stream.reduce()", function(){
 
     var stream = new Kefir.Stream();
-    var reduced = stream.reduce(0, sum);
+    var reduced = stream.reduce(0, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
     expect(reduced.hasValue()).toBe(false);
@@ -27,7 +27,7 @@ describe(".reduce()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [6]
+      xs: [-6]
     });
 
   });
@@ -35,7 +35,7 @@ describe(".reduce()", function(){
   it("property.reduce()", function(){
 
     var prop = new Kefir.Property(null, null, 6);
-    var reduced = prop.reduce(5, sum);
+    var reduced = prop.reduce(5, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
     expect(reduced.hasValue()).toBe(false);
@@ -50,7 +50,7 @@ describe(".reduce()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [17]
+      xs: [-7]
     });
 
   });
@@ -59,7 +59,7 @@ describe(".reduce()", function(){
   it("property.reduce() w/o initial", function(){
 
     var prop = new Kefir.Property(null, null);
-    var reduced = prop.reduce(5, sum);
+    var reduced = prop.reduce(5, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
     expect(reduced.hasValue()).toBe(false);
@@ -74,7 +74,7 @@ describe(".reduce()", function(){
 
     expect(result).toEqual({
       ended: true,
-      xs: [11]
+      xs: [-1]
     });
 
   });
@@ -84,7 +84,7 @@ describe(".reduce()", function(){
   it(".reduce() and errors", function(){
 
     var stream = new Kefir.Stream();
-    var reduced = stream.reduce(0, sum);
+    var reduced = stream.reduce(0, subtract);
 
     var result = helpers.getOutputAndErrors(reduced);
 
