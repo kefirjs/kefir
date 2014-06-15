@@ -627,6 +627,12 @@ Kefir.fromBinder = function(/*subscribe[, context[, arg1, arg2...]]*/) {
   return new FromBinderStream(arguments);
 }
 
+// TODO
+//
+// observable.debounce(wait, immediate)
+// http://underscorejs.org/#defer
+
+
 function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   var defaultMethods = {
@@ -1021,6 +1027,112 @@ Observable.prototype.reduce = function() {
   return new ReducedProperty(this, arguments);
 }
 
+
+
+
+
+
+// .throttle(wait, {leading, trailing})
+
+createOneSourceClasses(
+  'Throttled',
+  'throttle',
+  {
+    __init: function(args) {
+      this.__wait = args[0];
+      this.__leading = get(args[1], 'leading', true);
+      this.__trailing = get(args[1], 'trailing', true);
+      this.__trailingCallValue = null;
+      this.__trailingCallTimeoutId = null;
+      this.__endAfterTrailingCall = false;
+      this.__lastCallTime = 0;
+      var _this = this;
+      this.__makeTrailingCallBinded = function() {  _this.__makeTrailingCall()  };
+    },
+    __clean: function() {
+      this.__trailingCallValue = null;
+      this.__makeTrailingCallBinded = null;
+    },
+    __handleValue: function(x, initial) {
+      if (initial) {
+        this.__sendValue(x);
+        return;
+      }
+      var curTime = now();
+      if (this.__lastCallTime === 0 && !this.__leading) {
+        this.__lastCallTime = curTime;
+      }
+      var remaining = this.__wait - (curTime - this.__lastCallTime);
+      if (remaining <= 0) {
+        this.__cancelTralingCall();
+        this.__lastCallTime = curTime;
+        this.__sendValue(x);
+      } else if (this.__trailing) {
+        this.__scheduleTralingCall(x, remaining);
+      }
+    },
+    __handleEnd: function() {
+      if (this.__trailingCallTimeoutId) {
+        this.__endAfterTrailingCall = true;
+      } else {
+        this.__sendEnd();
+      }
+    },
+    __scheduleTralingCall: function(value, wait) {
+      if (this.__trailingCallTimeoutId) {
+        this.__cancelTralingCall();
+      }
+      this.__trailingCallValue = value;
+      this.__trailingCallTimeoutId = setTimeout(this.__makeTrailingCallBinded, wait);
+    },
+    __cancelTralingCall: function() {
+      if (this.__trailingCallTimeoutId !== null) {
+        clearTimeout(this.__trailingCallTimeoutId);
+        this.__trailingCallTimeoutId = null;
+      }
+    },
+    __makeTrailingCall: function() {
+      this.__sendValue(this.__trailingCallValue);
+      this.__trailingCallTimeoutId = null;
+      this.__trailingCallValue = null;
+      this.__lastCallTime = !this.__leading ? 0 : now();
+      if (this.__endAfterTrailingCall) {
+        this.__sendEnd();
+      }
+    }
+  }
+)
+
+
+
+
+
+
+
+// .delay()
+
+createOneSourceClasses(
+  'Delayed',
+  'delay',
+  {
+    __init: function(args) {
+      this.__wait = args[0];
+    },
+    __handleValue: function(x, initial) {
+      if (initial) {
+        this.__sendValue(x);
+        return;
+      }
+      var _this = this;
+      setTimeout(function() {  _this.__sendValue(x)  }, this.__wait);
+    },
+    __handleEnd: function() {
+      var _this = this;
+      setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
+    }
+  }
+)
+
 // TODO
 //
 // observable.filter(property)
@@ -1029,6 +1141,11 @@ Observable.prototype.reduce = function() {
 //
 // observable.awaiting(otherObservable)
 // stream.skipUntil(stream2)
+
+
+
+
+// TODO: all this should be refactored and moved to multiple-sources
 
 
 
@@ -1503,15 +1620,6 @@ Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/) {
   });
 }
 
-// TODO
-//
-// observable.debounce(wait, immediate)
-// http://underscorejs.org/#defer
-
-
-
-
-
 // Kefir.later()
 
 var LaterStream = function LaterStream(wait, value) {
@@ -1548,200 +1656,10 @@ Kefir.later = function(wait, value) {
 
 
 
-// .delay()
-
-var DelayedMixin = {
-  __Constructor: function(source, wait) {
-    this.__source = source;
-    this.__wait = wait;
-    source.onEnd(this.__sendEndLater, this);
-  },
-  __sendLater: function(x) {
-    var _this = this;
-    setTimeout(function() {  _this.__sendValue(x)  }, this.__wait);
-  },
-  __handleBoth: function(type, x) {
-    if (type === 'value') {
-      this.__sendLater(x);
-    } else {
-      this.__sendError(x);
-    }
-  },
-  __sendEndLater: function() {
-    var _this = this;
-    setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
-  },
-  __onFirstIn: function() {
-    this.__source.onNewBoth(this.__handleBoth, this);
-  },
-  __onLastOut: function() {
-    this.__source.offBoth(this.__handleBoth, this);
-  },
-  __clear: function() {
-    Observable.prototype.__clear.call(this);
-    this.__source = null;
-    this.__wait = null;
-  }
-}
 
 
-var DelayedStream = function DelayedStream(source, wait) {
-  Stream.call(this);
-  DelayedMixin.__Constructor.call(this, source, wait);
-}
-
-inherit(DelayedStream, Stream, DelayedMixin, {
-  __ClassName: 'DelayedStream'
-});
-
-Stream.prototype.delay = function(wait) {
-  return new DelayedStream(this, wait);
-}
-
-
-var DelayedProperty = function DelayedProperty(source, wait) {
-  Property.call(this);
-  DelayedMixin.__Constructor.call(this, source, wait);
-  if (source.hasValue()) {
-    this.__sendValue(source.getValue());
-  }
-}
-
-inherit(DelayedProperty, Property, DelayedMixin, {
-  __ClassName: 'DelayedProperty'
-});
-
-Property.prototype.delay = function(wait) {
-  return new DelayedProperty(this, wait);
-}
-
-
-
-
-
-
-// .throttle(wait, {leading, trailing})
-
-var ThrottledMixin = {
-
-  __Constructor: function(source, wait, options) {
-    this.__source = source;
-    this.__wait = wait;
-    this.__trailingCallValue = null;
-    this.__trailingCallTimeoutId = null;
-    this.__endAfterTrailingCall = false;
-    this.__lastCallTime = 0;
-    this.__leading = get(options, 'leading', true);
-    this.__trailing = get(options, 'trailing', true);
-    var _this = this;
-    this.__makeTrailingCallBinded = function() {  _this.__makeTrailingCall()  };
-    source.onEnd(this.__sendEndLater, this);
-  },
-
-  __sendEndLater: function() {
-    if (this.__trailingCallTimeoutId) {
-      this.__endAfterTrailingCall = true;
-    } else {
-      this.__sendEnd();
-    }
-  },
-
-  __scheduleTralingCall: function(value, wait) {
-    if (this.__trailingCallTimeoutId) {
-      this.__cancelTralingCall();
-    }
-    this.__trailingCallValue = value;
-    this.__trailingCallTimeoutId = setTimeout(this.__makeTrailingCallBinded, wait);
-  },
-  __cancelTralingCall: function() {
-    if (this.__trailingCallTimeoutId !== null) {
-      clearTimeout(this.__trailingCallTimeoutId);
-      this.__trailingCallTimeoutId = null;
-    }
-  },
-  __makeTrailingCall: function() {
-    this.__sendValue(this.__trailingCallValue);
-    this.__trailingCallTimeoutId = null;
-    this.__trailingCallValue = null;
-    this.__lastCallTime = !this.__leading ? 0 : now();
-    if (this.__endAfterTrailingCall) {
-      this.__sendEnd();
-    }
-  },
-
-  __handle: function(x) {
-    var curTime = now();
-    if (this.__lastCallTime === 0 && !this.__leading) {
-      this.__lastCallTime = curTime;
-    }
-    var remaining = this.__wait - (curTime - this.__lastCallTime);
-    if (remaining <= 0) {
-      this.__cancelTralingCall();
-      this.__lastCallTime = curTime;
-      this.__sendValue(x);
-    } else if (this.__trailing) {
-      this.__scheduleTralingCall(x, remaining);
-    }
-  },
-  __handleBoth: function(type, x) {
-    if (type === 'value') {
-      this.__handle(x);
-    } else {
-      this.__sendError(x);
-    }
-  },
-
-  __onFirstIn: function() {
-    this.__source.onNewBoth(this.__handleBoth, this);
-  },
-  __onLastOut: function() {
-    this.__source.offBoth(this.__handleBoth, this);
-  },
-
-  __clear: function() {
-    Observable.prototype.__clear.call(this);
-    this.__source = null;
-    this.__wait = null;
-    this.__trailingCallValue = null;
-    this.__trailingCallTimeoutId = null;
-    this.__makeTrailingCallBinded = null;
-  }
-
-};
-
-var ThrottledStream = function ThrottledStream() {
-  Stream.call(this);
-  ThrottledMixin.__Constructor.apply(this, arguments);
-}
-
-inherit(ThrottledStream, Stream, ThrottledMixin, {
-  __ClassName: 'ThrottledStream'
-});
-
-Stream.prototype.throttle = function(wait, options) {
-  return new ThrottledStream(this, wait, options);
-}
-
-
-var ThrottledProperty = function ThrottledProperty(source) {
-  Property.call(this);
-  ThrottledMixin.__Constructor.apply(this, arguments);
-  if (source.hasValue()) {
-    this.__sendValue(source.getValue());
-  }
-}
-
-inherit(ThrottledProperty, Property, ThrottledMixin, {
-  __ClassName: 'ThrottledProperty'
-});
-
-Property.prototype.throttle = function(wait, options) {
-  return new ThrottledProperty(this, wait, options);
-}
-
-
-
-
+// TODO: rewrite with createIntervalBasedStream() helper
+//
 
 
 // Kefir.fromPoll()

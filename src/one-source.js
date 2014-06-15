@@ -1,3 +1,9 @@
+// TODO
+//
+// observable.debounce(wait, immediate)
+// http://underscorejs.org/#defer
+
+
 function createOneSourceClasses(classNamePrefix, methodName, methods) {
 
   var defaultMethods = {
@@ -391,3 +397,109 @@ var ReducedProperty = createOneSourceClasses(
 Observable.prototype.reduce = function() {
   return new ReducedProperty(this, arguments);
 }
+
+
+
+
+
+
+// .throttle(wait, {leading, trailing})
+
+createOneSourceClasses(
+  'Throttled',
+  'throttle',
+  {
+    __init: function(args) {
+      this.__wait = args[0];
+      this.__leading = get(args[1], 'leading', true);
+      this.__trailing = get(args[1], 'trailing', true);
+      this.__trailingCallValue = null;
+      this.__trailingCallTimeoutId = null;
+      this.__endAfterTrailingCall = false;
+      this.__lastCallTime = 0;
+      var _this = this;
+      this.__makeTrailingCallBinded = function() {  _this.__makeTrailingCall()  };
+    },
+    __clean: function() {
+      this.__trailingCallValue = null;
+      this.__makeTrailingCallBinded = null;
+    },
+    __handleValue: function(x, initial) {
+      if (initial) {
+        this.__sendValue(x);
+        return;
+      }
+      var curTime = now();
+      if (this.__lastCallTime === 0 && !this.__leading) {
+        this.__lastCallTime = curTime;
+      }
+      var remaining = this.__wait - (curTime - this.__lastCallTime);
+      if (remaining <= 0) {
+        this.__cancelTralingCall();
+        this.__lastCallTime = curTime;
+        this.__sendValue(x);
+      } else if (this.__trailing) {
+        this.__scheduleTralingCall(x, remaining);
+      }
+    },
+    __handleEnd: function() {
+      if (this.__trailingCallTimeoutId) {
+        this.__endAfterTrailingCall = true;
+      } else {
+        this.__sendEnd();
+      }
+    },
+    __scheduleTralingCall: function(value, wait) {
+      if (this.__trailingCallTimeoutId) {
+        this.__cancelTralingCall();
+      }
+      this.__trailingCallValue = value;
+      this.__trailingCallTimeoutId = setTimeout(this.__makeTrailingCallBinded, wait);
+    },
+    __cancelTralingCall: function() {
+      if (this.__trailingCallTimeoutId !== null) {
+        clearTimeout(this.__trailingCallTimeoutId);
+        this.__trailingCallTimeoutId = null;
+      }
+    },
+    __makeTrailingCall: function() {
+      this.__sendValue(this.__trailingCallValue);
+      this.__trailingCallTimeoutId = null;
+      this.__trailingCallValue = null;
+      this.__lastCallTime = !this.__leading ? 0 : now();
+      if (this.__endAfterTrailingCall) {
+        this.__sendEnd();
+      }
+    }
+  }
+)
+
+
+
+
+
+
+
+// .delay()
+
+createOneSourceClasses(
+  'Delayed',
+  'delay',
+  {
+    __init: function(args) {
+      this.__wait = args[0];
+    },
+    __handleValue: function(x, initial) {
+      if (initial) {
+        this.__sendValue(x);
+        return;
+      }
+      var _this = this;
+      setTimeout(function() {  _this.__sendValue(x)  }, this.__wait);
+    },
+    __handleEnd: function() {
+      var _this = this;
+      setTimeout(function() {  _this.__sendEnd()  }, this.__wait);
+    }
+  }
+)
