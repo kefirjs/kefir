@@ -58,15 +58,6 @@ function inherit(Child, Parent/*[, mixin1, mixin2, ...]*/) {
   return Child;
 }
 
-function inheritMixin(Child, Parent) {
-  for (var prop in Parent) {
-    if (own(Parent, prop) && !(prop in Child)) {
-      Child[prop] = Parent[prop];
-    }
-  }
-  return Child;
-}
-
 function agrsToArray(args) {
   if (args.length === 1 && isArray(args[0])) {
     return args[0];
@@ -1235,7 +1226,7 @@ var SampledByMixin = {
   }
 }
 
-inheritMixin(SampledByMixin, WithSourceStreamMixin);
+SampledByMixin = extend({}, WithSourceStreamMixin, SampledByMixin);
 
 var SampledByStream = function SampledByStream() {
   this.__Constructor.apply(this, arguments);

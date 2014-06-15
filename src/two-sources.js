@@ -99,7 +99,7 @@ var SampledByMixin = {
   }
 }
 
-inheritMixin(SampledByMixin, WithSourceStreamMixin);
+SampledByMixin = extend({}, WithSourceStreamMixin, SampledByMixin);
 
 var SampledByStream = function SampledByStream() {
   this.__Constructor.apply(this, arguments);
