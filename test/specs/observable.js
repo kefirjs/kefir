@@ -211,11 +211,11 @@ describe("Observable/Stream", function(){
     obs.__sendValue(1);
     obs.__sendAny(2);
     obs.__sendAny(Kefir.NOTHING);
-    obs.__sendAny(Kefir.bunch(3, Kefir.NOTHING, 4, Kefir.END));
+    obs.__sendAny(Kefir.END);
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 2, 3, 4]
+      xs: [1, 2]
     });
 
   });

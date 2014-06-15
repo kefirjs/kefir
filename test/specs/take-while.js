@@ -14,7 +14,11 @@ describe(".takeWhile()", function(){
 
     var result = helpers.getOutput(whileNot3);
 
-    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendEnd();
 
     expect(result).toEqual({
       ended: true,

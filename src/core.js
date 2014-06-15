@@ -8,13 +8,6 @@ var NOTHING = Kefir.NOTHING = ['<nothing>'];
 var END = Kefir.END = ['<end>'];
 var NO_MORE = Kefir.NO_MORE = ['<no more>'];
 
-var BunchOfValues = function(values) {
-  this.values = values;
-}
-Kefir.bunch = function() {
-  return new BunchOfValues(agrsToArray(arguments));
-}
-
 var KefirError = function(error) {
   this.error = error;
 }
@@ -255,12 +248,6 @@ inherit(Observable, Object, {
     if (x === NOTHING) {  return this  }
     if (x === END) {  this.__sendEnd(); return this  }
     if (x instanceof KefirError) {  this.__sendError(x.error); return this  }
-    if (x instanceof BunchOfValues) {
-      for (var i = 0; i < x.values.length; i++) {
-        this.__sendAny(x.values[i]);
-      }
-      return this;
-    }
     this.__sendValue(x);
     return this;
   },
