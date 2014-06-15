@@ -1639,7 +1639,7 @@ function createIntervalBasedStream(classNamePrefix, methodName, methods) {
 
   if (methodName) {
     Kefir[methodName] = function(wait) {
-      return new AnonymousIntervalBasedStream(wait, rest(arguments, 1));
+      return new AnonymousIntervalBasedStream(wait, rest(arguments, 1, []));
     }
   }
 
@@ -1695,13 +1695,21 @@ createIntervalBasedStream(
   'interval',
   {
     __init: function(args) {
-      this.__x = args[0];
+      if (args.length > 0) {
+        this.__x = args[0];
+      } else {
+        this.__x = undefined;
+      }
     },
     __free: function() {
       this.__x = null;
     },
     __onTick: function() {
-      this.__sendAny(this.__x);
+      if (this.__x === undefined) {
+        this.__sendValue()
+      } else {
+        this.__sendAny(this.__x);
+      }
     }
   }
 )

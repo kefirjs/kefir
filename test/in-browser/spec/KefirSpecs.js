@@ -1640,7 +1640,7 @@ function createIntervalBasedStream(classNamePrefix, methodName, methods) {
 
   if (methodName) {
     Kefir[methodName] = function(wait) {
-      return new AnonymousIntervalBasedStream(wait, rest(arguments, 1));
+      return new AnonymousIntervalBasedStream(wait, rest(arguments, 1, []));
     }
   }
 
@@ -1696,13 +1696,21 @@ createIntervalBasedStream(
   'interval',
   {
     __init: function(args) {
-      this.__x = args[0];
+      if (args.length > 0) {
+        this.__x = args[0];
+      } else {
+        this.__x = undefined;
+      }
     },
     __free: function() {
       this.__x = null;
     },
     __onTick: function() {
-      this.__sendAny(this.__x);
+      if (this.__x === undefined) {
+        this.__sendValue()
+      } else {
+        this.__sendAny(this.__x);
+      }
     }
   }
 )
@@ -7341,12 +7349,13 @@ describe("Kefir.fromBinder()", function(){
     __send(2);
     __send(Kefir.error('e1'));
     __send(Kefir.NOTHING);
-    __send(Kefir.bunch(3, Kefir.NOTHING, Kefir.error('e2'), 4, Kefir.END));
+    __send(Kefir.END);
+
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 2, 3, 4],
-      errors: ['e1', 'e2']
+      xs: [1, 2],
+      errors: ['e1']
     });
 
   });
@@ -8173,11 +8182,11 @@ describe("Observable/Stream", function(){
     obs.__sendValue(1);
     obs.__sendAny(2);
     obs.__sendAny(Kefir.NOTHING);
-    obs.__sendAny(Kefir.bunch(3, Kefir.NOTHING, 4, Kefir.END));
+    obs.__sendAny(Kefir.END);
 
     expect(result).toEqual({
       ended: true,
-      xs: [1, 2, 3, 4]
+      xs: [1, 2]
     });
 
   });
@@ -9266,7 +9275,11 @@ describe(".skip()", function(){
 
     var result10 = helpers.getOutput(skip10);
 
-    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendEnd();
 
     expect(result2).toEqual({
       ended: true,
@@ -9300,7 +9313,11 @@ describe(".takeWhile()", function(){
 
     var result = helpers.getOutput(whileNot3);
 
-    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendEnd();
 
     expect(result).toEqual({
       ended: true,
@@ -9331,7 +9348,11 @@ describe(".take()", function(){
 
     var result10 = helpers.getOutput(take10);
 
-    stream.__sendAny(Kefir.bunch(1, 2, 3, 4, Kefir.END));
+    stream.__sendValue(1);
+    stream.__sendValue(2);
+    stream.__sendValue(3);
+    stream.__sendValue(4);
+    stream.__sendEnd();
 
     expect(result2).toEqual({
       ended: true,
