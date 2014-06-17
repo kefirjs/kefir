@@ -336,18 +336,9 @@ inherit(Observable, Object, {
   },
 
 
-  __sendValue: function(x) {
-    this.__send('value', x);
-    return this;
-  },
-  __sendError: function(x) {
-    this.__send('error', x);
-    return this;
-  },
-  __sendEnd: function() {
-    this.__send('end');
-    return this;
-  },
+  __sendValue: function(x) {  this.__send('value', x); return this  },
+  __sendError: function(x) {  this.__send('error', x); return this  },
+  __sendEnd: function() {  this.__send('end'); return this  },
   __sendAny: function(x) {
     if (x === NOTHING) {  return this  }
     if (x === END) {  this.__sendEnd(); return this  }
@@ -357,38 +348,14 @@ inherit(Observable, Object, {
   },
 
 
-  onValue: function() {
-    this.__on('value', arguments);
-    return this;
-  },
-  offValue: function() {
-    this.__off('value', arguments);
-    return this;
-  },
-  onError: function() {
-    this.__on('error', arguments);
-    return this;
-  },
-  offError: function() {
-    this.__off('error', arguments);
-    return this;
-  },
-  onBoth: function() {
-    this.__on('both', arguments);
-    return this;
-  },
-  offBoth: function() {
-    this.__off('both', arguments);
-    return this;
-  },
-  onEnd: function() {
-    this.__on('end', arguments);
-    return this;
-  },
-  offEnd: function() {
-    this.__off('end', arguments);
-    return this;
-  },
+  onValue:  function() {  this.__on('value', arguments); return this  },
+  offValue: function() {  this.__off('value', arguments); return this  },
+  onError:  function() {  this.__on('error', arguments); return this  },
+  offError: function() {  this.__off('error', arguments); return this  },
+  onBoth:   function() {  this.__on('both', arguments); return this  },
+  offBoth:  function() {  this.__off('both', arguments); return this  },
+  onEnd:    function() {  this.__on('end', arguments); return this  },
+  offEnd:   function() {  this.__off('end', arguments); return this  },
 
   isEnded: function() {
     return !this.alive;
