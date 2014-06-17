@@ -94,15 +94,31 @@ function callFast(fn, context, args) {
   } else {
     if (!args || args.length === 0) {
       return fn();
-    } else if (args.length === 1) {
+    }
+    if (args.length === 1) {
       return fn(args[0]);
-    } else if (args.length === 2) {
+    }
+    if (args.length === 2) {
       return fn(args[0], args[1]);
-    } else if (args.length === 3) {
+    }
+    if (args.length === 3) {
       return fn(args[0], args[1], args[2]);
     }
     return fn.apply(null, args);
   }
+}
+
+function concatFast(a, b) {
+  if (a.length === 1 && b.length === 1) {
+    return [a[0], b[0]];
+  }
+  if (a.length === 2 && b.length === 1) {
+    return [a[0], a[1], b[0]];
+  }
+  if (a.length === 3 && b.length === 1) {
+    return [a[0], a[1], a[2], b[0]];
+  }
+  return a.concat(b);
 }
 
 function isFn(fn) {
@@ -197,7 +213,7 @@ Callable.call = function(callable, args) {
   } else if (callable instanceof Callable) {
     if (callable.args) {
       if (args) {
-        args = callable.args.concat(toArray(args));
+        args = concatFast(callable.args, args);
       } else {
         args = callable.args;
       }

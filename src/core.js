@@ -45,7 +45,7 @@ Callable.call = function(callable, args) {
   } else if (callable instanceof Callable) {
     if (callable.args) {
       if (args) {
-        args = callable.args.concat(toArray(args));
+        args = concatFast(callable.args, args);
       } else {
         args = callable.args;
       }
