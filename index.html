@@ -339,8 +339,8 @@
 
       <p>
         Kefir has
-        <a href="https://github.com/pozadi/kefir"><img class="emoji" title=":octocat:" alt=":octocat:" src="https://assets-cdn.github.com/images/icons/emoji/octocat.png" height="20" width="20" align="absmiddle">
-        GitHub repository</a>, where you can
+        <a href="https://github.com/pozadi/kefir">
+          <img data-emoji="octocat"> GitHub repository</a>, where you can
         <a href="https://github.com/pozadi/kefir/pulls">send pull requests</a>,
         <a href="https://github.com/pozadi/kefir/issues">report bugs</a>,
         and have fun reading <a href="https://github.com/pozadi/kefir/tree/master/src">source code</a>.
@@ -376,7 +376,7 @@ bower install kefir
 </pre>
 
       <p>
-        <img class="emoji" title=":construction:" alt=":construction:" src="https://assets-cdn.github.com/images/icons/emoji/construction.png" height="20" width="20" align="absmiddle">
+        <img data-emoji="construction">
         As you can see docs aren't finished yet, but you can already get some info here.
         If you have questions feel free to talk to me on
         <a href="https://twitter.com/rpominov">twitter</a>,
@@ -732,9 +732,9 @@ var stream
       <p>
         Whenever you pass around <b>values</b>, for example
         pass to <b>bus.push()</b>, you can use
-        <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">
+        <img data-emoji="sparkles">
         <b>Special Values</b>
-        <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">.
+        <img data-emoji="sparkles">.
       </p>
 
       <p id="nothing">
@@ -753,5 +753,19 @@ var stream
 
     <script src="lib/jquery/jquery.js"></script>
     <script src="dist/kefir.js"></script>
+    <script type="text/javascript">
+      $.getJSON('https://api.github.com/emojis', function(emojis){
+        $('[data-emoji]').each(function(){
+          var name = $(this).data('emoji');
+          $(this).attr({
+            src: emojis[name],
+            width: 20,
+            height: 20,
+            title: ':' + name + ':',
+            alt: ':' + name + ':'
+          });
+        });
+      })
+    </script>
   </body>
 </html>
