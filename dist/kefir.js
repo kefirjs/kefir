@@ -473,7 +473,7 @@ extend(Stream.prototype, {
 
 // Log
 
-var logHelper = function(name, type, x) {
+function logHelper(name, type, x) {
   console.log(name, type, x);
 }
 
@@ -508,7 +508,7 @@ Kefir.never = function() {  return neverObj  }
 
 // Kefir.once(x)
 
-var OnceStream = function OnceStream(value) {
+function OnceStream(value) {
   Stream.call(this);
   this.__value = value;
 }
@@ -545,7 +545,7 @@ Kefir.once = function(x) {
 // Kefir.constant(x)
 // TODO: tests, docs
 
-var ConstantProperty = function ConstantProperty(x) {
+function ConstantProperty(x) {
   Property.call(this, x);
   this.__sendEnd();
 }
@@ -566,7 +566,7 @@ Kefir.constant = function(x) {
 
 // Kefir.fromBinder(fn)
 
-var FromBinderStream = function FromBinderStream(subscribeFnMeta) {
+function FromBinderStream(subscribeFnMeta) {
   Stream.call(this);
   this.__subscribeFn = new Callable(subscribeFnMeta);
 }
@@ -1207,7 +1207,7 @@ var SampledByMixin = {
 
 SampledByMixin = extend({}, WithSourceStreamMixin, SampledByMixin);
 
-var SampledByStream = function SampledByStream() {
+function SampledByStream() {
   this.__Constructor.apply(this, arguments);
 }
 
@@ -1215,7 +1215,7 @@ inherit(SampledByStream, Stream, SampledByMixin, {
   __ClassName: 'SampledByStream'
 })
 
-var SampledByProperty = function SampledByProperty() {
+function SampledByProperty() {
   this.__Constructor.apply(this, arguments);
 }
 
@@ -1308,7 +1308,7 @@ var PluggableMixin = {
 
 // Kefir.bus()
 
-var Bus = function Bus() {
+function Bus() {
   Stream.call(this);
   this.__initPluggable();
 }
@@ -1354,7 +1354,7 @@ Kefir.bus = function() {
 
 // .flatMap()
 
-var FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta) {
+function FlatMappedStream(sourceStream, mapFnMeta) {
   Stream.call(this);
   this.__initPluggable();
   this.__sourceStream = sourceStream;
@@ -1413,7 +1413,7 @@ Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .flatMapLatest()
 
-var FlatMapLatestStream = function FlatMapLatestStream() {
+function FlatMapLatestStream() {
   FlatMappedStream.apply(this, arguments);
 }
 
@@ -1439,7 +1439,7 @@ Observable.prototype.flatMapLatest = function(/*fn[, context[, arg1, arg2, ...]]
 
 // .merge()
 
-var MergedStream = function MergedStream() {
+function MergedStream() {
   Stream.call(this);
   this.__initPluggable();
   var sources = agrsToArray(arguments);
@@ -1483,7 +1483,7 @@ Observable.prototype.merge = function() {
 
 // .combine()
 
-var CombinedStream = function CombinedStream(sources, mapFnMeta) {
+function CombinedStream(sources, mapFnMeta) {
   Stream.call(this);
   this.__plugged = sources;
   for (var i = 0; i < this.__plugged.length; i++) {

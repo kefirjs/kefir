@@ -342,7 +342,7 @@ extend(Stream.prototype, {
 
 // Log
 
-var logHelper = function(name, type, x) {
+function logHelper(name, type, x) {
   console.log(name, type, x);
 }
 

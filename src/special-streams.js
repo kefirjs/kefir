@@ -19,7 +19,7 @@ Kefir.never = function() {  return neverObj  }
 
 // Kefir.once(x)
 
-var OnceStream = function OnceStream(value) {
+function OnceStream(value) {
   Stream.call(this);
   this.__value = value;
 }
@@ -56,7 +56,7 @@ Kefir.once = function(x) {
 // Kefir.constant(x)
 // TODO: tests, docs
 
-var ConstantProperty = function ConstantProperty(x) {
+function ConstantProperty(x) {
   Property.call(this, x);
   this.__sendEnd();
 }
@@ -77,7 +77,7 @@ Kefir.constant = function(x) {
 
 // Kefir.fromBinder(fn)
 
-var FromBinderStream = function FromBinderStream(subscribeFnMeta) {
+function FromBinderStream(subscribeFnMeta) {
   Stream.call(this);
   this.__subscribeFn = new Callable(subscribeFnMeta);
 }

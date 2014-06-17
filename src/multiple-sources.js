@@ -75,7 +75,7 @@ var PluggableMixin = {
 
 // Kefir.bus()
 
-var Bus = function Bus() {
+function Bus() {
   Stream.call(this);
   this.__initPluggable();
 }
@@ -121,7 +121,7 @@ Kefir.bus = function() {
 
 // .flatMap()
 
-var FlatMappedStream = function FlatMappedStream(sourceStream, mapFnMeta) {
+function FlatMappedStream(sourceStream, mapFnMeta) {
   Stream.call(this);
   this.__initPluggable();
   this.__sourceStream = sourceStream;
@@ -180,7 +180,7 @@ Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
 
 // .flatMapLatest()
 
-var FlatMapLatestStream = function FlatMapLatestStream() {
+function FlatMapLatestStream() {
   FlatMappedStream.apply(this, arguments);
 }
 
@@ -206,7 +206,7 @@ Observable.prototype.flatMapLatest = function(/*fn[, context[, arg1, arg2, ...]]
 
 // .merge()
 
-var MergedStream = function MergedStream() {
+function MergedStream() {
   Stream.call(this);
   this.__initPluggable();
   var sources = agrsToArray(arguments);
@@ -250,7 +250,7 @@ Observable.prototype.merge = function() {
 
 // .combine()
 
-var CombinedStream = function CombinedStream(sources, mapFnMeta) {
+function CombinedStream(sources, mapFnMeta) {
   Stream.call(this);
   this.__plugged = sources;
   for (var i = 0; i < this.__plugged.length; i++) {
