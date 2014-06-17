@@ -78,6 +78,27 @@ function getFn(fn, context) {
   }
 }
 
+function callFast(fn, context, args) {
+  if (context != null) {
+    if (!args || args.length === 0) {
+      return fn.call(context);
+    } else {
+      return fn.apply(context, args);
+    }
+  } else {
+    if (!args || args.length === 0) {
+      return fn();
+    } else if (args.length === 1) {
+      return fn(args[0]);
+    } else if (args.length === 2) {
+      return fn(args[0], args[1]);
+    } else if (args.length === 3) {
+      return fn(args[0], args[1], args[2]);
+    }
+    return fn.apply(null, args);
+  }
+}
+
 function isFn(fn) {
   return typeof fn === 'function';
 }

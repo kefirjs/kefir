@@ -85,6 +85,27 @@ function getFn(fn, context) {
   }
 }
 
+function callFast(fn, context, args) {
+  if (context != null) {
+    if (!args || args.length === 0) {
+      return fn.call(context);
+    } else {
+      return fn.apply(context, args);
+    }
+  } else {
+    if (!args || args.length === 0) {
+      return fn();
+    } else if (args.length === 1) {
+      return fn(args[0]);
+    } else if (args.length === 2) {
+      return fn(args[0], args[1]);
+    } else if (args.length === 3) {
+      return fn(args[0], args[1], args[2]);
+    }
+    return fn.apply(null, args);
+  }
+}
+
 function isFn(fn) {
   return typeof fn === 'function';
 }
@@ -171,28 +192,6 @@ function Callable(fnMeta) {
   }
 }
 
-
-function callFast(fn, context, args) {
-  if (context != null) {
-    if (!args || args.length === 0) {
-      return fn.call(context);
-    } else {
-      return fn.apply(context, args);
-    }
-  } else {
-    if (!args || args.length === 0) {
-      return fn();
-    } else if (args.length === 1) {
-      return fn(args[0]);
-    } else if (args.length === 2) {
-      return fn(args[0], args[1]);
-    } else if (args.length === 3) {
-      return fn(args[0], args[1], args[2]);
-    }
-    return fn.apply(null, args);
-  }
-}
-
 Callable.call = function(callable, args) {
   if (isFn(callable)) {
     return callFast(callable, null, args);
@@ -211,7 +210,7 @@ Callable.call = function(callable, args) {
 }
 
 Callable.callAll = function(fns, args) {
-  if (fns !== null) {
+  if (fns !== null && fns.length !== 0) {
     if (fns.length === 1) {
       Callable.call(fns[0], args);
     } else {
@@ -349,14 +348,14 @@ inherit(Observable, Object, {
   },
 
 
-  onValue:  function() {  this.__on('value', arguments); return this  },
+  onValue:  function() {  this.__on('value',  arguments); return this  },
+  onError:  function() {  this.__on('error',  arguments); return this  },
+  onBoth:   function() {  this.__on('both',   arguments); return this  },
+  onEnd:    function() {  this.__on('end',    arguments); return this  },
   offValue: function() {  this.__off('value', arguments); return this  },
-  onError:  function() {  this.__on('error', arguments); return this  },
   offError: function() {  this.__off('error', arguments); return this  },
-  onBoth:   function() {  this.__on('both', arguments); return this  },
-  offBoth:  function() {  this.__off('both', arguments); return this  },
-  onEnd:    function() {  this.__on('end', arguments); return this  },
-  offEnd:   function() {  this.__off('end', arguments); return this  },
+  offBoth:  function() {  this.__off('both',  arguments); return this  },
+  offEnd:   function() {  this.__off('end',   arguments); return this  },
 
   isEnded: function() {
     return !this.alive;
