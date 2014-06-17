@@ -137,7 +137,6 @@ var Kefir = {};
 
 var NOTHING = Kefir.NOTHING = ['<nothing>'];
 var END = Kefir.END = ['<end>'];
-var NO_MORE = Kefir.NO_MORE = ['<no more>'];
 
 function KefirError(error) {
   this.error = error;
@@ -207,6 +206,19 @@ Callable.call = function(callable, args) {
     return callFast(callable.fn, callable.context, args);
   } else {
     return Callable.call(new Callable(callable), args);
+  }
+}
+
+Callable.callAll = function(fns, args) {
+  if (fns !== null) {
+    if (fns.length === 1) {
+      Callable.call(fns[0], args);
+    } else {
+      fns = fns.slice(0);
+      for (var i = 0, l = fns.length; i < l; i++) {
+        Callable.call(fns[i], args);
+      }
+    }
   }
 }
 
@@ -298,38 +310,13 @@ inherit(Observable, Object, {
     }
   },
   __send: function(type, x) {
-    var i, l, subs, args;
     if (this.alive) {
       if (type === 'end') {
-        subs = this.__subscribers.end;
-        if (subs !== null) {
-          subs = subs.slice(0);
-          for (i = 0, l = subs.length; i < l; i++) {
-            Callable.call(subs[i]);
-          }
-        }
+        Callable.callAll(this.__subscribers.end, []);
         this.__clear();
       } else if (this.active) {
-        subs = (type === 'value') ? this.__subscribers.value : this.__subscribers.error;
-        if (subs !== null) {
-          subs = subs.slice(0);
-          args = [x];
-          for (i = 0, l = subs.length; i < l; i++) {
-            if (Callable.call(subs[i], args) === NO_MORE) {
-              this.__off(type, subs[i]);
-            }
-          }
-        }
-        subs = this.__subscribers.both;
-        if (subs !== null) {
-          subs = subs.slice(0);
-          args = [type, x];
-          for (i = 0, l = subs.length; i < l; i++) {
-            if (Callable.call(subs[i], args) === NO_MORE) {
-              this.__off('both', subs[i]);
-            }
-          }
-        }
+        Callable.callAll(type === 'value' ? this.__subscribers.value : this.__subscribers.error, [x]);
+        Callable.callAll(this.__subscribers.both, [type, x]);
       }
     }
   },

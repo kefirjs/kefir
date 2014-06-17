@@ -184,7 +184,7 @@ https://github.com/baconjs/bacon.js/tree/master#function-construction-rules
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| Return `Bacon.noMore` from the handler function | :rocket: | Return `Kefir.NO_MORE` ...  |
+| Return `Bacon.noMore` from the handler function | :broken_heart: |   |
 | Call the `dispose()` function that was returned by the `subscribe()` call | :bike: | `stream.offValue(f)` |
 
 
