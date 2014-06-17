@@ -489,7 +489,6 @@ Observable.prototype.log = function(name) {
 
 // TODO
 //
-// Kefir.constant(x)
 // Kefir.fromArray(values)
 // Kefir.fromCallback(fn)
 // Kefir.fromNodeCallback(fn)
@@ -540,6 +539,26 @@ inherit(OnceStream, Stream, {
 Kefir.once = function(x) {
   return new OnceStream(x);
 }
+
+
+
+// Kefir.constant(x)
+// TODO: tests, docs
+
+var ConstantProperty = function ConstantProperty(x) {
+  Property.call(this, x);
+  this.__sendEnd();
+}
+
+inherit(ConstantProperty, Property, {
+  __ClassName: 'ConstantProperty'
+})
+
+Kefir.constant = function(x) {
+  return new ConstantProperty(x);
+}
+
+
 
 
 
