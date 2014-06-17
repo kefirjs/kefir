@@ -34,7 +34,7 @@ describe(".scan()", function(){
 
   it("property.scan()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
     var scanned = prop.scan(5, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));

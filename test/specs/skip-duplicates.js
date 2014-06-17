@@ -36,7 +36,7 @@ describe(".skipDuplicates()", function(){
 
   it("property.skipDuplicates()", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.skipDuplicates();
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -131,7 +131,7 @@ describe(".skipDuplicates()", function(){
 
   it("property.skipDuplicates(fn)", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.skipDuplicates(function(a, b){ return a == b });
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));

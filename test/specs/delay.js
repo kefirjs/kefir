@@ -62,7 +62,7 @@ describe(".delay()", function(){
 
   it("property.delay()", function(){
 
-    var property = new Kefir.Property(null, null, 0);
+    var property = new Kefir.Property(0);
     var delayed = property.delay(100);
 
     expect(delayed).toEqual(jasmine.any(Kefir.Property));

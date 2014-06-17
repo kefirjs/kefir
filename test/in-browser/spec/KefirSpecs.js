@@ -140,7 +140,7 @@ var NOTHING = Kefir.NOTHING = ['<nothing>'];
 var END = Kefir.END = ['<end>'];
 var NO_MORE = Kefir.NO_MORE = ['<no more>'];
 
-var KefirError = function(error) {
+function KefirError(error) {
   this.error = error;
 }
 Kefir.error = function(error) {
@@ -233,15 +233,7 @@ Callable.isEqual = function(a, b) {
 
 // Observable
 
-var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut) {
-
-  // __onFirstIn, __onLastOut can also be added to prototype of child classes
-  if (isFn(onFirstIn)) {
-    this.__onFirstIn = onFirstIn;
-  }
-  if (isFn(onLastOut)) {
-    this.__onLastOut = onLastOut;
-  }
+var Observable = Kefir.Observable = function Observable() {
 
   this.__subscribers = {
     value: null,
@@ -353,12 +345,6 @@ inherit(Observable, Object, {
       this.active = false;
       this.__onLastOut();
     }
-    if (own(this, '__onFirstIn')) {
-      this.__onFirstIn = null;
-    }
-    if (own(this, '__onLastOut')) {
-      this.__onLastOut = null;
-    }
     this.__subscribers = null;
     this.alive = false;
   },
@@ -431,7 +417,7 @@ inherit(Observable, Object, {
 // Stream
 
 var Stream = Kefir.Stream = function Stream() {
-  Observable.apply(this, arguments);
+  Observable.call(this);
 }
 
 inherit(Stream, Observable, {
@@ -443,8 +429,8 @@ inherit(Stream, Observable, {
 
 // Property
 
-var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial) {
-  Observable.call(this, onFirstIn, onLastOut);
+var Property = Kefir.Property = function Property(initial) {
+  Observable.call(this);
   this.__cached = isUndefined(initial) ? NOTHING : initial;
 }
 
@@ -6781,7 +6767,7 @@ describe(".delay()", function(){
 
   it("property.delay()", function(){
 
-    var property = new Kefir.Property(null, null, 0);
+    var property = new Kefir.Property(0);
     var delayed = property.delay(100);
 
     expect(delayed).toEqual(jasmine.any(Kefir.Property));
@@ -6875,7 +6861,7 @@ describe(".diff()", function(){
 
   it("property.diff()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
 
     var diffs = prop.diff(5, subtract);
 
@@ -6961,7 +6947,7 @@ describe(".filter()", function(){
 
   it("property.filter()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
@@ -6987,7 +6973,7 @@ describe(".filter()", function(){
 
   it("property.filter() with wrong initial", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
@@ -7052,7 +7038,7 @@ describe(".flatMapLatest()", function(){
 
   it("property.flatMapLatest()", function(){
 
-    var prop = new Kefir.Property(null, null, 1);
+    var prop = new Kefir.Property(1);
     var mapped = prop.flatMapLatest(function(x){
       return Kefir.once(x * 2);
     });
@@ -7191,7 +7177,7 @@ describe(".flatMap()", function(){
 
   it("property.flatMap()", function(){
 
-    var prop = new Kefir.Property(null, null, 1);
+    var prop = new Kefir.Property(1);
     var mapped = prop.flatMap(function(x){
       return Kefir.once(x * 2);
     });
@@ -7737,7 +7723,7 @@ describe(".map()", function(){
 
   it("property.map()", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.map(x2);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -7849,8 +7835,8 @@ describe(".merge()", function(){
 
   it("3 properties end 1 stream", function(){
 
-    var prop1 = new Kefir.Property(null, null, 6);    // 6-1
-    var prop2 = new Kefir.Property(null, null, 7);    // 7--2--5
+    var prop1 = new Kefir.Property(6);    // 6-1
+    var prop2 = new Kefir.Property(7);    // 7--2--5
     var prop3 = new Kefir.Property();                 // ----3
     var stream1 = new Kefir.Stream();                 // -----4
     var merged = prop1.merge(prop2, prop3, stream1);  // 6712345
@@ -7978,10 +7964,10 @@ describe("Observable/Stream", function(){
   it("onFirstIn/onLastOut", function(){
 
     var log = [];
-    var obs = new Kefir.Observable(
-      function(){ log.push('in') },
-      function(){ log.push('out') }
-    )
+    var obs = new Kefir.Observable()
+
+    obs.__onFirstIn = function(){ log.push('in') }
+    obs.__onLastOut = function(){ log.push('out') }
 
     var subscriber1 = function(){}
     var subscriber2 = function(){}
@@ -8366,7 +8352,7 @@ describe("Property", function(){
     expect(prop.hasValue()).toBe(true);
     expect(prop.getValue()).toBe(1);
 
-    prop = new Kefir.Property(null, null, 2);
+    prop = new Kefir.Property(2);
 
     expect(prop.hasValue()).toBe(true);
     expect(prop.getValue()).toBe(2);
@@ -8376,7 +8362,7 @@ describe("Property", function(){
 
   it("onValue", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     var calls = 0;
 
@@ -8392,7 +8378,7 @@ describe("Property", function(){
 
   it("onBoth", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     var calls = 0;
 
@@ -8410,7 +8396,7 @@ describe("Property", function(){
   it("onNewValue", function(){
 
     var log = [];
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     prop.onNewValue(function(x){
       log.push(x);
@@ -8427,7 +8413,7 @@ describe("Property", function(){
   it("onNewBoth", function(){
 
     var log = [];
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     prop.onNewBoth(function(type, x){
       log.push([type, x]);
@@ -8488,7 +8474,7 @@ describe("Property", function(){
 
   it("property.toProperty()", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     expect(prop.toProperty()).toBe(prop);
 
@@ -8526,7 +8512,7 @@ describe("Property", function(){
 
   it("property.changes()", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
     var changesStream = prop.changes();
 
     expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
@@ -8548,7 +8534,7 @@ describe("Property", function(){
 
   it("property.changes() and errors", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
     var changesStream = prop.changes();
 
     expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
@@ -8608,7 +8594,7 @@ describe(".reduce()", function(){
 
   it("property.reduce()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
     var reduced = prop.reduce(5, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));
@@ -8821,8 +8807,8 @@ describe(".sampledBy()", function() {
   });
   it("propert.sampledBy(property, fn) both has initial values", function() {
     var prop1, prop2, result, sampled;
-    prop1 = new Kefir.Property(null, null, 1);
-    prop2 = new Kefir.Property(null, null, 2);
+    prop1 = new Kefir.Property(1);
+    prop2 = new Kefir.Property(2);
     sampled = prop1.sampledBy(prop2, function(a, b) {
       return a + b;
     });
@@ -8888,7 +8874,7 @@ describe(".scan()", function(){
 
   it("property.scan()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
     var scanned = prop.scan(5, subtract);
 
     expect(scanned).toEqual(jasmine.any(Kefir.Property));
@@ -9039,7 +9025,7 @@ describe(".skipDuplicates()", function(){
 
   it("property.skipDuplicates()", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.skipDuplicates();
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -9134,7 +9120,7 @@ describe(".skipDuplicates()", function(){
 
   it("property.skipDuplicates(fn)", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.skipDuplicates(function(a, b){ return a == b });
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -9203,7 +9189,7 @@ describe(".skipWhile(fn)", function(){
 
   it("property.skipWhile(fn) skip initial", function(){
 
-    var prop = new Kefir.Property(null, null, 1);
+    var prop = new Kefir.Property(1);
     var mapped = prop.skipWhile(lessThan3);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -9228,7 +9214,7 @@ describe(".skipWhile(fn)", function(){
 
   it("property.skipWhile(fn) not skip initial", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.skipWhile(lessThan3);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -9598,7 +9584,7 @@ describe(".throttle()", function(){
 
 
   it("property.throttle(100) w/ initial", function(){
-    var property = new Kefir.Property(null, null, 10);
+    var property = new Kefir.Property(10);
     var throttled = property.throttle(100);
     expect(throttled).toEqual(jasmine.any(Kefir.Property));
     expect(throttled.hasValue()).toBe(true);

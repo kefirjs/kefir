@@ -33,8 +33,8 @@ describe(".merge()", function(){
 
   it("3 properties end 1 stream", function(){
 
-    var prop1 = new Kefir.Property(null, null, 6);    // 6-1
-    var prop2 = new Kefir.Property(null, null, 7);    // 7--2--5
+    var prop1 = new Kefir.Property(6);    // 6-1
+    var prop2 = new Kefir.Property(7);    // 7--2--5
     var prop3 = new Kefir.Property();                 // ----3
     var stream1 = new Kefir.Stream();                 // -----4
     var merged = prop1.merge(prop2, prop3, stream1);  // 6712345

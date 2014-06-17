@@ -32,7 +32,7 @@ describe(".diff()", function(){
 
   it("property.diff()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
 
     var diffs = prop.diff(5, subtract);
 
@@ -57,7 +57,7 @@ describe(".diff()", function(){
 
   it("property.diff() w/o initial", function(){
 
-    var prop = new Kefir.Property(null, null);
+    var prop = new Kefir.Property();
     var diffs = prop.diff(5, subtract);
 
     expect(diffs).toEqual(jasmine.any(Kefir.Property));

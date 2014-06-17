@@ -34,7 +34,7 @@ describe(".filter()", function(){
 
   it("property.filter()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));
@@ -60,7 +60,7 @@ describe(".filter()", function(){
 
   it("property.filter() with wrong initial", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var filtered = prop.filter(isEven);
 
     expect(filtered).toEqual(jasmine.any(Kefir.Property));

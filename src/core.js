@@ -8,7 +8,7 @@ var NOTHING = Kefir.NOTHING = ['<nothing>'];
 var END = Kefir.END = ['<end>'];
 var NO_MORE = Kefir.NO_MORE = ['<no more>'];
 
-var KefirError = function(error) {
+function KefirError(error) {
   this.error = error;
 }
 Kefir.error = function(error) {
@@ -101,15 +101,7 @@ Callable.isEqual = function(a, b) {
 
 // Observable
 
-var Observable = Kefir.Observable = function Observable(onFirstIn, onLastOut) {
-
-  // __onFirstIn, __onLastOut can also be added to prototype of child classes
-  if (isFn(onFirstIn)) {
-    this.__onFirstIn = onFirstIn;
-  }
-  if (isFn(onLastOut)) {
-    this.__onLastOut = onLastOut;
-  }
+var Observable = Kefir.Observable = function Observable() {
 
   this.__subscribers = {
     value: null,
@@ -221,12 +213,6 @@ inherit(Observable, Object, {
       this.active = false;
       this.__onLastOut();
     }
-    if (own(this, '__onFirstIn')) {
-      this.__onFirstIn = null;
-    }
-    if (own(this, '__onLastOut')) {
-      this.__onLastOut = null;
-    }
     this.__subscribers = null;
     this.alive = false;
   },
@@ -299,7 +285,7 @@ inherit(Observable, Object, {
 // Stream
 
 var Stream = Kefir.Stream = function Stream() {
-  Observable.apply(this, arguments);
+  Observable.call(this);
 }
 
 inherit(Stream, Observable, {
@@ -311,8 +297,8 @@ inherit(Stream, Observable, {
 
 // Property
 
-var Property = Kefir.Property = function Property(onFirstIn, onLastOut, initial) {
-  Observable.call(this, onFirstIn, onLastOut);
+var Property = Kefir.Property = function Property(initial) {
+  Observable.call(this);
   this.__cached = isUndefined(initial) ? NOTHING : initial;
 }
 

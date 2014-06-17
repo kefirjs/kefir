@@ -34,7 +34,7 @@ describe(".reduce()", function(){
 
   it("property.reduce()", function(){
 
-    var prop = new Kefir.Property(null, null, 6);
+    var prop = new Kefir.Property(6);
     var reduced = prop.reduce(5, subtract);
 
     expect(reduced).toEqual(jasmine.any(Kefir.Property));

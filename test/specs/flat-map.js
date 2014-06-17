@@ -37,7 +37,7 @@ describe(".flatMap()", function(){
 
   it("property.flatMap()", function(){
 
-    var prop = new Kefir.Property(null, null, 1);
+    var prop = new Kefir.Property(1);
     var mapped = prop.flatMap(function(x){
       return Kefir.once(x * 2);
     });

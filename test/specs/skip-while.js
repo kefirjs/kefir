@@ -33,7 +33,7 @@ describe(".skipWhile(fn)", function(){
 
   it("property.skipWhile(fn) skip initial", function(){
 
-    var prop = new Kefir.Property(null, null, 1);
+    var prop = new Kefir.Property(1);
     var mapped = prop.skipWhile(lessThan3);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));
@@ -58,7 +58,7 @@ describe(".skipWhile(fn)", function(){
 
   it("property.skipWhile(fn) not skip initial", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.skipWhile(lessThan3);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));

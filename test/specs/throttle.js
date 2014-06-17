@@ -226,7 +226,7 @@ describe(".throttle()", function(){
 
 
   it("property.throttle(100) w/ initial", function(){
-    var property = new Kefir.Property(null, null, 10);
+    var property = new Kefir.Property(10);
     var throttled = property.throttle(100);
     expect(throttled).toEqual(jasmine.any(Kefir.Property));
     expect(throttled.hasValue()).toBe(true);

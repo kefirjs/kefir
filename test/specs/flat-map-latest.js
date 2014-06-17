@@ -37,7 +37,7 @@ describe(".flatMapLatest()", function(){
 
   it("property.flatMapLatest()", function(){
 
-    var prop = new Kefir.Property(null, null, 1);
+    var prop = new Kefir.Property(1);
     var mapped = prop.flatMapLatest(function(x){
       return Kefir.once(x * 2);
     });

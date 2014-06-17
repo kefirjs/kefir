@@ -16,7 +16,7 @@ describe("Property", function(){
     expect(prop.hasValue()).toBe(true);
     expect(prop.getValue()).toBe(1);
 
-    prop = new Kefir.Property(null, null, 2);
+    prop = new Kefir.Property(2);
 
     expect(prop.hasValue()).toBe(true);
     expect(prop.getValue()).toBe(2);
@@ -26,7 +26,7 @@ describe("Property", function(){
 
   it("onValue", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     var calls = 0;
 
@@ -42,7 +42,7 @@ describe("Property", function(){
 
   it("onBoth", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     var calls = 0;
 
@@ -60,7 +60,7 @@ describe("Property", function(){
   it("onNewValue", function(){
 
     var log = [];
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     prop.onNewValue(function(x){
       log.push(x);
@@ -77,7 +77,7 @@ describe("Property", function(){
   it("onNewBoth", function(){
 
     var log = [];
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     prop.onNewBoth(function(type, x){
       log.push([type, x]);
@@ -138,7 +138,7 @@ describe("Property", function(){
 
   it("property.toProperty()", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
 
     expect(prop.toProperty()).toBe(prop);
 
@@ -176,7 +176,7 @@ describe("Property", function(){
 
   it("property.changes()", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
     var changesStream = prop.changes();
 
     expect(changesStream).toEqual(jasmine.any(Kefir.Stream));
@@ -198,7 +198,7 @@ describe("Property", function(){
 
   it("property.changes() and errors", function(){
 
-    var prop = new Kefir.Property(null, null, 'foo');
+    var prop = new Kefir.Property('foo');
     var changesStream = prop.changes();
 
     expect(changesStream).toEqual(jasmine.any(Kefir.Stream));

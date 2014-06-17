@@ -7,10 +7,10 @@ describe("Observable/Stream", function(){
   it("onFirstIn/onLastOut", function(){
 
     var log = [];
-    var obs = new Kefir.Observable(
-      function(){ log.push('in') },
-      function(){ log.push('out') }
-    )
+    var obs = new Kefir.Observable()
+
+    obs.__onFirstIn = function(){ log.push('in') }
+    obs.__onLastOut = function(){ log.push('out') }
 
     var subscriber1 = function(){}
     var subscriber2 = function(){}

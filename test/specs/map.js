@@ -30,7 +30,7 @@ describe(".map()", function(){
 
   it("property.map()", function(){
 
-    var prop = new Kefir.Property(null, null, 5);
+    var prop = new Kefir.Property(5);
     var mapped = prop.map(x2);
 
     expect(mapped).toEqual(jasmine.any(Kefir.Property));

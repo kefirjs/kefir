@@ -125,8 +125,8 @@ describe ".sampledBy()", ->
 
   it "propert.sampledBy(property, fn) both has initial values", ->
 
-    prop1 = new Kefir.Property(null, null, 1)
-    prop2 = new Kefir.Property(null, null, 2)
+    prop1 = new Kefir.Property(1)
+    prop2 = new Kefir.Property(2)
 
     sampled = prop1.sampledBy(prop2, (a, b) -> a + b)
 
