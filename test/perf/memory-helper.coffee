@@ -51,9 +51,16 @@ fakeSource =
 
 
 baseKefir = ->
-  stream = new Kefir.Stream (-> fakeSource.subscribe send), (-> fakeSource.unsubscribe send)
-  send = stream.__sendValue.bind(stream)
-  stream
+  property = new Kefir.Stream()
+  send = (x) -> property.__send('value', x)
+  property.__setActive = (active) ->
+    if @__active !== active
+      @active = active
+      if active
+        fakeSource.subscribe(send)
+      else
+        fakeSource.unsubscribe(send)
+  property
 
 baseRx = ->
   (

@@ -59,15 +59,10 @@ module.exports = (grunt) ->
           'dist/kefir.js': [
             'src/utils.js'
             'src/core.js'
-            'src/special-streams.js'
+            'src/primary.js'
             'src/one-source.js'
-            'src/two-sources.js'
             'src/multiple-sources.js'
-            'src/time.js'
-            'src/buffer.js'
-            'src/errors.js'
-            'src/sugar.js'
-            'src/model.js'
+            'src/interval.js'
           ]
 
     jasmine_node:

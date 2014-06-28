@@ -10,9 +10,9 @@ Benchmark.options.minSamples = 15;
 noop = ->
 
 buildKefir = (modify) ->
-  stream = new Kefir.Stream()
-  modify(stream).onValue(noop)
-  -> stream.__sendValue(1)
+  property = new Kefir.Property()
+  modify(property).on('value', noop)
+  -> property.__send('value', 1)
 
 buildBacon = (modify) ->
   sink = null

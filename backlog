@@ -1,0 +1,91 @@
+# Creating new properties with external sources
+
+something like Bus (pushable), model?
+something like Bus (pluggable)
+
+.fromArray(values) ???
+
+.fromCallback(fn)
+.fromNodeCallback(fn)
+.fromPromise(promise)
+
+
+
+# One source
+
+.debounce(wait, immediate)
+http://underscorejs.org/#defer
+
+.removeCurrent()
+
+
+
+# Two sources
+
+observable.filter(property)
+observable.takeWhile(property)
+observable.skipWhile(property)
+
+observable.awaiting(otherObservable)
+stream.skipUntil(stream2)
+
+
+
+# Multiple sources
+
+.flatMapFirst(f)
+.zip(other, f)
+.awaiting(other)
+.concat(other)
+
+
+
+# Model
+
+lenses
+
+
+
+# Errors
+
+.mapError(f)
+.errors()
+.skipErrors()
+.endOnError(f)
+
+
+
+# Buffer
+
+.bufferWithTime(delay)
+.bufferWithTime(f)
+.bufferWithCount(count)
+.bufferWithTimeOrCount(delay, count)
+
+
+
+
+# Syntax sugar
+
+.not()
+.and(other)
+.or(other)
+
+http://underscorejs.org/#pluck
+http://underscorejs.org/#invoke
+
+
+
+
+
+# Native browser API
+
+.fromEventTarget(target, eventName [, eventTransformer])
+
+
+
+# jQuery
+
+.asStream(eventName, [selector], [eventTransformer])
+.asProperty(eventName, [selector], getter)
+
