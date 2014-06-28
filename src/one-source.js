@@ -1,10 +1,39 @@
 
 
+
+// .withHandler()
+
+withOneSource('withHandler', {
+  __init: function(args) {
+    var _this = this;
+    this.__handler = new Callable(args[0]);
+    this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
+  },
+  __free: function() {
+    this.__handler = null;
+    this.__bindedSend = null;
+  },
+  __handleValue: function(x, initial) {
+    Callable.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
+  },
+  __handleError: function(e, initial) {
+    Callable.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
+  },
+  __handleEnd: function() {
+    Callable.call(this.__handler, [this.__bindedSend, 'end']);
+  }
+});
+
+
+
+
+
+
 // .map(fn)
 
 withOneSource('map', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
   },
   __free: function() {
     this.__fn = null;
@@ -22,7 +51,7 @@ withOneSource('map', {
 
 withOneSource('filter', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
   },
   __free: function() {
     this.__fn = null;
@@ -61,7 +90,7 @@ withOneSource('diff', {
 
 withOneSource('takeWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
   },
   __free: function() {
     this.__fn = null;
@@ -126,7 +155,7 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   __init: function(args) {
     if (args.length > 0) {
-      this.__fn = new Callable(args);
+      this.__fn = new Callable(args[0]);
     } else {
       this.__fn = strictlyEqual;
     }
@@ -152,7 +181,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
     this.__skip = true;
   },
   __free: function() {
@@ -317,31 +346,6 @@ withOneSource('delay', {
 
 
 
-// .withHandler()
-// TODO: tests
-
-// withOneSource('withHandler', {
-//   __init: function(args) {
-//     var _this = this;
-//     this.__handler = args[0];
-//     this.__handlerContext = {
-//       send: function(type, x) {  _this.__send(type, x)  }
-//     }
-//   },
-//   __free: function() {
-//     this.__handler = null;
-//     this.__handlerContext = null;
-//   },
-//   __handleValue: function(x, initial) {
-//     this.__handler.call(this.__handlerContext, 'value', x, initial);
-//   },
-//   __handleError: function(e, initial) {
-//     this.__handler.call(this.__handlerContext, 'error', e, initial);
-//   },
-//   __handleEnd: function() {
-//     this.__handler.call(this.__handlerContext, 'end');
-//   }
-// });
 
 
 

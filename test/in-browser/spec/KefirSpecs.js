@@ -535,11 +535,40 @@ Property.prototype.log = function(name) {
 
 
 
+
+// .withHandler()
+
+withOneSource('withHandler', {
+  __init: function(args) {
+    var _this = this;
+    this.__handler = new Callable(args[0]);
+    this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
+  },
+  __free: function() {
+    this.__handler = null;
+    this.__bindedSend = null;
+  },
+  __handleValue: function(x, initial) {
+    Callable.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
+  },
+  __handleError: function(e, initial) {
+    Callable.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
+  },
+  __handleEnd: function() {
+    Callable.call(this.__handler, [this.__bindedSend, 'end']);
+  }
+});
+
+
+
+
+
+
 // .map(fn)
 
 withOneSource('map', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
   },
   __free: function() {
     this.__fn = null;
@@ -557,7 +586,7 @@ withOneSource('map', {
 
 withOneSource('filter', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
   },
   __free: function() {
     this.__fn = null;
@@ -596,7 +625,7 @@ withOneSource('diff', {
 
 withOneSource('takeWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
   },
   __free: function() {
     this.__fn = null;
@@ -661,7 +690,7 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   __init: function(args) {
     if (args.length > 0) {
-      this.__fn = new Callable(args);
+      this.__fn = new Callable(args[0]);
     } else {
       this.__fn = strictlyEqual;
     }
@@ -687,7 +716,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args);
+    this.__fn = new Callable(args[0]);
     this.__skip = true;
   },
   __free: function() {
@@ -852,31 +881,6 @@ withOneSource('delay', {
 
 
 
-// .withHandler()
-// TODO: tests
-
-// withOneSource('withHandler', {
-//   __init: function(args) {
-//     var _this = this;
-//     this.__handler = args[0];
-//     this.__handlerContext = {
-//       send: function(type, x) {  _this.__send(type, x)  }
-//     }
-//   },
-//   __free: function() {
-//     this.__handler = null;
-//     this.__handlerContext = null;
-//   },
-//   __handleValue: function(x, initial) {
-//     this.__handler.call(this.__handlerContext, 'value', x, initial);
-//   },
-//   __handleError: function(e, initial) {
-//     this.__handler.call(this.__handlerContext, 'error', e, initial);
-//   },
-//   __handleEnd: function() {
-//     this.__handler.call(this.__handlerContext, 'end');
-//   }
-// });
 
 
 
@@ -6253,7 +6257,7 @@ describe('.delay()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],22:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],22:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6322,7 +6326,7 @@ describe('.diff()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],23:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],23:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6380,7 +6384,7 @@ describe('.filter()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],24:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],24:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6435,7 +6439,7 @@ describe('.map()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],25:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],25:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6918,7 +6922,7 @@ describe('Property listener with context and/or args:', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],26:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],26:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7013,7 +7017,7 @@ describe('.reduce()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],27:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],27:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7085,7 +7089,7 @@ describe('.scan()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],28:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],28:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7170,7 +7174,7 @@ describe('.skipDuplicates()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],29:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],29:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7242,7 +7246,7 @@ describe('.skipWhile()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],30:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],30:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7321,7 +7325,7 @@ describe('.skip()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],31:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],31:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7395,7 +7399,7 @@ describe('.takeWhile()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],32:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],32:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7490,7 +7494,7 @@ describe('.take()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],33:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],33:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch, withFakeTime;
 
 Kefir = require('../../dist/kefir');
@@ -7672,7 +7676,123 @@ describe('.throttle()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":34}],34:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],34:[function(require,module,exports){
+var Kefir, helpers, prop, send, watch;
+
+Kefir = require('../../dist/kefir');
+
+helpers = require('../test-helpers.coffee');
+
+prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+
+describe('.withHandler()', function() {
+  var mirror, skipInitial;
+  it('should not end when source ends (by default)', function() {
+    var p, wh;
+    p = prop();
+    wh = p.withHandler(function() {});
+    expect(wh).toNotBeEnded();
+    send(p, 'end');
+    return expect(wh).toNotBeEnded();
+  });
+  it('should not pass initial *value* (by default)', function() {
+    return expect(prop(1).withHandler(function() {})).toHasNoValue();
+  });
+  it('should not pass initial *error* (by default)', function() {
+    return expect(prop(null, 1).withHandler(function() {})).toHasNoError();
+  });
+  it('should activate/deactivate source property', function() {
+    var f, p, wh;
+    p = prop();
+    wh = p.withHandler(function() {});
+    expect(p).toNotBeActive();
+    wh.on('value', (f = function() {}));
+    expect(p).toBeActive();
+    wh.off('value', f);
+    return expect(p).toNotBeActive();
+  });
+  it('should pass no values or errors (by default)', function() {
+    var p, state;
+    p = prop(1, 'a');
+    state = watch(p.withHandler(function() {}));
+    send(p, 'value', 2);
+    send(p, 'error', 'b');
+    send(p, 'value', 3);
+    send(p, 'error', 'c');
+    return expect(state).toEqual({
+      values: [],
+      errors: [],
+      ended: false
+    });
+  });
+  mirror = function(send, type, x) {
+    return send(type, x);
+  };
+  it('should end when source ends (with `mirror` handler)', function() {
+    var p, wh;
+    p = prop();
+    wh = p.withHandler(mirror);
+    expect(wh).toNotBeEnded();
+    send(p, 'end');
+    return expect(wh).toBeEnded();
+  });
+  it('should pass initial *value* (with `mirror` handler)', function() {
+    return expect(prop(1).withHandler(mirror)).toHasValue(1);
+  });
+  it('should pass initial *error* (with `mirror` handler)', function() {
+    return expect(prop(null, 1).withHandler(mirror)).toHasError(1);
+  });
+  it('should pass all values or errors (with `mirror` handler)', function() {
+    var p, state;
+    p = prop(1, 'a');
+    state = watch(p.withHandler(mirror));
+    send(p, 'value', 2);
+    send(p, 'error', 'b');
+    send(p, 'value', 3);
+    send(p, 'error', 'c');
+    return expect(state).toEqual({
+      values: [1, 2, 3],
+      errors: ['a', 'b', 'c'],
+      ended: false
+    });
+  });
+  skipInitial = function(send, type, x, isInitial) {
+    if (!isInitial) {
+      return send(type, x);
+    }
+  };
+  it('should end when source ends (with `skipInitial` handler)', function() {
+    var p, wh;
+    p = prop();
+    wh = p.withHandler(skipInitial);
+    expect(wh).toNotBeEnded();
+    send(p, 'end');
+    return expect(wh).toBeEnded();
+  });
+  it('should not pass initial *value* (with `skipInitial` handler)', function() {
+    return expect(prop(1).withHandler(skipInitial)).toHasNoValue();
+  });
+  it('should not pass initial *error* (with `skipInitial` handler)', function() {
+    return expect(prop(null, 1).withHandler(skipInitial)).toHasNoError();
+  });
+  return it('should pass all but initial values or errors (with `skipInitial` handler)', function() {
+    var p, state;
+    p = prop(1, 'a');
+    state = watch(p.withHandler(skipInitial));
+    send(p, 'value', 2);
+    send(p, 'error', 'b');
+    send(p, 'value', 3);
+    send(p, 'error', 'c');
+    return expect(state).toEqual({
+      values: [2, 3],
+      errors: ['b', 'c'],
+      ended: false
+    });
+  });
+});
+
+
+},{"../../dist/kefir":1,"../test-helpers.coffee":35}],35:[function(require,module,exports){
 var Kefir, sinon;
 
 Kefir = require("../dist/kefir");
@@ -7751,4 +7871,4 @@ beforeEach(function() {
 });
 
 
-},{"../dist/kefir":1,"sinon":6}]},{},[21,22,23,24,25,26,27,28,29,30,31,32,33])
+},{"../dist/kefir":1,"sinon":6}]},{},[21,22,23,24,25,26,27,28,29,30,31,32,33,34])
