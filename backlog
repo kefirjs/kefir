@@ -1,3 +1,10 @@
+# Core property methods
+
+.forceActive(), .stopForceActive() need better names
+.addInitial(type, x)
+
+
+
 # Creating new properties with external sources
 
 something like Bus (pushable), model?
@@ -73,6 +80,16 @@ lenses
 
 http://underscorejs.org/#pluck
 http://underscorejs.org/#invoke
+
+
+.value(f) = .on('value', f)
+.error(f) = .on('error', f)
+.both(f) = .on('both', f)
+.end(f) = .on('both', f)
+
+.watchValue(f) = .wathc('value', f)
+.watchError(f) = .wathc('error', f)
+.watchBoth(f) = .wathc('both', f)
 
 
 

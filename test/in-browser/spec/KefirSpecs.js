@@ -1380,195 +1380,173 @@ function withOneSource(name, mixin) {
 //   });
 // }
 
-// function createIntervalBasedStream(classNamePrefix, methodName, methods) {
+// Kefir.withInterval()
 
-//   var defaultMethods = {
-//     __init: function(args) {},
-//     __free: function() {},
-//     __onTick: function() {}
-//   }
-
-//   var mixin = extend({
-//     __onFirstIn: function() {
-//       this.__intervalId = setInterval(this.__bindedOnTick, this.__wait);
-//     },
-//     __onLastOut: function() {
-//       if (this.__intervalId !== null) {
-//         clearInterval(this.__intervalId);
-//         this.__intervalId = null;
-//       }
-//     }
-//   }, defaultMethods, methods);
-
-//   function AnonymousIntervalBasedStream(wait, args) {
-//     Stream.call(this);
-//     this.__wait = wait;
-//     this.__intervalId = null;
-//     var _this = this;
-//     this.__bindedOnTick = function() {  _this.__onTick()  }
-//     this.__init(args);
-//   }
-
-//   inherit(AnonymousIntervalBasedStream, Stream, mixin, {
-//     __ClassName: classNamePrefix + 'Stream',
-//     __clear: function() {
-//       Stream.prototype.__clear.call(this);
-//       this.__bindedOnTick = null;
-//       this.__free();
-//     }
-//   });
-
-//   if (methodName) {
-//     Kefir[methodName] = function(wait) {
-//       return new AnonymousIntervalBasedStream(wait, rest(arguments, 1, []));
-//     }
-//   }
-
-//   return AnonymousIntervalBasedStream;
-
-// }
-
-
-
-
-// // Kefir.tiks()
-// // TODO: tests, docs
-
-// createIntervalBasedStream(
-//   'Tiks',
-//   'tiks',
-//   {
-//     __onTick: function() {
-//       this.__sendValue();
-//     }
-//   }
-// )
-
-
-
-
-// // Kefir.fromPoll()
-
-// createIntervalBasedStream(
-//   'FromPoll',
-//   'fromPoll',
-//   {
-//     __init: function(args) {
-//       this.__fn = new Callable(args);
-//     },
-//     __free: function() {
-//       this.__fn = null;
-//     },
-//     __onTick: function() {
-//       this.__sendAny(Callable.call(this.__fn));
-//     }
-//   }
-// )
+withInterval('withInterval', {
+  __init: function(args) {
+    this.__fn = new Callable(args[0]);
+    var _this = this;
+    this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
+  },
+  __free: function() {
+    this.__fn = null;
+    this.__bindedSend = null;
+  },
+  __onTick: function() {
+    Callable.call(this.__fn, [this.__bindedSend]);
+  }
+});
 
 
 
 
 
-// // Kefir.interval()
+// Kefir.fromPoll()
 
-// createIntervalBasedStream(
-//   'Interval',
-//   'interval',
-//   {
-//     __init: function(args) {
-//       if (args.length > 0) {
-//         this.__x = args[0];
-//       } else {
-//         this.__x = undefined;
-//       }
-//     },
-//     __free: function() {
-//       this.__x = null;
-//     },
-//     __onTick: function() {
-//       if (this.__x === undefined) {
-//         this.__sendValue()
-//       } else {
-//         this.__sendAny(this.__x);
-//       }
-//     }
-//   }
-// )
+withInterval('fromPoll', {
+  __init: function(args) {
+    this.__fn = new Callable(args[0]);
+  },
+  __free: function() {
+    this.__fn = null;
+  },
+  __onTick: function() {
+    this.__send('value', Callable.call(this.__fn));
+  }
+});
 
 
 
 
 
+// Kefir.interval()
 
-// // Kefir.sequentially()
-
-// createIntervalBasedStream(
-//   'Sequentially',
-//   'sequentially',
-//   {
-//     __init: function(args) {
-//       this.__xs = args[0].slice(0);
-//     },
-//     __free: function() {
-//       this.__xs = null;
-//     },
-//     __onTick: function() {
-//       if (this.__xs.length === 0) {
-//         this.__sendEnd();
-//         return;
-//       }
-//       this.__sendAny(this.__xs.shift());
-//       if (this.__xs.length === 0) {
-//         this.__sendEnd();
-//       }
-//     }
-//   }
-// )
+withInterval('interval', {
+  __init: function(args) {
+    this.__x = args[0];
+  },
+  __free: function() {
+    this.__x = null;
+  },
+  __onTick: function() {
+    this.__send('value', this.__x);
+  }
+});
 
 
 
 
+// Kefir.sequentially()
 
-// // Kefir.repeatedly()
+withInterval('sequentially', {
+  __init: function(args) {
+    this.__xs = cloneArray(args[0]);
+    if (this.__xs.length === 0) {
+      this.__send('end')
+    }
+  },
+  __free: function() {
+    this.__xs = null;
+  },
+  __onTick: function() {
+    switch (this.__xs.length) {
+      case 0:
+        this.__send('end');
+        break;
+      case 1:
+        this.__send('value', this.__xs[0]);
+        this.__send('end');
+        break;
+      default:
+        this.__send('value', this.__xs.shift());
+    }
+  }
+});
 
-// createIntervalBasedStream(
-//   'Repeatedly',
-//   'repeatedly',
-//   {
-//     __init: function(args) {
-//       this.__xs = args[0].slice(0);
-//       this.__i = -1;
-//     },
-//     __onTick: function() {
-//       this.__i = (this.__i + 1) % this.__xs.length;
-//       this.__sendAny(this.__xs[this.__i]);
-//     }
-//   }
-// )
+
+
+
+// Kefir.repeatedly()
+
+withInterval('repeatedly', {
+  __init: function(args) {
+    this.__xs = cloneArray(args[0]);
+    this.__i = -1;
+  },
+  __onTick: function() {
+    if (this.__xs.length > 0) {
+      this.__i = (this.__i + 1) % this.__xs.length;
+      this.__send('value', this.__xs[this.__i]);
+    }
+  }
+});
+
+
+
+
+
+// Kefir.later()
+
+withInterval('later', {
+  __init: function(args) {
+    this.__x = args[0];
+  },
+  __free: function() {
+    this.__x = null;
+  },
+  __onTick: function() {
+    this.__send('value', this.__x);
+    this.__send('end');
+  }
+});
 
 
 
 
 
 
-// // Kefir.later()
+function withInterval(name, mixin) {
 
-// createIntervalBasedStream(
-//   'Later',
-//   'later',
-//   {
-//     __init: function(args) {
-//       this.__x = args[0];
-//     },
-//     __free: function() {
-//       this.__x = null
-//     },
-//     __onTick: function() {
-//       this.__sendAny(this.__x);
-//       this.__sendEnd();
-//     }
-//   }
-// )
+  function AnonymousProperty(wait, args) {
+    Property.call(this);
+    this.__wait = wait;
+    this.__intervalId = null;
+    var _this = this;
+    this.__bindedOnTick = function() {  _this.__onTick()  }
+    this.__init(args);
+  }
+
+  inherit(AnonymousProperty, Property, {
+
+    __name: capFirst(name) + 'Property',
+
+    __init: function(args) {},
+    __free: function() {},
+
+    __onTick: function() {},
+
+    __onActivation: function() {
+      this.__intervalId = setInterval(this.__bindedOnTick, this.__wait);
+    },
+    __onDeactivation: function() {
+      if (this.__intervalId !== null) {
+        clearInterval(this.__intervalId);
+        this.__intervalId = null;
+      }
+    },
+
+    __clear: function() {
+      Property.prototype.__clear.call(this);
+      this.__bindedOnTick = null;
+      this.__free();
+    }
+
+  }, mixin);
+
+  Kefir[name] = function(wait) {
+    return new AnonymousProperty(wait, rest(arguments, 1, []));
+  }
+}
 
 
   if (typeof define === 'function' && define.amd) {
@@ -6172,13 +6150,11 @@ if (typeof module !== 'undefined' && module.exports) {
 });
 
 },{}],21:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch, withFakeTime;
+var Kefir, helpers;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
-
-prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
 
 describe('Kefir.constant()', function() {
   return it('should return a ended property with provided value', function() {
@@ -6188,16 +6164,6 @@ describe('Kefir.constant()', function() {
   });
 });
 
-
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],22:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch, withFakeTime;
-
-Kefir = require('../../dist/kefir');
-
-helpers = require('../test-helpers.coffee');
-
-prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
-
 describe('Kefir.constantError()', function() {
   return it('should return a ended property with provided error', function() {
     expect(Kefir.constantError(1)).toBeEnded();
@@ -6206,8 +6172,16 @@ describe('Kefir.constantError()', function() {
   });
 });
 
+describe('Kefir.empty()', function() {
+  return it('should return a ended property without value or error', function() {
+    expect(Kefir.empty()).toBeEnded();
+    expect(Kefir.empty()).toHasNoValue();
+    return expect(Kefir.empty()).toHasNoError();
+  });
+});
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],23:[function(require,module,exports){
+
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],22:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch, withFakeTime;
 
 Kefir = require('../../dist/kefir');
@@ -6277,7 +6251,7 @@ describe('.delay()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],24:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],23:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6346,25 +6320,7 @@ describe('.diff()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],25:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch, withFakeTime;
-
-Kefir = require('../../dist/kefir');
-
-helpers = require('../test-helpers.coffee');
-
-prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
-
-describe('Kefir.empty()', function() {
-  return it('should return a ended property without value or error', function() {
-    expect(Kefir.empty()).toBeEnded();
-    expect(Kefir.empty()).toHasNoValue();
-    return expect(Kefir.empty()).toHasNoError();
-  });
-});
-
-
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],26:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],24:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6422,7 +6378,7 @@ describe('.filter()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],27:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],25:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6537,7 +6493,270 @@ describe('.fromBinder(subscribe)', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],28:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],26:[function(require,module,exports){
+var Kefir, helpers, prop, send, watch, withFakeTime;
+
+Kefir = require('../../dist/kefir');
+
+helpers = require('../test-helpers.coffee');
+
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
+
+describe('.withInterval()', function() {
+  it('should create not ended property without value or error', function() {
+    return withFakeTime(function(clock) {
+      var p;
+      p = Kefir.withInterval(100, function() {});
+      expect(p).toNotBeEnded();
+      expect(p).toHasNoValue();
+      return expect(p).toHasNoError();
+    });
+  });
+  it('should send events passed to `send`', function() {
+    return withFakeTime(function(clock) {
+      var state, toSend;
+      toSend = [['value', 1], ['nothing'], ['error', 'e1'], ['end']];
+      state = watch(Kefir.withInterval(100, function(send) {
+        var event;
+        event = toSend.shift();
+        if (event[0] === 'nothing') {
+          return;
+        }
+        return send(event[0], event[1]);
+      }));
+      clock.tick(1);
+      expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: ['e1'],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: ['e1'],
+        ended: true
+      });
+      return clock.tick(1000);
+    });
+  });
+  return it('should not call provided fn, or send anything when not active', function() {
+    return withFakeTime(function(clock) {
+      var callsCount, f, p;
+      callsCount = 0;
+      p = Kefir.withInterval(100, function(send) {
+        callsCount++;
+        return send('value', callsCount);
+      });
+      expect(p).toNotBeActive();
+      clock.tick(150);
+      expect(callsCount).toBe(0);
+      p.on('value', (f = function() {}));
+      expect(p).toBeActive();
+      expect(callsCount).toBe(0);
+      clock.tick(101);
+      expect(callsCount).toBe(1);
+      expect(p).toHasValue(1);
+      clock.tick(100);
+      expect(callsCount).toBe(2);
+      expect(p).toHasValue(2);
+      p.off('value', f);
+      expect(p).toNotBeActive();
+      clock.tick(150);
+      expect(callsCount).toBe(2);
+      expect(p).toHasValue(2);
+      p.on('value', f);
+      expect(p).toBeActive();
+      expect(callsCount).toBe(2);
+      clock.tick(101);
+      expect(callsCount).toBe(3);
+      return expect(p).toHasValue(3);
+    });
+  });
+});
+
+describe('.fromPoll()', function() {
+  return it('should work', function() {
+    return withFakeTime(function(clock) {
+      var i, state;
+      i = 0;
+      state = watch(Kefir.fromPoll(100, function() {
+        return ++i;
+      }));
+      clock.tick(1);
+      expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      return expect(state).toEqual({
+        values: [1, 2],
+        errors: [],
+        ended: false
+      });
+    });
+  });
+});
+
+describe('.interval()', function() {
+  return it('should work', function() {
+    return withFakeTime(function(clock) {
+      var state;
+      state = watch(Kefir.interval(100, 1));
+      clock.tick(1);
+      expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      return expect(state).toEqual({
+        values: [1, 1],
+        errors: [],
+        ended: false
+      });
+    });
+  });
+});
+
+describe('.sequentially()', function() {
+  it('should work', function() {
+    return withFakeTime(function(clock) {
+      var state;
+      state = watch(Kefir.sequentially(100, [1, 2]));
+      clock.tick(1);
+      expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      return expect(state).toEqual({
+        values: [1, 2],
+        errors: [],
+        ended: true
+      });
+    });
+  });
+  return it('if empty array provided should end immediately', function() {
+    var p;
+    p = Kefir.sequentially(100, []);
+    return expect(p).toBeEnded();
+  });
+});
+
+describe('.repeatedly()', function() {
+  it('should work', function() {
+    return withFakeTime(function(clock) {
+      var state;
+      state = watch(Kefir.repeatedly(100, [1, 2]));
+      clock.tick(1);
+      expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1, 2],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1, 2, 1],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      return expect(state).toEqual({
+        values: [1, 2, 1, 2],
+        errors: [],
+        ended: false
+      });
+    });
+  });
+  return it('if empty array provided should never produce values but not end', function() {
+    return withFakeTime(function(clock) {
+      var p, state;
+      p = Kefir.repeatedly(100, []);
+      expect(p).toNotBeEnded();
+      state = watch(p);
+      clock.tick(1000);
+      return expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+    });
+  });
+});
+
+describe('.later()', function() {
+  return it('should work', function() {
+    return withFakeTime(function(clock) {
+      var state;
+      state = watch(Kefir.later(100, 1));
+      clock.tick(1);
+      expect(state).toEqual({
+        values: [],
+        errors: [],
+        ended: false
+      });
+      clock.tick(100);
+      return expect(state).toEqual({
+        values: [1],
+        errors: [],
+        ended: true
+      });
+    });
+  });
+});
+
+
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],27:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -6592,7 +6811,7 @@ describe('.map()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],29:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],28:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7075,7 +7294,7 @@ describe('Property listener with context and/or args:', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],30:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],29:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7170,7 +7389,7 @@ describe('.reduce()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],31:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],30:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7242,7 +7461,7 @@ describe('.scan()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],32:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],31:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7327,7 +7546,7 @@ describe('.skipDuplicates()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],33:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],32:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7399,7 +7618,7 @@ describe('.skipWhile()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],34:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],33:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7478,7 +7697,7 @@ describe('.skip()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],35:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],34:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7552,7 +7771,7 @@ describe('.takeWhile()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],36:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],35:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7647,7 +7866,7 @@ describe('.take()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],37:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],36:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch, withFakeTime;
 
 Kefir = require('../../dist/kefir');
@@ -7829,7 +8048,7 @@ describe('.throttle()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],38:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],37:[function(require,module,exports){
 var Kefir, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
@@ -7945,7 +8164,7 @@ describe('.withHandler()', function() {
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":39}],39:[function(require,module,exports){
+},{"../../dist/kefir":1,"../test-helpers.coffee":38}],38:[function(require,module,exports){
 var Kefir, sinon;
 
 Kefir = require("../dist/kefir");
@@ -8024,4 +8243,4 @@ beforeEach(function() {
 });
 
 
-},{"../dist/kefir":1,"sinon":6}]},{},[21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38])
+},{"../dist/kefir":1,"sinon":6}]},{},[21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37])
