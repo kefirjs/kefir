@@ -16,7 +16,7 @@ end = (name) ->
   global.gc()
   process.memoryUsage().heapUsed - __lastMemoryUsage
 
-createNObservable = (subscribeMethodName, n, generator) ->
+createNObservable = (subscribe, n, generator) ->
   observables = new Array(n)
 
   begin()
@@ -26,7 +26,7 @@ createNObservable = (subscribeMethodName, n, generator) ->
 
   begin()
   for obs in observables
-    obs[subscribeMethodName](noop)
+    subscribe(obs)
   withSubscr = end()
 
   observables = null
@@ -51,16 +51,10 @@ fakeSource =
 
 
 baseKefir = ->
-  property = new Kefir.Stream()
-  send = (x) -> property.__send('value', x)
-  property.__setActive = (active) ->
-    if @__active !== active
-      @active = active
-      if active
-        fakeSource.subscribe(send)
-      else
-        fakeSource.unsubscribe(send)
-  property
+  Kefir.fromBinder (send) ->
+    sendValue = (x) -> send('value', x)
+    fakeSource.subscribe sendValue
+    -> fakeSource.unsubscribe sendValue
 
 baseRx = ->
   (
@@ -119,17 +113,20 @@ exports.setupSpec = (title, options) ->
 
   if options.kefir
     generator = createGenerator(options.kefir, baseKefir, Kefir, options)
-    results['Kefir'] = createNObservable('onValue', n, generator)
+    sub = (p) -> p.on 'value', noop
+    results['Kefir'] = createNObservable(sub, n, generator)
     printResult('Kefir', results['Kefir'])
 
   if options.bacon
     generator = createGenerator(options.bacon, baseBacon, Bacon, options)
-    results['Bacon'] = createNObservable('onValue', n, generator)
+    sub = (s) -> s.onValue noop
+    results['Bacon'] = createNObservable(sub, n, generator)
     printResult('Bacon', results['Bacon'])
 
   if options.rx
     generator = createGenerator(options.rx, baseRx, Rx, options)
-    results['Rx'] = createNObservable('subscribe', n, generator)
+    sub = (s) -> s.subscribe noop
+    results['Rx'] = createNObservable(sub, n, generator)
     printResult('Rx   ', results['Rx'])
 
   baseWO = null
