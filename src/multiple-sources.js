@@ -1,67 +1,166 @@
-// function MultSubscriber() {
-//   this.listener = new Callable(arguments);
-//   this.streams = [];
-//   this.active = false;
-// }
+// .merge()
 
-// extend(MultSubscriber.prototype, {
+withMultSource('merge', {
+  __init: function(args) {
+    var sources = agrsToArray(args);
+    if (sources.length > 0) {
+      for (var i = 0; i < sources.length; i++) {
+        this.__multSubscriber.add(sources[i]);
+      }
+      this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
+    } else {
+      this.__send('end');
+    }
+  }
+});
 
-//   start: function() {
-//     for (var i = 0; i < this.streams.length; i++) {
-//       this.streams[i].onBoth(this.listener);
-//     }
-//     this.active = true;
-//   },
-//   stop: function() {
-//     for (var i = 0; i < this.streams.length; i++) {
-//       this.streams[i].offBoth(this.listener);
-//     }
-//     this.active = false;
-//   },
 
-//   add: function(stream) {
-//     this.streams.push(stream);
-//     stream.onEnd(this.remove, this, stream);
-//     if (this.active) {
-//       stream.onBoth(this.listener);
-//     }
-//   },
-//   remove: function(stream) {
-//     for (var i = 0; i < this.streams.length; i++) {
-//       if (this.streams[i] === stream) {
-//         this.streams.splice(i, 1);
-//         stream.offEnd(this.remove, this, stream);
-//         if (this.active) {
-//           stream.offBoth(this.listener);
-//         }
-//         break;
-//       }
-//     }
-//     if (this.streams.length === 0 && this.onLastRemovedCb) {
-//       Callable.call(this.onLastRemovedCb);
-//     }
-//   },
-//   removeAll: function(){
-//     for (var i = 0; i < this.streams.length; i++) {
-//       this.streams[i].offEnd(this.remove, this, this.streams[i]);
-//       if (this.active) {
-//         this.streams[i].offBoth(this.listener);
-//       }
-//     }
-//     this.streams = [];
-//     if (this.onLastRemovedCb) {
-//       Callable.call(this.onLastRemovedCb);
-//     }
-//   },
 
-//   onLastRemoved: function() {
-//     this.onLastRemovedCb = new Callable(arguments);
-//   },
-//   hasStreams: function() {
-//     return this.streams.length > 0;
-//   }
 
-// })
+
+
+
+
+function withMultSource(name, mixin, noMethod) {
+
+  function AnonymousProperty(args) {
+    Property.call(this);
+    this.__multSubscriber = new MultSubscriber([this.__handleBoth, this])
+    this.__init(args);
+  }
+
+  inherit(AnonymousProperty, Property, {
+
+    __name: capFirst(name) + 'Property',
+
+    __init: function(args) {},
+    __free: function() {},
+
+    __handleValue: function(x, isInitial) {
+      this.__send('value', x);
+    },
+    __handleError: function(e, isInitial) {
+      this.__send('error', e);
+    },
+
+    __handleBoth: function(type, x, isInitial) {
+      if (type === 'value') {
+        this.__handleValue(x, isInitial);
+      } else {
+        this.__handleError(x, isInitial);
+      }
+    },
+
+    __onActivation: function() {
+      this.__multSubscriber.start();
+    },
+    __onDeactivation: function() {
+      this.__multSubscriber.stop();
+    },
+
+    __clear: function() {
+      Property.prototype.__clear.call(this);
+      this.__multSubscriber.removeAll();
+      this.__multSubscriber = null;
+      this.__free();
+    }
+
+  }, mixin);
+
+  if (!noMethod) {
+    Kefir[name] = function() {
+      return new AnonymousProperty(arguments);
+    }
+  }
+
+  return AnonymousProperty;
+}
+
+
+
+
+
+
+
+
+
+function MultSubscriber(listener) {
+  this.listener = new Callable(listener);
+  this.properties = [];
+  this.active = false;
+}
+
+extend(MultSubscriber.prototype, {
+
+  start: function() {
+    if (!this.active) {
+      for (var i = 0; i < this.properties.length; i++) {
+        this.properties[i].on('both', this.listener);
+      }
+      this.active = true;
+    }
+  },
+  stop: function() {
+    if (this.active) {
+      for (var i = 0; i < this.properties.length; i++) {
+        this.properties[i].off('both', this.listener);
+      }
+      this.active = false;
+    }
+  },
+
+  add: function(stream) {
+    this.properties.push(stream);
+    stream.on('end', [this.remove, this, stream]);
+    if (stream.has('value')) {
+      Callable.call(this.listener, ['value', stream.get('value'), true]);
+    }
+    if (stream.has('error')) {
+      Callable.call(this.listener, ['error', stream.get('error'), true]);
+    }
+    if (this.active) {
+      stream.on('both', this.listener);
+    }
+  },
+  remove: function(stream) {
+    for (var i = 0; i < this.properties.length; i++) {
+      if (this.properties[i] === stream) {
+        this.properties.splice(i, 1);
+        stream.off('end', [this.remove, this, stream]);
+        if (this.active) {
+          stream.off('both', this.listener);
+        }
+        break;
+      }
+    }
+    if (this.properties.length === 0 && this.onLastRemovedCb) {
+      Callable.call(this.onLastRemovedCb);
+    }
+  },
+  removeAll: function(){
+    for (var i = 0; i < this.properties.length; i++) {
+      this.properties[i].off('end', [this.remove, this, this.properties[i]]);
+      if (this.active) {
+        this.properties[i].off('both', this.listener);
+      }
+    }
+    this.properties = [];
+    if (this.onLastRemovedCb) {
+      Callable.call(this.onLastRemovedCb);
+    }
+  },
+
+  onLastRemoved: function(fn) {
+    this.onLastRemovedCb = new Callable(fn);
+  },
+  hasStreams: function() {
+    return this.properties.length > 0;
+  }
+
+});
+
+
+
 
 
 
@@ -159,7 +258,7 @@
 //   this.__sourceStream = sourceStream;
 //   this.__mapFn = new Callable(mapFnMeta);
 //   this.__subr = new MultSubscriber(this.__handlePluggedBoth, this);
-//   sourceStream.onEnd(this.__onSourceEnds, this);
+//   sourceStream.on('end', this.__onSourceEnds, this);
 //   this.__subr.onLastRemoved(this.__onPluggedEnds, this);
 // }
 
@@ -195,11 +294,11 @@
 //     }
 //   },
 //   __onFirstIn: function() {
-//     this.__sourceStream.onBoth(this.__hadleSourceBoth, this);
+//     this.__sourceStream.wathc('both', this.__hadleSourceBoth, this);
 //     this.__subr.start();
 //   },
 //   __onLastOut: function() {
-//     this.__sourceStream.offBoth(this.__hadleSourceBoth, this);
+//     this.__sourceStream.off('both', this.__hadleSourceBoth, this);
 //     this.__subr.stop();
 //   },
 //   __clear: function() {
@@ -225,7 +324,7 @@
 // //   }, this)
 // //   this.__sourceStream = sourceStream;
 // //   this.__mapFn = new Callable(mapFnMeta);
-// //   sourceStream.onEnd(this.__onSourceEnds, this);
+// //   sourceStream.on('end', this.__onSourceEnds, this);
 // // }
 
 // // inherit(FlatMappedStream, Stream, PluggableMixin, {
@@ -248,11 +347,11 @@
 // //     }
 // //   },
 // //   __onFirstIn: function() {
-// //     this.__sourceStream.onBoth(this.__hadleSourceBoth, this);
+// //     this.__sourceStream.wathc('both', this.__hadleSourceBoth, this);
 // //     PluggableMixin.__onFirstIn.call(this);
 // //   },
 // //   __onLastOut: function() {
-// //     this.__sourceStream.offBoth(this.__hadleSourceBoth, this);
+// //     this.__sourceStream.off('both', this.__hadleSourceBoth, this);
 // //     PluggableMixin.__onLastOut.call(this);
 // //   },
 // //   __clear: function() {
@@ -295,37 +394,6 @@
 
 
 
-// // .merge()
-
-// function MergedStream() {
-//   Stream.call(this);
-//   this.__initPluggable();
-//   this.__subr.onLastRemoved(this.__sendEnd, this);
-//   var sources = agrsToArray(arguments);
-//   for (var i = 0; i < sources.length; i++) {
-//     this.__plug(sources[i]);
-//   }
-// }
-
-// inherit(MergedStream, Stream, PluggableMixin, {
-
-//   __ClassName: 'MergedStream',
-
-//   __clear: function() {
-//     Stream.prototype.__clear.call(this);
-//     this.__clearPluggable();
-//   }
-
-
-// });
-
-// Kefir.merge = function() {
-//   return new MergedStream(agrsToArray(arguments));
-// }
-
-// Observable.prototype.merge = function() {
-//   return Kefir.merge([this].concat(agrsToArray(arguments)));
-// }
 
 
 
@@ -341,7 +409,7 @@
 //   Stream.call(this);
 //   this.__plugged = sources;
 //   for (var i = 0; i < this.__plugged.length; i++) {
-//     sources[i].onEnd(this.__unplugById, this, i);
+//     sources[i].on('end', this.__unplugById, this, i);
 //   }
 //   this.__cachedValues = new Array(sources.length);
 //   this.__hasValue = new Array(sources.length);
@@ -356,7 +424,7 @@
 //     for (var i = 0; i < this.__plugged.length; i++) {
 //       var stream = this.__plugged[i];
 //       if (stream) {
-//         stream.onBoth(this.__handlePluggedBoth, this, i);
+//         stream.wathc('both', this.__handlePluggedBoth, this, i);
 //       }
 //     }
 //   },
@@ -364,7 +432,7 @@
 //     for (var i = 0; i < this.__plugged.length; i++) {
 //       var stream = this.__plugged[i];
 //       if (stream) {
-//         stream.offBoth(this.__handlePluggedBoth, this, i);
+//         stream.off('both', this.__handlePluggedBoth, this, i);
 //       }
 //     }
 //   },
@@ -383,8 +451,8 @@
 //     var stream = this.__plugged[i];
 //     if (stream) {
 //       this.__plugged[i] = null;
-//       stream.offBoth(this.__handlePluggedBoth, this, i);
-//       stream.offEnd(this.__unplugById, this, i);
+//       stream.off('both', this.__handlePluggedBoth, this, i);
+//       stream.off('end', this.__unplugById, this, i);
 //       if (this.__hasNoPlugged()) {
 //         this.__sendEnd();
 //       }
@@ -438,9 +506,9 @@
 
 // // Kefir.onValues()
 
-// Kefir.onValues = function(streams/*, fn[, context[, arg1, agr2, ...]]*/) {
+// Kefir.onValues = function(properties/*, fn[, context[, arg1, agr2, ...]]*/) {
 //   var fn = new Callable(rest(arguments, 1))
-//   return Kefir.combine(streams).onValue(function(xs) {
+//   return Kefir.combine(properties).onValue(function(xs) {
 //     return Callable.call(fn, xs);
 //   });
 // }
