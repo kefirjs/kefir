@@ -1,5 +1,3 @@
-# eq = -> true
-
 require('../perf-helper.coffee').setupTest 'stream.skipDuplicates()', {
   kefir: (stream) -> stream.skipDuplicates()
   rx: (stream) -> stream.distinctUntilChanged()

@@ -9,10 +9,15 @@ Benchmark.options.minSamples = 15;
 
 noop = ->
 
+
+
 buildKefir = (modify) ->
-  property = new Kefir.Property()
+  send = null
+  property = Kefir.fromBinder (newSend) ->
+    send = newSend
   modify(property).on('value', noop)
-  -> property.__send('value', 1)
+  -> send('value', 1)
+
 
 buildBacon = (modify) ->
   sink = null
