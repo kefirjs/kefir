@@ -9,7 +9,7 @@ and RxJS's performance / memory usage characteristics.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
-:construction: It still in alpha developnet stage. See [Bacon.js API implementation status](https://github.com/pozadi/kefir/blob/master/bacon-api-impl-status.md).
+:construction: It still in alpha developnet stage. See [Bacon.js API implementation status](https://github.com/pozadi/kefir/blob/master/bacon-vs-kefir-api.md).
 
 
 

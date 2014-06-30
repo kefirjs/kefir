@@ -1,7 +1,6 @@
 # Core property methods
 
 .forceActive(), .stopForceActive() need better names
-.addInitial(type, x)
 
 
 
@@ -16,6 +15,8 @@ something like Bus (pluggable)
 .fromNodeCallback(fn)
 .fromPromise(promise)
 
+.promise(fn)
+
 
 
 # One source
@@ -23,7 +24,9 @@ something like Bus (pluggable)
 .debounce(wait, immediate)
 http://underscorejs.org/#defer
 
-.removeCurrent()
+.removeCurrent(type = 'both')
+.addCurrent(type, x)
+
 
 
 
