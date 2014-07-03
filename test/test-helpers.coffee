@@ -32,7 +32,9 @@ exports.withFakeTime = (cb) ->
 beforeEach ->
   @addMatchers {
     toHasValue: (value) -> @actual.has('value') && @actual.get('value') == value
+    toHasEqualValue: (value) -> @actual.has('value') && @env.equals_(@actual.get('value'), value)
     toHasError: (error) -> @actual.has('error') && @actual.get('error') == error
+    toHasEqualError: (error) -> @actual.has('error') && @env.equals_(@actual.get('error'), error)
     toHasNoValue: -> !@actual.has('value')
     toHasNoError: -> !@actual.has('error')
     toBeEnded: -> @actual.isEnded()

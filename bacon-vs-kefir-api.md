@@ -1,4 +1,4 @@
-# Bacon.js API implementation status
+# Comparison of Bacon.js and Kefir.js API
 
 :rocket: — implemented
 
@@ -81,7 +81,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `observable.zip(other, f)` | :broken_heart: |  |
 | `observable.slidingWindow(max [, min])` | :broken_heart: |  |
 | `observable.log()` | :rocket: | `property.log()` |
-| `observable.combine(property2, f)` | :calendar: | |
+| `observable.combine(property2, f)` | :rocket: |  `Kefir.combine([prop1, prop2], f)` |
 | `observable.withStateMachine(initState, f)` | :broken_heart: |  |
 | `observable.decode(mapping)` | :broken_heart: |  |
 | `observable.awaiting(otherObservable)` | :broken_heart: |  |
@@ -142,9 +142,9 @@ here marked as implemented it means that they are implemented but produces Prope
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `Bacon.combineAsArray(streams)` | :calendar: |  |
+| `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(properties)` |
 | `Bacon.combineAsArray(s1, s2...)` | :broken_heart: |  |
-| `Bacon.combineWith(f, stream1, stream2...)` | :calendar: |   |
+| `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(properties, f)`  |
 | `Bacon.combineTemplate(template)` | :broken_heart: |  |
 | `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(properties)` / `Kefir.merge(prop1, prop2, ...)` |
 | `Bacon.zipAsArray(streams)` | :broken_heart: |  |

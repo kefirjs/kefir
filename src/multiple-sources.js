@@ -4,9 +4,7 @@ withMultSource('merge', {
   __init: function(args) {
     var sources = agrsToArray(args);
     if (sources.length > 0) {
-      for (var i = 0; i < sources.length; i++) {
-        this.__multSubscriber.add(sources[i]);
-      }
+      this.__multSubscriber.addAll(sources);
       this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
     } else {
       this.__send('end');
@@ -18,6 +16,56 @@ withMultSource('merge', {
 
 
 
+
+// .combine()
+
+withMultSource('combine', {
+  __init: function(args) {
+    this.__sources = args[0];
+    this.__fn = args[1] ? new Callable(args[1]) : null;
+    if (this.__sources.length > 0) {
+      this.__multSubscriber.addAll(this.__sources);
+      this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
+    } else {
+      this.__send('end');
+    }
+  },
+  __handleValue: function(x) {
+    if (hasValueAll(this.__sources)) {
+      if (this.__fn) {
+        this.__send('value', Callable.call(this.__fn, getValueAll(this.__sources)));
+      } else {
+        this.__send('value', getValueAll(this.__sources));
+      }
+    }
+  }
+});
+
+
+
+
+
+
+
+
+// utils
+
+function hasValueAll(properties) {
+  for (var i = 0; i < properties.length; i++) {
+    if (!properties[i].has('value')) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function getValueAll(properties) {
+  var result = new Array(properties.length);
+  for (var i = 0; i < properties.length; i++) {
+    result[i] = properties[i].get('value');
+  }
+  return result;
+}
 
 
 
@@ -109,26 +157,32 @@ extend(MultSubscriber.prototype, {
     }
   },
 
-  add: function(stream) {
-    this.properties.push(stream);
-    stream.on('end', [this.remove, this, stream]);
-    if (stream.has('value')) {
-      Callable.call(this.listener, ['value', stream.get('value'), true]);
-    }
-    if (stream.has('error')) {
-      Callable.call(this.listener, ['error', stream.get('error'), true]);
-    }
-    if (this.active) {
-      stream.on('both', this.listener);
+
+  addAll: function(properties) {
+    for (var i = 0; i < properties.length; i++) {
+      this.add(properties[i])
     }
   },
-  remove: function(stream) {
+  add: function(property) {
+    this.properties.push(property);
+    property.on('end', [this.remove, this, property]);
+    if (property.has('value')) {
+      Callable.call(this.listener, ['value', property.get('value'), true]);
+    }
+    if (property.has('error')) {
+      Callable.call(this.listener, ['error', property.get('error'), true]);
+    }
+    if (this.active) {
+      property.on('both', this.listener);
+    }
+  },
+  remove: function(property) {
     for (var i = 0; i < this.properties.length; i++) {
-      if (this.properties[i] === stream) {
+      if (this.properties[i] === property) {
         this.properties.splice(i, 1);
-        stream.off('end', [this.remove, this, stream]);
+        property.off('end', [this.remove, this, property]);
         if (this.active) {
-          stream.off('both', this.listener);
+          property.off('both', this.listener);
         }
         break;
       }
@@ -179,14 +233,14 @@ extend(MultSubscriber.prototype, {
 //       this.__sendError(value);
 //     }
 //   },
-//   __plug: function(stream) {
+//   __plug: function(property) {
 //     if (this.alive) {
-//       this.__subr.add(stream);
+//       this.__subr.add(property);
 //     }
 //   },
-//   __unplug: function(stream) {
+//   __unplug: function(property) {
 //     if (this.alive) {
-//       this.__subr.remove(stream);
+//       this.__subr.remove(property);
 //     }
 //   },
 //   __onFirstIn: function() {
@@ -224,12 +278,12 @@ extend(MultSubscriber.prototype, {
 //     this.__sendError(e);
 //     return this;
 //   },
-//   plug: function(stream) {
-//     this.__plug(stream);
+//   plug: function(property) {
+//     this.__plug(property);
 //     return this;
 //   },
-//   unplug: function(stream) {
-//     this.__unplug(stream);
+//   unplug: function(property) {
+//     this.__unplug(property);
 //     return this;
 //   },
 //   end: function() {
@@ -422,17 +476,17 @@ extend(MultSubscriber.prototype, {
 
 //   __onFirstIn: function() {
 //     for (var i = 0; i < this.__plugged.length; i++) {
-//       var stream = this.__plugged[i];
-//       if (stream) {
-//         stream.wathc('both', this.__handlePluggedBoth, this, i);
+//       var property = this.__plugged[i];
+//       if (property) {
+//         property.wathc('both', this.__handlePluggedBoth, this, i);
 //       }
 //     }
 //   },
 //   __onLastOut: function() {
 //     for (var i = 0; i < this.__plugged.length; i++) {
-//       var stream = this.__plugged[i];
-//       if (stream) {
-//         stream.off('both', this.__handlePluggedBoth, this, i);
+//       var property = this.__plugged[i];
+//       if (property) {
+//         property.off('both', this.__handlePluggedBoth, this, i);
 //       }
 //     }
 //   },
@@ -448,11 +502,11 @@ extend(MultSubscriber.prototype, {
 //     return true;
 //   },
 //   __unplugById: function(i) {
-//     var stream = this.__plugged[i];
-//     if (stream) {
+//     var property = this.__plugged[i];
+//     if (property) {
 //       this.__plugged[i] = null;
-//       stream.off('both', this.__handlePluggedBoth, this, i);
-//       stream.off('end', this.__unplugById, this, i);
+//       property.off('both', this.__handlePluggedBoth, this, i);
+//       property.off('end', this.__unplugById, this, i);
 //       if (this.__hasNoPlugged()) {
 //         this.__sendEnd();
 //       }
