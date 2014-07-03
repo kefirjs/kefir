@@ -32,12 +32,12 @@ http://underscorejs.org/#defer
 
 # Two sources
 
-observable.filter(property)
-observable.takeWhile(property)
-observable.skipWhile(property)
+property.filter(property)
+property.takeWhile(property)
+property.skipWhile(property)
 
-observable.awaiting(otherObservable)
-stream.skipUntil(stream2)
+property.awaiting(property2)
+property.skipUntil(property2)
 
 
 
@@ -45,7 +45,6 @@ stream.skipUntil(stream2)
 
 .flatMapFirst(f)
 .zip(other, f)
-.awaiting(other)
 .concat(other)
 
 
@@ -93,6 +92,10 @@ http://underscorejs.org/#invoke
 .watchValue(f) = .wathc('value', f)
 .watchError(f) = .wathc('error', f)
 .watchBoth(f) = .wathc('both', f)
+
+
+Kefir.onValues(properties, f)
+Kefir.watchValues(properties, f)
 
 
 

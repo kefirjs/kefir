@@ -117,9 +117,55 @@ Property.prototype.flatMap = function(fn) {
 
 
 
+// .flatMapLatest()
+
+function FlatMapLatestProperty() {
+  FlatMapProperty.apply(this, arguments);
+}
+
+inherit(FlatMapLatestProperty, FlatMapProperty, {
+  __name: 'FlatMapLatestProperty',
+  __onValue: function(x) {
+    this.__multSubscriber.removeAll();
+    FlatMapProperty.prototype.__onValue.call(this, x);
+  }
+});
+
+Property.prototype.flatMapLatest = function(fn) {
+  return new FlatMapLatestProperty([this, fn]);
+};
+
+
+
+
+
+
+// .pluggable()
+// TODO: tests, better name
+
+// withMultSource('pluggable', {
+//   plug: function(property) {
+//     this.__multSubscriber.add(property);
+//   },
+//   unplug: function(property) {
+//     this.__multSubscriber.remove(property);
+//   }
+// });
+
+
+
+
+
+
+
+
+
+
 
 
 // utils
+
+
 
 function hasValueAll(properties) {
   for (var i = 0; i < properties.length; i++) {
@@ -198,10 +244,6 @@ function withMultSource(name, mixin, noMethod) {
 
   return AnonymousProperty;
 }
-
-
-
-
 
 
 
@@ -295,252 +337,3 @@ extend(MultSubscriber.prototype, {
   }
 
 });
-
-
-
-
-
-
-// var PluggableMixin = {
-
-//   __initPluggable: function() {
-//     this.__subr = new MultSubscriber(this.__handlePluggedBoth, this);
-//   },
-//   __clearPluggable: function() {
-//     this.__subr = null;
-//   },
-//   __handlePluggedBoth: function(type, value) {
-//     if (type === 'value') {
-//       this.__sendAny(value);
-//     } else {
-//       this.__sendError(value);
-//     }
-//   },
-//   __plug: function(property) {
-//     if (this.alive) {
-//       this.__subr.add(property);
-//     }
-//   },
-//   __unplug: function(property) {
-//     if (this.alive) {
-//       this.__subr.remove(property);
-//     }
-//   },
-//   __onFirstIn: function() {
-//     this.__subr.start();
-//   },
-//   __onLastOut: function() {
-//     this.__subr.stop();
-//   },
-//   __hasNoPlugged: function() {
-//     return !this.alive || !this.__subr.hasProperties();
-//   }
-
-// }
-
-
-
-
-
-// // Kefir.bus()
-
-// function Bus() {
-//   Stream.call(this);
-//   this.__initPluggable();
-// }
-
-// inherit(Bus, Stream, PluggableMixin, {
-
-//   __ClassName: 'Bus',
-
-//   push: function(x) {
-//     this.__sendAny(x);
-//     return this;
-//   },
-//   error: function(e) {
-//     this.__sendError(e);
-//     return this;
-//   },
-//   plug: function(property) {
-//     this.__plug(property);
-//     return this;
-//   },
-//   unplug: function(property) {
-//     this.__unplug(property);
-//     return this;
-//   },
-//   end: function() {
-//     this.__sendEnd();
-//     return this;
-//   },
-//   __clear: function() {
-//     Stream.prototype.__clear.call(this);
-//     this.__clearPluggable();
-//   }
-
-// });
-
-// Kefir.bus = function() {
-//   return new Bus();
-// }
-
-
-
-
-
-// // .flatMap()
-
-// function FlatMappedStream(sourceStream, mapFnMeta) {
-//   Stream.call(this);
-//   this.__sourceStream = sourceStream;
-//   this.__mapFn = new Callable(mapFnMeta);
-//   this.__subr = new MultSubscriber(this.__handlePluggedBoth, this);
-//   sourceStream.on('end', this.__onSourceEnds, this);
-//   this.__subr.onLastRemoved(this.__onPluggedEnds, this);
-// }
-
-// inherit(FlatMappedStream, Stream, {
-
-//   __ClassName: 'FlatMappedStream',
-
-//   __onSourceEnds: function() {
-//     if (!this.__subr.hasProperties()) {
-//       this.__sendEnd();
-//     }
-//   },
-//   __onPluggedEnds: function() {
-//     if (this.alive && this.__sourceStream.isEnded()) {
-//       this.__sendEnd();
-//     }
-//   },
-//   __plugResult: function(x) {
-//     this.__subr.add(Callable.call(this.__mapFn, [x]));
-//   },
-//   __hadleSourceBoth: function(type, x) {
-//     if (type === 'value') {
-//       this.__plugResult(x);
-//     } else {
-//       this.__sendError(x);
-//     }
-//   },
-//   __handlePluggedBoth: function(type, value) {
-//     if (type === 'value') {
-//       this.__sendAny(value);
-//     } else {
-//       this.__sendError(value);
-//     }
-//   },
-//   __onFirstIn: function() {
-//     this.__sourceStream.wathc('both', this.__hadleSourceBoth, this);
-//     this.__subr.start();
-//   },
-//   __onLastOut: function() {
-//     this.__sourceStream.off('both', this.__hadleSourceBoth, this);
-//     this.__subr.stop();
-//   },
-//   __clear: function() {
-//     Stream.prototype.__clear.call(this);
-//     this.__subr = null;
-//     this.__sourceStream = null;
-//     this.__mapFn = null;
-//   }
-
-// })
-
-// Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-//   return new FlatMappedStream(this, arguments);
-// };
-
-// // function FlatMappedStream(sourceStream, mapFnMeta) {
-// //   Stream.call(this);
-// //   this.__initPluggable();
-// //   this.__subr.onLastRemoved(function() {
-// //     if (this.alive && this.__sourceStream.isEnded()) {
-// //       this.__sendEnd();
-// //     }
-// //   }, this)
-// //   this.__sourceStream = sourceStream;
-// //   this.__mapFn = new Callable(mapFnMeta);
-// //   sourceStream.on('end', this.__onSourceEnds, this);
-// // }
-
-// // inherit(FlatMappedStream, Stream, PluggableMixin, {
-
-// //   __ClassName: 'FlatMappedStream',
-
-// //   __onSourceEnds: function() {
-// //     if (this.__hasNoPlugged()) {
-// //       this.__sendEnd();
-// //     }
-// //   },
-// //   __plugResult: function(x) {
-// //     this.__plug(Callable.call(this.__mapFn, [x]));
-// //   },
-// //   __hadleSourceBoth: function(type, x) {
-// //     if (type === 'value') {
-// //       this.__plugResult(x);
-// //     } else {
-// //       this.__sendError(x);
-// //     }
-// //   },
-// //   __onFirstIn: function() {
-// //     this.__sourceStream.wathc('both', this.__hadleSourceBoth, this);
-// //     PluggableMixin.__onFirstIn.call(this);
-// //   },
-// //   __onLastOut: function() {
-// //     this.__sourceStream.off('both', this.__hadleSourceBoth, this);
-// //     PluggableMixin.__onLastOut.call(this);
-// //   },
-// //   __clear: function() {
-// //     Stream.prototype.__clear.call(this);
-// //     this.__clearPluggable();
-// //     this.__sourceStream = null;
-// //     this.__mapFn = null;
-// //   }
-
-// // })
-
-// // Observable.prototype.flatMap = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-// //   return new FlatMappedStream(this, arguments);
-// // };
-
-
-
-
-// // .flatMapLatest()
-
-// function FlatMapLatestStream() {
-//   FlatMappedStream.apply(this, arguments);
-// }
-
-// inherit(FlatMapLatestStream, FlatMappedStream, {
-
-//   __ClassName: 'FlatMapLatestStream',
-
-//   __plugResult: function(x) {
-//     this.__subr.removeAll();
-//     FlatMappedStream.prototype.__plugResult.call(this, x);
-//   }
-
-// })
-
-// Observable.prototype.flatMapLatest = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-//   return new FlatMapLatestStream(this, arguments);
-// };
-
-
-
-
-
-
-
-
-
-// // Kefir.onValues()
-
-// Kefir.onValues = function(properties/*, fn[, context[, arg1, agr2, ...]]*/) {
-//   var fn = new Callable(rest(arguments, 1))
-//   return Kefir.combine(properties).onValue(function(xs) {
-//     return Callable.call(fn, xs);
-//   });
-// }
