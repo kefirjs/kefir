@@ -29,7 +29,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "baconjs": "^0.7.11",
+    "baconjs": "^0.7.16",
     "benchmark": "^1.0.0",
     "coffee-script": "~1.7.1",
     "coffeeify": "^0.6.0",
@@ -45,7 +45,7 @@
     "grunt-jasmine-node": "~0.2.1",
     "grunt-release": "^0.7.0",
     "load-grunt-tasks": "~0.4.0",
-    "rx": "^2.2.21",
+    "rx": "^2.2.27",
     "semver": "^2.3.0",
     "shelljs": "^0.3.0",
     "sinon": "^1.10.1"
