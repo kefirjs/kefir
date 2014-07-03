@@ -964,6 +964,10 @@ withMultSource('combine', {
       this.__send('end');
     }
   },
+  __free: function() {
+    this.__sources = null;
+    this.__fn = null;
+  },
   __handleValue: function(x) {
     if (hasValueAll(this.__sources)) {
       if (this.__fn) {
@@ -974,6 +978,73 @@ withMultSource('combine', {
     }
   }
 });
+
+
+
+
+
+
+
+
+
+// .flatMap()
+
+var FlatMapProperty = withMultSource('flatMap', {
+  __init: function(args) {
+    this.__source = args[0];
+    this.__fn = args[1] ? new Callable(args[1]) : null;
+    this.__multSubscriber.onLastRemoved([this.__endIfSourceEnded, this]);
+    this.__source.on('end', [this.__endIfNoSubSources, this]);
+    if (this.__source.has('value')) {
+      this.__onValue(this.__source.get('value'));
+    }
+    if (this.__source.has('error')) {
+      this.__onError(this.__source.get('error'));
+    }
+  },
+  __free: function() {
+    this.__source = null;
+    this.__fn = null;
+  },
+  __onActivationHook: function() {
+    this.__source.on('both', [this.__onBoth, this])
+  },
+  __onDeactivationHook: function() {
+    this.__source.off('both', [this.__onBoth, this])
+  },
+  __onValue: function(x) {
+    if (this.__fn) {
+      this.__multSubscriber.add(Callable.call(this.__fn, [x]));
+    } else {
+      this.__multSubscriber.add(x);
+    }
+  },
+  __onError: function(e) {
+    this.__send('error', e);
+  },
+  __onBoth: function(type, x) {
+    if (type === 'value') {
+      this.__onValue(x);
+    } else {
+      this.__onError(x);
+    }
+  },
+  __endIfSourceEnded: function() {
+    if (this.__source.isEnded()) {
+      this.__send('end');
+    }
+  },
+  __endIfNoSubSources: function() {
+    if (!this.__multSubscriber.hasProperties()) {
+      this.__send('end');
+    }
+  }
+
+}, false);
+
+Property.prototype.flatMap = function(fn) {
+  return new FlatMapProperty([this, fn]);
+};
 
 
 
@@ -1017,6 +1088,8 @@ function withMultSource(name, mixin, noMethod) {
 
     __init: function(args) {},
     __free: function() {},
+    __onActivationHook: function() {},
+    __onDeactivationHook: function() {},
 
     __handleValue: function(x, isInitial) {
       this.__send('value', x);
@@ -1035,14 +1108,16 @@ function withMultSource(name, mixin, noMethod) {
 
     __onActivation: function() {
       this.__multSubscriber.start();
+      this.__onActivationHook();
     },
     __onDeactivation: function() {
       this.__multSubscriber.stop();
+      this.__onDeactivationHook();
     },
 
     __clear: function() {
       Property.prototype.__clear.call(this);
-      this.__multSubscriber.removeAll();
+      this.__multSubscriber.clear();
       this.__multSubscriber = null;
       this.__free();
     }
@@ -1141,8 +1216,16 @@ extend(MultSubscriber.prototype, {
   onLastRemoved: function(fn) {
     this.onLastRemovedCb = new Callable(fn);
   },
-  hasStreams: function() {
+  offLastRemoved: function() {
+    this.onLastRemovedCb = null;
+  },
+  hasProperties: function() {
     return this.properties.length > 0;
+  },
+
+  clear: function() {
+    this.offLastRemoved();
+    this.removeAll();
   }
 
 });
@@ -1184,7 +1267,7 @@ extend(MultSubscriber.prototype, {
 //     this.__subr.stop();
 //   },
 //   __hasNoPlugged: function() {
-//     return !this.alive || !this.__subr.hasStreams();
+//     return !this.alive || !this.__subr.hasProperties();
 //   }
 
 // }
@@ -1255,7 +1338,7 @@ extend(MultSubscriber.prototype, {
 //   __ClassName: 'FlatMappedStream',
 
 //   __onSourceEnds: function() {
-//     if (!this.__subr.hasStreams()) {
+//     if (!this.__subr.hasProperties()) {
 //       this.__sendEnd();
 //     }
 //   },
@@ -1381,111 +1464,6 @@ extend(MultSubscriber.prototype, {
 
 
 
-
-
-
-
-
-
-
-
-
-
-// // .combine()
-
-// function CombinedStream(sources, mapFnMeta) {
-//   Stream.call(this);
-//   this.__plugged = sources;
-//   for (var i = 0; i < this.__plugged.length; i++) {
-//     sources[i].on('end', this.__unplugById, this, i);
-//   }
-//   this.__cachedValues = new Array(sources.length);
-//   this.__hasValue = new Array(sources.length);
-//   this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
-// }
-
-// inherit(CombinedStream, Stream, {
-
-//   __ClassName: 'CombinedStream',
-
-//   __onFirstIn: function() {
-//     for (var i = 0; i < this.__plugged.length; i++) {
-//       var property = this.__plugged[i];
-//       if (property) {
-//         property.wathc('both', this.__handlePluggedBoth, this, i);
-//       }
-//     }
-//   },
-//   __onLastOut: function() {
-//     for (var i = 0; i < this.__plugged.length; i++) {
-//       var property = this.__plugged[i];
-//       if (property) {
-//         property.off('both', this.__handlePluggedBoth, this, i);
-//       }
-//     }
-//   },
-//   __hasNoPlugged: function() {
-//     if (!this.alive) {
-//       return true;
-//     }
-//     for (var i = 0; i < this.__plugged.length; i++) {
-//       if (this.__plugged[i]) {
-//         return false;
-//       }
-//     }
-//     return true;
-//   },
-//   __unplugById: function(i) {
-//     var property = this.__plugged[i];
-//     if (property) {
-//       this.__plugged[i] = null;
-//       property.off('both', this.__handlePluggedBoth, this, i);
-//       property.off('end', this.__unplugById, this, i);
-//       if (this.__hasNoPlugged()) {
-//         this.__sendEnd();
-//       }
-//     }
-//   },
-//   __handlePluggedBoth: function(i, type, x) {
-//     if (type === 'value') {
-//       this.__hasValue[i] = true;
-//       this.__cachedValues[i] = x;
-//       if (this.__allCached()) {
-//         if (this.__mapFn) {
-//           this.__sendAny(Callable.call(this.__mapFn, this.__cachedValues));
-//         } else {
-//           this.__sendValue(this.__cachedValues.slice(0));
-//         }
-//       }
-//     } else {
-//       this.__sendError(x);
-//     }
-//   },
-//   __allCached: function() {
-//     for (var i = 0; i < this.__hasValue.length; i++) {
-//       if (!this.__hasValue[i]) {
-//         return false;
-//       }
-//     }
-//     return true;
-//   },
-//   __clear: function() {
-//     Stream.prototype.__clear.call(this);
-//     this.__plugged = null;
-//     this.__cachedValues = null;
-//     this.__hasValue = null;
-//     this.__mapFn = null;
-//   }
-
-// });
-
-// Kefir.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-//   return new CombinedStream(sources, rest(arguments, 1));
-// }
-
-// Observable.prototype.combine = function(sources/*, fn[, context[, arg1, arg2, ...]]*/) {
-//   return new CombinedStream([this].concat(sources), rest(arguments, 1));
-// }
 
 
 

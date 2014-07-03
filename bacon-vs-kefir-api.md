@@ -72,7 +72,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `observable.debounceImmediate(delay)` | :broken_heart: |  |
 | `observable.doAction(f)` | :broken_heart: |  |
 | `observable.not()` | :broken_heart: |  |
-| `observable.flatMap(f)` | :calendar: | `property.flatMap(f)` |
+| `observable.flatMap(f)` | :rocket: | `property.flatMap(f)` |
 | `observable.flatMapLatest(f)` | :calendar: | `property.flatMapLatest(f)` |
 | `observable.flatMapFirst(f)` | :broken_heart: |  |
 | `observable.scan(seed, f)` | :rocket: | `property.scan(seed, f)` |
