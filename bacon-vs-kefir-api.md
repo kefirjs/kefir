@@ -8,9 +8,6 @@
 
 :broken_heart: — not implemented
 
-:calendar: — not implemented just yet, but will be soon
-
-
 
 
 For detailed descriptions of features see
