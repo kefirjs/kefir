@@ -571,6 +571,53 @@ withOneSource('withHandler', {
 
 
 
+// .removeCurrent()
+// TODO: tests
+
+withOneSource('removeCurrent', {
+  __init: function(args) {
+    this.__type = args[0] || 'both';
+  },
+  __handleValue: function(x, initial) {
+    if (!initial || (this.__type !== 'value' && this.__type !== 'both')) {
+      this.__send('value', x);
+    }
+  },
+  __handleError: function(x, initial) {
+    if (!initial || (this.__type !== 'error' && this.__type !== 'both')) {
+      this.__send('error', x);
+    }
+  }
+});
+
+
+
+
+
+// .addCurrent()
+// TODO: tests
+
+withOneSource('addCurrent', {
+  __init: function(args) {
+    this.__type = args[0];
+    this.__send(args[0], args[1])
+  },
+  __handleValue: function(x, initial) {
+    if (!initial || (this.__type !== 'value')) {
+      this.__send('value', x);
+    }
+  },
+  __handleError: function(x, initial) {
+    if (!initial || (this.__type !== 'error')) {
+      this.__send('error', x);
+    }
+  }
+});
+
+
+
+
+
 
 // .map(fn)
 

@@ -40,7 +40,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `Bacon.never()` | :rocket: | `Kefir.empty()` |
 | `Bacon.later(delay, value)` | :rocket: | `Kefir.later(delay, value)` |
 | `new Bacon.EventStream(subscribe)` | :broken_heart: |  |
-| `property.changes()` | :ghost: :calendar: | `property.removeCurrent()` |
+| `property.changes()` | :ghost: | `property.removeCurrent()` |
 | `property.toEventStream()` | :broken_heart: |  |
 | `new Bacon.Bus()` | :broken_heart: |  |
 | `Bacon.fromBinder(subscribe)` | :rocket: | `Kefir.fromBinder(subscribe)` |
@@ -54,10 +54,10 @@ here marked as implemented it means that they are implemented but produces Prope
 | `observable.onError(f)` | :rocket: | `property.on('error', f)` / `property.watch('error', f)` |
 | `observable.onEnd(f)` | :rocket: | `property.on('end', f)` |
 | `observable.map(f)` | :rocket: | `property.map(f)` |
-| `stream.map(property) / property.sampledBy(stream)` | :calendar: | |
-| `observable.mapError(f)` | :calendar: |  |
+| `stream.map(property) / property.sampledBy(stream)` | | |
+| `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |
-| `observable.skipErrors()` | :calendar: |  |
+| `observable.skipErrors()` | :broken_heart: |  |
 | `observable.mapEnd(f)` | :broken_heart: |  |
 | `observable.filter(f)` | :rocket: | `property.filter(f)` |
 | `observable.filter(property)` | :broken_heart: |  |
@@ -104,7 +104,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `stream.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
 | `stream.concat(otherStream)` | :broken_heart: |  |
 | `stream.merge(otherStream)` | :rocket: | `Kefir.merge(p1, p2)` |
-| `stream.startWith(value)` | :calendar: | `property.addCurrent('value', value)` |
+| `stream.startWith(value)` | :ghost: | `property.addCurrent('value', value)` |
 | `stream.skipWhile(f)` | :rocket: | `property.skipWhile(f)` |
 | `stream.skipWhile(property)` | :broken_heart: |  |
 | `stream.skipUntil(stream2)` | :broken_heart: |  |
@@ -127,14 +127,14 @@ here marked as implemented it means that they are implemented but produces Prope
 | `property.onValues(f)` | :broken_heart: |  |
 | `property.assign(obj, method [, param...])` | :ghost: | `property.watch('value', [method, obj, param...])` |
 | `property.sample(interval)` | :broken_heart: |  |
-| `property.sampledBy(stream)` | :calendar: |  |
-| `property.sampledBy(property)` | :calendar: |  |
-| `property.sampledBy(streamOrProperty, f)` | :calendar: |  |
+| `property.sampledBy(stream)` | :broken_heart: |  |
+| `property.sampledBy(property)` | :broken_heart: |  |
+| `property.sampledBy(streamOrProperty, f)` | :broken_heart: |  |
 | `property.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
-| `property.changes()` |  :ghost: :calendar: | `property.removeCurrent()` |
+| `property.changes()` |  :ghost: | `property.removeCurrent()` |
 | `property.and(other)` | :broken_heart: |  |
 | `property.or(other)` | :broken_heart: |  |
-| `property.startWith(value)` | :calendar: | `property.addCurrent('value', value)` |
+| `property.startWith(value)` | :ghost: | `property.addCurrent('value', value)` |
 
 
 
@@ -151,7 +151,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `Bacon.zipAsArray(stream1, stream2...)` | :broken_heart: |  |
 | `Bacon.zipWith(streams, f)` | :broken_heart: |  |
 | `Bacon.zipWith(f, stream1, stream1...)` | :broken_heart: |  |
-| `Bacon.onValues(a, b [, c...], f)` | :calendar: |  |
+| `Bacon.onValues(a, b [, c...], f)` | :broken_heart: |  |
 
 
 

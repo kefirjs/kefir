@@ -54,5 +54,3 @@ describe '.merge()', ->
     send(p1, 'error', 'e2')
     send(p2, 'value', 2)
     expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2'],ended:false})
-
-
