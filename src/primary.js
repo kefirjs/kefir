@@ -38,6 +38,31 @@ Kefir.fromBinder = function(fn) {
 
 
 
+
+
+// Kefir.emitter()
+
+function Emitter() {
+  Property.call(this);
+}
+
+inherit(Emitter, Property, {
+  __name: 'EmitterProperty',
+  emit: function(type, x) {
+    this.__send(type, x);
+  }
+});
+
+Kefir.emitter = function() {
+  return new Emitter();
+}
+
+
+
+
+
+
+
 // Kefir.empty()
 
 var emptyObj = new Property();

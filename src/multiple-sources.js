@@ -140,18 +140,16 @@ Property.prototype.flatMapLatest = function(fn) {
 
 
 
-// .pluggable()
-// TODO: tests, better name
+// .pool()
 
-// withMultSource('pluggable', {
-//   plug: function(property) {
-//     this.__multSubscriber.add(property);
-//   },
-//   unplug: function(property) {
-//     this.__multSubscriber.remove(property);
-//   }
-// });
-
+withMultSource('pool', {
+  add: function(property) {
+    this.__multSubscriber.add(property);
+  },
+  remove: function(property) {
+    this.__multSubscriber.remove(property);
+  }
+});
 
 
 

@@ -169,13 +169,16 @@ And in that array you can pass method name instead of actual method for example:
 
 ### Bus
 
+:ghost: use `Kefir.pool()` or `Kefir.emitter()` if you need `bus` functionality
+
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `new Bacon.Bus()` | :broken_heart: | |
-| `bus.push(x)` | :broken_heart: | |
-| `bus.end()` | :broken_heart: | |
-| `bus.error(e)` | :broken_heart: | |
-| `bus.plug(stream)` | :broken_heart: | |
+| `new Bacon.Bus()` | :ghost: | `Kefir.pool()` or `Kefir.emitter()` |
+| `bus.push(x)` | :rocket: | `emitter.emit('value', x)` |
+| `bus.error(e)` | :rocket: | `emitter.emit('error', e)` |
+| `bus.end()` | :rocket: | `emitter.emit('end')` |
+| `bus.plug(stream)` | :rocket: | `poll.add(property)` |
+| `bus.unplug(stream)` | :rocket: | `poll.remove(property)` |
 
 
 
@@ -232,7 +235,3 @@ https://github.com/baconjs/bacon.js/issues/265
  - properties has not only current values, but also current errors
  - you can get current value/error without sunscribing via `property.get('value')` / `property.get('error')`
  - you can choose to get current value/error in listener or to subscribe only for changes (use `property.on()` for changes, and `property.watch()` for current value and changes)
- - `Kefir.constantError(e)`
-
-
-

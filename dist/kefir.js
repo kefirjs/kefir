@@ -470,6 +470,31 @@ Kefir.fromBinder = function(fn) {
 
 
 
+
+
+// Kefir.emitter()
+
+function Emitter() {
+  Property.call(this);
+}
+
+inherit(Emitter, Property, {
+  __name: 'EmitterProperty',
+  emit: function(type, x) {
+    this.__send(type, x);
+  }
+});
+
+Kefir.emitter = function() {
+  return new Emitter();
+}
+
+
+
+
+
+
+
 // Kefir.empty()
 
 var emptyObj = new Property();
@@ -1074,18 +1099,16 @@ Property.prototype.flatMapLatest = function(fn) {
 
 
 
-// .pluggable()
-// TODO: tests, better name
+// .pool()
 
-// withMultSource('pluggable', {
-//   plug: function(property) {
-//     this.__multSubscriber.add(property);
-//   },
-//   unplug: function(property) {
-//     this.__multSubscriber.remove(property);
-//   }
-// });
-
+withMultSource('pool', {
+  add: function(property) {
+    this.__multSubscriber.add(property);
+  },
+  remove: function(property) {
+    this.__multSubscriber.remove(property);
+  }
+});
 
 
 

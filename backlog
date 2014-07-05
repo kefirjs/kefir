@@ -6,9 +6,6 @@
 
 # Creating new properties with external sources
 
-something like Bus (pushable), model?
-something like Bus (pluggable)
-
 .fromArray(values) ???
 
 .fromCallback(fn)

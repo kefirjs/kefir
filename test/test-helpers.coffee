@@ -14,6 +14,7 @@ exports.watch = (property) ->
 
 exports.send = (property, type, x) ->
   property.__send(type, x)
+  property
 
 exports.prop = (initialValue, initialError) ->
   prop = new Kefir.Property()
