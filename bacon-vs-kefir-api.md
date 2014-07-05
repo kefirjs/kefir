@@ -177,8 +177,8 @@ And in that array you can pass method name instead of actual method for example:
 | `bus.push(x)` | :rocket: | `emitter.emit('value', x)` |
 | `bus.error(e)` | :rocket: | `emitter.emit('error', e)` |
 | `bus.end()` | :rocket: | `emitter.emit('end')` |
-| `bus.plug(stream)` | :rocket: | `poll.add(property)` |
-| `bus.unplug(stream)` | :rocket: | `poll.remove(property)` |
+| `bus.plug(stream)` | :rocket: | `pool.add(property)` |
+| `bus.unplug(stream)` | :rocket: | `pool.remove(property)` |
 
 
 
