@@ -7298,7 +7298,7 @@ describe('.merge()', function() {
       ended: false
     });
   });
-  return it('allows to not wrap sources to array', function() {
+  it('allows to not wrap sources to array', function() {
     var p1, p2, state;
     p1 = prop(0);
     p2 = prop(null, 'e0');
@@ -7317,6 +7317,20 @@ describe('.merge()', function() {
       errors: ['e0', 'e1', 'e2'],
       ended: false
     });
+  });
+  return it('should activate/deactivate underlying properties', function() {
+    var f, merged, p1, p2;
+    p1 = prop();
+    p2 = prop();
+    merged = Kefir.merge(p1, p2);
+    expect(p1).toNotBeActive();
+    expect(p2).toNotBeActive();
+    merged.on('value', (f = function() {}));
+    expect(p1).toBeActive();
+    expect(p2).toBeActive();
+    merged.off('value', f);
+    expect(p1).toNotBeActive();
+    return expect(p2).toNotBeActive();
   });
 });
 

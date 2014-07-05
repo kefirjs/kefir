@@ -54,3 +54,18 @@ describe '.merge()', ->
     send(p1, 'error', 'e2')
     send(p2, 'value', 2)
     expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2'],ended:false})
+
+  it 'should activate/deactivate underlying properties', ->
+    p1 = prop()
+    p2 = prop()
+    merged = Kefir.merge(p1, p2)
+    expect(p1).toNotBeActive()
+    expect(p2).toNotBeActive()
+    merged.on 'value', (f = ->)
+    expect(p1).toBeActive()
+    expect(p2).toBeActive()
+    merged.off 'value', f
+    expect(p1).toNotBeActive()
+    expect(p2).toNotBeActive()
+
+
