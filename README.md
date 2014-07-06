@@ -18,6 +18,8 @@ to get a glance on progress.
 
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
 
+[![Code Climate](https://codeclimate.com/github/pozadi/kefir.png)](https://codeclimate.com/github/pozadi/kefir)
+
 [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
 
 [Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch)
