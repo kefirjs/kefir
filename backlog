@@ -1,0 +1,124 @@
+# Core property methods
+
+.forceActive(), .stopForceActive() need better names
+or maybe .activate(id) / .deactivate(id)
+
+
+
+# Creating new properties with external sources
+
+.fromArray(values) ???
+
+.fromCallback(fn)
+.fromNodeCallback(fn)
+.fromPromise(promise)
+
+
+
+
+
+# One source
+
+.debounce(wait, immediate)
+http://underscorejs.org/#defer
+
+streamOfFunctions.apply(seed)
+
+.toPromise()
+  .then()
+
+
+.map(valueFn, errorFn)
+.filter(valueFn, errorFn)
+
+
+
+
+# Two sources
+
+property.filter(property)
+property.takeWhile(property)
+property.skipWhile(property)
+
+property.awaiting(property2)
+property.skipUntil(property2)
+
+
+
+# Multiple sources
+
+.flatMapFirst(f)
+.zip(other, f)
+.concat(other)
+
+.flatMap(valueFn, errorFn) !!!
+
+Kefir.on('value', properties, f)
+Kefir.on('value', properties, samplers, f)
+Kefir.watch('value', properties, f)
+Kefir.watch('value', properties, samplers, f)
+
+
+# Model
+
+lenses
+
+
+
+# Errors
+
+.mapError(f)
+.errors()
+.skipErrors()
+.endOnError(f)
+
+
+
+# Buffer
+
+.bufferWithTime(delay)
+.bufferWithTime(f)
+.bufferWithCount(count)
+.bufferWithTimeOrCount(delay, count)
+
+
+
+
+# Syntax sugar
+
+.not()
+.and(other)
+.or(other)
+
+http://underscorejs.org/#pluck
+http://underscorejs.org/#invoke
+
+
+.value(f) = .on('value', f)
+.error(f) = .on('error', f)
+.both(f) = .on('both', f)
+.end(f) = .on('both', f)
+
+.watchValue(f) = .wathc('value', f)
+.watchError(f) = .wathc('error', f)
+.watchBoth(f) = .wathc('both', f)
+
+
+Kefir.onValues(properties, f)
+Kefir.watchValues(properties, f)
+
+
+
+
+
+# Native browser API
+
+.fromEventTarget(target, eventName [, eventTransformer])
+
+
+
+# jQuery
+
+.asStream(eventName, [selector], [eventTransformer])
+.asProperty(eventName, [selector], getter)
+

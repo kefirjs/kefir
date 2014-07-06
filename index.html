@@ -127,11 +127,11 @@
         background: #fff;
         position: fixed;
         top: 0; left: 0; bottom: 0;
-        width: 170px;
+        width: 140px;
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
-        padding: 15px 0 30px 30px;
+        padding: 15px 30px 30px;
         border-right: 1px solid #bbb;
         box-shadow: 0 0 20px #ccc;
         font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
@@ -142,7 +142,9 @@
         .toc-title {
           display: block;
           font-weight: bold;
-          margin-top: 15px;
+          margin-top: 20px;
+          line-height: 1.2;
+          margin-bottom: 10px;
         }
         .toc-section {
           font-size: 11px;
@@ -209,42 +211,58 @@
         <li><a href="#bower">Install via Bower</a></li>
       </ul>
 
+
       <!-- <a class="toc-title" href="#introduction">
         Introduction
-      </a> -->
-
-      <a class="toc-title" href="#static-methods">
-        Static methods<br>(Kefir.&mdash;)
       </a>
 
       <ul class="toc-section">
-        <li>- <a href="#from-poll">fromPoll</a></li>
+        <li><a href="#todo">small example</a></li>
+        <li><a href="#todo">kefir vs bacon</a></li>
+      </ul> -->
+
+
+
+      <a class="toc-title" href="#create">
+        Create a property
+      </a>
+
+      <ul class="toc-section">
+        <li>- <a href="#from-binder">fromBinder</a></li>
+        <li>- <a href="#emitter">emitter</a></li>
+        <li>- <a href="#empty">empty</a></li>
+        <li>- <a href="#constant">constant</a></li>
+        <li>- <a href="#constant-error">constantError</a></li>
+        <li>- <a href="#later">later</a></li>
         <li>- <a href="#interval">interval</a></li>
         <li>- <a href="#sequentially">sequentially</a></li>
         <li>- <a href="#repeatedly">repeatedly</a></li>
-        <li>- <a href="#bus">bus</a></li>
-        <li>- <a href="#once">once</a></li>
-        <li>- <a href="#never">never</a></li>
-        <li>- <a href="#later">later</a></li>
-        <li>- <a href="#from-binder">fromBinder</a></li>
-        <li>- <a href="#kefir-merge">merge</a></li>
-        <li>- <a href="#kefir-combine">combine</a></li>
-        <li>- <a href="#on-values">onValues</a></li>
+        <li>- <a href="#from-poll">fromPoll</a></li>
+        <li>- <a href="#with-interval">withInterval</a></li>
       </ul>
 
 
-      <a class="toc-title" href="#observable">
-        Observable
+      <a class="toc-title" href="#main-methods">
+        Main property methods
       </a>
 
       <ul class="toc-section">
-        <li>- <a href="#on-value">onValue</a></li>
-        <li>- <a href="#off-value">offValue</a></li>
-        <li>- <a href="#on-error">onError</a></li>
-        <li>- <a href="#off-error">offError</a></li>
-        <li>- <a href="#on-end">onEnd</a></li>
-        <li>- <a href="#off-end">offEnd</a></li>
+        <li>- <a href="#on">on</a></li>
+        <li>- <a href="#watch">watch</a></li>
+        <li>- <a href="#off">off</a></li>
+        <li>- <a href="#has">has</a></li>
+        <li>- <a href="#get">get</a></li>
+        <li>- <a href="#is-ended">isEnded</a></li>
+        <li>- <a href="#log">log</a></li>
+      </ul>
 
+
+
+      <a class="toc-title" href="#modify">
+        Modify a property
+      </a>
+
+      <ul class="toc-section">
         <li>- <a href="#map">map</a></li>
         <li>- <a href="#filter">filter</a></li>
         <li>- <a href="#take">take</a></li>
@@ -255,64 +273,35 @@
         <li>- <a href="#diff">diff</a></li>
         <li>- <a href="#scan">scan</a></li>
         <li>- <a href="#reduce">reduce</a></li>
+        <li>- <a href="#add-current">addCurrent</a></li>
+        <li>- <a href="#remove-current">removeCurrent</a></li>
+        <li>- <a href="#with-handler">withHandler</a></li>
         <li>- <a href="#delay">delay</a></li>
         <li>- <a href="#throttle">throttle</a></li>
+      </ul>
 
-        <li>- <a href="#merge">merge</a></li>
+
+
+      <a class="toc-title" href="#combine-properties">
+        Combine properties
+      </a>
+
+      <ul class="toc-section">
         <li>- <a href="#combine">combine</a></li>
+        <li>- <a href="#sampled-by">sampledBy</a></li>
+        <li>- <a href="#merge">merge</a></li>
+        <li>- <a href="#pool">pool</a></li>
         <li>- <a href="#flat-map">flatMap</a></li>
         <li>- <a href="#flat-map-latest">flatMapLatest</a></li>
-        <li>- <a href="#sampled-by">sampledBy</a></li>
-
-        <li>- <a href="#log">log</a></li>
       </ul>
 
 
 
-      <a class="toc-title" href="#stream">
-        Stream
+      <a class="toc-title" href="#callbacks">
+        About callbacks
       </a>
 
-      <ul class="toc-section">
-        <li>- <a href="#stream-on-new-value">onNewValue</a></li>
-        <li>- <a href="#stream-to-property">toProperty</a></li>
-      </ul>
 
-
-      <a class="toc-title" href="#property">
-        Property
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#property-on-new-value">onNewValue</a></li>
-        <li>- <a href="#has-value">hasValue</a></li>
-        <li>- <a href="#get-value">getValue</a></li>
-        <li>- <a href="#property-to-property">toProperty</a></li>
-        <li>- <a href="#changes">changes</a></li>
-      </ul>
-
-      <a class="toc-title" href="#bus">
-        Bus
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#push">push</a></li>
-        <li>- <a href="#bus-error">error</a></li>
-        <li>- <a href="#bus-end">end</a></li>
-        <li>- <a href="#plug">plug</a></li>
-        <li>- <a href="#unplug">unplug</a></li>
-      </ul>
-
-
-      <a class="toc-title" href="#special-values">
-        Special values
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#nothing">NOTHING</a></li>
-        <li>- <a href="#end">END</a></li>
-        <li>- <a href="#error">error</a></li>
-      </ul>
 
     </div>
 
@@ -388,12 +377,155 @@ bower install kefir
         <a href="test/in-browser/SpecRunner.html">tests</a>
       </p>
 
-      <!-- <h2 id="introduction">Introduction</h2>
-
-      <p>TODO</p> -->
 
 
-      <h2 id="static-methods">Static methods (Kefir.&mdash;)</h2>
+
+
+      <h2 id="create">Create a property</h2>
+
+      <p id="from-binder">
+        <a href="#from-binder" class="header">fromBinder</a><code>Kefir.fromBinder(fn)</code>
+      </p>
+      <p id="emitter">
+        <a href="#emitter" class="header">emitter</a><code>Kefir.emitter()</code>
+      </p>
+      <p id="empty">
+        <a href="#empty" class="header">empty</a><code>Kefir.empty()</code>
+      </p>
+      <p id="constant">
+        <a href="#constant" class="header">constant</a><code>Kefir.constant(value)</code>
+      </p>
+      <p id="constant-error">
+        <a href="#constant-error" class="header">constantError</a><code>Kefir.constantError(error)</code>
+      </p>
+      <p id="later">
+        <a href="#later" class="header">later</a><code>Kefir.later(wait, value)</code>
+      </p>
+      <p id="interval">
+        <a href="#interval" class="header">interval</a><code>Kefir.interval(interval, value)</code>
+      </p>
+      <p id="sequentially">
+        <a href="#sequentially" class="header">sequentially</a><code>Kefir.sequentially(interval, values)</code>
+      </p>
+      <p id="repeatedly">
+        <a href="#repeatedly" class="header">repeatedly</a><code>Kefir.repeatedly(interval, values)</code>
+      </p>
+      <p id="from-poll">
+        <a href="#from-poll" class="header">fromPoll</a><code>Kefir.fromPoll(interval, fn)</code>
+      </p>
+      <p id="with-interval">
+        <a href="#with-interval" class="header">withInterval</a><code>Kefir.withInterval(interval, fn)</code>
+      </p>
+
+
+
+
+      <h2 id="main-methods">Main property methods</h2>
+
+      <p id="on">
+        <a href="#on" class="header">on</a><code>property.on(type, fn)</code>
+      </p>
+      <p id="watch">
+        <a href="#watch" class="header">watch</a><code>property.watch(type, fn)</code>
+      </p>
+      <p id="off">
+        <a href="#off" class="header">off</a><code>property.off(type, fn)</code>
+      </p>
+      <p id="has">
+        <a href="#has" class="header">has</a><code>property.has(type)</code>
+      </p>
+      <p id="get">
+        <a href="#get" class="header">get</a><code>property.get(type)</code>
+      </p>
+      <p id="is-ended">
+        <a href="#is-ended" class="header">isEnded</a><code>property.isEnded()</code>
+      </p>
+      <p id="log">
+        <a href="#log" class="header">log</a><code>property.log([name])</code>
+      </p>
+
+
+
+
+      <h2 id="modify">Modify a property</h2>
+
+      <p id="map">
+        <a href="#map" class="header">map</a><code>property.map(fn)</code>
+      </p>
+      <p id="filter">
+        <a href="#filter" class="header">filter</a><code>property.filter(fn)</code>
+      </p>
+      <p id="take">
+        <a href="#take" class="header">take</a><code>property.take(n)</code>
+      </p>
+      <p id="take-while">
+        <a href="#take-while" class="header">takeWhile</a><code>property.takeWhile(fn)</code>
+      </p>
+      <p id="skip">
+        <a href="#skip" class="header">skip</a><code>property.skip(n)</code>
+      </p>
+      <p id="skip-while">
+        <a href="#skip-while" class="header">skipWhile</a><code>property.skipWhile(fn)</code>
+      </p>
+      <p id="skip-duplicates">
+        <a href="#skip-duplicates" class="header">skipDuplicates</a><code>property.skipDuplicates([fn])</code>
+      </p>
+      <p id="diff">
+        <a href="#diff" class="header">diff</a><code>property.diff(seed, fn)</code>
+      </p>
+      <p id="scan">
+        <a href="#scan" class="header">scan</a><code>property.scan(seed, fn)</code>
+      </p>
+      <p id="reduce">
+        <a href="#reduce" class="header">reduce</a><code>property.reduce(seed, fn)</code>
+      </p>
+      <p id="add-current">
+        <a href="#add-current" class="header">addCurrent</a><code>property.addCurrent(type, valueOrError)</code>
+      </p>
+      <p id="remove-current">
+        <a href="#remove-current" class="header">removeCurrent</a><code>property.removeCurrent([type])</code>
+      </p>
+      <p id="with-handler">
+        <a href="#with-handler" class="header">withHandler</a><code>property.withHandler(fn)</code>
+      </p>
+      <p id="delay">
+        <a href="#delay" class="header">delay</a><code>property.delay(wait)</code>
+      </p>
+      <p id="throttle">
+        <a href="#throttle" class="header">throttle</a><code>property.throttle(wait, [options])</code>
+      </p>
+
+
+
+
+      <h2 id="combine-properties">Combine properties</h2>
+
+      <p id="combine">
+        <a href="#combine" class="header">combine</a><code>Kefir.combine(properties, [fn])</code>
+      </p>
+      <p id="sampled-by">
+        <a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(properties, samplers, [fn])</code>
+      </p>
+      <p id="merge">
+        <a href="#merge" class="header">merge</a><code>Kefir.merge(properties)</code>
+      </p>
+      <p id="pool">
+        <a href="#pool" class="header">pool</a><code>Kefir.pool()</code>
+      </p>
+      <p id="flat-map">
+        <a href="#flat-map" class="header">flatMap</a><code>property.flatMap(fn)</code>
+      </p>
+      <p id="flat-map-latest">
+        <a href="#flat-map-latest" class="header">flatMapLatest</a><code>property.flatMapLatest(fn)</code>
+      </p>
+
+
+
+      <h2 id="callbacks">About callbacks</h2>
+
+
+
+      <!--<h2 id="static-methods">Static methods (Kefir.&mdash;)</h2>
 
       <p id="from-poll">
         <a href="#from-poll" class="header">fromPoll</a><code>stream = Kefir.fromPoll(interval, fn, [context], *arg)</code>
@@ -565,9 +697,6 @@ stream.log();
       <p id="kefir-merge">
         <a href="#" class="header">merge</a><code>stream = Kefir.merge(observables), stream = Kefir.merge(*observable)</code>
       </p>
-      <!-- <pre>
-var stream
-</pre> -->
 
       <p id="kefir-combine">
         <a href="#kefir-combine" class="header">combine</a><code>stream = Kefir.combine(observables, [fn], [context], *arg)</code>
@@ -582,7 +711,6 @@ var stream
 
       <h2 id="observable">Observable</h2>
 
-      <!-- <p>TODO: intro, what is Observable</p> -->
 
 
       <p id="on-value">
@@ -666,7 +794,6 @@ var stream
 
       <h2 id="stream">Stream</h2>
 
-      <!-- <p>TODO</p> -->
 
 
       <p id="stream-on-new-value">
@@ -681,7 +808,6 @@ var stream
 
       <h2 id="property">Property</h2>
 
-      <!-- <p>TODO</p> -->
 
 
       <p id="property-on-new-value">
@@ -705,7 +831,6 @@ var stream
 
       <h2 id="bus">Bus</h2>
 
-      <!-- <p>TODO</p> -->
 
 
       <p id="push">
@@ -745,7 +870,7 @@ var stream
       </p>
       <p id="error">
         <a href="#" class="header">error</a><code>Kefir.error(e)</code>
-      </p>
+      </p> -->
 
 
     </div>

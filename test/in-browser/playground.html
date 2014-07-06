@@ -25,14 +25,16 @@
 
 
             function baseKefir(){
-              var stream = new Kefir.Stream(function(){
-                fakeSource.subscribe(send);
-              }, function(){
-                fakeSource.unsubscribe(send);
+              return Kefir.fromBinder(function(send) {
+                function sendValue(x) {  send('value', x)  };
+                fakeSource.subscribe(sendValue);
+                return function() {
+                  fakeSource.unsubscribe(sendValue);
+                }
               });
-              var send = stream.__sendValue.bind(stream);
-              return stream;
             }
+
+
 
             function baseRx(){
               return new Rx.Observable.create(function(observer){
