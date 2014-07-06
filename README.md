@@ -4,12 +4,13 @@ Kefir — is an FRP (functional reactive programming) library for JavaScript
 inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
-It has nice Bacon.js like API
-and RxJS's performance / memory usage characteristics.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
-:construction: It still in alpha developnet stage. See ["Bacon.js vs Kefir.js"](https://github.com/pozadi/kefir/blob/master/bacon-vs-kefir.md) to get a glance on progress.
+:construction: It still behind Bacon in number of features,
+but also has some unique features that not are in Bacon.
+See ["Bacon vs Kefir"](https://github.com/pozadi/kefir/blob/master/bacon-vs-kefir.md)
+to get a glance on progress.
 
 
 
@@ -40,7 +41,3 @@ To run all memory tests (see [results](https://github.com/pozadi/kefir/blob/mast
 To run performance tests:
 
     coffee test/perf/benchmarks/[some spec].coffee
-
-To run all performance tests:
-
-    coffee test/perf/all-benchmarks.coffee

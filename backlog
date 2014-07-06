@@ -28,6 +28,10 @@ streamOfFunctions.apply(seed)
   .then()
 
 
+.map(valueFn, errorFn)
+.filter(valueFn, errorFn)
+
+
 
 
 # Two sources
@@ -46,6 +50,8 @@ property.skipUntil(property2)
 .flatMapFirst(f)
 .zip(other, f)
 .concat(other)
+
+.flatMap(valueFn, errorFn) !!!
 
 Kefir.on('value', properties, f)
 Kefir.on('value', properties, samplers, f)

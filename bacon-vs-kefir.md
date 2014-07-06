@@ -1,4 +1,5 @@
-# Comparison of Bacon.js and Kefir.js API
+# Bacon.js vs Kefir.js
+
 
 :rocket: — implemented
 
