@@ -68,4 +68,16 @@ describe '.merge()', ->
     expect(p1).toNotBeActive()
     expect(p2).toNotBeActive()
 
+  it '`property.merge(other)` should work', ->
+    p1 = prop(0)
+    p2 = prop(null, 'e0')
+    state = watch p1.merge(p2)
+    expect(state).toEqual({values:[0],errors:['e0'],ended:false})
+    send(p1, 'value', 1)
+    send(p2, 'error', 'e1')
+    send(p1, 'error', 'e2')
+    send(p2, 'value', 2)
+    expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2'],ended:false})
+
+
 

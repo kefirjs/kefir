@@ -1019,7 +1019,9 @@ withMultSource('merge', {
   }
 });
 
-
+Property.prototype.merge = function(other) {
+  return Kefir.merge([this, other]);
+}
 
 
 
@@ -1052,6 +1054,9 @@ withMultSource('combine', {
   }
 });
 
+Property.prototype.combine = function(other, fn) {
+  return Kefir.combine([this, other], fn);
+}
 
 
 
@@ -6267,11 +6272,31 @@ describe('.combine()', function() {
       ended: false
     });
   });
-  return it('allows to pass optional combimator', function() {
+  it('allows to pass optional combimator', function() {
     var p1, p2, state;
     p1 = prop(1);
     p2 = prop(2);
     state = watch(Kefir.combine([p1, p2], function(a, b) {
+      return a + b;
+    }));
+    expect(state).toEqual({
+      values: [3],
+      errors: [],
+      ended: false
+    });
+    send(p1, 'value', 3);
+    send(p2, 'value', 4);
+    return expect(state).toEqual({
+      values: [3, 5, 7],
+      errors: [],
+      ended: false
+    });
+  });
+  return it('`property.combine(other, f)` should work', function() {
+    var p1, p2, state;
+    p1 = prop(1);
+    p2 = prop(2);
+    state = watch(p1.combine(p2, function(a, b) {
       return a + b;
     }));
     expect(state).toEqual({
@@ -7318,7 +7343,7 @@ describe('.merge()', function() {
       ended: false
     });
   });
-  return it('should activate/deactivate underlying properties', function() {
+  it('should activate/deactivate underlying properties', function() {
     var f, merged, p1, p2;
     p1 = prop();
     p2 = prop();
@@ -7331,6 +7356,26 @@ describe('.merge()', function() {
     merged.off('value', f);
     expect(p1).toNotBeActive();
     return expect(p2).toNotBeActive();
+  });
+  return it('`property.merge(other)` should work', function() {
+    var p1, p2, state;
+    p1 = prop(0);
+    p2 = prop(null, 'e0');
+    state = watch(p1.merge(p2));
+    expect(state).toEqual({
+      values: [0],
+      errors: ['e0'],
+      ended: false
+    });
+    send(p1, 'value', 1);
+    send(p2, 'error', 'e1');
+    send(p1, 'error', 'e2');
+    send(p2, 'value', 2);
+    return expect(state).toEqual({
+      values: [0, 1, 2],
+      errors: ['e0', 'e1', 'e2'],
+      ended: false
+    });
   });
 });
 

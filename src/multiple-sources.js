@@ -12,7 +12,9 @@ withMultSource('merge', {
   }
 });
 
-
+Property.prototype.merge = function(other) {
+  return Kefir.merge([this, other]);
+}
 
 
 
@@ -45,6 +47,9 @@ withMultSource('combine', {
   }
 });
 
+Property.prototype.combine = function(other, fn) {
+  return Kefir.combine([this, other], fn);
+}
 
 
 

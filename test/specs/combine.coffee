@@ -66,3 +66,12 @@ describe '.combine()', ->
     send(p1, 'value', 3)
     send(p2, 'value', 4)
     expect(state).toEqual({values:[3,5,7],errors:[],ended:false})
+
+  it '`property.combine(other, f)` should work', ->
+    p1 = prop(1)
+    p2 = prop(2)
+    state = watch p1.combine(p2, (a,b) -> a+b)
+    expect(state).toEqual({values:[3],errors:[],ended:false})
+    send(p1, 'value', 3)
+    send(p2, 'value', 4)
+    expect(state).toEqual({values:[3,5,7],errors:[],ended:false})
