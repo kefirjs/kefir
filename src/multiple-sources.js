@@ -163,10 +163,65 @@ withMultSource('pool', {
 
 
 
+// .sampledBy()
+// TODO: tests
+
+withMultSource('sampledBy', {
+  __init: function(args) {
+    var sources = args[0]
+      , samplers = args[1];
+    this.__allSources = concat(sources, samplers);
+    this.__sourcesSubscriber = new MultSubscriber([this.__passErrors, this]);
+    this.__sourcesSubscriber.addAll(sources);
+    this.__fn = args[2] ? new Callable(args[2]) : null;
+    if (samplers.length > 0) {
+      this.__multSubscriber.addAll(samplers);
+      this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
+    } else {
+      this.__send('end');
+    }
+  },
+  __passErrors: function(type, e) {
+    if (type === 'error') {
+      this.__send(type, e);
+    }
+  },
+  __free: function() {
+    this.__allSources = null;
+    this.__sourcesSubscriber.clear();
+    this.__sourcesSubscriber = null;
+    this.__fn = null;
+  },
+  __handleValue: function(x) {
+    if (hasValueAll(this.__allSources)) {
+      if (this.__fn) {
+        this.__send('value', Callable.call(this.__fn, getValueAll(this.__allSources)));
+      } else {
+        this.__send('value', getValueAll(this.__allSources));
+      }
+    }
+  },
+  __onActivationHook: function() {
+    this.__sourcesSubscriber.start();
+  },
+  __onDeactivationHook: function() {
+    this.__sourcesSubscriber.stop();
+  }
+});
+
+// TODO: tests
+Property.prototype.sampledBy = function(sampler, fn) {
+  return Kefir.sampledBy([this], [sampler], fn || id);
+}
 
 
 
-// utils
+
+
+
+
+
+/// Utils
 
 
 
