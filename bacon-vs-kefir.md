@@ -51,7 +51,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `observable.onError(f)` | :rocket: | `property.on('error', f)` / `property.watch('error', f)` |
 | `observable.onEnd(f)` | :rocket: | `property.on('end', f)` |
 | `observable.map(f)` | :rocket: | `property.map(f)` |
-| `stream.map(property) / property.sampledBy(stream)` | | |
+| `stream.map(property)` | :ghost: | `property1.sampledBy(property2)` |
 | `observable.mapError(f)` | :broken_heart: |  |
 | `observable.errors()` | :broken_heart: |  |
 | `observable.skipErrors()` | :broken_heart: |  |
@@ -78,7 +78,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `observable.zip(other, f)` | :broken_heart: |  |
 | `observable.slidingWindow(max [, min])` | :broken_heart: |  |
 | `observable.log()` | :rocket: | `property.log()` |
-| `observable.combine(property2, f)` | :rocket: |  `Kefir.combine([prop1, prop2], f)` |
+| `observable.combine(property2, f)` | :rocket: |  `property1.combine(property2, f)` |
 | `observable.withStateMachine(initState, f)` | :broken_heart: |  |
 | `observable.decode(mapping)` | :broken_heart: |  |
 | `observable.awaiting(otherObservable)` | :broken_heart: |  |
@@ -100,7 +100,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `stream.onValues(f)` | :broken_heart: |  |
 | `stream.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
 | `stream.concat(otherStream)` | :broken_heart: |  |
-| `stream.merge(otherStream)` | :rocket: | `Kefir.merge(p1, p2)` |
+| `stream.merge(otherStream)` | :rocket: | `property1.merge(property2)` |
 | `stream.startWith(value)` | :ghost: | `property.addCurrent('value', value)` |
 | `stream.skipWhile(f)` | :rocket: | `property.skipWhile(f)` |
 | `stream.skipWhile(property)` | :broken_heart: |  |
@@ -123,10 +123,10 @@ here marked as implemented it means that they are implemented but produces Prope
 | `property.onValue(f)` | :rocket: | `property.watch('value', f)` |
 | `property.onValues(f)` | :broken_heart: |  |
 | `property.assign(obj, method [, param...])` | :ghost: | `property.watch('value', [method, obj, param...])` |
-| `property.sample(interval)` | :broken_heart: |  |
-| `property.sampledBy(stream)` | :broken_heart: |  |
-| `property.sampledBy(property)` | :broken_heart: |  |
-| `property.sampledBy(streamOrProperty, f)` | :broken_heart: |  |
+| `property.sample(interval)` | :ghost: | `property.sampledBy(Kefir.interval(interval))` |
+| `property.sampledBy(stream)` | :rocket: | `property1.sampledBy(property2)` |
+| `property.sampledBy(property)` | :rocket: | `property1.sampledBy(property2)` |
+| `property.sampledBy(streamOrProperty, f)` | :rocket: | `property1.sampledBy(property2)` |
 | `property.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
 | `property.changes()` |  :ghost: | `property.removeCurrent()` |
 | `property.and(other)` | :broken_heart: |  |
@@ -140,9 +140,9 @@ here marked as implemented it means that they are implemented but produces Prope
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
 | `Bacon.combineAsArray(streams)` | :rocket: | `Kefir.combine(properties)` |
-| `Bacon.combineAsArray(s1, s2...)` | :broken_heart: |  |
+| `Bacon.combineAsArray(s1, s2...)` | :ghost: | `Kefir.combine([p1, p2...])` |
 | `Bacon.combineWith(f, stream1, stream2...)` | :rocket: | `Kefir.combine(properties, f)`  |
-| `Bacon.combineTemplate(template)` | :broken_heart: |  |
+| `Bacon.combineTemplate(template)` | :ghost: | `Kefir.combine([a, b, c], function(a, b, c) { /* build template here */ })` |
 | `Bacon.mergeAll(streams)` | :rocket: | `Kefir.merge(properties)` / `Kefir.merge(prop1, prop2, ...)` |
 | `Bacon.zipAsArray(streams)` | :broken_heart: |  |
 | `Bacon.zipAsArray(stream1, stream2...)` | :broken_heart: |  |

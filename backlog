@@ -1,6 +1,7 @@
 # Core property methods
 
 .forceActive(), .stopForceActive() need better names
+or maybe .activate(id) / .deactivate(id)
 
 
 
@@ -12,7 +13,7 @@
 .fromNodeCallback(fn)
 .fromPromise(promise)
 
-.promise(fn)
+
 
 
 
@@ -21,8 +22,10 @@
 .debounce(wait, immediate)
 http://underscorejs.org/#defer
 
-.removeCurrent(type = 'both')
-.addCurrent(type, x)
+streamOfFunctions.apply(seed)
+
+.toPromise()
+  .then()
 
 
 
@@ -44,6 +47,10 @@ property.skipUntil(property2)
 .zip(other, f)
 .concat(other)
 
+Kefir.on('value', properties, f)
+Kefir.on('value', properties, samplers, f)
+Kefir.watch('value', properties, f)
+Kefir.watch('value', properties, samplers, f)
 
 
 # Model
