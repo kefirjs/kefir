@@ -173,15 +173,13 @@
 
           # Branch represents tree branch
 
-          totalBranches = 0
-
           class BranchKefir
 
             oscillation: oscillationGenerator(Kefir.interval(1000 / 25))
 
-            constructor: (parent, addAngle) ->
-              totalBranches++
+            subscribe: (prop, f) -> prop.watch('value', f)
 
+            constructor: (parent, addAngle) ->
               addAngle = randomize(addAngle, .4)
 
               @width = randomize(parent.width * 3/4)
@@ -196,11 +194,11 @@
 
               line = {x1: 0, y1: 0, x2: 0, y2: 0, width: @width}
 
-              parent.top.onValue (p) ->
+              @subscribe parent.top, (p) ->
                 line.x1 = p.x
                 line.y1 = p.y
 
-              @top.onValue (p) ->
+              @subscribe @top, (p) ->
                 line.x2 = p.x
                 line.y2 = p.y
 
@@ -210,6 +208,8 @@
           class BranchBacon extends BranchKefir
 
             oscillation: oscillationGenerator(Bacon.interval(1000 / 25))
+
+            subscribe: (prop, f) -> prop.onValue(f)
 
 
 
@@ -243,7 +243,7 @@
 
 
 
-          $('#total').html totalBranches
+          $('#total').html lines.length
 
 
         </script>
