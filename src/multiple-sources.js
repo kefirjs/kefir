@@ -24,7 +24,7 @@ Property.prototype.merge = function(other) {
 withMultSource('combine', {
   __init: function(args) {
     this.__sources = args[0];
-    this.__fn = args[1] ? new Callable(args[1]) : null;
+    this.__fn = args[1] ? new Fn(args[1]) : null;
     if (this.__sources.length > 0) {
       this.__multSubscriber.addAll(this.__sources);
       this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
@@ -39,7 +39,7 @@ withMultSource('combine', {
   __handleValue: function(x) {
     if (hasValueAll(this.__sources)) {
       if (this.__fn) {
-        this.__send('value', Callable.call(this.__fn, getValueAll(this.__sources)));
+        this.__send('value', Fn.call(this.__fn, getValueAll(this.__sources)));
       } else {
         this.__send('value', getValueAll(this.__sources));
       }
@@ -63,7 +63,7 @@ Property.prototype.combine = function(other, fn) {
 var FlatMapProperty = withMultSource('flatMap', {
   __init: function(args) {
     this.__source = args[0];
-    this.__fn = args[1] ? new Callable(args[1]) : null;
+    this.__fn = args[1] ? new Fn(args[1]) : null;
     this.__multSubscriber.onLastRemoved([this.__endIfSourceEnded, this]);
     this.__source.on('end', [this.__endIfNoSubSources, this]);
     if (this.__source.has('value')) {
@@ -85,7 +85,7 @@ var FlatMapProperty = withMultSource('flatMap', {
   },
   __onValue: function(x) {
     if (this.__fn) {
-      this.__multSubscriber.add(Callable.call(this.__fn, [x]));
+      this.__multSubscriber.add(Fn.call(this.__fn, [x]));
     } else {
       this.__multSubscriber.add(x);
     }
@@ -129,7 +129,7 @@ function FlatMapLatestProperty() {
 }
 
 inherit(FlatMapLatestProperty, FlatMapProperty, {
-  __name: 'FlatMapLatestProperty',
+  __name: 'flatMapLatest',
   __onValue: function(x) {
     this.__multSubscriber.removeAll();
     FlatMapProperty.prototype.__onValue.call(this, x);
@@ -164,7 +164,6 @@ withMultSource('pool', {
 
 
 // .sampledBy()
-// TODO: tests
 
 withMultSource('sampledBy', {
   __init: function(args) {
@@ -173,7 +172,7 @@ withMultSource('sampledBy', {
     this.__allSources = concat(sources, samplers);
     this.__sourcesSubscriber = new MultSubscriber([this.__passErrors, this]);
     this.__sourcesSubscriber.addAll(sources);
-    this.__fn = args[2] ? new Callable(args[2]) : null;
+    this.__fn = args[2] ? new Fn(args[2]) : null;
     if (samplers.length > 0) {
       this.__multSubscriber.addAll(samplers);
       this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
@@ -195,7 +194,7 @@ withMultSource('sampledBy', {
   __handleValue: function(x) {
     if (hasValueAll(this.__allSources)) {
       if (this.__fn) {
-        this.__send('value', Callable.call(this.__fn, getValueAll(this.__allSources)));
+        this.__send('value', Fn.call(this.__fn, getValueAll(this.__allSources)));
       } else {
         this.__send('value', getValueAll(this.__allSources));
       }
@@ -209,7 +208,6 @@ withMultSource('sampledBy', {
   }
 });
 
-// TODO: tests
 Property.prototype.sampledBy = function(sampler, fn) {
   return Kefir.sampledBy([this], [sampler], fn || id);
 }
@@ -254,7 +252,7 @@ function withMultSource(name, mixin, noMethod) {
 
   inherit(AnonymousProperty, Property, {
 
-    __name: capFirst(name) + 'Property',
+    __name: name,
 
     __init: function(args) {},
     __free: function() {},
@@ -308,7 +306,7 @@ function withMultSource(name, mixin, noMethod) {
 
 
 function MultSubscriber(listener) {
-  this.listener = new Callable(listener);
+  this.listener = new Fn(listener);
   this.properties = [];
   this.active = false;
 }
@@ -342,10 +340,10 @@ extend(MultSubscriber.prototype, {
     this.properties.push(property);
     property.on('end', [this.remove, this, property]);
     if (property.has('value')) {
-      Callable.call(this.listener, ['value', property.get('value'), true]);
+      Fn.call(this.listener, ['value', property.get('value'), true]);
     }
     if (property.has('error')) {
-      Callable.call(this.listener, ['error', property.get('error'), true]);
+      Fn.call(this.listener, ['error', property.get('error'), true]);
     }
     if (this.active) {
       property.on('both', this.listener);
@@ -363,7 +361,7 @@ extend(MultSubscriber.prototype, {
       }
     }
     if (this.properties.length === 0 && this.onLastRemovedCb) {
-      Callable.call(this.onLastRemovedCb);
+      Fn.call(this.onLastRemovedCb);
     }
   },
   removeAll: function(){
@@ -375,12 +373,12 @@ extend(MultSubscriber.prototype, {
     }
     this.properties = [];
     if (this.onLastRemovedCb) {
-      Callable.call(this.onLastRemovedCb);
+      Fn.call(this.onLastRemovedCb);
     }
   },
 
   onLastRemoved: function(fn) {
-    this.onLastRemovedCb = new Callable(fn);
+    this.onLastRemovedCb = new Fn(fn);
   },
   offLastRemoved: function() {
     this.onLastRemovedCb = null;

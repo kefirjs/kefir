@@ -140,10 +140,6 @@ var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
 
-function capFirst(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
 function isFn(fn) {
   return typeof fn === 'function';
 }
@@ -192,10 +188,10 @@ var Kefir = {};
 
 
 
-// Callable
+// Fn
 
-function Callable(fnMeta) {
-  if (isFn(fnMeta) || (fnMeta instanceof Callable)) {
+function Fn(fnMeta) {
+  if (isFn(fnMeta) || (fnMeta instanceof Fn)) {
     return fnMeta;
   }
   if (fnMeta && fnMeta.length) {
@@ -203,21 +199,21 @@ function Callable(fnMeta) {
       if (isFn(fnMeta[0])) {
         return fnMeta[0];
       } else {
-        throw new Error('can\'t convert to Callable ' + fnMeta);
+        throw new Error('can\'t convert to Fn ' + fnMeta);
       }
     }
     this.fn = getFn(fnMeta[0], fnMeta[1]);
     this.context = fnMeta[1];
     this.args = rest(fnMeta, 2, null);
   } else {
-    throw new Error('can\'t convert to Callable ' + fnMeta);
+    throw new Error('can\'t convert to Fn ' + fnMeta);
   }
 }
 
-Callable.call = function(callable, args) {
+Fn.call = function(callable, args) {
   if (isFn(callable)) {
     return call(callable, null, args);
-  } else if (callable instanceof Callable) {
+  } else if (callable instanceof Fn) {
     if (callable.args) {
       if (args) {
         args = concat(callable.args, args);
@@ -227,16 +223,16 @@ Callable.call = function(callable, args) {
     }
     return call(callable.fn, callable.context, args);
   } else {
-    return Callable.call(new Callable(callable), args);
+    return Fn.call(new Fn(callable), args);
   }
 }
 
-Callable.isEqual = function(a, b) {
+Fn.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
-  a = new Callable(a);
-  b = new Callable(b);
+  a = new Fn(a);
+  b = new Fn(b);
   if (isFn(a) || isFn(b)) {
     return a === b;
   }
@@ -259,15 +255,15 @@ function Subscribers() {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    this[type].push(new Callable(fn));
+    this[type].push(new Fn(fn));
   },
   remove: function(type, fn) {
-    var callable = new Callable(fn)
+    var callable = new Fn(fn)
       , subs = this[type]
       , length = subs.length
       , i;
     for (i = 0; i < length; i++) {
-      if (Callable.isEqual(subs[i], callable)) {
+      if (Fn.isEqual(subs[i], callable)) {
         subs.splice(i, 1);
         return;
       }
@@ -279,11 +275,11 @@ extend(Subscribers.prototype, {
       , i;
     if (length !== 0) {
       if (length === 1) {
-        Callable.call(subs[0], args);
+        Fn.call(subs[0], args);
       } else {
         subs = cloneArray(subs);
         for (i = 0; i < length; i++) {
-          Callable.call(subs[i], args);
+          Fn.call(subs[i], args);
         }
       }
     }
@@ -310,7 +306,7 @@ Kefir.Property = Property;
 
 extend(Property.prototype, {
 
-  __name: 'Property',
+  __name: 'property',
 
 
   __onActivation: function() {},
@@ -356,7 +352,7 @@ extend(Property.prototype, {
         this.__setActive(true);
       }
     } else if (type === 'end') {
-      Callable.call(fnMeta);
+      Fn.call(fnMeta);
     }
     return this;
   },
@@ -375,14 +371,14 @@ extend(Property.prototype, {
   watch: function(type, fnMeta) {
     if (type === 'both') {
       if (this.has('value')) {
-        Callable.call(fnMeta, ['value', this.get('value'), true]);
+        Fn.call(fnMeta, ['value', this.get('value'), true]);
       }
       if (this.has('error')) {
-        Callable.call(fnMeta, ['error', this.get('error'), true]);
+        Fn.call(fnMeta, ['error', this.get('error'), true]);
       }
     } else {
       if (this.has(type)) {
-        Callable.call(fnMeta, [this.get(type), true]);
+        Fn.call(fnMeta, [this.get(type), true]);
       }
     }
     return this.on(type, fnMeta);
@@ -437,16 +433,16 @@ Property.prototype.log = function(name) {
 
 function FromBinderProperty(fn) {
   Property.call(this);
-  this.__fn = new Callable(fn);
+  this.__fn = new Fn(fn);
 }
 
 inherit(FromBinderProperty, Property, {
 
-  __name: 'FromBinderProperty',
+  __name: 'fromBinder',
 
   __onActivation: function() {
     var _this = this;
-    this.__unsubscribe = Callable.call(this.__fn, [
+    this.__unsubscribe = Fn.call(this.__fn, [
       function(type, x) {  _this.__send(type, x)  }
     ]);
   },
@@ -480,7 +476,7 @@ function Emitter() {
 }
 
 inherit(Emitter, Property, {
-  __name: 'EmitterProperty',
+  __name: 'emitter',
   emit: function(type, x) {
     this.__send(type, x);
   }
@@ -500,7 +496,7 @@ Kefir.emitter = function() {
 
 var emptyObj = new Property();
 emptyObj.__send('end');
-emptyObj.__name = 'NeverProperty';
+emptyObj.__name = 'empty';
 Kefir.empty = function() {  return emptyObj  }
 
 
@@ -516,7 +512,7 @@ function ConstantProperty(x) {
 }
 
 inherit(ConstantProperty, Property, {
-  __name: 'ConstantProperty'
+  __name: 'constant'
 })
 
 Kefir.constant = function(x) {
@@ -535,7 +531,7 @@ function ConstantErrorProperty(x) {
 }
 
 inherit(ConstantErrorProperty, Property, {
-  __name: 'ConstantErrorProperty'
+  __name: 'constantError'
 })
 
 Kefir.constantError = function(x) {
@@ -550,7 +546,7 @@ Kefir.constantError = function(x) {
 withOneSource('withHandler', {
   __init: function(args) {
     var _this = this;
-    this.__handler = new Callable(args[0]);
+    this.__handler = new Fn(args[0]);
     this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
   },
   __free: function() {
@@ -558,13 +554,13 @@ withOneSource('withHandler', {
     this.__bindedSend = null;
   },
   __handleValue: function(x, initial) {
-    Callable.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
+    Fn.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
   },
   __handleError: function(e, initial) {
-    Callable.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
+    Fn.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
   },
   __handleEnd: function() {
-    Callable.call(this.__handler, [this.__bindedSend, 'end']);
+    Fn.call(this.__handler, [this.__bindedSend, 'end']);
   }
 });
 
@@ -573,7 +569,6 @@ withOneSource('withHandler', {
 
 
 // .removeCurrent()
-// TODO: tests
 
 withOneSource('removeCurrent', {
   __init: function(args) {
@@ -596,7 +591,6 @@ withOneSource('removeCurrent', {
 
 
 // .addCurrent()
-// TODO: tests
 
 withOneSource('addCurrent', {
   __init: function(args) {
@@ -624,13 +618,13 @@ withOneSource('addCurrent', {
 
 withOneSource('map', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __handleValue: function(x) {
-    this.__send('value', Callable.call(this.__fn, [x]));
+    this.__send('value', Fn.call(this.__fn, [x]));
   }
 });
 
@@ -642,13 +636,13 @@ withOneSource('map', {
 
 withOneSource('filter', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __handleValue: function(x) {
-    if (Callable.call(this.__fn, [x])) {
+    if (Fn.call(this.__fn, [x])) {
       this.__send('value', x);
     }
   }
@@ -662,14 +656,14 @@ withOneSource('filter', {
 withOneSource('diff', {
   __init: function(args) {
     this.__prev = args[0];
-    this.__fn = new Callable(rest(args, 1));
+    this.__fn = new Fn(rest(args, 1));
   },
   __free: function() {
     this.__prev = null;
     this.__fn = null;
   },
   __handleValue: function(x) {
-    this.__send('value', Callable.call(this.__fn, [this.__prev, x]));
+    this.__send('value', Fn.call(this.__fn, [this.__prev, x]));
     this.__prev = x;
   }
 });
@@ -681,13 +675,13 @@ withOneSource('diff', {
 
 withOneSource('takeWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __handleValue: function(x) {
-    if (Callable.call(this.__fn, [x])) {
+    if (Fn.call(this.__fn, [x])) {
       this.__send('value', x);
     } else {
       this.__send('end');
@@ -746,7 +740,7 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   __init: function(args) {
     if (args.length > 0) {
-      this.__fn = new Callable(args[0]);
+      this.__fn = new Fn(args[0]);
     } else {
       this.__fn = strictlyEqual;
     }
@@ -757,7 +751,7 @@ withOneSource('skipDuplicates', {
     this.__prev = null;
   },
   __handleValue: function(x) {
-    if (this.__prev === NOTHING || !Callable.call(this.__fn, [this.__prev, x])) {
+    if (this.__prev === NOTHING || !Fn.call(this.__fn, [this.__prev, x])) {
       this.__send('value', x);
     }
     this.__prev = x;
@@ -772,7 +766,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
     this.__skip = true;
   },
   __free: function() {
@@ -783,7 +777,7 @@ withOneSource('skipWhile', {
       this.__send('value', x);
       return;
     }
-    if (!Callable.call(this.__fn, [x])) {
+    if (!Fn.call(this.__fn, [x])) {
       this.__skip = false;
       this.__fn = null;
       this.__send('value', x);
@@ -800,13 +794,13 @@ withOneSource('skipWhile', {
 withOneSource('scan', {
   __init: function(args) {
     this.__send('value', args[0]);
-    this.__fn = new Callable(rest(args, 1));
+    this.__fn = new Fn(rest(args, 1));
   },
   __free: function(){
     this.__fn = null;
   },
   __handleValue: function(x) {
-    this.__send('value', Callable.call(this.__fn, [this.get('value'), x]));
+    this.__send('value', Fn.call(this.__fn, [this.get('value'), x]));
   }
 });
 
@@ -821,14 +815,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   __init: function(args) {
     this.__result = args[0];
-    this.__fn = new Callable(rest(args, 1));
+    this.__fn = new Fn(rest(args, 1));
   },
   __free: function(){
     this.__fn = null;
     this.__result = null;
   },
   __handleValue: function(x) {
-    this.__result = Callable.call(this.__fn, [this.__result, x]);
+    this.__result = Fn.call(this.__fn, [this.__result, x]);
   },
   __handleEnd: function() {
     this.__send('value', this.__result);
@@ -943,6 +937,10 @@ withOneSource('delay', {
 
 
 
+
+/// Utils
+
+
 function withOneSource(name, mixin) {
 
   function AnonymousProperty(source, args) {
@@ -962,7 +960,7 @@ function withOneSource(name, mixin) {
 
   inherit(AnonymousProperty, Property, {
 
-    __name: capFirst(name) + 'Property',
+    __name: name,
 
     __init: function(args) {},
     __free: function() {},
@@ -1031,7 +1029,7 @@ Property.prototype.merge = function(other) {
 withMultSource('combine', {
   __init: function(args) {
     this.__sources = args[0];
-    this.__fn = args[1] ? new Callable(args[1]) : null;
+    this.__fn = args[1] ? new Fn(args[1]) : null;
     if (this.__sources.length > 0) {
       this.__multSubscriber.addAll(this.__sources);
       this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
@@ -1046,7 +1044,7 @@ withMultSource('combine', {
   __handleValue: function(x) {
     if (hasValueAll(this.__sources)) {
       if (this.__fn) {
-        this.__send('value', Callable.call(this.__fn, getValueAll(this.__sources)));
+        this.__send('value', Fn.call(this.__fn, getValueAll(this.__sources)));
       } else {
         this.__send('value', getValueAll(this.__sources));
       }
@@ -1070,7 +1068,7 @@ Property.prototype.combine = function(other, fn) {
 var FlatMapProperty = withMultSource('flatMap', {
   __init: function(args) {
     this.__source = args[0];
-    this.__fn = args[1] ? new Callable(args[1]) : null;
+    this.__fn = args[1] ? new Fn(args[1]) : null;
     this.__multSubscriber.onLastRemoved([this.__endIfSourceEnded, this]);
     this.__source.on('end', [this.__endIfNoSubSources, this]);
     if (this.__source.has('value')) {
@@ -1092,7 +1090,7 @@ var FlatMapProperty = withMultSource('flatMap', {
   },
   __onValue: function(x) {
     if (this.__fn) {
-      this.__multSubscriber.add(Callable.call(this.__fn, [x]));
+      this.__multSubscriber.add(Fn.call(this.__fn, [x]));
     } else {
       this.__multSubscriber.add(x);
     }
@@ -1136,7 +1134,7 @@ function FlatMapLatestProperty() {
 }
 
 inherit(FlatMapLatestProperty, FlatMapProperty, {
-  __name: 'FlatMapLatestProperty',
+  __name: 'flatMapLatest',
   __onValue: function(x) {
     this.__multSubscriber.removeAll();
     FlatMapProperty.prototype.__onValue.call(this, x);
@@ -1171,7 +1169,6 @@ withMultSource('pool', {
 
 
 // .sampledBy()
-// TODO: tests
 
 withMultSource('sampledBy', {
   __init: function(args) {
@@ -1180,7 +1177,7 @@ withMultSource('sampledBy', {
     this.__allSources = concat(sources, samplers);
     this.__sourcesSubscriber = new MultSubscriber([this.__passErrors, this]);
     this.__sourcesSubscriber.addAll(sources);
-    this.__fn = args[2] ? new Callable(args[2]) : null;
+    this.__fn = args[2] ? new Fn(args[2]) : null;
     if (samplers.length > 0) {
       this.__multSubscriber.addAll(samplers);
       this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
@@ -1202,7 +1199,7 @@ withMultSource('sampledBy', {
   __handleValue: function(x) {
     if (hasValueAll(this.__allSources)) {
       if (this.__fn) {
-        this.__send('value', Callable.call(this.__fn, getValueAll(this.__allSources)));
+        this.__send('value', Fn.call(this.__fn, getValueAll(this.__allSources)));
       } else {
         this.__send('value', getValueAll(this.__allSources));
       }
@@ -1216,7 +1213,6 @@ withMultSource('sampledBy', {
   }
 });
 
-// TODO: tests
 Property.prototype.sampledBy = function(sampler, fn) {
   return Kefir.sampledBy([this], [sampler], fn || id);
 }
@@ -1261,7 +1257,7 @@ function withMultSource(name, mixin, noMethod) {
 
   inherit(AnonymousProperty, Property, {
 
-    __name: capFirst(name) + 'Property',
+    __name: name,
 
     __init: function(args) {},
     __free: function() {},
@@ -1315,7 +1311,7 @@ function withMultSource(name, mixin, noMethod) {
 
 
 function MultSubscriber(listener) {
-  this.listener = new Callable(listener);
+  this.listener = new Fn(listener);
   this.properties = [];
   this.active = false;
 }
@@ -1349,10 +1345,10 @@ extend(MultSubscriber.prototype, {
     this.properties.push(property);
     property.on('end', [this.remove, this, property]);
     if (property.has('value')) {
-      Callable.call(this.listener, ['value', property.get('value'), true]);
+      Fn.call(this.listener, ['value', property.get('value'), true]);
     }
     if (property.has('error')) {
-      Callable.call(this.listener, ['error', property.get('error'), true]);
+      Fn.call(this.listener, ['error', property.get('error'), true]);
     }
     if (this.active) {
       property.on('both', this.listener);
@@ -1370,7 +1366,7 @@ extend(MultSubscriber.prototype, {
       }
     }
     if (this.properties.length === 0 && this.onLastRemovedCb) {
-      Callable.call(this.onLastRemovedCb);
+      Fn.call(this.onLastRemovedCb);
     }
   },
   removeAll: function(){
@@ -1382,12 +1378,12 @@ extend(MultSubscriber.prototype, {
     }
     this.properties = [];
     if (this.onLastRemovedCb) {
-      Callable.call(this.onLastRemovedCb);
+      Fn.call(this.onLastRemovedCb);
     }
   },
 
   onLastRemoved: function(fn) {
-    this.onLastRemovedCb = new Callable(fn);
+    this.onLastRemovedCb = new Fn(fn);
   },
   offLastRemoved: function() {
     this.onLastRemovedCb = null;
@@ -1407,7 +1403,7 @@ extend(MultSubscriber.prototype, {
 
 withInterval('withInterval', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
     var _this = this;
     this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
   },
@@ -1416,7 +1412,7 @@ withInterval('withInterval', {
     this.__bindedSend = null;
   },
   __onTick: function() {
-    Callable.call(this.__fn, [this.__bindedSend]);
+    Fn.call(this.__fn, [this.__bindedSend]);
   }
 });
 
@@ -1428,13 +1424,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __onTick: function() {
-    this.__send('value', Callable.call(this.__fn));
+    this.__send('value', Fn.call(this.__fn));
   }
 });
 
@@ -1530,6 +1526,9 @@ withInterval('later', {
 
 
 
+
+/// Utils
+
 function withInterval(name, mixin) {
 
   function AnonymousProperty(wait, args) {
@@ -1543,7 +1542,7 @@ function withInterval(name, mixin) {
 
   inherit(AnonymousProperty, Property, {
 
-    __name: capFirst(name) + 'Property',
+    __name: name,
 
     __init: function(args) {},
     __free: function() {},

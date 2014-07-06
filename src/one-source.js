@@ -6,7 +6,7 @@
 withOneSource('withHandler', {
   __init: function(args) {
     var _this = this;
-    this.__handler = new Callable(args[0]);
+    this.__handler = new Fn(args[0]);
     this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
   },
   __free: function() {
@@ -14,13 +14,13 @@ withOneSource('withHandler', {
     this.__bindedSend = null;
   },
   __handleValue: function(x, initial) {
-    Callable.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
+    Fn.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
   },
   __handleError: function(e, initial) {
-    Callable.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
+    Fn.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
   },
   __handleEnd: function() {
-    Callable.call(this.__handler, [this.__bindedSend, 'end']);
+    Fn.call(this.__handler, [this.__bindedSend, 'end']);
   }
 });
 
@@ -29,7 +29,6 @@ withOneSource('withHandler', {
 
 
 // .removeCurrent()
-// TODO: tests
 
 withOneSource('removeCurrent', {
   __init: function(args) {
@@ -52,7 +51,6 @@ withOneSource('removeCurrent', {
 
 
 // .addCurrent()
-// TODO: tests
 
 withOneSource('addCurrent', {
   __init: function(args) {
@@ -80,13 +78,13 @@ withOneSource('addCurrent', {
 
 withOneSource('map', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __handleValue: function(x) {
-    this.__send('value', Callable.call(this.__fn, [x]));
+    this.__send('value', Fn.call(this.__fn, [x]));
   }
 });
 
@@ -98,13 +96,13 @@ withOneSource('map', {
 
 withOneSource('filter', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __handleValue: function(x) {
-    if (Callable.call(this.__fn, [x])) {
+    if (Fn.call(this.__fn, [x])) {
       this.__send('value', x);
     }
   }
@@ -118,14 +116,14 @@ withOneSource('filter', {
 withOneSource('diff', {
   __init: function(args) {
     this.__prev = args[0];
-    this.__fn = new Callable(rest(args, 1));
+    this.__fn = new Fn(rest(args, 1));
   },
   __free: function() {
     this.__prev = null;
     this.__fn = null;
   },
   __handleValue: function(x) {
-    this.__send('value', Callable.call(this.__fn, [this.__prev, x]));
+    this.__send('value', Fn.call(this.__fn, [this.__prev, x]));
     this.__prev = x;
   }
 });
@@ -137,13 +135,13 @@ withOneSource('diff', {
 
 withOneSource('takeWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __handleValue: function(x) {
-    if (Callable.call(this.__fn, [x])) {
+    if (Fn.call(this.__fn, [x])) {
       this.__send('value', x);
     } else {
       this.__send('end');
@@ -202,7 +200,7 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   __init: function(args) {
     if (args.length > 0) {
-      this.__fn = new Callable(args[0]);
+      this.__fn = new Fn(args[0]);
     } else {
       this.__fn = strictlyEqual;
     }
@@ -213,7 +211,7 @@ withOneSource('skipDuplicates', {
     this.__prev = null;
   },
   __handleValue: function(x) {
-    if (this.__prev === NOTHING || !Callable.call(this.__fn, [this.__prev, x])) {
+    if (this.__prev === NOTHING || !Fn.call(this.__fn, [this.__prev, x])) {
       this.__send('value', x);
     }
     this.__prev = x;
@@ -228,7 +226,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
     this.__skip = true;
   },
   __free: function() {
@@ -239,7 +237,7 @@ withOneSource('skipWhile', {
       this.__send('value', x);
       return;
     }
-    if (!Callable.call(this.__fn, [x])) {
+    if (!Fn.call(this.__fn, [x])) {
       this.__skip = false;
       this.__fn = null;
       this.__send('value', x);
@@ -256,13 +254,13 @@ withOneSource('skipWhile', {
 withOneSource('scan', {
   __init: function(args) {
     this.__send('value', args[0]);
-    this.__fn = new Callable(rest(args, 1));
+    this.__fn = new Fn(rest(args, 1));
   },
   __free: function(){
     this.__fn = null;
   },
   __handleValue: function(x) {
-    this.__send('value', Callable.call(this.__fn, [this.get('value'), x]));
+    this.__send('value', Fn.call(this.__fn, [this.get('value'), x]));
   }
 });
 
@@ -277,14 +275,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   __init: function(args) {
     this.__result = args[0];
-    this.__fn = new Callable(rest(args, 1));
+    this.__fn = new Fn(rest(args, 1));
   },
   __free: function(){
     this.__fn = null;
     this.__result = null;
   },
   __handleValue: function(x) {
-    this.__result = Callable.call(this.__fn, [this.__result, x]);
+    this.__result = Fn.call(this.__fn, [this.__result, x]);
   },
   __handleEnd: function() {
     this.__send('value', this.__result);
@@ -399,6 +397,10 @@ withOneSource('delay', {
 
 
 
+
+/// Utils
+
+
 function withOneSource(name, mixin) {
 
   function AnonymousProperty(source, args) {
@@ -418,7 +420,7 @@ function withOneSource(name, mixin) {
 
   inherit(AnonymousProperty, Property, {
 
-    __name: capFirst(name) + 'Property',
+    __name: name,
 
     __init: function(args) {},
     __free: function() {},

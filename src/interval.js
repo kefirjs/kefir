@@ -2,7 +2,7 @@
 
 withInterval('withInterval', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
     var _this = this;
     this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
   },
@@ -11,7 +11,7 @@ withInterval('withInterval', {
     this.__bindedSend = null;
   },
   __onTick: function() {
-    Callable.call(this.__fn, [this.__bindedSend]);
+    Fn.call(this.__fn, [this.__bindedSend]);
   }
 });
 
@@ -23,13 +23,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   __init: function(args) {
-    this.__fn = new Callable(args[0]);
+    this.__fn = new Fn(args[0]);
   },
   __free: function() {
     this.__fn = null;
   },
   __onTick: function() {
-    this.__send('value', Callable.call(this.__fn));
+    this.__send('value', Fn.call(this.__fn));
   }
 });
 
@@ -125,6 +125,9 @@ withInterval('later', {
 
 
 
+
+/// Utils
+
 function withInterval(name, mixin) {
 
   function AnonymousProperty(wait, args) {
@@ -138,7 +141,7 @@ function withInterval(name, mixin) {
 
   inherit(AnonymousProperty, Property, {
 
-    __name: capFirst(name) + 'Property',
+    __name: name,
 
     __init: function(args) {},
     __free: function() {},

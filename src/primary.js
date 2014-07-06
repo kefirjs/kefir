@@ -4,16 +4,16 @@
 
 function FromBinderProperty(fn) {
   Property.call(this);
-  this.__fn = new Callable(fn);
+  this.__fn = new Fn(fn);
 }
 
 inherit(FromBinderProperty, Property, {
 
-  __name: 'FromBinderProperty',
+  __name: 'fromBinder',
 
   __onActivation: function() {
     var _this = this;
-    this.__unsubscribe = Callable.call(this.__fn, [
+    this.__unsubscribe = Fn.call(this.__fn, [
       function(type, x) {  _this.__send(type, x)  }
     ]);
   },
@@ -47,7 +47,7 @@ function Emitter() {
 }
 
 inherit(Emitter, Property, {
-  __name: 'EmitterProperty',
+  __name: 'emitter',
   emit: function(type, x) {
     this.__send(type, x);
   }
@@ -67,7 +67,7 @@ Kefir.emitter = function() {
 
 var emptyObj = new Property();
 emptyObj.__send('end');
-emptyObj.__name = 'NeverProperty';
+emptyObj.__name = 'empty';
 Kefir.empty = function() {  return emptyObj  }
 
 
@@ -83,7 +83,7 @@ function ConstantProperty(x) {
 }
 
 inherit(ConstantProperty, Property, {
-  __name: 'ConstantProperty'
+  __name: 'constant'
 })
 
 Kefir.constant = function(x) {
@@ -102,7 +102,7 @@ function ConstantErrorProperty(x) {
 }
 
 inherit(ConstantErrorProperty, Property, {
-  __name: 'ConstantErrorProperty'
+  __name: 'constantError'
 })
 
 Kefir.constantError = function(x) {

@@ -133,10 +133,6 @@ var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
 
-function capFirst(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
 function isFn(fn) {
   return typeof fn === 'function';
 }

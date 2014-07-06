@@ -4,10 +4,10 @@ var Kefir = {};
 
 
 
-// Callable
+// Fn
 
-function Callable(fnMeta) {
-  if (isFn(fnMeta) || (fnMeta instanceof Callable)) {
+function Fn(fnMeta) {
+  if (isFn(fnMeta) || (fnMeta instanceof Fn)) {
     return fnMeta;
   }
   if (fnMeta && fnMeta.length) {
@@ -15,21 +15,21 @@ function Callable(fnMeta) {
       if (isFn(fnMeta[0])) {
         return fnMeta[0];
       } else {
-        throw new Error('can\'t convert to Callable ' + fnMeta);
+        throw new Error('can\'t convert to Fn ' + fnMeta);
       }
     }
     this.fn = getFn(fnMeta[0], fnMeta[1]);
     this.context = fnMeta[1];
     this.args = rest(fnMeta, 2, null);
   } else {
-    throw new Error('can\'t convert to Callable ' + fnMeta);
+    throw new Error('can\'t convert to Fn ' + fnMeta);
   }
 }
 
-Callable.call = function(callable, args) {
+Fn.call = function(callable, args) {
   if (isFn(callable)) {
     return call(callable, null, args);
-  } else if (callable instanceof Callable) {
+  } else if (callable instanceof Fn) {
     if (callable.args) {
       if (args) {
         args = concat(callable.args, args);
@@ -39,16 +39,16 @@ Callable.call = function(callable, args) {
     }
     return call(callable.fn, callable.context, args);
   } else {
-    return Callable.call(new Callable(callable), args);
+    return Fn.call(new Fn(callable), args);
   }
 }
 
-Callable.isEqual = function(a, b) {
+Fn.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
-  a = new Callable(a);
-  b = new Callable(b);
+  a = new Fn(a);
+  b = new Fn(b);
   if (isFn(a) || isFn(b)) {
     return a === b;
   }
@@ -71,15 +71,15 @@ function Subscribers() {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    this[type].push(new Callable(fn));
+    this[type].push(new Fn(fn));
   },
   remove: function(type, fn) {
-    var callable = new Callable(fn)
+    var callable = new Fn(fn)
       , subs = this[type]
       , length = subs.length
       , i;
     for (i = 0; i < length; i++) {
-      if (Callable.isEqual(subs[i], callable)) {
+      if (Fn.isEqual(subs[i], callable)) {
         subs.splice(i, 1);
         return;
       }
@@ -91,11 +91,11 @@ extend(Subscribers.prototype, {
       , i;
     if (length !== 0) {
       if (length === 1) {
-        Callable.call(subs[0], args);
+        Fn.call(subs[0], args);
       } else {
         subs = cloneArray(subs);
         for (i = 0; i < length; i++) {
-          Callable.call(subs[i], args);
+          Fn.call(subs[i], args);
         }
       }
     }
@@ -122,7 +122,7 @@ Kefir.Property = Property;
 
 extend(Property.prototype, {
 
-  __name: 'Property',
+  __name: 'property',
 
 
   __onActivation: function() {},
@@ -168,7 +168,7 @@ extend(Property.prototype, {
         this.__setActive(true);
       }
     } else if (type === 'end') {
-      Callable.call(fnMeta);
+      Fn.call(fnMeta);
     }
     return this;
   },
@@ -187,14 +187,14 @@ extend(Property.prototype, {
   watch: function(type, fnMeta) {
     if (type === 'both') {
       if (this.has('value')) {
-        Callable.call(fnMeta, ['value', this.get('value'), true]);
+        Fn.call(fnMeta, ['value', this.get('value'), true]);
       }
       if (this.has('error')) {
-        Callable.call(fnMeta, ['error', this.get('error'), true]);
+        Fn.call(fnMeta, ['error', this.get('error'), true]);
       }
     } else {
       if (this.has(type)) {
-        Callable.call(fnMeta, [this.get(type), true]);
+        Fn.call(fnMeta, [this.get(type), true]);
       }
     }
     return this.on(type, fnMeta);
