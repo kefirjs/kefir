@@ -12,13 +12,11 @@ but also has some unique features that not are in Bacon.
 See ["Bacon vs Kefir"](https://github.com/pozadi/kefir/blob/master/bacon-vs-kefir.md)
 to get a glance on progress.
 
-
-
-# Tests
-
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
-
-[![Code Climate](https://codeclimate.com/github/pozadi/kefir.png)](https://codeclimate.com/github/pozadi/kefir)
+[![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir)
+[![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
+[![devDependency Status](https://david-dm.org/pozadi/kefir/dev-status.svg)](https://david-dm.org/pozadi/kefir#info=devDependencies)
+[![NPM package version](http://img.shields.io/npm/v/kefir.svg)](https://www.npmjs.org/package/kefir)
 
 [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
 
