@@ -127,7 +127,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `property.sample(interval)` | :ghost: | `property.sampledBy(Kefir.interval(interval))` |
 | `property.sampledBy(stream)` | :rocket: | `property1.sampledBy(property2)` |
 | `property.sampledBy(property)` | :rocket: | `property1.sampledBy(property2)` |
-| `property.sampledBy(streamOrProperty, f)` | :rocket: | `property1.sampledBy(property2)` |
+| `property.sampledBy(streamOrProperty, f)` | :rocket: | `property1.sampledBy(property2, f)` |
 | `property.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
 | `property.changes()` |  :ghost: | `property.removeCurrent()` |
 | `property.and(other)` | :broken_heart: |  |
