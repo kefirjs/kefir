@@ -419,7 +419,7 @@ Property.prototype.log = function(name) {
     name = this.toString();
   }
   this.watch('both', function(type, x, isInitial) {
-    console.log(name, '<' + type + (isInitial ? ':initial' : '') + '>', x);
+    console.log(name, '<' + type + (isInitial ? ':current' : '') + '>', x);
   });
   this.on('end', function() {
     console.log(name, '<end>');
