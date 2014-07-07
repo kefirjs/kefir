@@ -117,10 +117,23 @@
         font-size: 12px;
         padding: 2px 0 2px 15px;
         border-left: 5px solid #bbb;
-        margin: 0px 0 30px;
+        margin: 0 0 30px;
         overflow: auto;
-        background: white
+        background: white;
+        position: relative;
       }
+        pre[title]:after {
+          content: attr(title);
+          position: absolute;
+          top: 0;
+          right: 0;
+          background: #ddd;
+          padding: 0 .5em;
+          font-size: .8em;
+        }
+        pre + pre {
+          margin-top: -10px;
+        }
 
 
       .sidebar {
@@ -228,7 +241,6 @@
       </a>
 
       <ul class="toc-section">
-        <li>- <a href="#from-binder">fromBinder</a></li>
         <li>- <a href="#emitter">emitter</a></li>
         <li>- <a href="#empty">empty</a></li>
         <li>- <a href="#constant">constant</a></li>
@@ -239,6 +251,7 @@
         <li>- <a href="#repeatedly">repeatedly</a></li>
         <li>- <a href="#from-poll">fromPoll</a></li>
         <li>- <a href="#with-interval">withInterval</a></li>
+        <li>- <a href="#from-binder">fromBinder</a></li>
       </ul>
 
 
@@ -296,6 +309,15 @@
       </ul>
 
 
+
+
+      <a class="toc-title" href="#life-cycle">
+        Property life cycle
+      </a>
+
+      <a class="toc-title" href="#active-state">
+        Active state
+      </a>
 
       <a class="toc-title" href="#callbacks">
         About callbacks
@@ -383,30 +405,139 @@ bower install kefir
 
       <h2 id="create">Create a property</h2>
 
-      <p id="from-binder">
-        <a href="#from-binder" class="header">fromBinder</a><code>Kefir.fromBinder(fn)</code>
-      </p>
       <p id="emitter">
         <a href="#emitter" class="header">emitter</a><code>Kefir.emitter()</code>
+        <br>
+        Creates an emitter, that is ordinary property, but also has additional
+        <tt>.emit(type, value)</tt> method.
+        Then you can easily send events to property via <b>emit()</b>.
       </p>
+      <pre title="code">
+var emitter = Kefir.emitter();
+emitter.log(); // log events to console (see <a href="#log">log</a>)
+emitter.emit('value', 1);
+emitter.emit('error', 'e1');
+emitter.emit('value', 2);
+emitter.emit('error', 'e2');
+emitter.emit('end');
+</pre>
+<pre title="console output">
+=&gt; [emitter] &lt;value&gt; 1
+=&gt; [emitter] &lt;error&gt; e1
+=&gt; [emitter] &lt;value&gt; 2
+=&gt; [emitter] &lt;error&gt; e2
+=&gt; [emitter] &lt;end&gt;
+</pre>
+      <p>
+        <img data-emoji="point_up"> <b>emitter</b> is the easiest way
+        to create general purpose property,
+        but it doesn't give control over <b>active</b> state of property
+        (see <a href="#active-state">active state</a>).
+        If you want to create general purpose property and
+        have control over <b>active</b> state, you should use
+        <a href="from-binder">fromBinder</a>.
+      </p>
+
       <p id="empty">
         <a href="#empty" class="header">empty</a><code>Kefir.empty()</code>
+        <br>
+        Creates an empty property, that already ended and doesn't has any current
+        <b>value</b> or <b>error</b>.
       </p>
+      <pre title="code">
+property = Kefir.empty();
+property.log();
+</pre>
+<pre title="console output">
+=&gt; [empty] &lt;end&gt;
+</pre>
+
+
       <p id="constant">
         <a href="#constant" class="header">constant</a><code>Kefir.constant(value)</code>
+        <br>
+        Creates ended property, with specified current <b>value</b>.
       </p>
+      <pre title="code">
+property = Kefir.constant(1);
+property.log();
+</pre>
+<pre title="console output">
+=&gt; [constant] &lt;value:current&gt; 1
+=&gt; [constant] &lt;end&gt;
+</pre>
+
+
       <p id="constant-error">
         <a href="#constant-error" class="header">constantError</a><code>Kefir.constantError(error)</code>
+        <br>
+        Creates ended property, with specified current <b>error</b>.
       </p>
+      <pre title="code">
+property = Kefir.constantError('e1');
+property.log();
+</pre>
+<pre title="console output">
+=&gt; [constantError] &lt;error:current&gt; e1
+=&gt; [constantError] &lt;end&gt;
+</pre>
+
+
       <p id="later">
         <a href="#later" class="header">later</a><code>Kefir.later(wait, value)</code>
+        <br>
+        Creates a property, that produces single <b>value</b> after
+        <b>wait</b> milliseconds then ends.
       </p>
+      <pre title="code">
+property = Kefir.later(1000, 1);
+property.log();
+</pre>
+<pre title="console output (after 1 second)">
+=&gt; [later] &lt;value&gt; 1
+=&gt; [later] &lt;end&gt;
+</pre>
+
+
       <p id="interval">
         <a href="#interval" class="header">interval</a><code>Kefir.interval(interval, value)</code>
+        <br>
+        Creates a property, that produces same <b>value</b> each
+        <b>interval</b> milliseconds. Never ends.
       </p>
+      <pre title="code">
+property = Kefir.interval(1000, 1);
+property.log();
+</pre>
+<pre title="console output">
+=&gt; [interval] &lt;value&gt; 1
+=&gt; [interval] &lt;value&gt; 1
+=&gt; [interval] &lt;value&gt; 1
+...
+</pre>
+
+
+
       <p id="sequentially">
         <a href="#sequentially" class="header">sequentially</a><code>Kefir.sequentially(interval, values)</code>
+        <br>
+        Creates a property containing given <b>values</b> (array),
+        delivered with given <b>interval</b> in milliseconds.
+        Ends after all <b>values</b> delivered.
       </p>
+      <pre title="code">
+property = Kefir.sequentially(1000, [1, 2, 3]);
+property.log();
+</pre>
+<pre title="console output">
+=&gt; [sequentially] &lt;value&gt; 1
+=&gt; [sequentially] &lt;value&gt; 2
+=&gt; [sequentially] &lt;value&gt; 3
+=&gt; [sequentially] &lt;end&gt;
+</pre>
+
+
+
       <p id="repeatedly">
         <a href="#repeatedly" class="header">repeatedly</a><code>Kefir.repeatedly(interval, values)</code>
       </p>
@@ -415,6 +546,9 @@ bower install kefir
       </p>
       <p id="with-interval">
         <a href="#with-interval" class="header">withInterval</a><code>Kefir.withInterval(interval, fn)</code>
+      </p>
+      <p id="from-binder">
+        <a href="#from-binder" class="header">fromBinder</a><code>Kefir.fromBinder(fn)</code>
       </p>
 
 
@@ -521,7 +655,11 @@ bower install kefir
 
 
 
+      <h2 id="callbacks">Property life cycle</h2>
+      <h2 id="callbacks">Active state</h2>
       <h2 id="callbacks">About callbacks</h2>
+
+
 
 
 
