@@ -2,7 +2,7 @@
 /*! kefir - 0.1.12
  *  https://github.com/pozadi/kefir
  */
-(function(global){
+;(function(global){
   "use strict";
 
 var NOTHING = ['<nothing>'];
@@ -351,8 +351,6 @@ extend(Property.prototype, {
       if (type !== 'end') {
         this.__setActive(true);
       }
-    } else if (type === 'end') {
-      Fn.call(fnMeta);
     }
     return this;
   },
@@ -369,17 +367,25 @@ extend(Property.prototype, {
 
 
   watch: function(type, fnMeta) {
-    if (type === 'both') {
-      if (this.has('value')) {
-        Fn.call(fnMeta, ['value', this.get('value'), true]);
-      }
-      if (this.has('error')) {
-        Fn.call(fnMeta, ['error', this.get('error'), true]);
-      }
-    } else {
-      if (this.has(type)) {
-        Fn.call(fnMeta, [this.get(type), true]);
-      }
+    switch (type) {
+      case 'end':
+        if (this.isEnded()) {
+          Fn.call(fnMeta, [null, true]);
+        }
+        break;
+      case 'both':
+        if (this.has('value')) {
+          Fn.call(fnMeta, ['value', this.get('value'), true]);
+        }
+        if (this.has('error')) {
+          Fn.call(fnMeta, ['error', this.get('error'), true]);
+        }
+        break;
+      default:
+        if (this.has(type)) {
+          Fn.call(fnMeta, [this.get(type), true]);
+        }
+        break;
     }
     return this.on(type, fnMeta);
   },
@@ -7564,11 +7570,18 @@ describe('Property end:', function() {
     send(p, 'end');
     return expect(f.calls.length).toBe(1);
   });
-  it('should call `end` subscribers after end', function() {
+  it('should not call `end` subscribers after end', function() {
     var f, p;
     p = prop();
     send(p, 'end');
     p.on('end', (f = jasmine.createSpy()));
+    return expect(f.calls.length).toBe(0);
+  });
+  it('should call `end` subscribers after end (if subscr. via watch)', function() {
+    var f, p;
+    p = prop();
+    send(p, 'end');
+    p.watch('end', (f = jasmine.createSpy()));
     return expect(f.calls.length).toBe(1);
   });
   it('should deactivate on end', function() {
@@ -9162,7 +9175,7 @@ exports.watch = function(property) {
   property.watch('error', function(e) {
     return result.errors.push(e);
   });
-  property.on('end', function() {
+  property.watch('end', function() {
     return result.ended = true;
   });
   return result;

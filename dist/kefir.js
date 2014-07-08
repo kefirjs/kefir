@@ -1,7 +1,7 @@
 /*! kefir - 0.1.12
  *  https://github.com/pozadi/kefir
  */
-(function(global){
+;(function(global){
   "use strict";
 
 var NOTHING = ['<nothing>'];
@@ -350,8 +350,6 @@ extend(Property.prototype, {
       if (type !== 'end') {
         this.__setActive(true);
       }
-    } else if (type === 'end') {
-      Fn.call(fnMeta);
     }
     return this;
   },
@@ -368,17 +366,25 @@ extend(Property.prototype, {
 
 
   watch: function(type, fnMeta) {
-    if (type === 'both') {
-      if (this.has('value')) {
-        Fn.call(fnMeta, ['value', this.get('value'), true]);
-      }
-      if (this.has('error')) {
-        Fn.call(fnMeta, ['error', this.get('error'), true]);
-      }
-    } else {
-      if (this.has(type)) {
-        Fn.call(fnMeta, [this.get(type), true]);
-      }
+    switch (type) {
+      case 'end':
+        if (this.isEnded()) {
+          Fn.call(fnMeta, [null, true]);
+        }
+        break;
+      case 'both':
+        if (this.has('value')) {
+          Fn.call(fnMeta, ['value', this.get('value'), true]);
+        }
+        if (this.has('error')) {
+          Fn.call(fnMeta, ['error', this.get('error'), true]);
+        }
+        break;
+      default:
+        if (this.has(type)) {
+          Fn.call(fnMeta, [this.get(type), true]);
+        }
+        break;
     }
     return this.on(type, fnMeta);
   },

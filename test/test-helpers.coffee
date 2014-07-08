@@ -9,7 +9,7 @@ exports.watch = (property) ->
   }
   property.watch 'value', (x) -> result.values.push(x)
   property.watch 'error', (e) -> result.errors.push(e)
-  property.on 'end', -> result.ended = true
+  property.watch 'end', -> result.ended = true
   result
 
 exports.send = (property, type, x) ->

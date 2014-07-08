@@ -39,10 +39,16 @@ describe 'Property end:', ->
     send(p, 'end')
     expect(f.calls.length).toBe(1)
 
-  it 'should call `end` subscribers after end', ->
+  it 'should not call `end` subscribers after end', ->
     p = prop()
     send(p, 'end')
     p.on 'end', (f = jasmine.createSpy())
+    expect(f.calls.length).toBe(0)
+
+  it 'should call `end` subscribers after end (if subscr. via watch)', ->
+    p = prop()
+    send(p, 'end')
+    p.watch 'end', (f = jasmine.createSpy())
     expect(f.calls.length).toBe(1)
 
   it 'should deactivate on end', ->
