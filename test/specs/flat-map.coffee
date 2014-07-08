@@ -22,6 +22,9 @@ describe '.flatMap()', ->
     send(p, 'end')
     expect(flatMapped).toBeEnded()
 
+  it 'if original property was ended should produce ended property', ->
+    expect(  send(prop(), 'end').flatMap()  ).toBeEnded()
+
   it 'if sorce ended should end when all sub-sources ends', ->
     p = prop()
     flatMapped = p.flatMap()

@@ -936,7 +936,7 @@ function withOneSource(name, mixin) {
     this.__source = source;
     this.__init(args);
     if (!this.has('end')) {
-      this.__source.on('end', [this.__handleEnd, this]);
+      this.__source.watch('end', [this.__handleEnd, this]);
     }
     if (!this.has('end') && this.__source.has('value')) {
       this.__handleValue(this.__source.get('value'), true);
@@ -1058,12 +1058,14 @@ var FlatMapProperty = withMultSource('flatMap', {
     this.__source = args[0];
     this.__fn = args[1] ? new Fn(args[1]) : null;
     this.__multSubscriber.onLastRemoved([this.__endIfSourceEnded, this]);
-    this.__source.on('end', [this.__endIfNoSubSources, this]);
-    if (this.__source.has('value')) {
-      this.__onValue(this.__source.get('value'));
-    }
-    if (this.__source.has('error')) {
-      this.__onError(this.__source.get('error'));
+    if (!this.has('end')) {
+      this.__source.on('end', [this.__endIfNoSubSources, this]);
+      if (this.__source.has('value')) {
+        this.__onValue(this.__source.get('value'));
+      }
+      if (this.__source.has('error')) {
+        this.__onError(this.__source.get('error'));
+      }
     }
   },
   __free: function() {
@@ -1331,7 +1333,7 @@ extend(MultSubscriber.prototype, {
   },
   add: function(property) {
     this.properties.push(property);
-    property.on('end', [this.remove, this, property]);
+    property.watch('end', [this.remove, this, property]);
     if (property.has('value')) {
       Fn.call(this.listener, ['value', property.get('value'), true]);
     }
@@ -1372,6 +1374,9 @@ extend(MultSubscriber.prototype, {
 
   onLastRemoved: function(fn) {
     this.onLastRemovedCb = new Fn(fn);
+    if (!this.hasProperties()) {
+      Fn.call(this.onLastRemovedCb);
+    }
   },
   offLastRemoved: function() {
     this.onLastRemovedCb = null;

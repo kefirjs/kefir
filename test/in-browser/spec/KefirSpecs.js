@@ -937,7 +937,7 @@ function withOneSource(name, mixin) {
     this.__source = source;
     this.__init(args);
     if (!this.has('end')) {
-      this.__source.on('end', [this.__handleEnd, this]);
+      this.__source.watch('end', [this.__handleEnd, this]);
     }
     if (!this.has('end') && this.__source.has('value')) {
       this.__handleValue(this.__source.get('value'), true);
@@ -1059,12 +1059,14 @@ var FlatMapProperty = withMultSource('flatMap', {
     this.__source = args[0];
     this.__fn = args[1] ? new Fn(args[1]) : null;
     this.__multSubscriber.onLastRemoved([this.__endIfSourceEnded, this]);
-    this.__source.on('end', [this.__endIfNoSubSources, this]);
-    if (this.__source.has('value')) {
-      this.__onValue(this.__source.get('value'));
-    }
-    if (this.__source.has('error')) {
-      this.__onError(this.__source.get('error'));
+    if (!this.has('end')) {
+      this.__source.on('end', [this.__endIfNoSubSources, this]);
+      if (this.__source.has('value')) {
+        this.__onValue(this.__source.get('value'));
+      }
+      if (this.__source.has('error')) {
+        this.__onError(this.__source.get('error'));
+      }
     }
   },
   __free: function() {
@@ -1332,7 +1334,7 @@ extend(MultSubscriber.prototype, {
   },
   add: function(property) {
     this.properties.push(property);
-    property.on('end', [this.remove, this, property]);
+    property.watch('end', [this.remove, this, property]);
     if (property.has('value')) {
       Fn.call(this.listener, ['value', property.get('value'), true]);
     }
@@ -1373,6 +1375,9 @@ extend(MultSubscriber.prototype, {
 
   onLastRemoved: function(fn) {
     this.onLastRemovedCb = new Fn(fn);
+    if (!this.hasProperties()) {
+      Fn.call(this.onLastRemovedCb);
+    }
   },
   offLastRemoved: function() {
     this.onLastRemovedCb = null;
@@ -6795,6 +6800,9 @@ describe('.flatMap()', function() {
     send(p, 'end');
     return expect(flatMapped).toBeEnded();
   });
+  it('if original property was ended should produce ended property', function() {
+    return expect(send(prop(), 'end').flatMap()).toBeEnded();
+  });
   it('if sorce ended should end when all sub-sources ends', function() {
     var flatMapped, p, subP1, subP2;
     p = prop();
@@ -7273,6 +7281,9 @@ describe('.map()', function() {
     send(p, 'end');
     return expect(mapped).toBeEnded();
   });
+  it('should be ended if source was ended', function() {
+    return expect(send(prop(), 'end').map(x2)).toBeEnded();
+  });
   it('should handle initial *value*', function() {
     return expect(prop(1).map(x2)).toHasValue(2);
   });
@@ -7319,6 +7330,13 @@ describe('.merge()', function() {
   it('if passed empty array should return ended property without value or error', function() {
     var p;
     p = Kefir.merge([]);
+    expect(p).toBeEnded();
+    expect(p).toHasNoValue();
+    return expect(p).toHasNoError();
+  });
+  it('if passed array with all ended properties should return ended property without value or error', function() {
+    var p;
+    p = Kefir.merge([send(prop(), 'end'), send(prop(), 'end')]);
     expect(p).toBeEnded();
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();

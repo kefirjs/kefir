@@ -408,7 +408,7 @@ function withOneSource(name, mixin) {
     this.__source = source;
     this.__init(args);
     if (!this.has('end')) {
-      this.__source.on('end', [this.__handleEnd, this]);
+      this.__source.watch('end', [this.__handleEnd, this]);
     }
     if (!this.has('end') && this.__source.has('value')) {
       this.__handleValue(this.__source.get('value'), true);

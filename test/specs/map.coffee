@@ -15,6 +15,9 @@ describe '.map()', ->
     send(p, 'end')
     expect(mapped).toBeEnded()
 
+  it 'should be ended if source was ended', ->
+    expect(  send(prop(), 'end').map(x2)  ).toBeEnded()
+
   it 'should handle initial *value*', ->
     expect(  prop(1).map(x2)  ).toHasValue(2)
 

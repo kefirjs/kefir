@@ -11,6 +11,12 @@ describe '.merge()', ->
     expect(p).toHasNoValue()
     expect(p).toHasNoError()
 
+  it 'if passed array with all ended properties should return ended property without value or error', ->
+    p = Kefir.merge([send(prop(), 'end'), send(prop(), 'end')])
+    expect(p).toBeEnded()
+    expect(p).toHasNoValue()
+    expect(p).toHasNoError()
+
   it 'should end when all sources ends', ->
     p1 = prop()
     p2 = prop()
