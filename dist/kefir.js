@@ -430,8 +430,8 @@ Property.prototype.log = function(name) {
   this.watch('both', function(type, x, isInitial) {
     console.log(name, '<' + type + (isInitial ? ':current' : '') + '>', x);
   });
-  this.on('end', function() {
-    console.log(name, '<end>');
+  this.watch('end', function(_, isInitial) {
+    console.log(name, '<end' + (isInitial ? ':current' : '') + '>');
   });
   return this;
 }
