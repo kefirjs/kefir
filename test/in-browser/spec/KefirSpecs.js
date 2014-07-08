@@ -379,7 +379,7 @@ extend(Property.prototype, {
     return this.on(type, fnMeta);
   },
   has: function(type) {
-    return (type in this.__current) && this.__current[type] !== NOTHING;
+    return (type === 'end' || type === 'value' || type === 'error') && this.__current[type] !== NOTHING;
   },
   get: function(type, fallback) {
     if (this.has(type)) {
