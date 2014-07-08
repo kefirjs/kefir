@@ -38,9 +38,9 @@ beforeEach ->
     toHasEqualError: (error) -> @actual.has('error') && @env.equals_(@actual.get('error'), error)
     toHasNoValue: -> !@actual.has('value')
     toHasNoError: -> !@actual.has('error')
-    toBeEnded: -> @actual.isEnded()
+    toBeEnded: -> @actual.has('end')
     toBeActive: -> @actual.isActive()
-    toNotBeEnded: -> !@actual.isEnded()
+    toNotBeEnded: -> !@actual.has('end')
     toNotBeActive: -> !@actual.isActive()
   }
 

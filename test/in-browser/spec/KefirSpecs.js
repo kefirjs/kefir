@@ -297,9 +297,8 @@ extend(Subscribers.prototype, {
 
 function Property() {
   this.__subscribers = new Subscribers();
-  this.__ended = false;
   this.__active = false;
-  this.__current = {value: NOTHING, error: NOTHING};
+  this.__current = {value: NOTHING, error: NOTHING, end: NOTHING};
 }
 Kefir.Property = Property;
 
@@ -327,18 +326,16 @@ extend(Property.prototype, {
   __clear: function() {
     this.__setActive(false);
     this.__subscribers = null;
-    this.__ended = true;
   },
 
 
   __send: function(type, x) {
-    if (!this.__ended) {
+    if (!this.has('end')) {
+      this.__current[type] = x;
+      this.__subscribers.call(type, [x]);
       if (type === 'end') {
-        this.__subscribers.call('end', []);
         this.__clear();
       } else {
-        this.__current[type] = x;
-        this.__subscribers.call(type, [x]);
         this.__subscribers.call('both', [type, x]);
       }
     }
@@ -346,7 +343,7 @@ extend(Property.prototype, {
 
 
   on: function(type, fnMeta) {
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__subscribers.add(type, fnMeta);
       if (type !== 'end') {
         this.__setActive(true);
@@ -355,7 +352,7 @@ extend(Property.prototype, {
     return this;
   },
   off: function(type, fnMeta) {
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__subscribers.remove(type, fnMeta);
       if (type !== 'end' && !this.__subscribers.hasValueOrError()) {
         this.__setActive(false);
@@ -367,38 +364,22 @@ extend(Property.prototype, {
 
 
   watch: function(type, fnMeta) {
-    switch (type) {
-      case 'end':
-        if (this.isEnded()) {
-          Fn.call(fnMeta, [null, true]);
-        }
-        break;
-      case 'both':
-        if (this.has('value')) {
-          Fn.call(fnMeta, ['value', this.get('value'), true]);
-        }
-        if (this.has('error')) {
-          Fn.call(fnMeta, ['error', this.get('error'), true]);
-        }
-        break;
-      default:
-        if (this.has(type)) {
-          Fn.call(fnMeta, [this.get(type), true]);
-        }
-        break;
+    if (type === 'both') {
+      if (this.has('value')) {
+        Fn.call(fnMeta, ['value', this.get('value'), true]);
+      }
+      if (this.has('error')) {
+        Fn.call(fnMeta, ['error', this.get('error'), true]);
+      }
+    } else {
+      if (this.has(type)) {
+        Fn.call(fnMeta, [this.get(type), true]);
+      }
     }
     return this.on(type, fnMeta);
   },
   has: function(type) {
-    switch (type) {
-      case 'value':
-      case 'error':
-        return this.__current[type] !== NOTHING;
-      case 'end':
-        return this.isEnded();
-      default:
-        return false;
-    }
+    return (type in this.__current) && this.__current[type] !== NOTHING;
   },
   get: function(type, fallback) {
     if (this.has(type)) {
@@ -409,8 +390,6 @@ extend(Property.prototype, {
   },
 
 
-
-  isEnded: function() {  return this.__ended  },
   isActive: function() {  return this.__active  },
 
 
@@ -957,13 +936,13 @@ function withOneSource(name, mixin) {
     Property.call(this);
     this.__source = source;
     this.__init(args);
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__source.on('end', [this.__handleEnd, this]);
     }
-    if (!this.__ended && this.__source.has('value')) {
+    if (!this.has('end') && this.__source.has('value')) {
       this.__handleValue(this.__source.get('value'), true);
     }
-    if (!this.__ended && this.__source.has('error')) {
+    if (!this.has('end') && this.__source.has('error')) {
       this.__handleError(this.__source.get('error'), true);
     }
   }
@@ -1116,7 +1095,7 @@ var FlatMapProperty = withMultSource('flatMap', {
     }
   },
   __endIfSourceEnded: function() {
-    if (this.__source.isEnded()) {
+    if (this.__source.has('end')) {
       this.__send('end');
     }
   },
@@ -7855,32 +7834,60 @@ describe('Property initial value/error:', function() {
     send(p, 'error', 2);
     return expect(log).toEqual([[1, true], [2, void 0]]);
   });
+  it('should call watch callbacks with proper isInitial param (end)', function() {
+    var log, p;
+    log = [];
+    p = prop();
+    send(p, 'end', 1);
+    send(p, 'end', 2);
+    p.watch('end', function(x, isInitial) {
+      return log.push([x, isInitial]);
+    });
+    return expect(log).toEqual([[1, true]]);
+  });
   it('.has() should always return false for anything except `value`, `error`, `end`', function() {
     var p;
     p = prop();
     return expect(p.has('foo')).toBe(false);
   });
-  it('.has(\'end\') should return false for not ended property', function() {
+  it('.has() should return proper result for `value`, `error`, `end`', function() {
     var p;
     p = prop();
-    return expect(p.has('end')).toBe(false);
-  });
-  it('.has(\'end\') should return true for ended property', function() {
-    var p;
-    p = prop();
-    send(p, 'end');
+    expect(p.has('value')).toBe(false);
+    expect(p.has('error')).toBe(false);
+    expect(p.has('end')).toBe(false);
+    send(p, 'value', 1);
+    expect(p.has('value')).toBe(true);
+    expect(p.has('error')).toBe(false);
+    expect(p.has('end')).toBe(false);
+    send(p, 'error', 1);
+    expect(p.has('value')).toBe(true);
+    expect(p.has('error')).toBe(true);
+    expect(p.has('end')).toBe(false);
+    send(p, 'end', 1);
+    expect(p.has('value')).toBe(true);
+    expect(p.has('error')).toBe(true);
     return expect(p.has('end')).toBe(true);
   });
-  it('.get(\'end\', 1) should return 1 for not ended property', function() {
+  it('.get()  should return proper result for `value`, `error`, `end`', function() {
     var p;
     p = prop();
-    return expect(p.get('end', 1)).toBe(1);
-  });
-  it('.get(\'end\', 1) should return `undefined` for ended property', function() {
-    var p;
-    p = prop();
-    send(p, 'end');
-    return expect(p.get('end', 1)).toBe(void 0);
+    expect(p.get('value')).toBe(void 0);
+    expect(p.get('error')).toBe(void 0);
+    expect(p.get('end')).toBe(void 0);
+    send(p, 'value', 1);
+    expect(p.get('value')).toBe(1);
+    expect(p.get('error')).toBe(void 0);
+    expect(p.get('end')).toBe(void 0);
+    send(p, 'error', 2);
+    expect(p.get('value')).toBe(1);
+    expect(p.get('error')).toBe(2);
+    expect(p.get('end')).toBe(void 0);
+    send(p, 'end', 3);
+    send(p, 'end', 4);
+    expect(p.get('value')).toBe(1);
+    expect(p.get('error')).toBe(2);
+    return expect(p.get('end')).toBe(3);
   });
   return it('.get(name, fallback) should return `fallback` if .has() returns false', function() {
     var p;
@@ -7959,6 +7966,18 @@ describe('Property listeners', function() {
     expect(log).toEqual([1]);
     send(p, 'error', 2);
     return expect(log).toEqual([1, 2]);
+  });
+  it('should get new ends', function() {
+    var log, p;
+    p = prop();
+    log = [];
+    p.on('end', function(x) {
+      return log.push(x);
+    });
+    send(p, 'end', 1);
+    expect(log).toEqual([1]);
+    send(p, 'end', 2);
+    return expect(log).toEqual([1]);
   });
   return it('should get new values and error when subscribed as `both`', function() {
     var log, p;
@@ -9249,13 +9268,13 @@ beforeEach(function() {
       return !this.actual.has('error');
     },
     toBeEnded: function() {
-      return this.actual.isEnded();
+      return this.actual.has('end');
     },
     toBeActive: function() {
       return this.actual.isActive();
     },
     toNotBeEnded: function() {
-      return !this.actual.isEnded();
+      return !this.actual.has('end');
     },
     toNotBeActive: function() {
       return !this.actual.isActive();

@@ -272,27 +272,57 @@ describe 'Property initial value/error:', ->
       [2, undefined]
     ])
 
+  it 'should call watch callbacks with proper isInitial param (end)', ->
+    log = []
+    p = prop()
+    send(p, 'end', 1)
+    send(p, 'end', 2)
+    p.watch 'end', (x, isInitial) ->
+      log.push [x, isInitial]
+    expect(log).toEqual([
+      [1, true]
+    ])
+
   it '.has() should always return false for anything except `value`, `error`, `end`', ->
     p = prop()
     expect(p.has('foo')).toBe(false)
 
-  it '.has(\'end\') should return false for not ended property', ->
+  it '.has() should return proper result for `value`, `error`, `end`', ->
     p = prop()
+    expect(p.has('value')).toBe(false)
+    expect(p.has('error')).toBe(false)
     expect(p.has('end')).toBe(false)
-
-  it '.has(\'end\') should return true for ended property', ->
-    p = prop()
-    send(p, 'end')
+    send(p, 'value', 1)
+    expect(p.has('value')).toBe(true)
+    expect(p.has('error')).toBe(false)
+    expect(p.has('end')).toBe(false)
+    send(p, 'error', 1)
+    expect(p.has('value')).toBe(true)
+    expect(p.has('error')).toBe(true)
+    expect(p.has('end')).toBe(false)
+    send(p, 'end', 1)
+    expect(p.has('value')).toBe(true)
+    expect(p.has('error')).toBe(true)
     expect(p.has('end')).toBe(true)
 
-  it '.get(\'end\', 1) should return 1 for not ended property', ->
+  it '.get()  should return proper result for `value`, `error`, `end`', ->
     p = prop()
-    expect(p.get('end', 1)).toBe(1)
-
-  it '.get(\'end\', 1) should return `undefined` for ended property', ->
-    p = prop()
-    send(p, 'end')
-    expect(p.get('end', 1)).toBe(undefined)
+    expect(p.get('value')).toBe(undefined)
+    expect(p.get('error')).toBe(undefined)
+    expect(p.get('end')).toBe(undefined)
+    send(p, 'value', 1)
+    expect(p.get('value')).toBe(1)
+    expect(p.get('error')).toBe(undefined)
+    expect(p.get('end')).toBe(undefined)
+    send(p, 'error', 2)
+    expect(p.get('value')).toBe(1)
+    expect(p.get('error')).toBe(2)
+    expect(p.get('end')).toBe(undefined)
+    send(p, 'end', 3)
+    send(p, 'end', 4)
+    expect(p.get('value')).toBe(1)
+    expect(p.get('error')).toBe(2)
+    expect(p.get('end')).toBe(3)
 
   it '.get(name, fallback) should return `fallback` if .has() returns false', ->
     p = prop()
@@ -300,6 +330,7 @@ describe 'Property initial value/error:', ->
     expect(p.get('value', 1)).toBe(1)
     expect(p.get('foo')).toBe(undefined)
     expect(p.get('foo', 1)).toBe(1)
+
 
 
 
@@ -361,6 +392,15 @@ describe 'Property listeners', ->
     expect(log).toEqual([1])
     send(p, 'error', 2)
     expect(log).toEqual([1, 2])
+
+  it 'should get new ends', ->
+    p = prop()
+    log = []
+    p.on 'end', (x) -> log.push(x)
+    send(p, 'end', 1)
+    expect(log).toEqual([1])
+    send(p, 'end', 2)
+    expect(log).toEqual([1])
 
   it 'should get new values and error when subscribed as `both`', ->
     p = prop()

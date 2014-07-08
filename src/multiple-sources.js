@@ -101,7 +101,7 @@ var FlatMapProperty = withMultSource('flatMap', {
     }
   },
   __endIfSourceEnded: function() {
-    if (this.__source.isEnded()) {
+    if (this.__source.has('end')) {
       this.__send('end');
     }
   },

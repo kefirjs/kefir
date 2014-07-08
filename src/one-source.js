@@ -407,13 +407,13 @@ function withOneSource(name, mixin) {
     Property.call(this);
     this.__source = source;
     this.__init(args);
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__source.on('end', [this.__handleEnd, this]);
     }
-    if (!this.__ended && this.__source.has('value')) {
+    if (!this.has('end') && this.__source.has('value')) {
       this.__handleValue(this.__source.get('value'), true);
     }
-    if (!this.__ended && this.__source.has('error')) {
+    if (!this.has('end') && this.__source.has('error')) {
       this.__handleError(this.__source.get('error'), true);
     }
   }

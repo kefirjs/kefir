@@ -296,9 +296,8 @@ extend(Subscribers.prototype, {
 
 function Property() {
   this.__subscribers = new Subscribers();
-  this.__ended = false;
   this.__active = false;
-  this.__current = {value: NOTHING, error: NOTHING};
+  this.__current = {value: NOTHING, error: NOTHING, end: NOTHING};
 }
 Kefir.Property = Property;
 
@@ -326,18 +325,16 @@ extend(Property.prototype, {
   __clear: function() {
     this.__setActive(false);
     this.__subscribers = null;
-    this.__ended = true;
   },
 
 
   __send: function(type, x) {
-    if (!this.__ended) {
+    if (!this.has('end')) {
+      this.__current[type] = x;
+      this.__subscribers.call(type, [x]);
       if (type === 'end') {
-        this.__subscribers.call('end', []);
         this.__clear();
       } else {
-        this.__current[type] = x;
-        this.__subscribers.call(type, [x]);
         this.__subscribers.call('both', [type, x]);
       }
     }
@@ -345,7 +342,7 @@ extend(Property.prototype, {
 
 
   on: function(type, fnMeta) {
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__subscribers.add(type, fnMeta);
       if (type !== 'end') {
         this.__setActive(true);
@@ -354,7 +351,7 @@ extend(Property.prototype, {
     return this;
   },
   off: function(type, fnMeta) {
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__subscribers.remove(type, fnMeta);
       if (type !== 'end' && !this.__subscribers.hasValueOrError()) {
         this.__setActive(false);
@@ -366,38 +363,22 @@ extend(Property.prototype, {
 
 
   watch: function(type, fnMeta) {
-    switch (type) {
-      case 'end':
-        if (this.isEnded()) {
-          Fn.call(fnMeta, [null, true]);
-        }
-        break;
-      case 'both':
-        if (this.has('value')) {
-          Fn.call(fnMeta, ['value', this.get('value'), true]);
-        }
-        if (this.has('error')) {
-          Fn.call(fnMeta, ['error', this.get('error'), true]);
-        }
-        break;
-      default:
-        if (this.has(type)) {
-          Fn.call(fnMeta, [this.get(type), true]);
-        }
-        break;
+    if (type === 'both') {
+      if (this.has('value')) {
+        Fn.call(fnMeta, ['value', this.get('value'), true]);
+      }
+      if (this.has('error')) {
+        Fn.call(fnMeta, ['error', this.get('error'), true]);
+      }
+    } else {
+      if (this.has(type)) {
+        Fn.call(fnMeta, [this.get(type), true]);
+      }
     }
     return this.on(type, fnMeta);
   },
   has: function(type) {
-    switch (type) {
-      case 'value':
-      case 'error':
-        return this.__current[type] !== NOTHING;
-      case 'end':
-        return this.isEnded();
-      default:
-        return false;
-    }
+    return (type in this.__current) && this.__current[type] !== NOTHING;
   },
   get: function(type, fallback) {
     if (this.has(type)) {
@@ -408,8 +389,6 @@ extend(Property.prototype, {
   },
 
 
-
-  isEnded: function() {  return this.__ended  },
   isActive: function() {  return this.__active  },
 
 
@@ -956,13 +935,13 @@ function withOneSource(name, mixin) {
     Property.call(this);
     this.__source = source;
     this.__init(args);
-    if (!this.__ended) {
+    if (!this.has('end')) {
       this.__source.on('end', [this.__handleEnd, this]);
     }
-    if (!this.__ended && this.__source.has('value')) {
+    if (!this.has('end') && this.__source.has('value')) {
       this.__handleValue(this.__source.get('value'), true);
     }
-    if (!this.__ended && this.__source.has('error')) {
+    if (!this.has('end') && this.__source.has('error')) {
       this.__handleError(this.__source.get('error'), true);
     }
   }
@@ -1115,7 +1094,7 @@ var FlatMapProperty = withMultSource('flatMap', {
     }
   },
   __endIfSourceEnded: function() {
-    if (this.__source.isEnded()) {
+    if (this.__source.has('end')) {
       this.__send('end');
     }
   },
