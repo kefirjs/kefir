@@ -272,12 +272,27 @@ describe 'Property initial value/error:', ->
       [2, undefined]
     ])
 
-  it '.has() should always return false for anything except `value` and `error`', ->
+  it '.has() should always return false for anything except `value`, `error`, `end`', ->
     p = prop()
     expect(p.has('foo')).toBe(false)
+
+  it '.has(\'end\') should return false for not ended property', ->
+    p = prop()
     expect(p.has('end')).toBe(false)
+
+  it '.has(\'end\') should return true for ended property', ->
+    p = prop()
     send(p, 'end')
-    expect(p.has('end')).toBe(false)
+    expect(p.has('end')).toBe(true)
+
+  it '.get(\'end\', 1) should return 1 for not ended property', ->
+    p = prop()
+    expect(p.get('end', 1)).toBe(1)
+
+  it '.get(\'end\', 1) should return `undefined` for ended property', ->
+    p = prop()
+    send(p, 'end')
+    expect(p.get('end', 1)).toBe(undefined)
 
   it '.get(name, fallback) should return `fallback` if .has() returns false', ->
     p = prop()

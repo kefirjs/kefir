@@ -389,10 +389,14 @@ extend(Property.prototype, {
     return this.on(type, fnMeta);
   },
   has: function(type) {
-    if (type === 'value' || type === 'error') {
-      return this.__current[type] !== NOTHING;
-    } else {
-      return false;
+    switch (type) {
+      case 'value':
+      case 'error':
+        return this.__current[type] !== NOTHING;
+      case 'end':
+        return this.isEnded();
+      default:
+        return false;
     }
   },
   get: function(type, fallback) {

@@ -390,10 +390,14 @@ extend(Property.prototype, {
     return this.on(type, fnMeta);
   },
   has: function(type) {
-    if (type === 'value' || type === 'error') {
-      return this.__current[type] !== NOTHING;
-    } else {
-      return false;
+    switch (type) {
+      case 'value':
+      case 'error':
+        return this.__current[type] !== NOTHING;
+      case 'end':
+        return this.isEnded();
+      default:
+        return false;
     }
   },
   get: function(type, fallback) {
@@ -7851,13 +7855,32 @@ describe('Property initial value/error:', function() {
     send(p, 'error', 2);
     return expect(log).toEqual([[1, true], [2, void 0]]);
   });
-  it('.has() should always return false for anything except `value` and `error`', function() {
+  it('.has() should always return false for anything except `value`, `error`, `end`', function() {
     var p;
     p = prop();
-    expect(p.has('foo')).toBe(false);
-    expect(p.has('end')).toBe(false);
-    send(p, 'end');
+    return expect(p.has('foo')).toBe(false);
+  });
+  it('.has(\'end\') should return false for not ended property', function() {
+    var p;
+    p = prop();
     return expect(p.has('end')).toBe(false);
+  });
+  it('.has(\'end\') should return true for ended property', function() {
+    var p;
+    p = prop();
+    send(p, 'end');
+    return expect(p.has('end')).toBe(true);
+  });
+  it('.get(\'end\', 1) should return 1 for not ended property', function() {
+    var p;
+    p = prop();
+    return expect(p.get('end', 1)).toBe(1);
+  });
+  it('.get(\'end\', 1) should return `undefined` for ended property', function() {
+    var p;
+    p = prop();
+    send(p, 'end');
+    return expect(p.get('end', 1)).toBe(void 0);
   });
   return it('.get(name, fallback) should return `fallback` if .has() returns false', function() {
     var p;
