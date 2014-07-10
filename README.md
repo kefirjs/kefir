@@ -17,6 +17,7 @@ to get a glance on progress.
 [![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
 [![devDependency Status](https://david-dm.org/pozadi/kefir/dev-status.svg)](https://david-dm.org/pozadi/kefir#info=devDependencies)
 [![NPM package version](http://img.shields.io/npm/v/kefir.svg)](https://www.npmjs.org/package/kefir)
+![Bower version](https://badge.fury.io/bo/kefir.svg)
 
 [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
 
