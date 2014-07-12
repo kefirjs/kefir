@@ -39,13 +39,13 @@ describe 'Property end:', ->
     send(p, 'end')
     expect(f.calls.length).toBe(1)
 
-  it 'should not call `end` subscribers after end', ->
+  it 'should not call `end` subscribers after end (on)', ->
     p = prop()
     send(p, 'end')
     p.on 'end', (f = jasmine.createSpy())
     expect(f.calls.length).toBe(0)
 
-  it 'should call `end` subscribers after end (if subscr. via watch)', ->
+  it 'should call `end` subscribers after end (watch)', ->
     p = prop()
     send(p, 'end')
     p.watch 'end', (f = jasmine.createSpy())
@@ -77,7 +77,7 @@ describe 'Property end:', ->
     send(p, 'value', 2)
     send(p, 'end')
     send(p, 'value', 3)
-    expect(state).toEqual({values:[1,2],errors:[],ended:true})
+    expect(state).toEqual({values:[1,2],errors:[],end:undefined})
 
   it 'should stop deliver new *errors* after end', ->
     p = prop(null, 1)
@@ -85,7 +85,7 @@ describe 'Property end:', ->
     send(p, 'error', 2)
     send(p, 'end')
     send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2],ended:true})
+    expect(state).toEqual({values:[],errors:[1,2],end:undefined})
 
 
 describe 'Property active state:', ->
@@ -100,15 +100,15 @@ describe 'Property active state:', ->
     p.on 'error', ->
     expect(p).toBeActive()
 
-  it 'should activate when first `both` listener added', ->
-    p = prop()
-    p.on 'both', ->
-    expect(p).toBeActive()
-
-  it 'should *not* activate when `end` listener added', ->
+  it 'should activate when first `end` listener added', ->
     p = prop()
     p.on 'end', ->
-    expect(p).toNotBeActive()
+    expect(p).toBeActive()
+
+  it 'should activate when first `any` listener added', ->
+    p = prop()
+    p.on 'any', ->
+    expect(p).toBeActive()
 
   it 'should deactivate when, and only when, all listener removed (value)', ->
     p = prop()
@@ -128,25 +128,35 @@ describe 'Property active state:', ->
     p.off 'error', f2
     expect(p).toNotBeActive()
 
-  it 'should deactivate when, and only when, all listener removed (both)', ->
+  it 'should deactivate when, and only when, all listener removed (end)', ->
     p = prop()
-    p.on 'both', (f1 = ->)
-    p.on 'both', (f2 = ->)
-    p.off 'both', f1
+    p.on 'end', (f1 = ->)
+    p.on 'end', (f2 = ->)
+    p.off 'end', f1
     expect(p).toBeActive()
-    p.off 'both', f2
+    p.off 'end', f2
     expect(p).toNotBeActive()
 
-  it 'should deactivate when, and only when, all listener removed (value + error + both)', ->
+  it 'should deactivate when, and only when, all listener removed (any)', ->
+    p = prop()
+    p.on 'any', (f1 = ->)
+    p.on 'any', (f2 = ->)
+    p.off 'any', f1
+    expect(p).toBeActive()
+    p.off 'any', f2
+    expect(p).toNotBeActive()
+
+  it 'should deactivate when, and only when, all listener removed (value + error + end + any)', ->
     p = prop()
     p.on 'value', (f1 = ->)
     p.on 'error', (f2 = ->)
-    p.on 'both', (f3 = ->)
+    p.on 'end', (f3 = ->)
+    p.on 'any', (f4 = ->)
     p.off 'value', f1
-    expect(p).toBeActive()
     p.off 'error', f2
+    p.off 'end', f3
     expect(p).toBeActive()
-    p.off 'both', f3
+    p.off 'any', f4
     expect(p).toNotBeActive()
 
   it 'should activate when first `value` listener added (via `watch`)', ->
@@ -159,128 +169,166 @@ describe 'Property active state:', ->
     p.watch 'error', ->
     expect(p).toBeActive()
 
-  it 'should activate when first `both` listener added (via `watch`)', ->
+  it 'should activate when first `end` listener added (via `watch`)', ->
     p = prop()
-    p.watch 'both', ->
+    p.watch 'end', ->
+    expect(p).toBeActive()
+
+  it 'should activate when first `any` listener added (via `watch`)', ->
+    p = prop()
+    p.watch 'any', ->
     expect(p).toBeActive()
 
 
 
-describe 'Property initial value/error:', ->
+describe 'Property current value/error:', ->
 
-  it 'should deliver initial *value* to listener added via `watch`', ->
+  it 'should deliver current *value* to listener added via `watch`', ->
     v = null
     p = prop(1)
     p.watch 'value', (x) -> v = x
     expect(v).toBe(1)
 
-  it 'should deliver initial *error* to listener added via `watch`', ->
+  it 'should deliver current *error* to listener added via `watch`', ->
     v = null
     p = prop(null, 1)
     p.watch 'error', (x) -> v = x
     expect(v).toBe(1)
 
-  it 'should deliver initial *value* to `both` listener added via `watch`', ->
+  it 'should deliver current *end* to listener added via `watch`', ->
+    v = null
+    p = prop(null, null, 1)
+    p.watch 'end', (x) -> v = x
+    expect(v).toBe(1)
+
+  it 'should deliver current *value* to `any` listener added via `watch`', ->
     v = null
     p = prop(1)
-    p.watch 'both', (type, x) ->
+    p.watch 'any', (type, x) ->
       expect(type).toBe('value')
       v = x
     expect(v).toBe(1)
 
-  it 'should deliver initial *error* to `both` listener added via `watch`', ->
+  it 'should deliver current *error* to `any` listener added via `watch`', ->
     v = null
     p = prop(null, 1)
-    p.watch 'both', (type, x) ->
+    p.watch 'any', (type, x) ->
       expect(type).toBe('error')
       v = x
     expect(v).toBe(1)
 
-  it 'should deliver initial *error* and *value* to `both` listener added via `watch`', ->
+  it 'should deliver current *error*, *value*, *end* to `any` listener added via `watch`', ->
     v = null
     e = null
-    p = prop(1, 2)
-    p.watch 'both', (type, x) ->
+    en = null
+    p = send(prop(1, 2), 'end', 3)
+    p.watch 'any', (type, x) ->
       if type == 'value'
         v = x
       if type == 'error'
         e = x
+      if type == 'end'
+        en = x
     expect(v).toBe(1)
     expect(e).toBe(2)
+    expect(en).toBe(3)
 
-  it 'should *not* deliver initial *value* to listener added via `on`', ->
+  it 'should *not* deliver current *value* to listener added via `on`', ->
     v = null
     p = prop(1)
     p.on 'value', (x) -> v = x
     expect(v).toBe(null)
 
-  it 'should *not* deliver initial *error* to listener added via `on`', ->
+  it 'should *not* deliver current *error* to listener added via `on`', ->
     v = null
     p = prop(null, 1)
     p.on 'error', (x) -> v = x
     expect(v).toBe(null)
 
-  it 'should *not* deliver initial *value* to `both` listener added via `on`', ->
+  it 'should *not* deliver current *end* to listener added via `on`', ->
+    v = null
+    p = prop(null, null, 1)
+    p.on 'end', (x) -> v = x
+    expect(v).toBe(null)
+
+  it 'should *not* deliver current *value* to `any` listener added via `on`', ->
     v = null
     p = prop(1)
-    p.on 'both', (type, x) ->
-      expect(type).toBe('value')
+    p.on 'any', (type, x) ->
       v = x
     expect(v).toBe(null)
 
-  it 'should *not* deliver initial *error* to `both` listener added via `on`', ->
+  it 'should *not* deliver current *error* to `any` listener added via `on`', ->
     v = null
     p = prop(null, 1)
-    p.on 'both', (type, x) ->
-      expect(type).toBe('error')
+    p.on 'any', (type, x) ->
       v = x
     expect(v).toBe(null)
 
-  it 'should call watch callbacks with proper isInitial param (both)', ->
+  it 'should *not* deliver current *end* to `any` listener added via `on`', ->
+    v = null
+    p = prop(null, null, 1)
+    p.on 'any', (type, x) ->
+      v = x
+    expect(v).toBe(null)
+
+  it 'should call watch callbacks with proper isCurrent param (any)', ->
     log = []
     p = prop(1, 'e1')
-    p.watch 'both', (type, x, isInitial) ->
-      log.push [type, x, isInitial]
+    p.watch 'any', (type, x, isCurrent) ->
+      log.push [type, x, isCurrent]
     send(p, 'value', 2)
     send(p, 'error', 'e2')
+    send(p, 'end', 'fin')
     expect(log).toEqual([
       ['value', 1, true]
       ['error', 'e1', true]
-      ['value', 2, undefined]
-      ['error', 'e2', undefined]
+      ['value', 2, false]
+      ['error', 'e2', false]
+      ['end', 'fin', false]
     ])
 
-  it 'should call watch callbacks with proper isInitial param (value)', ->
+  it 'should call watch callbacks with proper isCurrent param (value)', ->
     log = []
     p = prop(1)
-    p.watch 'value', (x, isInitial) ->
-      log.push [x, isInitial]
+    p.watch 'value', (x, isCurrent) ->
+      log.push [x, isCurrent]
     send(p, 'value', 2)
     expect(log).toEqual([
       [1, true]
-      [2, undefined]
+      [2, false]
     ])
 
-  it 'should call watch callbacks with proper isInitial param (error)', ->
+  it 'should call watch callbacks with proper isCurrent param (error)', ->
     log = []
     p = prop(null, 1)
-    p.watch 'error', (x, isInitial) ->
-      log.push [x, isInitial]
+    p.watch 'error', (x, isCurrent) ->
+      log.push [x, isCurrent]
     send(p, 'error', 2)
     expect(log).toEqual([
       [1, true]
-      [2, undefined]
+      [2, false]
     ])
 
-  it 'should call watch callbacks with proper isInitial param (end)', ->
+  it 'should call watch callbacks with proper isCurrent param (end:current)', ->
     log = []
     p = prop()
     send(p, 'end', 1)
     send(p, 'end', 2)
-    p.watch 'end', (x, isInitial) ->
-      log.push [x, isInitial]
+    p.watch 'end', (x, isCurrent) ->
+      log.push [x, isCurrent]
     expect(log).toEqual([
       [1, true]
+    ])
+
+  it 'should call watch callbacks with proper isCurrent param (end:not-current)', ->
+    log = []
+    p = prop()
+    p.watch 'end', (x, isCurrent) ->
+      log.push [x, isCurrent]
+    send(p, 'end', 1)
+    expect(log).toEqual([
+      [1, false]
     ])
 
   it '.has() should always return false for anything except `value`, `error`, `end`', ->
@@ -402,21 +450,27 @@ describe 'Property listeners', ->
     send(p, 'end', 2)
     expect(log).toEqual([1])
 
-  it 'should get new values and error when subscribed as `both`', ->
+  it 'should get new values, error, ends when subscribed as `any`', ->
     p = prop()
     log = {
       value: [],
-      error: []
+      error: [],
+      end: []
     }
-    p.on 'both', (type, x) -> log[type].push(x)
+    p.on 'any', (type, x) -> log[type].push(x)
     send(p, 'value', 1)
-    expect(log).toEqual({value:[1],error:[]})
+    expect(log).toEqual({value:[1],error:[],end:[]})
     send(p, 'error', 1)
-    expect(log).toEqual({value:[1],error:[1]})
+    expect(log).toEqual({value:[1],error:[1],end:[]})
     send(p, 'value', 2)
-    expect(log).toEqual({value:[1, 2],error:[1]})
+    expect(log).toEqual({value:[1, 2],error:[1],end:[]})
     send(p, 'error', 2)
-    expect(log).toEqual({value:[1, 2],error:[1, 2]})
+    expect(log).toEqual({value:[1, 2],error:[1, 2],end:[]})
+    send(p, 'end', 3)
+    expect(log).toEqual({value:[1, 2],error:[1, 2],end:[3]})
+    send(p, 'end', 4)
+    expect(log).toEqual({value:[1, 2],error:[1, 2],end:[3]})
+
 
 
 

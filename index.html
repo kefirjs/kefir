@@ -286,7 +286,7 @@
         <li>- <a href="#scan">scan</a></li>
         <li>- <a href="#reduce">reduce</a></li>
         <li>- <a href="#add-current">addCurrent</a></li>
-        <li>- <a href="#remove-current">removeCurrent</a></li>
+        <li>- <a href="#skip-current">skipCurrent</a></li>
         <li>- <a href="#with-handler">withHandler</a></li>
         <li>- <a href="#delay">delay</a></li>
         <li>- <a href="#throttle">throttle</a></li>
@@ -612,8 +612,8 @@ property.log();
       <p id="add-current">
         <a href="#add-current" class="header">addCurrent</a><code>property.addCurrent(type, valueOrError)</code>
       </p>
-      <p id="remove-current">
-        <a href="#remove-current" class="header">removeCurrent</a><code>property.removeCurrent([type])</code>
+      <p id="skip-current">
+        <a href="#skip-current" class="header">skipCurrent</a><code>property.skipCurrent([type])</code>
       </p>
       <p id="with-handler">
         <a href="#with-handler" class="header">withHandler</a><code>property.withHandler(fn)</code>
@@ -1011,7 +1011,8 @@ stream.log();
 
 
     <script src="lib/jquery/jquery.js"></script>
-    <script src="dist/kefir.js"></script>
+    <script src="dist/kefir.min.js"></script>
+
     <script type="text/javascript">
       $.getJSON('https://api.github.com/emojis', function(emojis){
         $('[data-emoji]').each(function(){
@@ -1026,5 +1027,6 @@ stream.log();
         });
       })
     </script>
+
   </body>
 </html>

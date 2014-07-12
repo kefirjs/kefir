@@ -1,7 +1,7 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send} = helpers
+{prop, watch, send, activate} = helpers
 
 
 describe '.diff()', ->
@@ -10,16 +10,16 @@ describe '.diff()', ->
 
   it 'should end when source ends', ->
     p = prop()
-    diffed = p.diff(0, subtract)
+    diffed = activate(p.diff(0, subtract))
     expect(diffed).toNotBeEnded()
     send(p, 'end')
     expect(diffed).toBeEnded()
 
-  it 'should handle initial *value*', ->
-    expect(  prop(2).diff(0, subtract)  ).toHasValue(-2)
+  it 'should handle current *value*', ->
+    expect(  activate(prop(2).diff(0, subtract))  ).toHasValue(-2)
 
-  it 'should handle initial *error*', ->
-    expect(  prop(null, 1).diff(0, subtract)  ).toHasError(1)
+  it 'should handle current *error*', ->
+    expect(  activate(prop(null, 1).diff(0, subtract))  ).toHasError(1)
 
   it 'should activate/deactivate source property', ->
     p = prop()
@@ -37,13 +37,13 @@ describe '.diff()', ->
     send(p, 'error', 'b')
     send(p, 'value', 6)
     send(p, 'error', 'c')
-    expect(state).toEqual({values:[-1,-2,-3],errors:['a','b','c'],ended:false})
+    expect(state).toEqual({values:[-1,-2,-3],errors:['a','b','c']})
 
-  it 'should handle all values and errors (without initial)', ->
+  it 'should handle all values and errors (without current)', ->
     p = prop()
     state = watch(p.diff(0, subtract))
     send(p, 'value', 3)
     send(p, 'error', 'b')
     send(p, 'value', 6)
     send(p, 'error', 'c')
-    expect(state).toEqual({values:[-3,-3],errors:['b','c'],ended:false})
+    expect(state).toEqual({values:[-3,-3],errors:['b','c']})

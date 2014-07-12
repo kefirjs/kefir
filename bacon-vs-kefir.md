@@ -38,7 +38,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `Bacon.never()` | :rocket: | `Kefir.empty()` |
 | `Bacon.later(delay, value)` | :rocket: | `Kefir.later(delay, value)` |
 | `new Bacon.EventStream(subscribe)` | :broken_heart: |  |
-| `property.changes()` | :ghost: | `property.removeCurrent()` |
+| `property.changes()` | :ghost: | `property.skipCurrent()` |
 | `property.toEventStream()` | :broken_heart: |  |
 | `new Bacon.Bus()` | :broken_heart: |  |
 | `Bacon.fromBinder(subscribe)` | :rocket: | `Kefir.fromBinder(subscribe)` |
@@ -129,7 +129,7 @@ here marked as implemented it means that they are implemented but produces Prope
 | `property.sampledBy(property)` | :rocket: | `property1.sampledBy(property2)` |
 | `property.sampledBy(streamOrProperty, f)` | :rocket: | `property1.sampledBy(property2, f)` |
 | `property.skipDuplicates(isEqual)` | :rocket: | `property.skipDuplicates(isEqual)` |
-| `property.changes()` |  :ghost: | `property.removeCurrent()` |
+| `property.changes()` |  :ghost: | `property.skipCurrent()` |
 | `property.and(other)` | :broken_heart: |  |
 | `property.or(other)` | :broken_heart: |  |
 | `property.startWith(value)` | :ghost: | `property.addCurrent('value', value)` |

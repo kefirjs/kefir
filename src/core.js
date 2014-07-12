@@ -1,3 +1,5 @@
+
+
 var Kefir = {};
 
 
@@ -65,13 +67,15 @@ Fn.isEqual = function(a, b) {
 function Subscribers() {
   this.value = [];
   this.error = [];
-  this.both = [];
   this.end = [];
+  this.any = [];
+  this.total = 0;
 }
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
     this[type].push(new Fn(fn));
+    this.total++;
   },
   remove: function(type, fn) {
     var callable = new Fn(fn)
@@ -81,6 +85,7 @@ extend(Subscribers.prototype, {
     for (i = 0; i < length; i++) {
       if (Fn.isEqual(subs[i], callable)) {
         subs.splice(i, 1);
+        this.total--;
         return;
       }
     }
@@ -100,8 +105,8 @@ extend(Subscribers.prototype, {
       }
     }
   },
-  hasValueOrError: function() {
-    return this.value.length > 0 || this.error.length > 0 || this.both.length > 0;
+  isEmpty: function() {
+    return this.total === 0;
   }
 });
 
@@ -112,47 +117,46 @@ extend(Subscribers.prototype, {
 // Property
 
 function Property() {
-  this.__subscribers = new Subscribers();
-  this.__active = false;
-  this.__current = {value: NOTHING, error: NOTHING, end: NOTHING};
+  this._subscribers = new Subscribers();
+  this._active = false;
+  this._current = {value: NOTHING, error: NOTHING, end: NOTHING};
 }
 Kefir.Property = Property;
 
 
 extend(Property.prototype, {
 
-  __name: 'property',
+  _name: 'property',
 
 
-  __onActivation: function() {},
-  __onDeactivation: function() {},
+  _onActivation: function() {},
+  _onDeactivation: function() {},
 
-  __setActive: function(active) {
-    if (this.__active !== active) {
-      this.__active = active;
+  _setActive: function(active) {
+    if (this._active !== active) {
+      this._active = active;
       if (active) {
-        this.__onActivation();
+        this._onActivation();
       } else {
-        this.__onDeactivation();
+        this._onDeactivation();
       }
     }
   },
 
 
-  __clear: function() {
-    this.__setActive(false);
-    this.__subscribers = null;
+  _clear: function() {
+    this._setActive(false);
+    this._subscribers = null;
   },
 
 
-  __send: function(type, x) {
+  _send: function(type, x) {
     if (!this.has('end')) {
-      this.__current[type] = x;
-      this.__subscribers.call(type, [x]);
+      this._current[type] = x;
+      this._subscribers.call(type, [x, false]);
+      this._subscribers.call('any', [type, x, false]);
       if (type === 'end') {
-        this.__clear();
-      } else {
-        this.__subscribers.call('both', [type, x]);
+        this._clear();
       }
     }
   },
@@ -160,18 +164,18 @@ extend(Property.prototype, {
 
   on: function(type, fnMeta) {
     if (!this.has('end')) {
-      this.__subscribers.add(type, fnMeta);
-      if (type !== 'end') {
-        this.__setActive(true);
+      this._setActive(true);
+      if (!this.has('end')) {
+        this._subscribers.add(type, fnMeta);
       }
     }
     return this;
   },
   off: function(type, fnMeta) {
     if (!this.has('end')) {
-      this.__subscribers.remove(type, fnMeta);
-      if (type !== 'end' && !this.__subscribers.hasValueOrError()) {
-        this.__setActive(false);
+      this._subscribers.remove(type, fnMeta);
+      if (this._subscribers.isEmpty()) {
+        this._setActive(false);
       }
     }
     return this;
@@ -180,36 +184,38 @@ extend(Property.prototype, {
 
 
   watch: function(type, fnMeta) {
-    if (type === 'both') {
+    this.on(type, fnMeta);
+    if (type === 'any') {
       if (this.has('value')) {
         Fn.call(fnMeta, ['value', this.get('value'), true]);
       }
       if (this.has('error')) {
         Fn.call(fnMeta, ['error', this.get('error'), true]);
       }
+      if (this.has('end')) {
+        Fn.call(fnMeta, ['end', this.get('end'), true]);
+      }
     } else {
       if (this.has(type)) {
         Fn.call(fnMeta, [this.get(type), true]);
       }
     }
-    return this.on(type, fnMeta);
+    return this;
   },
   has: function(type) {
-    return (type === 'end' || type === 'value' || type === 'error') && this.__current[type] !== NOTHING;
+    return (type === 'end' || type === 'value' || type === 'error') && this._current[type] !== NOTHING;
   },
   get: function(type, fallback) {
     if (this.has(type)) {
-      return this.__current[type];
+      return this._current[type];
     } else {
       return fallback;
     }
   },
 
+  isActive: function() {  return this._active  },
 
-  isActive: function() {  return this.__active  },
-
-
-  toString: function() {  return '[' + this.__name + ']'  }
+  toString: function() {  return '[' + this._name + ']'  }
 
 });
 
@@ -223,11 +229,8 @@ Property.prototype.log = function(name) {
   if (name == null) {
     name = this.toString();
   }
-  this.watch('both', function(type, x, isInitial) {
-    console.log(name, '<' + type + (isInitial ? ':current' : '') + '>', x);
-  });
-  this.watch('end', function(_, isInitial) {
-    console.log(name, '<end' + (isInitial ? ':current' : '') + '>');
+  this.watch('any', function(type, x, isCurrent) {
+    console.log(name, '<' + type + (isCurrent ? ':current' : '') + '>', x);
   });
   return this;
 }

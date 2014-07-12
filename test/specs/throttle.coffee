@@ -1,26 +1,26 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, withFakeTime} = helpers
+{prop, watch, send, withFakeTime, activate} = helpers
 
 
 describe '.throttle()', ->
 
   it 'should end when source ends', ->
     p = prop()
-    throttled = p.throttle(100)
+    throttled = activate(p.throttle(100))
     expect(throttled).toNotBeEnded()
     send(p, 'end')
     expect(throttled).toBeEnded()
 
   it 'should always pass initial *value*', ->
-    expect(  prop(1).throttle(100)  ).toHasValue(1)
-    expect(  prop(1).throttle(100, {leading: false})  ).toHasValue(1)
-    expect(  prop(1).throttle(100, {trailing: false})  ).toHasValue(1)
-    expect(  prop(1).throttle(100, {trailing: false, leading: false})  ).toHasValue(1)
+    expect(  activate(prop(1).throttle(100))  ).toHasValue(1)
+    expect(  activate(prop(1).throttle(100, {leading: false}))  ).toHasValue(1)
+    expect(  activate(prop(1).throttle(100, {trailing: false}))  ).toHasValue(1)
+    expect(  activate(prop(1).throttle(100, {trailing: false, leading: false}))  ).toHasValue(1)
 
   it 'should pass initial *error*', ->
-    expect(  prop(null, 1).throttle(100)  ).toHasError(1)
+    expect(  activate(prop(null, 1).throttle(100))  ).toHasError(1)
 
   it 'should pass further *errors*', ->
     p = prop()
@@ -28,7 +28,7 @@ describe '.throttle()', ->
     send(p, 'error', 1)
     send(p, 'error', 2)
     send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3],ended:false})
+    expect(state).toEqual({values:[],errors:[1,2,3]})
 
   it 'should activate/deactivate source property', ->
     p = prop()
@@ -118,9 +118,9 @@ describe '.throttle()', ->
       clock.tick(30)
       send(p, 'value', 3)
       send(p, 'end')
-      expect(state).toEqual({values:[1,2],errors:[],ended:false})
+      expect(state).toEqual({values:[1,2],errors:[]})
       clock.tick(71)
-      expect(state).toEqual({values:[1,2,3],errors:[],ended:true})
+      expect(state).toEqual({values:[1,2,3],errors:[],end:undefined})
 
 
   it 'should end rignt after source if {trailing: false}', ->
@@ -131,4 +131,4 @@ describe '.throttle()', ->
       clock.tick(30)
       send(p, 'value', 3)
       send(p, 'end')
-      expect(state).toEqual({values:[1,2],errors:[],ended:true})
+      expect(state).toEqual({values:[1,2],errors:[],end:undefined})

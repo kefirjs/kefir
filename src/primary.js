@@ -4,29 +4,29 @@
 
 function FromBinderProperty(fn) {
   Property.call(this);
-  this.__fn = new Fn(fn);
+  this._fn = new Fn(fn);
 }
 
 inherit(FromBinderProperty, Property, {
 
-  __name: 'fromBinder',
+  _name: 'fromBinder',
 
-  __onActivation: function() {
+  _onActivation: function() {
     var _this = this;
-    this.__unsubscribe = Fn.call(this.__fn, [
-      function(type, x) {  _this.__send(type, x)  }
+    this._unsubscribe = Fn.call(this._fn, [
+      function(type, x) {  _this._send(type, x)  }
     ]);
   },
-  __onDeactivation: function() {
-    if (isFn(this.__unsubscribe)) {
-      this.__unsubscribe();
+  _onDeactivation: function() {
+    if (isFn(this._unsubscribe)) {
+      this._unsubscribe();
     }
-    this.__unsubscribe = null;
+    this._unsubscribe = null;
   },
 
-  __clear: function() {
-    Property.prototype.__clear.call(this);
-    this.__fn = null;
+  _clear: function() {
+    Property.prototype._clear.call(this);
+    this._fn = null;
   }
 
 })
@@ -47,9 +47,9 @@ function Emitter() {
 }
 
 inherit(Emitter, Property, {
-  __name: 'emitter',
+  _name: 'emitter',
   emit: function(type, x) {
-    this.__send(type, x);
+    this._send(type, x);
   }
 });
 
@@ -66,8 +66,8 @@ Kefir.emitter = function() {
 // Kefir.empty()
 
 var emptyObj = new Property();
-emptyObj.__send('end');
-emptyObj.__name = 'empty';
+emptyObj._send('end');
+emptyObj._name = 'empty';
 Kefir.empty = function() {  return emptyObj  }
 
 
@@ -78,12 +78,12 @@ Kefir.empty = function() {  return emptyObj  }
 
 function ConstantProperty(x) {
   Property.call(this);
-  this.__send('value', x);
-  this.__send('end');
+  this._send('value', x);
+  this._send('end');
 }
 
 inherit(ConstantProperty, Property, {
-  __name: 'constant'
+  _name: 'constant'
 })
 
 Kefir.constant = function(x) {
@@ -97,12 +97,12 @@ Kefir.constant = function(x) {
 
 function ConstantErrorProperty(x) {
   Property.call(this);
-  this.__send('error', x);
-  this.__send('end');
+  this._send('error', x);
+  this._send('end');
 }
 
 inherit(ConstantErrorProperty, Property, {
-  __name: 'constantError'
+  _name: 'constantError'
 })
 
 Kefir.constantError = function(x) {

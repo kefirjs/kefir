@@ -5,23 +5,28 @@ exports.watch = (property) ->
   result = {
     values: []
     errors: []
-    ended: false
   }
   property.watch 'value', (x) -> result.values.push(x)
   property.watch 'error', (e) -> result.errors.push(e)
-  property.watch 'end', -> result.ended = true
+  property.watch 'end', (x) -> result.end = x
   result
 
 exports.send = (property, type, x) ->
-  property.__send(type, x)
+  property._send(type, x)
   property
 
-exports.prop = (initialValue, initialError) ->
+exports.activate = (property) ->
+  property.on 'end', ->
+  property
+
+exports.prop = (initialValue, initialError, initialEnd) ->
   prop = new Kefir.Property()
   if initialValue?
-    prop.__send('value', initialValue)
+    prop._send('value', initialValue)
   if initialError?
-    prop.__send('error', initialError)
+    prop._send('error', initialError)
+  if initialEnd?
+    prop._send('end', initialEnd)
   prop
 
 exports.withFakeTime = (cb) ->
@@ -36,11 +41,16 @@ beforeEach ->
     toHasEqualValue: (value) -> @actual.has('value') && @env.equals_(@actual.get('value'), value)
     toHasError: (error) -> @actual.has('error') && @actual.get('error') == error
     toHasEqualError: (error) -> @actual.has('error') && @env.equals_(@actual.get('error'), error)
+    toHasEnd: (end) -> @actual.has('end') && @actual.get('end') == end
+    toHasEqualEnd: (end) -> @actual.has('end') && @env.equals_(@actual.get('end'), end)
     toHasNoValue: -> !@actual.has('value')
     toHasNoError: -> !@actual.has('error')
-    toBeEnded: -> @actual.has('end')
+    toHasNoEnd: -> !@actual.has('end')
     toBeActive: -> @actual.isActive()
-    toNotBeEnded: -> !@actual.has('end')
     toNotBeActive: -> !@actual.isActive()
+
+    # deprecated
+    toNotBeEnded: -> !@actual.has('end')
+    toBeEnded: -> @actual.has('end')
   }
 

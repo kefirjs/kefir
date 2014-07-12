@@ -1,17 +1,19 @@
+
+
 // Kefir.withInterval()
 
 withInterval('withInterval', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
     var _this = this;
-    this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
+    this._bindedSend = function(type, x) {  _this._send(type, x)  }
   },
-  __free: function() {
-    this.__fn = null;
-    this.__bindedSend = null;
+  _free: function() {
+    this._fn = null;
+    this._bindedSend = null;
   },
-  __onTick: function() {
-    Fn.call(this.__fn, [this.__bindedSend]);
+  _onTick: function() {
+    Fn.call(this._fn, [this._bindedSend]);
   }
 });
 
@@ -22,14 +24,14 @@ withInterval('withInterval', {
 // Kefir.fromPoll()
 
 withInterval('fromPoll', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
   },
-  __free: function() {
-    this.__fn = null;
+  _free: function() {
+    this._fn = null;
   },
-  __onTick: function() {
-    this.__send('value', Fn.call(this.__fn));
+  _onTick: function() {
+    this._send('value', Fn.call(this._fn));
   }
 });
 
@@ -40,14 +42,14 @@ withInterval('fromPoll', {
 // Kefir.interval()
 
 withInterval('interval', {
-  __init: function(args) {
-    this.__x = args[0];
+  _init: function(args) {
+    this._x = args[0];
   },
-  __free: function() {
-    this.__x = null;
+  _free: function() {
+    this._x = null;
   },
-  __onTick: function() {
-    this.__send('value', this.__x);
+  _onTick: function() {
+    this._send('value', this._x);
   }
 });
 
@@ -57,26 +59,26 @@ withInterval('interval', {
 // Kefir.sequentially()
 
 withInterval('sequentially', {
-  __init: function(args) {
-    this.__xs = cloneArray(args[0]);
-    if (this.__xs.length === 0) {
-      this.__send('end')
+  _init: function(args) {
+    this._xs = cloneArray(args[0]);
+    if (this._xs.length === 0) {
+      this._send('end')
     }
   },
-  __free: function() {
-    this.__xs = null;
+  _free: function() {
+    this._xs = null;
   },
-  __onTick: function() {
-    switch (this.__xs.length) {
+  _onTick: function() {
+    switch (this._xs.length) {
       case 0:
-        this.__send('end');
+        this._send('end');
         break;
       case 1:
-        this.__send('value', this.__xs[0]);
-        this.__send('end');
+        this._send('value', this._xs[0]);
+        this._send('end');
         break;
       default:
-        this.__send('value', this.__xs.shift());
+        this._send('value', this._xs.shift());
     }
   }
 });
@@ -87,14 +89,14 @@ withInterval('sequentially', {
 // Kefir.repeatedly()
 
 withInterval('repeatedly', {
-  __init: function(args) {
-    this.__xs = cloneArray(args[0]);
-    this.__i = -1;
+  _init: function(args) {
+    this._xs = cloneArray(args[0]);
+    this._i = -1;
   },
-  __onTick: function() {
-    if (this.__xs.length > 0) {
-      this.__i = (this.__i + 1) % this.__xs.length;
-      this.__send('value', this.__xs[this.__i]);
+  _onTick: function() {
+    if (this._xs.length > 0) {
+      this._i = (this._i + 1) % this._xs.length;
+      this._send('value', this._xs[this._i]);
     }
   }
 });
@@ -106,67 +108,14 @@ withInterval('repeatedly', {
 // Kefir.later()
 
 withInterval('later', {
-  __init: function(args) {
-    this.__x = args[0];
+  _init: function(args) {
+    this._x = args[0];
   },
-  __free: function() {
-    this.__x = null;
+  _free: function() {
+    this._x = null;
   },
-  __onTick: function() {
-    this.__send('value', this.__x);
-    this.__send('end');
+  _onTick: function() {
+    this._send('value', this._x);
+    this._send('end');
   }
 });
-
-
-
-
-
-
-
-
-
-/// Utils
-
-function withInterval(name, mixin) {
-
-  function AnonymousProperty(wait, args) {
-    Property.call(this);
-    this.__wait = wait;
-    this.__intervalId = null;
-    var _this = this;
-    this.__bindedOnTick = function() {  _this.__onTick()  }
-    this.__init(args);
-  }
-
-  inherit(AnonymousProperty, Property, {
-
-    __name: name,
-
-    __init: function(args) {},
-    __free: function() {},
-
-    __onTick: function() {},
-
-    __onActivation: function() {
-      this.__intervalId = setInterval(this.__bindedOnTick, this.__wait);
-    },
-    __onDeactivation: function() {
-      if (this.__intervalId !== null) {
-        clearInterval(this.__intervalId);
-        this.__intervalId = null;
-      }
-    },
-
-    __clear: function() {
-      Property.prototype.__clear.call(this);
-      this.__bindedOnTick = null;
-      this.__free();
-    }
-
-  }, mixin);
-
-  Kefir[name] = function(wait) {
-    return new AnonymousProperty(wait, rest(arguments, 1, []));
-  }
-}

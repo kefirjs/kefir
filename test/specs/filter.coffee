@@ -1,7 +1,7 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send} = helpers
+{prop, watch, send, activate} = helpers
 
 
 describe '.filter()', ->
@@ -10,19 +10,19 @@ describe '.filter()', ->
 
   it 'should end when source ends', ->
     p = prop()
-    filtered = p.filter(isEven)
+    filtered = activate(p.filter(isEven))
     expect(filtered).toNotBeEnded()
     send(p, 'end')
     expect(filtered).toBeEnded()
 
   it 'should handle initial *value* (pass filter)', ->
-    expect(  prop(2).filter(isEven)  ).toHasValue(2)
+    expect(  activate(prop(2).filter(isEven))  ).toHasValue(2)
 
   it 'should handle initial *value* (not pass filter)', ->
-    expect(  prop(1).filter(isEven)  ).toHasNoValue()
+    expect(  activate(prop(1).filter(isEven))  ).toHasNoValue()
 
   it 'should handle initial *error*', ->
-    expect(  prop(null, 1).filter(isEven)  ).toHasError(1)
+    expect(  activate(prop(null, 1).filter(isEven))  ).toHasError(1)
 
   it 'should activate/deactivate source property', ->
     p = prop()
@@ -40,4 +40,4 @@ describe '.filter()', ->
     send(p, 'error', 'b')
     send(p, 'value', 3)
     send(p, 'error', 'c')
-    expect(state).toEqual({values:[2],errors:['a','b','c'],ended:false})
+    expect(state).toEqual({values:[2],errors:['a','b','c']})

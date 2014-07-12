@@ -47,6 +47,7 @@ module.exports = (grunt) ->
       kefir:
         options:
           banner: banner
+          sourceMap: true
         files:
           'dist/kefir.min.js': 'dist/kefir.js'
 
@@ -57,12 +58,10 @@ module.exports = (grunt) ->
           footer: outro
         files:
           'dist/kefir.js': [
-            'src/utils.js'
+            'src/utils/utils.js'
+            'src/utils/*.js'
             'src/core.js'
-            'src/primary.js'
-            'src/one-source.js'
-            'src/multiple-sources.js'
-            'src/interval.js'
+            'src/*.js'
           ]
 
     jasmine_node:

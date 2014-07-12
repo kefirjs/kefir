@@ -1,7 +1,7 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send} = helpers
+{prop, watch, send, activate} = helpers
 
 
 describe '.flatMap()', ->
@@ -17,18 +17,17 @@ describe '.flatMap()', ->
 
   it 'if has no sub-sources should end when source ends', ->
     p = prop()
-    flatMapped = p.flatMap()
+    flatMapped = activate(p.flatMap())
     expect(flatMapped).toNotBeEnded()
     send(p, 'end')
     expect(flatMapped).toBeEnded()
 
   it 'if original property was ended should produce ended property', ->
-    expect(  send(prop(), 'end').flatMap()  ).toBeEnded()
+    expect(  activate(send(prop(), 'end').flatMap())  ).toBeEnded()
 
   it 'if sorce ended should end when all sub-sources ends', ->
     p = prop()
-    flatMapped = p.flatMap()
-    flatMapped.on('value', ->) # in order to sub sources to be added prop should be active
+    flatMapped = activate(p.flatMap())
     send(p, 'value', (subP1 = prop()))
     send(p, 'value', (subP2 = prop()))
     send(p, 'end')
@@ -39,20 +38,25 @@ describe '.flatMap()', ->
     expect(flatMapped).toBeEnded()
 
   it 'if orig property has current *value*, and it is property that in turn has current *value*, that current *value* should became current *value* of result property', ->
-    expect(  prop(prop(1)).flatMap()  ).toHasValue(1)
+    expect(  activate(prop(prop(1)).flatMap())  ).toHasValue(1)
+
+  it 'if orig property has current *value* (another prop with current) and *end*', ->
+    p = activate(prop(prop(1, null, 3), null, 2).flatMap())
+    expect(p).toHasValue(1)
+    expect(p).toBeEnded()
 
   it 'if orig property has current *error*, and it is property that in turn has current *error*, that current *error* should became current *error* of result property', ->
-    expect(  prop(prop(null, 1)).flatMap()  ).toHasError(1)
+    expect(  activate(prop(prop(null, 1)).flatMap())  ).toHasError(1)
 
-  it 'should handle initial *error*', ->
-    expect(  prop(null, 1).flatMap()  ).toHasError(1)
+  it 'should handle current *error*', ->
+    expect(  activate(prop(null, 1).flatMap())  ).toHasError(1)
 
   it 'should pass further errors from source', ->
     p = prop()
     state = watch(p.flatMap())
     send(p, 'error', 'b')
     send(p, 'error', 'c')
-    expect(state).toEqual({values:[],errors:['b','c'],ended:false})
+    expect(state).toEqual({values:[],errors:['b','c']})
 
   it 'should pass all values/errors from sub sources', ->
     p = prop()
@@ -63,7 +67,7 @@ describe '.flatMap()', ->
     send(p2, 'error', 'e1')
     send(p1, 'error', 'e2')
     send(p2, 'value', 2)
-    expect(state).toEqual({values:[1,2],errors:['e1','e2'],ended:false})
+    expect(state).toEqual({values:[1,2],errors:['e1','e2']})
 
   it 'allows to pass optional mapFn', ->
     p = prop({prop: prop(0, 'e0')})
@@ -74,4 +78,4 @@ describe '.flatMap()', ->
     send(p2, 'error', 'e1')
     send(p1, 'error', 'e2')
     send(p2, 'value', 2)
-    expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2'],ended:false})
+    expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2']})

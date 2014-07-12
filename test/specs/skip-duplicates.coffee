@@ -1,23 +1,23 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send} = helpers
+{prop, watch, send, activate} = helpers
 
 
 describe '.skipDuplicates()', ->
 
   it 'should end when source ends', ->
     p = prop()
-    tp = p.skipDuplicates()
+    tp = activate(p.skipDuplicates())
     expect(tp).toNotBeEnded()
     send(p, 'end')
     expect(tp).toBeEnded()
 
   it 'should handle initial *value*', ->
-    expect(  prop(1).skipDuplicates()  ).toHasValue(1)
+    expect(  activate(prop(1).skipDuplicates())  ).toHasValue(1)
 
   it 'should handle initial *error*', ->
-    expect(  prop(null, 1).skipDuplicates()  ).toHasError(1)
+    expect(  activate(prop(null, 1).skipDuplicates())  ).toHasError(1)
 
   it 'should handle further *errors* even same', ->
     p = prop()
@@ -26,7 +26,7 @@ describe '.skipDuplicates()', ->
     send(p, 'error', 2)
     send(p, 'error', 3)
     send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3,3],ended:false})
+    expect(state).toEqual({values:[],errors:[1,2,3,3]})
 
   it 'should activate/deactivate source property', ->
     p = prop()
@@ -46,7 +46,7 @@ describe '.skipDuplicates()', ->
     send(p, 'value', null)
     send(p, 'value', undefined)
     send(p, 'value', 3)
-    expect(state).toEqual({values:[1,2,null,undefined,3],errors:[],ended:false})
+    expect(state).toEqual({values:[1,2,null,undefined,3],errors:[]})
 
   it 'should accept optional comparator fn', ->
     p = prop(1)
@@ -57,4 +57,4 @@ describe '.skipDuplicates()', ->
     send(p, 'value', null)
     send(p, 'value', undefined)
     send(p, 'value', 3)
-    expect(state).toEqual({values:[1,2,null,3],errors:[],ended:false})
+    expect(state).toEqual({values:[1,2,null,3],errors:[]})

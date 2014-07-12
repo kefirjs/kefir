@@ -1,7 +1,5 @@
 var NOTHING = ['<nothing>'];
 
-function noop() {}
-
 function id(x) {return x}
 
 function get(map, key, notFound) {

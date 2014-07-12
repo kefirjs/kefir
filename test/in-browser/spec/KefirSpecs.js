@@ -7,8 +7,6 @@
 
 var NOTHING = ['<nothing>'];
 
-function noop() {}
-
 function id(x) {return x}
 
 function get(map, key, notFound) {
@@ -182,6 +180,276 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+function withInterval(name, mixin) {
+
+  function AnonymousProperty(wait, args) {
+    Property.call(this);
+    this._wait = wait;
+    this._intervalId = null;
+    var _this = this;
+    this._bindedOnTick = function() {  _this._onTick()  }
+    this._init(args);
+  }
+
+  inherit(AnonymousProperty, Property, {
+
+    _name: name,
+
+    _init: function(args) {},
+    _free: function() {},
+
+    _onTick: function() {},
+
+    _onActivation: function() {
+      this._intervalId = setInterval(this._bindedOnTick, this._wait);
+    },
+    _onDeactivation: function() {
+      if (this._intervalId !== null) {
+        clearInterval(this._intervalId);
+        this._intervalId = null;
+      }
+    },
+
+    _clear: function() {
+      Property.prototype._clear.call(this);
+      this._bindedOnTick = null;
+      this._free();
+    }
+
+  }, mixin);
+
+  Kefir[name] = function(wait) {
+    return new AnonymousProperty(wait, rest(arguments, 1, []));
+  }
+}
+
+function getValueAll(properties) {
+  var result = new Array(properties.length);
+  for (var i = 0; i < properties.length; i++) {
+    if (properties[i].has('value')) {
+      result[i] = properties[i].get('value');
+    } else {
+      return null;
+    }
+  }
+  return result;
+}
+
+
+
+function withMultSource(name, mixin, noMethod) {
+
+  function AnonymousProperty(args) {
+    Property.call(this);
+    this._multSubscriber = new MultSubscriber([this._handleAny, this])
+    this._init(args);
+  }
+
+  inherit(AnonymousProperty, Property, {
+
+    _name: name,
+
+    _init: function(args) {},
+    _free: function() {},
+    _onActivationHook: function() {},
+    _onPreActivationHook: function() {},
+    _onDeactivationHook: function() {},
+
+    _handleValue: function(x, isCurrent) {  this._send('value', x)  },
+    _handleError: function(x, isCurrent) {  this._send('error', x)  },
+    _handleEnd: function(x, isCurrent) {},
+
+    _handleAny: function(type, x, isCurrent) {
+      switch (type) {
+        case 'value': this._handleValue(x, isCurrent); break;
+        case 'error': this._handleError(x, isCurrent); break;
+        case 'end': this._handleEnd(x, isCurrent); break;
+      }
+    },
+
+    _onActivation: function() {
+      this._onPreActivationHook();
+      this._multSubscriber.start();
+      this._onActivationHook();
+    },
+    _onDeactivation: function() {
+      this._multSubscriber.stop();
+      this._onDeactivationHook();
+    },
+
+    _clear: function() {
+      Property.prototype._clear.call(this);
+      this._multSubscriber.clear();
+      this._multSubscriber = null;
+      this._free();
+    }
+
+  }, mixin);
+
+  if (!noMethod) {
+    Kefir[name] = function() {
+      return new AnonymousProperty(arguments);
+    }
+  }
+
+  return AnonymousProperty;
+}
+
+
+
+
+
+function MultSubscriber(listener) {
+  this.listener = new Fn(listener);
+  this.properties = [];
+  this.active = false;
+}
+
+extend(MultSubscriber.prototype, {
+
+  start: function() {
+    if (!this.active) {
+      this.active = true;
+      if (this.hasProperties()) {
+        var properties = cloneArray(this.properties);
+        for (var i = 0; i < properties.length; i++) {
+          this.subToProp(properties[i]);
+        }
+      }
+    }
+  },
+  stop: function() {
+    if (this.active) {
+      this.active = false;
+      for (var i = 0; i < this.properties.length; i++) {
+        this.unsubFromProp(this.properties[i]);
+      }
+    }
+  },
+
+  subToProp: function(property) {
+    if (this.active) {
+      property.watch('any', [this.handleAny, this, property]);
+    }
+  },
+  unsubFromProp: function(property) {
+    property.off('any', [this.handleAny, this, property]);
+  },
+
+  handleAny: function(property, type, x, isCurrent) {
+    Fn.call(this.listener, [type, x, isCurrent]);
+    if (type === 'end') {
+      this.remove(property);
+    }
+  },
+
+  addAll: function(properties) {
+    for (var i = 0; i < properties.length; i++) {
+      this.add(properties[i])
+    }
+  },
+  add: function(property) {
+    this.properties.push(property);
+    this.subToProp(property);
+  },
+  remove: function(property) {
+    for (var i = 0; i < this.properties.length; i++) {
+      if (this.properties[i] === property) {
+        this.properties.splice(i, 1);
+        this.unsubFromProp(property);
+        break;
+      }
+    }
+    if (this.properties.length === 0 && this.onLastRemovedCb) {
+      Fn.call(this.onLastRemovedCb);
+    }
+  },
+  removeAll: function(){
+    if (this.hasProperties()) {
+      for (var i = 0; i < this.properties.length; i++) {
+        this.unsubFromProp(this.properties[i]);
+      }
+      this.properties = [];
+      if (this.onLastRemovedCb) {
+        Fn.call(this.onLastRemovedCb);
+      }
+    }
+  },
+
+  onLastRemoved: function(fn) {
+    this.onLastRemovedCb = new Fn(fn);
+    if (!this.hasProperties()) {
+      Fn.call(this.onLastRemovedCb);
+    }
+  },
+  offLastRemoved: function() {
+    this.onLastRemovedCb = null;
+  },
+  hasProperties: function() {
+    return this.properties.length > 0;
+  },
+
+  clear: function() {
+    this.active = false;
+    this.offLastRemoved();
+    this.removeAll();
+  }
+
+});
+
+function withOneSource(name, mixin) {
+
+  function AnonymousProperty(source, args) {
+    Property.call(this);
+    this._source = source;
+    this._init(args);
+  }
+
+  inherit(AnonymousProperty, Property, {
+
+    _name: name,
+
+    _init: function(args) {},
+    _free: function() {},
+
+    _handleValue: function(x, isCurrent) {  this._send('value', x)  },
+    _handleError: function(x, isCurrent) {  this._send('error', x)  },
+    _handleEnd: function(x, isCurrent) {  this._send('end', x)  },
+    _onActivationHook: function() {},
+    _onDeactivationHook: function() {},
+
+    _handleAny: function(type, x, isCurrent) {
+      switch (type) {
+        case 'value': this._handleValue(x, isCurrent); break;
+        case 'error': this._handleError(x, isCurrent); break;
+        case 'end': this._handleEnd(x, isCurrent); break;
+      }
+    },
+
+    _onActivation: function() {
+      this._source.watch('any', [this._handleAny, this]);
+      this._onActivationHook();
+    },
+    _onDeactivation: function() {
+      this._source.off('any', [this._handleAny, this]);
+      this._onDeactivationHook();
+    },
+
+    _clear: function() {
+      Property.prototype._clear.call(this);
+      this._source = null;
+      this._free();
+    }
+
+  }, mixin);
+
+  Property.prototype[name] = function() {
+    return new AnonymousProperty(this, arguments);
+  }
+}
+
+
+
 var Kefir = {};
 
 
@@ -249,13 +517,15 @@ Fn.isEqual = function(a, b) {
 function Subscribers() {
   this.value = [];
   this.error = [];
-  this.both = [];
   this.end = [];
+  this.any = [];
+  this.total = 0;
 }
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
     this[type].push(new Fn(fn));
+    this.total++;
   },
   remove: function(type, fn) {
     var callable = new Fn(fn)
@@ -265,6 +535,7 @@ extend(Subscribers.prototype, {
     for (i = 0; i < length; i++) {
       if (Fn.isEqual(subs[i], callable)) {
         subs.splice(i, 1);
+        this.total--;
         return;
       }
     }
@@ -284,8 +555,8 @@ extend(Subscribers.prototype, {
       }
     }
   },
-  hasValueOrError: function() {
-    return this.value.length > 0 || this.error.length > 0 || this.both.length > 0;
+  isEmpty: function() {
+    return this.total === 0;
   }
 });
 
@@ -296,47 +567,46 @@ extend(Subscribers.prototype, {
 // Property
 
 function Property() {
-  this.__subscribers = new Subscribers();
-  this.__active = false;
-  this.__current = {value: NOTHING, error: NOTHING, end: NOTHING};
+  this._subscribers = new Subscribers();
+  this._active = false;
+  this._current = {value: NOTHING, error: NOTHING, end: NOTHING};
 }
 Kefir.Property = Property;
 
 
 extend(Property.prototype, {
 
-  __name: 'property',
+  _name: 'property',
 
 
-  __onActivation: function() {},
-  __onDeactivation: function() {},
+  _onActivation: function() {},
+  _onDeactivation: function() {},
 
-  __setActive: function(active) {
-    if (this.__active !== active) {
-      this.__active = active;
+  _setActive: function(active) {
+    if (this._active !== active) {
+      this._active = active;
       if (active) {
-        this.__onActivation();
+        this._onActivation();
       } else {
-        this.__onDeactivation();
+        this._onDeactivation();
       }
     }
   },
 
 
-  __clear: function() {
-    this.__setActive(false);
-    this.__subscribers = null;
+  _clear: function() {
+    this._setActive(false);
+    this._subscribers = null;
   },
 
 
-  __send: function(type, x) {
+  _send: function(type, x) {
     if (!this.has('end')) {
-      this.__current[type] = x;
-      this.__subscribers.call(type, [x]);
+      this._current[type] = x;
+      this._subscribers.call(type, [x, false]);
+      this._subscribers.call('any', [type, x, false]);
       if (type === 'end') {
-        this.__clear();
-      } else {
-        this.__subscribers.call('both', [type, x]);
+        this._clear();
       }
     }
   },
@@ -344,18 +614,18 @@ extend(Property.prototype, {
 
   on: function(type, fnMeta) {
     if (!this.has('end')) {
-      this.__subscribers.add(type, fnMeta);
-      if (type !== 'end') {
-        this.__setActive(true);
+      this._setActive(true);
+      if (!this.has('end')) {
+        this._subscribers.add(type, fnMeta);
       }
     }
     return this;
   },
   off: function(type, fnMeta) {
     if (!this.has('end')) {
-      this.__subscribers.remove(type, fnMeta);
-      if (type !== 'end' && !this.__subscribers.hasValueOrError()) {
-        this.__setActive(false);
+      this._subscribers.remove(type, fnMeta);
+      if (this._subscribers.isEmpty()) {
+        this._setActive(false);
       }
     }
     return this;
@@ -364,36 +634,38 @@ extend(Property.prototype, {
 
 
   watch: function(type, fnMeta) {
-    if (type === 'both') {
+    this.on(type, fnMeta);
+    if (type === 'any') {
       if (this.has('value')) {
         Fn.call(fnMeta, ['value', this.get('value'), true]);
       }
       if (this.has('error')) {
         Fn.call(fnMeta, ['error', this.get('error'), true]);
       }
+      if (this.has('end')) {
+        Fn.call(fnMeta, ['end', this.get('end'), true]);
+      }
     } else {
       if (this.has(type)) {
         Fn.call(fnMeta, [this.get(type), true]);
       }
     }
-    return this.on(type, fnMeta);
+    return this;
   },
   has: function(type) {
-    return (type === 'end' || type === 'value' || type === 'error') && this.__current[type] !== NOTHING;
+    return (type === 'end' || type === 'value' || type === 'error') && this._current[type] !== NOTHING;
   },
   get: function(type, fallback) {
     if (this.has(type)) {
-      return this.__current[type];
+      return this._current[type];
     } else {
       return fallback;
     }
   },
 
+  isActive: function() {  return this._active  },
 
-  isActive: function() {  return this.__active  },
-
-
-  toString: function() {  return '[' + this.__name + ']'  }
+  toString: function() {  return '[' + this._name + ']'  }
 
 });
 
@@ -407,149 +679,28 @@ Property.prototype.log = function(name) {
   if (name == null) {
     name = this.toString();
   }
-  this.watch('both', function(type, x, isInitial) {
-    console.log(name, '<' + type + (isInitial ? ':current' : '') + '>', x);
-  });
-  this.watch('end', function(_, isInitial) {
-    console.log(name, '<end' + (isInitial ? ':current' : '') + '>');
+  this.watch('any', function(type, x, isCurrent) {
+    console.log(name, '<' + type + (isCurrent ? ':current' : '') + '>', x);
   });
   return this;
 }
 
 
 
-// Kefir.fromBinder(fn)
+// Kefir.withInterval()
 
-function FromBinderProperty(fn) {
-  Property.call(this);
-  this.__fn = new Fn(fn);
-}
-
-inherit(FromBinderProperty, Property, {
-
-  __name: 'fromBinder',
-
-  __onActivation: function() {
+withInterval('withInterval', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
     var _this = this;
-    this.__unsubscribe = Fn.call(this.__fn, [
-      function(type, x) {  _this.__send(type, x)  }
-    ]);
+    this._bindedSend = function(type, x) {  _this._send(type, x)  }
   },
-  __onDeactivation: function() {
-    if (isFn(this.__unsubscribe)) {
-      this.__unsubscribe();
-    }
-    this.__unsubscribe = null;
+  _free: function() {
+    this._fn = null;
+    this._bindedSend = null;
   },
-
-  __clear: function() {
-    Property.prototype.__clear.call(this);
-    this.__fn = null;
-  }
-
-})
-
-Kefir.fromBinder = function(fn) {
-  return new FromBinderProperty(fn);
-}
-
-
-
-
-
-
-// Kefir.emitter()
-
-function Emitter() {
-  Property.call(this);
-}
-
-inherit(Emitter, Property, {
-  __name: 'emitter',
-  emit: function(type, x) {
-    this.__send(type, x);
-  }
-});
-
-Kefir.emitter = function() {
-  return new Emitter();
-}
-
-
-
-
-
-
-
-// Kefir.empty()
-
-var emptyObj = new Property();
-emptyObj.__send('end');
-emptyObj.__name = 'empty';
-Kefir.empty = function() {  return emptyObj  }
-
-
-
-
-
-// Kefir.constant(x)
-
-function ConstantProperty(x) {
-  Property.call(this);
-  this.__send('value', x);
-  this.__send('end');
-}
-
-inherit(ConstantProperty, Property, {
-  __name: 'constant'
-})
-
-Kefir.constant = function(x) {
-  return new ConstantProperty(x);
-}
-
-
-
-
-// Kefir.constantError(x)
-
-function ConstantErrorProperty(x) {
-  Property.call(this);
-  this.__send('error', x);
-  this.__send('end');
-}
-
-inherit(ConstantErrorProperty, Property, {
-  __name: 'constantError'
-})
-
-Kefir.constantError = function(x) {
-  return new ConstantErrorProperty(x);
-}
-
-
-
-
-// .withHandler()
-
-withOneSource('withHandler', {
-  __init: function(args) {
-    var _this = this;
-    this.__handler = new Fn(args[0]);
-    this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
-  },
-  __free: function() {
-    this.__handler = null;
-    this.__bindedSend = null;
-  },
-  __handleValue: function(x, initial) {
-    Fn.call(this.__handler, [this.__bindedSend, 'value', x, initial]);
-  },
-  __handleError: function(e, initial) {
-    Fn.call(this.__handler, [this.__bindedSend, 'error', e, initial]);
-  },
-  __handleEnd: function() {
-    Fn.call(this.__handler, [this.__bindedSend, 'end']);
+  _onTick: function() {
+    Fn.call(this._fn, [this._bindedSend]);
   }
 });
 
@@ -557,20 +708,82 @@ withOneSource('withHandler', {
 
 
 
-// .removeCurrent()
+// Kefir.fromPoll()
 
-withOneSource('removeCurrent', {
-  __init: function(args) {
-    this.__type = args[0] || 'both';
+withInterval('fromPoll', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
   },
-  __handleValue: function(x, initial) {
-    if (!initial || (this.__type !== 'value' && this.__type !== 'both')) {
-      this.__send('value', x);
+  _free: function() {
+    this._fn = null;
+  },
+  _onTick: function() {
+    this._send('value', Fn.call(this._fn));
+  }
+});
+
+
+
+
+
+// Kefir.interval()
+
+withInterval('interval', {
+  _init: function(args) {
+    this._x = args[0];
+  },
+  _free: function() {
+    this._x = null;
+  },
+  _onTick: function() {
+    this._send('value', this._x);
+  }
+});
+
+
+
+
+// Kefir.sequentially()
+
+withInterval('sequentially', {
+  _init: function(args) {
+    this._xs = cloneArray(args[0]);
+    if (this._xs.length === 0) {
+      this._send('end')
     }
   },
-  __handleError: function(x, initial) {
-    if (!initial || (this.__type !== 'error' && this.__type !== 'both')) {
-      this.__send('error', x);
+  _free: function() {
+    this._xs = null;
+  },
+  _onTick: function() {
+    switch (this._xs.length) {
+      case 0:
+        this._send('end');
+        break;
+      case 1:
+        this._send('value', this._xs[0]);
+        this._send('end');
+        break;
+      default:
+        this._send('value', this._xs.shift());
+    }
+  }
+});
+
+
+
+
+// Kefir.repeatedly()
+
+withInterval('repeatedly', {
+  _init: function(args) {
+    this._xs = cloneArray(args[0]);
+    this._i = -1;
+  },
+  _onTick: function() {
+    if (this._xs.length > 0) {
+      this._i = (this._i + 1) % this._xs.length;
+      this._send('value', this._xs[this._i]);
     }
   }
 });
@@ -579,429 +792,33 @@ withOneSource('removeCurrent', {
 
 
 
-// .addCurrent()
+// Kefir.later()
 
-withOneSource('addCurrent', {
-  __init: function(args) {
-    this.__type = args[0];
-    this.__send(args[0], args[1])
+withInterval('later', {
+  _init: function(args) {
+    this._x = args[0];
   },
-  __handleValue: function(x, initial) {
-    if (!initial || (this.__type !== 'value')) {
-      this.__send('value', x);
-    }
+  _free: function() {
+    this._x = null;
   },
-  __handleError: function(x, initial) {
-    if (!initial || (this.__type !== 'error')) {
-      this.__send('error', x);
-    }
+  _onTick: function() {
+    this._send('value', this._x);
+    this._send('end');
   }
 });
 
 
-
-
-
-
-// .map(fn)
-
-withOneSource('map', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
-  },
-  __free: function() {
-    this.__fn = null;
-  },
-  __handleValue: function(x) {
-    this.__send('value', Fn.call(this.__fn, [x]));
-  }
-});
-
-
-
-
-
-// .filter(fn)
-
-withOneSource('filter', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
-  },
-  __free: function() {
-    this.__fn = null;
-  },
-  __handleValue: function(x) {
-    if (Fn.call(this.__fn, [x])) {
-      this.__send('value', x);
-    }
-  }
-});
-
-
-
-
-// .diff(seed, fn)
-
-withOneSource('diff', {
-  __init: function(args) {
-    this.__prev = args[0];
-    this.__fn = new Fn(rest(args, 1));
-  },
-  __free: function() {
-    this.__prev = null;
-    this.__fn = null;
-  },
-  __handleValue: function(x) {
-    this.__send('value', Fn.call(this.__fn, [this.__prev, x]));
-    this.__prev = x;
-  }
-});
-
-
-
-
-// .takeWhile(fn)
-
-withOneSource('takeWhile', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
-  },
-  __free: function() {
-    this.__fn = null;
-  },
-  __handleValue: function(x) {
-    if (Fn.call(this.__fn, [x])) {
-      this.__send('value', x);
-    } else {
-      this.__send('end');
-    }
-  }
-});
-
-
-
-
-
-// .take(n)
-
-withOneSource('take', {
-  __init: function(args) {
-    this.__n = args[0];
-    if (this.__n <= 0) {
-      this.__send('end');
-    }
-  },
-  __handleValue: function(x) {
-    this.__n--;
-    this.__send('value', x);
-    if (this.__n === 0) {
-      this.__send('end');
-    }
-  }
-});
-
-
-
-
-
-// .skip(n)
-
-withOneSource('skip', {
-  __init: function(args) {
-    this.__n = args[0];
-  },
-  __handleValue: function(x) {
-    if (this.__n <= 0) {
-      this.__send('value', x);
-    } else {
-      this.__n--;
-    }
-  }
-});
-
-
-
-
-// .skipDuplicates([fn])
-
-function strictlyEqual(a, b) {  return a === b  }
-
-withOneSource('skipDuplicates', {
-  __init: function(args) {
-    if (args.length > 0) {
-      this.__fn = new Fn(args[0]);
-    } else {
-      this.__fn = strictlyEqual;
-    }
-    this.__prev = NOTHING;
-  },
-  __free: function() {
-    this.__fn = null;
-    this.__prev = null;
-  },
-  __handleValue: function(x) {
-    if (this.__prev === NOTHING || !Fn.call(this.__fn, [this.__prev, x])) {
-      this.__send('value', x);
-    }
-    this.__prev = x;
-  }
-});
-
-
-
-
-
-// .skipWhile(fn)
-
-withOneSource('skipWhile', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
-    this.__skip = true;
-  },
-  __free: function() {
-    this.__fn = null;
-  },
-  __handleValue: function(x) {
-    if (!this.__skip) {
-      this.__send('value', x);
-      return;
-    }
-    if (!Fn.call(this.__fn, [x])) {
-      this.__skip = false;
-      this.__fn = null;
-      this.__send('value', x);
-    }
-  }
-});
-
-
-
-
-
-// .scan(seed, fn)
-
-withOneSource('scan', {
-  __init: function(args) {
-    this.__send('value', args[0]);
-    this.__fn = new Fn(rest(args, 1));
-  },
-  __free: function(){
-    this.__fn = null;
-  },
-  __handleValue: function(x) {
-    this.__send('value', Fn.call(this.__fn, [this.get('value'), x]));
-  }
-});
-
-
-
-
-
-
-
-// .reduce(seed, fn)
-
-withOneSource('reduce', {
-  __init: function(args) {
-    this.__result = args[0];
-    this.__fn = new Fn(rest(args, 1));
-  },
-  __free: function(){
-    this.__fn = null;
-    this.__result = null;
-  },
-  __handleValue: function(x) {
-    this.__result = Fn.call(this.__fn, [this.__result, x]);
-  },
-  __handleEnd: function() {
-    this.__send('value', this.__result);
-    this.__send('end');
-  }
-});
-
-
-
-
-
-
-
-// .throttle(wait, {leading, trailing})
-
-withOneSource('throttle', {
-  __init: function(args) {
-    this.__wait = args[0];
-    this.__leading = get(args[1], 'leading', true);
-    this.__trailing = get(args[1], 'trailing', true);
-    this.__trailingCallValue = null;
-    this.__trailingCallTimeoutId = null;
-    this.__endAfterTrailingCall = false;
-    this.__lastCallTime = 0;
-    var _this = this;
-    this.__makeTrailingCallBinded = function() {  _this.__makeTrailingCall()  };
-  },
-  __free: function() {
-    this.__trailingCallValue = null;
-    this.__makeTrailingCallBinded = null;
-  },
-  __handleValue: function(x, initial) {
-    if (initial) {
-      this.__send('value', x);
-      return;
-    }
-    var curTime = now();
-    if (this.__lastCallTime === 0 && !this.__leading) {
-      this.__lastCallTime = curTime;
-    }
-    var remaining = this.__wait - (curTime - this.__lastCallTime);
-    if (remaining <= 0) {
-      this.__cancelTralingCall();
-      this.__lastCallTime = curTime;
-      this.__send('value', x);
-    } else if (this.__trailing) {
-      this.__scheduleTralingCall(x, remaining);
-    }
-  },
-  __handleEnd: function() {
-    if (this.__trailingCallTimeoutId) {
-      this.__endAfterTrailingCall = true;
-    } else {
-      this.__send('end');
-    }
-  },
-  __scheduleTralingCall: function(value, wait) {
-    if (this.__trailingCallTimeoutId) {
-      this.__cancelTralingCall();
-    }
-    this.__trailingCallValue = value;
-    this.__trailingCallTimeoutId = setTimeout(this.__makeTrailingCallBinded, wait);
-  },
-  __cancelTralingCall: function() {
-    if (this.__trailingCallTimeoutId !== null) {
-      clearTimeout(this.__trailingCallTimeoutId);
-      this.__trailingCallTimeoutId = null;
-    }
-  },
-  __makeTrailingCall: function() {
-    this.__send('value', this.__trailingCallValue);
-    this.__trailingCallTimeoutId = null;
-    this.__trailingCallValue = null;
-    this.__lastCallTime = !this.__leading ? 0 : now();
-    if (this.__endAfterTrailingCall) {
-      this.__send('end');
-    }
-  }
-});
-
-
-
-
-
-
-
-// .delay()
-
-withOneSource('delay', {
-  __init: function(args) {
-    this.__wait = args[0];
-  },
-  __handleValue: function(x, initial) {
-    if (initial) {
-      this.__send('value', x);
-      return;
-    }
-    var _this = this;
-    setTimeout(function() {  _this.__send('value', x)  }, this.__wait);
-  },
-  __handleEnd: function() {
-    var _this = this;
-    setTimeout(function() {  _this.__send('end')  }, this.__wait);
-  }
-});
-
-
-
-
-
-
-
-
-
-
-/// Utils
-
-
-function withOneSource(name, mixin) {
-
-  function AnonymousProperty(source, args) {
-    Property.call(this);
-    this.__source = source;
-    this.__init(args);
-    if (!this.has('end')) {
-      this.__source.watch('end', [this.__handleEnd, this]);
-    }
-    if (!this.has('end') && this.__source.has('value')) {
-      this.__handleValue(this.__source.get('value'), true);
-    }
-    if (!this.has('end') && this.__source.has('error')) {
-      this.__handleError(this.__source.get('error'), true);
-    }
-  }
-
-  inherit(AnonymousProperty, Property, {
-
-    __name: name,
-
-    __init: function(args) {},
-    __free: function() {},
-
-    __handleValue: function(x, isInitial) {
-      this.__send('value', x);
-    },
-    __handleError: function(e, isInitial) {
-      this.__send('error', e);
-    },
-    __handleEnd: function() {
-      this.__send('end');
-    },
-
-    __handleBoth: function(type, x) {
-      if (type === 'value') {
-        this.__handleValue(x);
-      } else {
-        this.__handleError(x);
-      }
-    },
-
-    __onActivation: function() {
-      this.__source.on('both', [this.__handleBoth, this]);
-    },
-    __onDeactivation: function() {
-      this.__source.off('both', [this.__handleBoth, this]);
-    },
-
-    __clear: function() {
-      Property.prototype.__clear.call(this);
-      this.__source = null;
-      this.__free();
-    }
-
-  }, mixin);
-
-  Property.prototype[name] = function() {
-    return new AnonymousProperty(this, arguments);
-  }
-}
 
 // .merge()
 
 withMultSource('merge', {
-  __init: function(args) {
+  _init: function(args) {
     var sources = agrsToArray(args);
     if (sources.length > 0) {
-      this.__multSubscriber.addAll(sources);
-      this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
+      this._multSubscriber.addAll(sources);
+      this._multSubscriber.onLastRemoved([this._send, this, 'end']);
     } else {
-      this.__send('end');
+      this._send('end');
     }
   }
 });
@@ -1016,27 +833,24 @@ Property.prototype.merge = function(other) {
 // .combine()
 
 withMultSource('combine', {
-  __init: function(args) {
-    this.__sources = args[0];
-    this.__fn = args[1] ? new Fn(args[1]) : null;
-    if (this.__sources.length > 0) {
-      this.__multSubscriber.addAll(this.__sources);
-      this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
+  _init: function(args) {
+    this._sources = args[0];
+    this._fn = args[1] ? new Fn(args[1]) : null;
+    if (this._sources.length > 0) {
+      this._multSubscriber.addAll(this._sources);
+      this._multSubscriber.onLastRemoved([this._send, this, 'end']);
     } else {
-      this.__send('end');
+      this._send('end');
     }
   },
-  __free: function() {
-    this.__sources = null;
-    this.__fn = null;
+  _free: function() {
+    this._sources = null;
+    this._fn = null;
   },
-  __handleValue: function(x) {
-    if (hasValueAll(this.__sources)) {
-      if (this.__fn) {
-        this.__send('value', Fn.call(this.__fn, getValueAll(this.__sources)));
-      } else {
-        this.__send('value', getValueAll(this.__sources));
-      }
+  _handleValue: function(x) {
+    var xs = getValueAll(this._sources);
+    if (xs !== null) {
+      this._send('value', this._fn ? Fn.call(this._fn, xs) : xs);
     }
   }
 });
@@ -1055,55 +869,45 @@ Property.prototype.combine = function(other, fn) {
 // .flatMap()
 
 var FlatMapProperty = withMultSource('flatMap', {
-  __init: function(args) {
-    this.__source = args[0];
-    this.__fn = args[1] ? new Fn(args[1]) : null;
-    this.__multSubscriber.onLastRemoved([this.__endIfSourceEnded, this]);
+  _init: function(args) {
+    this._source = args[0];
+    this._fn = args[1] ? new Fn(args[1]) : null;
+  },
+  _free: function() {
+    this._source = null;
+    this._fn = null;
+  },
+  _onActivationHook: function() {
+    this._source.watch('any', [this._onAny, this]);
     if (!this.has('end')) {
-      this.__source.on('end', [this.__endIfNoSubSources, this]);
-      if (this.__source.has('value')) {
-        this.__onValue(this.__source.get('value'));
-      }
-      if (this.__source.has('error')) {
-        this.__onError(this.__source.get('error'));
-      }
+      this._multSubscriber.onLastRemoved([this._endIfSourceEnded, this]);
     }
   },
-  __free: function() {
-    this.__source = null;
-    this.__fn = null;
+  _onDeactivationHook: function() {
+    this._source.off('any', [this._onAny, this]);
+    this._multSubscriber.offLastRemoved();
   },
-  __onActivationHook: function() {
-    this.__source.on('both', [this.__onBoth, this])
+  _onValue: function(x) {
+    this._multSubscriber.add(this._fn ? Fn.call(this._fn, [x]) : x);
   },
-  __onDeactivationHook: function() {
-    this.__source.off('both', [this.__onBoth, this])
+  _onError: function(e) {
+    this._send('error', e);
   },
-  __onValue: function(x) {
-    if (this.__fn) {
-      this.__multSubscriber.add(Fn.call(this.__fn, [x]));
-    } else {
-      this.__multSubscriber.add(x);
+  _onAny: function(type, x) {
+    switch (type) {
+      case 'value': this._onValue(x); break;
+      case 'error': this._onError(x); break;
+      case 'end': this._endIfNoSubSources(); break;
     }
   },
-  __onError: function(e) {
-    this.__send('error', e);
-  },
-  __onBoth: function(type, x) {
-    if (type === 'value') {
-      this.__onValue(x);
-    } else {
-      this.__onError(x);
+  _endIfSourceEnded: function() {
+    if (this._source.has('end')) {
+      this._send('end');
     }
   },
-  __endIfSourceEnded: function() {
-    if (this.__source.has('end')) {
-      this.__send('end');
-    }
-  },
-  __endIfNoSubSources: function() {
-    if (!this.__multSubscriber.hasProperties()) {
-      this.__send('end');
+  _endIfNoSubSources: function() {
+    if (!this._multSubscriber.hasProperties()) {
+      this._send('end');
     }
   }
 
@@ -1125,10 +929,10 @@ function FlatMapLatestProperty() {
 }
 
 inherit(FlatMapLatestProperty, FlatMapProperty, {
-  __name: 'flatMapLatest',
-  __onValue: function(x) {
-    this.__multSubscriber.removeAll();
-    FlatMapProperty.prototype.__onValue.call(this, x);
+  _name: 'flatMapLatest',
+  _onValue: function(x) {
+    this._multSubscriber.removeAll();
+    FlatMapProperty.prototype._onValue.call(this, x);
   }
 });
 
@@ -1145,10 +949,10 @@ Property.prototype.flatMapLatest = function(fn) {
 
 withMultSource('pool', {
   add: function(property) {
-    this.__multSubscriber.add(property);
+    this._multSubscriber.add(property);
   },
   remove: function(property) {
-    this.__multSubscriber.remove(property);
+    this._multSubscriber.remove(property);
   }
 });
 
@@ -1162,45 +966,43 @@ withMultSource('pool', {
 // .sampledBy()
 
 withMultSource('sampledBy', {
-  __init: function(args) {
+  _init: function(args) {
     var sources = args[0]
       , samplers = args[1];
-    this.__allSources = concat(sources, samplers);
-    this.__sourcesSubscriber = new MultSubscriber([this.__passErrors, this]);
-    this.__sourcesSubscriber.addAll(sources);
-    this.__fn = args[2] ? new Fn(args[2]) : null;
+    this._allSources = concat(sources, samplers);
+    this._sourcesSubscriber = new MultSubscriber([this._passErrors, this]);
+    this._sourcesSubscriber.addAll(sources);
+    this._fn = args[2] ? new Fn(args[2]) : null;
     if (samplers.length > 0) {
-      this.__multSubscriber.addAll(samplers);
-      this.__multSubscriber.onLastRemoved([this.__send, this, 'end']);
+      this._multSubscriber.addAll(samplers);
+      this._multSubscriber.onLastRemoved([this._send, this, 'end']);
     } else {
-      this.__send('end');
+      this._sourcesSubscriber.start();
+      this._send('end');
     }
   },
-  __passErrors: function(type, e) {
+  _passErrors: function(type, e) {
     if (type === 'error') {
-      this.__send(type, e);
+      this._send(type, e);
     }
   },
-  __free: function() {
-    this.__allSources = null;
-    this.__sourcesSubscriber.clear();
-    this.__sourcesSubscriber = null;
-    this.__fn = null;
+  _free: function() {
+    this._allSources = null;
+    this._sourcesSubscriber.clear();
+    this._sourcesSubscriber = null;
+    this._fn = null;
   },
-  __handleValue: function(x) {
-    if (hasValueAll(this.__allSources)) {
-      if (this.__fn) {
-        this.__send('value', Fn.call(this.__fn, getValueAll(this.__allSources)));
-      } else {
-        this.__send('value', getValueAll(this.__allSources));
-      }
+  _handleValue: function(x) {
+    var xs = getValueAll(this._allSources);
+    if (xs !== null) {
+      this._send('value', this._fn ? Fn.call(this._fn, xs) : xs);
     }
   },
-  __onActivationHook: function() {
-    this.__sourcesSubscriber.start();
+  _onPreActivationHook: function() {
+    this._sourcesSubscriber.start();
   },
-  __onDeactivationHook: function() {
-    this.__sourcesSubscriber.stop();
+  _onDeactivationHook: function() {
+    this._sourcesSubscriber.stop();
   }
 });
 
@@ -1210,203 +1012,20 @@ Property.prototype.sampledBy = function(sampler, fn) {
 
 
 
+// .withHandler()
 
-
-
-
-
-/// Utils
-
-
-
-function hasValueAll(properties) {
-  for (var i = 0; i < properties.length; i++) {
-    if (!properties[i].has('value')) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function getValueAll(properties) {
-  var result = new Array(properties.length);
-  for (var i = 0; i < properties.length; i++) {
-    result[i] = properties[i].get('value');
-  }
-  return result;
-}
-
-
-
-function withMultSource(name, mixin, noMethod) {
-
-  function AnonymousProperty(args) {
-    Property.call(this);
-    this.__multSubscriber = new MultSubscriber([this.__handleBoth, this])
-    this.__init(args);
-  }
-
-  inherit(AnonymousProperty, Property, {
-
-    __name: name,
-
-    __init: function(args) {},
-    __free: function() {},
-    __onActivationHook: function() {},
-    __onDeactivationHook: function() {},
-
-    __handleValue: function(x, isInitial) {
-      this.__send('value', x);
-    },
-    __handleError: function(e, isInitial) {
-      this.__send('error', e);
-    },
-
-    __handleBoth: function(type, x, isInitial) {
-      if (type === 'value') {
-        this.__handleValue(x, isInitial);
-      } else {
-        this.__handleError(x, isInitial);
-      }
-    },
-
-    __onActivation: function() {
-      this.__multSubscriber.start();
-      this.__onActivationHook();
-    },
-    __onDeactivation: function() {
-      this.__multSubscriber.stop();
-      this.__onDeactivationHook();
-    },
-
-    __clear: function() {
-      Property.prototype.__clear.call(this);
-      this.__multSubscriber.clear();
-      this.__multSubscriber = null;
-      this.__free();
-    }
-
-  }, mixin);
-
-  if (!noMethod) {
-    Kefir[name] = function() {
-      return new AnonymousProperty(arguments);
-    }
-  }
-
-  return AnonymousProperty;
-}
-
-
-
-
-
-function MultSubscriber(listener) {
-  this.listener = new Fn(listener);
-  this.properties = [];
-  this.active = false;
-}
-
-extend(MultSubscriber.prototype, {
-
-  start: function() {
-    if (!this.active) {
-      for (var i = 0; i < this.properties.length; i++) {
-        this.properties[i].on('both', this.listener);
-      }
-      this.active = true;
-    }
-  },
-  stop: function() {
-    if (this.active) {
-      for (var i = 0; i < this.properties.length; i++) {
-        this.properties[i].off('both', this.listener);
-      }
-      this.active = false;
-    }
-  },
-
-
-  addAll: function(properties) {
-    for (var i = 0; i < properties.length; i++) {
-      this.add(properties[i])
-    }
-  },
-  add: function(property) {
-    this.properties.push(property);
-    property.watch('end', [this.remove, this, property]);
-    if (property.has('value')) {
-      Fn.call(this.listener, ['value', property.get('value'), true]);
-    }
-    if (property.has('error')) {
-      Fn.call(this.listener, ['error', property.get('error'), true]);
-    }
-    if (this.active) {
-      property.on('both', this.listener);
-    }
-  },
-  remove: function(property) {
-    for (var i = 0; i < this.properties.length; i++) {
-      if (this.properties[i] === property) {
-        this.properties.splice(i, 1);
-        property.off('end', [this.remove, this, property]);
-        if (this.active) {
-          property.off('both', this.listener);
-        }
-        break;
-      }
-    }
-    if (this.properties.length === 0 && this.onLastRemovedCb) {
-      Fn.call(this.onLastRemovedCb);
-    }
-  },
-  removeAll: function(){
-    for (var i = 0; i < this.properties.length; i++) {
-      this.properties[i].off('end', [this.remove, this, this.properties[i]]);
-      if (this.active) {
-        this.properties[i].off('both', this.listener);
-      }
-    }
-    this.properties = [];
-    if (this.onLastRemovedCb) {
-      Fn.call(this.onLastRemovedCb);
-    }
-  },
-
-  onLastRemoved: function(fn) {
-    this.onLastRemovedCb = new Fn(fn);
-    if (!this.hasProperties()) {
-      Fn.call(this.onLastRemovedCb);
-    }
-  },
-  offLastRemoved: function() {
-    this.onLastRemovedCb = null;
-  },
-  hasProperties: function() {
-    return this.properties.length > 0;
-  },
-
-  clear: function() {
-    this.offLastRemoved();
-    this.removeAll();
-  }
-
-});
-
-// Kefir.withInterval()
-
-withInterval('withInterval', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
+withOneSource('withHandler', {
+  _init: function(args) {
     var _this = this;
-    this.__bindedSend = function(type, x) {  _this.__send(type, x)  }
+    this._handler = new Fn(args[0]);
+    this._bindedSend = function(type, x) {  _this._send(type, x)  }
   },
-  __free: function() {
-    this.__fn = null;
-    this.__bindedSend = null;
+  _free: function() {
+    this._handler = null;
+    this._bindedSend = null;
   },
-  __onTick: function() {
-    Fn.call(this.__fn, [this.__bindedSend]);
+  _handleAny: function(type, x, current) {
+    Fn.call(this._handler, [this._bindedSend, type, x, current]);
   }
 });
 
@@ -1414,82 +1033,20 @@ withInterval('withInterval', {
 
 
 
-// Kefir.fromPoll()
+// .skipCurrent()
 
-withInterval('fromPoll', {
-  __init: function(args) {
-    this.__fn = new Fn(args[0]);
+withOneSource('skipCurrent', {
+  _init: function(args) {
+    this._type = args[0];
   },
-  __free: function() {
-    this.__fn = null;
-  },
-  __onTick: function() {
-    this.__send('value', Fn.call(this.__fn));
-  }
-});
-
-
-
-
-
-// Kefir.interval()
-
-withInterval('interval', {
-  __init: function(args) {
-    this.__x = args[0];
-  },
-  __free: function() {
-    this.__x = null;
-  },
-  __onTick: function() {
-    this.__send('value', this.__x);
-  }
-});
-
-
-
-
-// Kefir.sequentially()
-
-withInterval('sequentially', {
-  __init: function(args) {
-    this.__xs = cloneArray(args[0]);
-    if (this.__xs.length === 0) {
-      this.__send('end')
+  _handleValue: function(x, current) {
+    if (!current || (this._type !== 'value' && this._type != null)) {
+      this._send('value', x);
     }
   },
-  __free: function() {
-    this.__xs = null;
-  },
-  __onTick: function() {
-    switch (this.__xs.length) {
-      case 0:
-        this.__send('end');
-        break;
-      case 1:
-        this.__send('value', this.__xs[0]);
-        this.__send('end');
-        break;
-      default:
-        this.__send('value', this.__xs.shift());
-    }
-  }
-});
-
-
-
-
-// Kefir.repeatedly()
-
-withInterval('repeatedly', {
-  __init: function(args) {
-    this.__xs = cloneArray(args[0]);
-    this.__i = -1;
-  },
-  __onTick: function() {
-    if (this.__xs.length > 0) {
-      this.__i = (this.__i + 1) % this.__xs.length;
-      this.__send('value', this.__xs[this.__i]);
+  _handleError: function(x, current) {
+    if (!current || (this._type !== 'error' && this._type != null)) {
+      this._send('error', x);
     }
   }
 });
@@ -1498,18 +1055,210 @@ withInterval('repeatedly', {
 
 
 
-// Kefir.later()
+// .addCurrent()
 
-withInterval('later', {
-  __init: function(args) {
-    this.__x = args[0];
+withOneSource('addCurrent', {
+  _init: function(args) {
+    this._type = args[0];
+    this._x = args[1];
   },
-  __free: function() {
-    this.__x = null;
+  _onActivationHook: function() {
+    this._send(this._type, this._x);
+  }
+});
+
+
+
+
+
+
+// .map(fn)
+
+withOneSource('map', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
   },
-  __onTick: function() {
-    this.__send('value', this.__x);
-    this.__send('end');
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x) {
+    this._send('value', Fn.call(this._fn, [x]));
+  }
+});
+
+
+
+
+
+// .filter(fn)
+
+withOneSource('filter', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x) {
+    if (Fn.call(this._fn, [x])) {
+      this._send('value', x);
+    }
+  }
+});
+
+
+
+
+// .diff(seed, fn)
+
+withOneSource('diff', {
+  _init: function(args) {
+    this._prev = args[0];
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function() {
+    this._prev = null;
+    this._fn = null;
+  },
+  _handleValue: function(x) {
+    this._send('value', Fn.call(this._fn, [this._prev, x]));
+    this._prev = x;
+  }
+});
+
+
+
+
+// .takeWhile(fn)
+
+withOneSource('takeWhile', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x) {
+    if (Fn.call(this._fn, [x])) {
+      this._send('value', x);
+    } else {
+      this._send('end');
+    }
+  }
+});
+
+
+
+
+
+// .take(n)
+
+withOneSource('take', {
+  _init: function(args) {
+    this._n = args[0];
+    if (this._n <= 0) {
+      this._send('end');
+    }
+  },
+  _handleValue: function(x) {
+    this._n--;
+    this._send('value', x);
+    if (this._n === 0) {
+      this._send('end');
+    }
+  }
+});
+
+
+
+
+
+// .skip(n)
+
+withOneSource('skip', {
+  _init: function(args) {
+    this._n = args[0];
+  },
+  _handleValue: function(x) {
+    if (this._n <= 0) {
+      this._send('value', x);
+    } else {
+      this._n--;
+    }
+  }
+});
+
+
+
+
+// .skipDuplicates([fn])
+
+function strictlyEqual(a, b) {  return a === b  }
+
+withOneSource('skipDuplicates', {
+  _init: function(args) {
+    if (args.length > 0) {
+      this._fn = new Fn(args[0]);
+    } else {
+      this._fn = strictlyEqual;
+    }
+    this._prev = NOTHING;
+  },
+  _free: function() {
+    this._fn = null;
+    this._prev = null;
+  },
+  _handleValue: function(x) {
+    if (this._prev === NOTHING || !Fn.call(this._fn, [this._prev, x])) {
+      this._send('value', x);
+    }
+    this._prev = x;
+  }
+});
+
+
+
+
+
+// .skipWhile(fn)
+
+withOneSource('skipWhile', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
+    this._skip = true;
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x) {
+    if (!this._skip) {
+      this._send('value', x);
+      return;
+    }
+    if (!Fn.call(this._fn, [x])) {
+      this._skip = false;
+      this._fn = null;
+      this._send('value', x);
+    }
+  }
+});
+
+
+
+
+
+// .scan(seed, fn)
+
+withOneSource('scan', {
+  _init: function(args) {
+    this._send('value', args[0]);
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function(){
+    this._fn = null;
+  },
+  _handleValue: function(x) {
+    this._send('value', Fn.call(this._fn, [this.get('value'), x]));
   }
 });
 
@@ -1519,51 +1268,234 @@ withInterval('later', {
 
 
 
+// .reduce(seed, fn)
+
+withOneSource('reduce', {
+  _init: function(args) {
+    this._result = args[0];
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function(){
+    this._fn = null;
+    this._result = null;
+  },
+  _handleValue: function(x) {
+    this._result = Fn.call(this._fn, [this._result, x]);
+  },
+  _handleEnd: function() {
+    this._send('value', this._result);
+    this._send('end');
+  }
+});
 
 
-/// Utils
 
-function withInterval(name, mixin) {
 
-  function AnonymousProperty(wait, args) {
-    Property.call(this);
-    this.__wait = wait;
-    this.__intervalId = null;
+
+
+
+// .throttle(wait, {leading, trailing})
+
+withOneSource('throttle', {
+  _init: function(args) {
+    this._wait = args[0];
+    this._leading = get(args[1], 'leading', true);
+    this._trailing = get(args[1], 'trailing', true);
+    this._trailingCallValue = null;
+    this._trailingCallTimeoutId = null;
+    this._endAfterTrailingCall = false;
+    this._lastCallTime = 0;
     var _this = this;
-    this.__bindedOnTick = function() {  _this.__onTick()  }
-    this.__init(args);
-  }
-
-  inherit(AnonymousProperty, Property, {
-
-    __name: name,
-
-    __init: function(args) {},
-    __free: function() {},
-
-    __onTick: function() {},
-
-    __onActivation: function() {
-      this.__intervalId = setInterval(this.__bindedOnTick, this.__wait);
-    },
-    __onDeactivation: function() {
-      if (this.__intervalId !== null) {
-        clearInterval(this.__intervalId);
-        this.__intervalId = null;
-      }
-    },
-
-    __clear: function() {
-      Property.prototype.__clear.call(this);
-      this.__bindedOnTick = null;
-      this.__free();
+    this._makeTrailingCallBinded = function() {  _this._makeTrailingCall()  };
+  },
+  _free: function() {
+    this._trailingCallValue = null;
+    this._makeTrailingCallBinded = null;
+  },
+  _handleValue: function(x, current) {
+    if (current) {
+      this._send('value', x);
+      return;
     }
-
-  }, mixin);
-
-  Kefir[name] = function(wait) {
-    return new AnonymousProperty(wait, rest(arguments, 1, []));
+    var curTime = now();
+    if (this._lastCallTime === 0 && !this._leading) {
+      this._lastCallTime = curTime;
+    }
+    var remaining = this._wait - (curTime - this._lastCallTime);
+    if (remaining <= 0) {
+      this._cancelTralingCall();
+      this._lastCallTime = curTime;
+      this._send('value', x);
+    } else if (this._trailing) {
+      this._scheduleTralingCall(x, remaining);
+    }
+  },
+  _handleEnd: function() {
+    if (this._trailingCallTimeoutId) {
+      this._endAfterTrailingCall = true;
+    } else {
+      this._send('end');
+    }
+  },
+  _scheduleTralingCall: function(value, wait) {
+    if (this._trailingCallTimeoutId) {
+      this._cancelTralingCall();
+    }
+    this._trailingCallValue = value;
+    this._trailingCallTimeoutId = setTimeout(this._makeTrailingCallBinded, wait);
+  },
+  _cancelTralingCall: function() {
+    if (this._trailingCallTimeoutId !== null) {
+      clearTimeout(this._trailingCallTimeoutId);
+      this._trailingCallTimeoutId = null;
+    }
+  },
+  _makeTrailingCall: function() {
+    this._send('value', this._trailingCallValue);
+    this._trailingCallTimeoutId = null;
+    this._trailingCallValue = null;
+    this._lastCallTime = !this._leading ? 0 : now();
+    if (this._endAfterTrailingCall) {
+      this._send('end');
+    }
   }
+});
+
+
+
+
+
+
+
+// .delay()
+
+withOneSource('delay', {
+  _init: function(args) {
+    this._wait = args[0];
+  },
+  _handleValue: function(x, current) {
+    if (current) {
+      this._send('value', x);
+      return;
+    }
+    var _this = this;
+    setTimeout(function() {  _this._send('value', x)  }, this._wait);
+  },
+  _handleEnd: function() {
+    var _this = this;
+    setTimeout(function() {  _this._send('end')  }, this._wait);
+  }
+});
+
+
+
+// Kefir.fromBinder(fn)
+
+function FromBinderProperty(fn) {
+  Property.call(this);
+  this._fn = new Fn(fn);
+}
+
+inherit(FromBinderProperty, Property, {
+
+  _name: 'fromBinder',
+
+  _onActivation: function() {
+    var _this = this;
+    this._unsubscribe = Fn.call(this._fn, [
+      function(type, x) {  _this._send(type, x)  }
+    ]);
+  },
+  _onDeactivation: function() {
+    if (isFn(this._unsubscribe)) {
+      this._unsubscribe();
+    }
+    this._unsubscribe = null;
+  },
+
+  _clear: function() {
+    Property.prototype._clear.call(this);
+    this._fn = null;
+  }
+
+})
+
+Kefir.fromBinder = function(fn) {
+  return new FromBinderProperty(fn);
+}
+
+
+
+
+
+
+// Kefir.emitter()
+
+function Emitter() {
+  Property.call(this);
+}
+
+inherit(Emitter, Property, {
+  _name: 'emitter',
+  emit: function(type, x) {
+    this._send(type, x);
+  }
+});
+
+Kefir.emitter = function() {
+  return new Emitter();
+}
+
+
+
+
+
+
+
+// Kefir.empty()
+
+var emptyObj = new Property();
+emptyObj._send('end');
+emptyObj._name = 'empty';
+Kefir.empty = function() {  return emptyObj  }
+
+
+
+
+
+// Kefir.constant(x)
+
+function ConstantProperty(x) {
+  Property.call(this);
+  this._send('value', x);
+  this._send('end');
+}
+
+inherit(ConstantProperty, Property, {
+  _name: 'constant'
+})
+
+Kefir.constant = function(x) {
+  return new ConstantProperty(x);
+}
+
+
+
+
+// Kefir.constantError(x)
+
+function ConstantErrorProperty(x) {
+  Property.call(this);
+  this._send('error', x);
+  this._send('end');
+}
+
+inherit(ConstantErrorProperty, Property, {
+  _name: 'constantError'
+})
+
+Kefir.constantError = function(x) {
+  return new ConstantErrorProperty(x);
 }
 
 
@@ -6168,52 +6100,52 @@ if (typeof module !== 'undefined' && module.exports) {
 });
 
 },{}],21:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.addCurrent()', function() {
   it('should end when source ends', function() {
-    var p, removed;
+    var p, p1;
     p = prop();
-    removed = p.addCurrent('value', 1);
-    expect(removed).toNotBeEnded();
+    p1 = activate(p.addCurrent('value', 1));
+    expect(p1).toNotBeEnded();
     send(p, 'end');
-    return expect(removed).toBeEnded();
+    return expect(p1).toBeEnded();
   });
   it('should has specified current *value*', function() {
-    return expect(prop().addCurrent('value', 1)).toHasValue(1);
+    return expect(activate(prop().addCurrent('value', 1))).toHasValue(1);
   });
   it('should has specified current *value* (already has another)', function() {
-    return expect(prop(0).addCurrent('value', 1)).toHasValue(1);
+    return expect(activate(prop(0).addCurrent('value', 1))).toHasValue(1);
   });
   it('should has specified current *error*', function() {
-    return expect(prop().addCurrent('error', 1)).toHasError(1);
+    return expect(activate(prop().addCurrent('error', 1))).toHasError(1);
   });
   it('should has specified current *error* (already has another)', function() {
-    return expect(prop(null, 0).addCurrent('error', 1)).toHasError(1);
+    return expect(activate(prop(null, 0).addCurrent('error', 1))).toHasError(1);
   });
   it('should pass initial *value* when called with `error`', function() {
-    return expect(prop(0).addCurrent('error', 1)).toHasValue(0);
+    return expect(activate(prop(0).addCurrent('error', 1))).toHasValue(0);
   });
   it('should pass initial *error* when called with `value`', function() {
-    return expect(prop(null, 0).addCurrent('value', 1)).toHasError(0);
+    return expect(activate(prop(null, 0).addCurrent('value', 1))).toHasError(0);
   });
   it('should activate/deactivate source property', function() {
-    var f, p, removed;
+    var f, p, p1;
     p = prop();
-    removed = p.addCurrent('value', 1);
+    p1 = p.addCurrent('value', 1);
     expect(p).toNotBeActive();
-    removed.on('value', (f = function() {}));
+    p1.on('value', (f = function() {}));
     expect(p).toBeActive();
-    removed.off('value', f);
+    p1.off('value', f);
     return expect(p).toNotBeActive();
   });
-  return it('should handle further values and errors', function() {
+  it('should handle further values and errors', function() {
     var p, state;
     p = prop(1, 'a');
     state = watch(p.addCurrent('value', 0));
@@ -6223,26 +6155,37 @@ describe('.addCurrent()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [0, 2, 3],
-      errors: ['a', 'b', 'c'],
-      ended: false
+      errors: ['a', 'b', 'c']
     });
+  });
+  return it('should has specified current *value* after reactivation', function() {
+    var f, p, p1;
+    p = prop();
+    p1 = p.addCurrent('value', 1);
+    p1.on('value', (f = function() {}));
+    expect(p1).toHasValue(1);
+    send(p, 'value', 2);
+    expect(p1).toHasValue(2);
+    p1.off('value', f);
+    p1.on('value', f);
+    return expect(p1).toHasValue(1);
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],22:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.combine()', function() {
   it('if passed empty array should return ended property without value or error', function() {
     var p;
-    p = Kefir.combine([]);
+    p = activate(Kefir.combine([]));
     expect(p).toBeEnded();
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();
@@ -6251,27 +6194,27 @@ describe('.combine()', function() {
     var mp, p1, p2;
     p1 = prop();
     p2 = prop();
-    mp = Kefir.combine([p1, p2]);
+    mp = activate(Kefir.combine([p1, p2]));
     expect(mp).toNotBeEnded();
     send(p1, 'end');
     expect(mp).toNotBeEnded();
     send(p2, 'end');
     return expect(mp).toBeEnded();
   });
-  it('should pass initial values', function() {
-    return expect(Kefir.combine([prop(1)])).toHasEqualValue([1]);
+  it('should pass current values', function() {
+    return expect(activate(Kefir.combine([prop(1)]))).toHasEqualValue([1]);
   });
-  it('if multiple properties has initial should pass them all', function() {
-    return expect(Kefir.combine([prop(1), prop(2)])).toHasEqualValue([1, 2]);
+  it('if multiple properties has current should pass them all', function() {
+    return expect(activate(Kefir.combine([prop(1), prop(2)]))).toHasEqualValue([1, 2]);
   });
-  it('if only some of multiple properties has initial should NOT pass', function() {
-    return expect(Kefir.combine([prop(1), prop()])).toHasNoValue();
+  it('if only some of multiple properties has current should NOT pass', function() {
+    return expect(activate(Kefir.combine([prop(1), prop()]))).toHasNoValue();
   });
-  it('should pass initial errors', function() {
-    return expect(Kefir.combine([prop(null, 1)])).toHasError(1);
+  it('should pass current errors', function() {
+    return expect(activate(Kefir.combine([prop(null, 1)]))).toHasError(1);
   });
-  it('if multiple properties has initial error should pass error from latest', function() {
-    return expect(Kefir.combine([prop(null, 1), prop(null, 2)])).toHasError(2);
+  it('if multiple properties has current error should pass error from latest', function() {
+    return expect(activate(Kefir.combine([prop(null, 1), prop(null, 2)]))).toHasError(2);
   });
   it('should pass further errors from all properties', function() {
     var p1, p2, state;
@@ -6280,15 +6223,13 @@ describe('.combine()', function() {
     state = watch(Kefir.combine([p1, p2]));
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p2, 'error', 'e1');
     send(p1, 'error', 'e2');
     return expect(state).toEqual({
       values: [],
-      errors: ['e1', 'e2'],
-      ended: false
+      errors: ['e1', 'e2']
     });
   });
   it('should handle further values from all properties', function() {
@@ -6298,26 +6239,22 @@ describe('.combine()', function() {
     state = watch(Kefir.combine([p1, p2]));
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 1);
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p2, 'value', 2);
     expect(state).toEqual({
       values: [[1, 2]],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     return expect(state).toEqual({
       values: [[1, 2], [3, 2]],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
   it('allows to pass optional combimator', function() {
@@ -6329,15 +6266,13 @@ describe('.combine()', function() {
     }));
     expect(state).toEqual({
       values: [3],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [3, 5, 7],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
   return it('`property.combine(other, f)` should work', function() {
@@ -6349,15 +6284,13 @@ describe('.combine()', function() {
     }));
     expect(state).toEqual({
       values: [3],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [3, 5, 7],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
 });
@@ -6396,20 +6329,20 @@ describe('Kefir.empty()', function() {
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],24:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch, withFakeTime;
+var Kefir, activate, helpers, prop, send, watch, withFakeTime;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime, activate = helpers.activate;
 
 describe('.delay()', function() {
   it('should end after timeout when source ends', function() {
     return withFakeTime(function(clock) {
       var delayed, p;
       p = prop();
-      delayed = p.delay(100);
+      delayed = activate(p.delay(100));
       expect(delayed).toNotBeEnded();
       send(p, 'end');
       expect(delayed).toNotBeEnded();
@@ -6417,11 +6350,11 @@ describe('.delay()', function() {
       return expect(delayed).toBeEnded();
     });
   });
-  it('should pass initial *value*', function() {
-    return expect(prop(1).delay(100)).toHasValue(1);
+  it('should pass current *value*', function() {
+    return expect(activate(prop(1).delay(100))).toHasValue(1);
   });
-  it('should pass initial *error*', function() {
-    return expect(prop(null, 1).delay(100)).toHasError(1);
+  it('should pass current *error*', function() {
+    return expect(activate(prop(null, 1).delay(100))).toHasError(1);
   });
   it('should pass further *errors* without timeout', function() {
     var p, state;
@@ -6432,8 +6365,7 @@ describe('.delay()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -6466,13 +6398,13 @@ describe('.delay()', function() {
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],25:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.diff()', function() {
   var subtract;
@@ -6482,16 +6414,16 @@ describe('.diff()', function() {
   it('should end when source ends', function() {
     var diffed, p;
     p = prop();
-    diffed = p.diff(0, subtract);
+    diffed = activate(p.diff(0, subtract));
     expect(diffed).toNotBeEnded();
     send(p, 'end');
     return expect(diffed).toBeEnded();
   });
-  it('should handle initial *value*', function() {
-    return expect(prop(2).diff(0, subtract)).toHasValue(-2);
+  it('should handle current *value*', function() {
+    return expect(activate(prop(2).diff(0, subtract))).toHasValue(-2);
   });
-  it('should handle initial *error*', function() {
-    return expect(prop(null, 1).diff(0, subtract)).toHasError(1);
+  it('should handle current *error*', function() {
+    return expect(activate(prop(null, 1).diff(0, subtract))).toHasError(1);
   });
   it('should activate/deactivate source property', function() {
     var diffed, f, p;
@@ -6513,11 +6445,10 @@ describe('.diff()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [-1, -2, -3],
-      errors: ['a', 'b', 'c'],
-      ended: false
+      errors: ['a', 'b', 'c']
     });
   });
-  return it('should handle all values and errors (without initial)', function() {
+  return it('should handle all values and errors (without current)', function() {
     var p, state;
     p = prop();
     state = watch(p.diff(0, subtract));
@@ -6527,8 +6458,7 @@ describe('.diff()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [-3, -3],
-      errors: ['b', 'c'],
-      ended: false
+      errors: ['b', 'c']
     });
   });
 });
@@ -6551,13 +6481,13 @@ describe('.emitter()', function() {
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();
   });
-  it('when an *value* emitted it ahould became current *value*', function() {
+  it('when an *value* emitted it should became current *value*', function() {
     var p;
     p = Kefir.emitter();
     p.emit('value', 1);
     return expect(p).toHasValue(1);
   });
-  it('when an *error* emitted it ahould became current *error*', function() {
+  it('when an *error* emitted it should became current *error*', function() {
     var p;
     p = Kefir.emitter();
     p.emit('error', 1);
@@ -6567,7 +6497,7 @@ describe('.emitter()', function() {
     var p;
     p = Kefir.emitter();
     p.emit('end');
-    return expect(p).toBeEnded(1);
+    return expect(p).toBeEnded();
   });
   return it('should pass all emitted values/errors', function() {
     var p, state;
@@ -6579,21 +6509,20 @@ describe('.emitter()', function() {
     p.emit('error', 'e2');
     return expect(state).toEqual({
       values: [1, 2],
-      errors: ['e1', 'e2'],
-      ended: false
+      errors: ['e1', 'e2']
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],27:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.filter()', function() {
   var isEven;
@@ -6603,19 +6532,19 @@ describe('.filter()', function() {
   it('should end when source ends', function() {
     var filtered, p;
     p = prop();
-    filtered = p.filter(isEven);
+    filtered = activate(p.filter(isEven));
     expect(filtered).toNotBeEnded();
     send(p, 'end');
     return expect(filtered).toBeEnded();
   });
   it('should handle initial *value* (pass filter)', function() {
-    return expect(prop(2).filter(isEven)).toHasValue(2);
+    return expect(activate(prop(2).filter(isEven))).toHasValue(2);
   });
   it('should handle initial *value* (not pass filter)', function() {
-    return expect(prop(1).filter(isEven)).toHasNoValue();
+    return expect(activate(prop(1).filter(isEven))).toHasNoValue();
   });
   it('should handle initial *error*', function() {
-    return expect(prop(null, 1).filter(isEven)).toHasError(1);
+    return expect(activate(prop(null, 1).filter(isEven))).toHasError(1);
   });
   it('should activate/deactivate source property', function() {
     var f, filtered, p;
@@ -6637,21 +6566,20 @@ describe('.filter()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [2],
-      errors: ['a', 'b', 'c'],
-      ended: false
+      errors: ['a', 'b', 'c']
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],28:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.flatMapLatest()', function() {
   it('should activate/deactivate source property', function() {
@@ -6667,7 +6595,7 @@ describe('.flatMapLatest()', function() {
   it('if has no sub-sources should end when source ends', function() {
     var mapped, p;
     p = prop();
-    mapped = p.flatMapLatest();
+    mapped = activate(p.flatMapLatest());
     expect(mapped).toNotBeEnded();
     send(p, 'end');
     return expect(mapped).toBeEnded();
@@ -6675,8 +6603,7 @@ describe('.flatMapLatest()', function() {
   it('if sorce ended should end when latest sub-source ends', function() {
     var mapped, p, subP1, subP2;
     p = prop();
-    mapped = p.flatMapLatest();
-    mapped.on('value', function() {});
+    mapped = activate(p.flatMapLatest());
     send(p, 'value', (subP1 = prop()));
     send(p, 'value', (subP2 = prop()));
     send(p, 'end');
@@ -6685,13 +6612,19 @@ describe('.flatMapLatest()', function() {
     return expect(mapped).toBeEnded();
   });
   it('if orig property has current *value*, and it is property that in turn has current *value*, that current *value* should became current *value* of result property', function() {
-    return expect(prop(prop(1)).flatMapLatest()).toHasValue(1);
+    return expect(activate(prop(prop(1)).flatMapLatest())).toHasValue(1);
+  });
+  it('if orig property has current *value* (another prop with current) and *end*', function() {
+    var p;
+    p = activate(prop(prop(1, null, 3), null, 2).flatMapLatest());
+    expect(p).toHasValue(1);
+    return expect(p).toBeEnded();
   });
   it('if orig property has current *error*, and it is property that in turn has current *error*, that current *error* should became current *error* of result property', function() {
-    return expect(prop(prop(null, 1)).flatMapLatest()).toHasError(1);
+    return expect(activate(prop(prop(null, 1)).flatMapLatest())).toHasError(1);
   });
-  it('should handle initial *error*', function() {
-    return expect(prop(null, 1).flatMapLatest()).toHasError(1);
+  it('should handle current *error*', function() {
+    return expect(activate(prop(null, 1).flatMapLatest())).toHasError(1);
   });
   it('should pass further errors from source', function() {
     var p, state;
@@ -6701,8 +6634,7 @@ describe('.flatMapLatest()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [],
-      errors: ['b', 'c'],
-      ended: false
+      errors: ['b', 'c']
     });
   });
   it('should pass all values/errors from only latest sub sources', function() {
@@ -6714,23 +6646,20 @@ describe('.flatMapLatest()', function() {
     send(p1, 'error', 'e1');
     expect(state).toEqual({
       values: [1],
-      errors: ['e1'],
-      ended: false
+      errors: ['e1']
     });
     send(p, 'value', (p2 = prop()));
     send(p1, 'value', 2);
     send(p1, 'error', 'e2');
     expect(state).toEqual({
       values: [1],
-      errors: ['e1'],
-      ended: false
+      errors: ['e1']
     });
     send(p2, 'value', 3);
     send(p2, 'error', 'e3');
     return expect(state).toEqual({
       values: [1, 3],
-      errors: ['e1', 'e3'],
-      ended: false
+      errors: ['e1', 'e3']
     });
   });
   return it('allows to pass optional mapFn', function() {
@@ -6748,8 +6677,7 @@ describe('.flatMapLatest()', function() {
     send(p1, 'error', 'e1');
     expect(state).toEqual({
       values: [0, 1],
-      errors: ['e0', 'e1'],
-      ended: false
+      errors: ['e0', 'e1']
     });
     send(p, 'value', {
       prop: (p2 = prop())
@@ -6758,28 +6686,26 @@ describe('.flatMapLatest()', function() {
     send(p1, 'error', 'e2');
     expect(state).toEqual({
       values: [0, 1],
-      errors: ['e0', 'e1'],
-      ended: false
+      errors: ['e0', 'e1']
     });
     send(p2, 'value', 3);
     send(p2, 'error', 'e3');
     return expect(state).toEqual({
       values: [0, 1, 3],
-      errors: ['e0', 'e1', 'e3'],
-      ended: false
+      errors: ['e0', 'e1', 'e3']
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],29:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.flatMap()', function() {
   it('should activate/deactivate source property', function() {
@@ -6795,19 +6721,18 @@ describe('.flatMap()', function() {
   it('if has no sub-sources should end when source ends', function() {
     var flatMapped, p;
     p = prop();
-    flatMapped = p.flatMap();
+    flatMapped = activate(p.flatMap());
     expect(flatMapped).toNotBeEnded();
     send(p, 'end');
     return expect(flatMapped).toBeEnded();
   });
   it('if original property was ended should produce ended property', function() {
-    return expect(send(prop(), 'end').flatMap()).toBeEnded();
+    return expect(activate(send(prop(), 'end').flatMap())).toBeEnded();
   });
   it('if sorce ended should end when all sub-sources ends', function() {
     var flatMapped, p, subP1, subP2;
     p = prop();
-    flatMapped = p.flatMap();
-    flatMapped.on('value', function() {});
+    flatMapped = activate(p.flatMap());
     send(p, 'value', (subP1 = prop()));
     send(p, 'value', (subP2 = prop()));
     send(p, 'end');
@@ -6818,13 +6743,19 @@ describe('.flatMap()', function() {
     return expect(flatMapped).toBeEnded();
   });
   it('if orig property has current *value*, and it is property that in turn has current *value*, that current *value* should became current *value* of result property', function() {
-    return expect(prop(prop(1)).flatMap()).toHasValue(1);
+    return expect(activate(prop(prop(1)).flatMap())).toHasValue(1);
+  });
+  it('if orig property has current *value* (another prop with current) and *end*', function() {
+    var p;
+    p = activate(prop(prop(1, null, 3), null, 2).flatMap());
+    expect(p).toHasValue(1);
+    return expect(p).toBeEnded();
   });
   it('if orig property has current *error*, and it is property that in turn has current *error*, that current *error* should became current *error* of result property', function() {
-    return expect(prop(prop(null, 1)).flatMap()).toHasError(1);
+    return expect(activate(prop(prop(null, 1)).flatMap())).toHasError(1);
   });
-  it('should handle initial *error*', function() {
-    return expect(prop(null, 1).flatMap()).toHasError(1);
+  it('should handle current *error*', function() {
+    return expect(activate(prop(null, 1).flatMap())).toHasError(1);
   });
   it('should pass further errors from source', function() {
     var p, state;
@@ -6834,8 +6765,7 @@ describe('.flatMap()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [],
-      errors: ['b', 'c'],
-      ended: false
+      errors: ['b', 'c']
     });
   });
   it('should pass all values/errors from sub sources', function() {
@@ -6850,8 +6780,7 @@ describe('.flatMap()', function() {
     send(p2, 'value', 2);
     return expect(state).toEqual({
       values: [1, 2],
-      errors: ['e1', 'e2'],
-      ended: false
+      errors: ['e1', 'e2']
     });
   });
   return it('allows to pass optional mapFn', function() {
@@ -6874,8 +6803,7 @@ describe('.flatMap()', function() {
     send(p2, 'value', 2);
     return expect(state).toEqual({
       values: [0, 1, 2],
-      errors: ['e0', 'e1', 'e2'],
-      ended: false
+      errors: ['e0', 'e1', 'e2']
     });
   });
 });
@@ -6933,15 +6861,13 @@ describe('.fromBinder(subscribe)', function() {
     state = watch(p);
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     expect(p).toHasNoValue();
     curSend('value', 1);
     expect(state).toEqual({
       values: [1],
-      errors: [],
-      ended: false
+      errors: []
     });
     return expect(p).toHasValue(1);
   });
@@ -6957,19 +6883,17 @@ describe('.fromBinder(subscribe)', function() {
     state = watch(p);
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     expect(p).toHasNoError();
     curSend('error', 1);
     expect(state).toEqual({
       values: [],
-      errors: [1],
-      ended: false
+      errors: [1]
     });
     return expect(p).toHasError(1);
   });
-  return it('`send` fn passed to `subscribe` should send *end* to property', function() {
+  it('`send` fn passed to `subscribe` should send *end* to property', function() {
     var curSend, p, state;
     curSend = null;
     p = Kefir.fromBinder(function(send) {
@@ -6981,35 +6905,64 @@ describe('.fromBinder(subscribe)', function() {
     state = watch(p);
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
-    expect(p).toNotBeEnded();
-    curSend('end');
+    expect(p).toHasNoEnd();
+    curSend('end', 1);
     expect(state).toEqual({
       values: [],
       errors: [],
-      ended: true
+      end: 1
     });
-    return expect(p).toBeEnded();
+    return expect(p).toHasEnd(1);
+  });
+  it('deliver current *value*', function() {
+    var log, logger, p;
+    p = Kefir.fromBinder(function(send) {
+      send('value', 1);
+      return send('value', 2);
+    });
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p.watch('value', logger);
+    return expect(log).toEqual([[2, true]]);
+  });
+  return it('deliver current *value*, *error*, *end*', function() {
+    var log, logger, p;
+    p = Kefir.fromBinder(function(send) {
+      send('value', 1);
+      send('value', 2);
+      send('error', 3);
+      send('error', 4);
+      send('end', 5);
+      return send('end', 6);
+    });
+    log = [];
+    logger = function(a, b, c) {
+      return log.push([a, b, c]);
+    };
+    p.watch('any', logger);
+    return expect(log).toEqual([['value', 2, true], ['error', 4, true], ['end', 5, true]]);
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],31:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch, withFakeTime;
+var Kefir, activate, helpers, prop, send, watch, withFakeTime;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime, activate = helpers.activate;
 
 describe('.withInterval()', function() {
   it('should create not ended property without value or error', function() {
     return withFakeTime(function(clock) {
       var p;
-      p = Kefir.withInterval(100, function() {});
+      p = activate(Kefir.withInterval(100, function() {}));
       expect(p).toNotBeEnded();
       expect(p).toHasNoValue();
       return expect(p).toHasNoError();
@@ -7030,32 +6983,28 @@ describe('.withInterval()', function() {
       clock.tick(1);
       expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
-        errors: [],
-        ended: false
+        errors: []
+      });
+      clock.tick(100);
+      expect(state).toEqual({
+        values: [1],
+        errors: ['e1']
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
         errors: ['e1'],
-        ended: false
-      });
-      clock.tick(100);
-      expect(state).toEqual({
-        values: [1],
-        errors: ['e1'],
-        ended: true
+        end: void 0
       });
       return clock.tick(1000);
     });
@@ -7106,20 +7055,17 @@ describe('.fromPoll()', function() {
       clock.tick(1);
       expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       return expect(state).toEqual({
         values: [1, 2],
-        errors: [],
-        ended: false
+        errors: []
       });
     });
   });
@@ -7133,20 +7079,17 @@ describe('.interval()', function() {
       clock.tick(1);
       expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       return expect(state).toEqual({
         values: [1, 1],
-        errors: [],
-        ended: false
+        errors: []
       });
     });
   });
@@ -7160,26 +7103,24 @@ describe('.sequentially()', function() {
       clock.tick(1);
       expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       return expect(state).toEqual({
         values: [1, 2],
         errors: [],
-        ended: true
+        end: void 0
       });
     });
   });
   return it('if empty array provided should end immediately', function() {
     var p;
-    p = Kefir.sequentially(100, []);
+    p = activate(Kefir.sequentially(100, []));
     return expect(p).toBeEnded();
   });
 });
@@ -7192,46 +7133,40 @@ describe('.repeatedly()', function() {
       clock.tick(1);
       expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1, 2],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       expect(state).toEqual({
         values: [1, 2, 1],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       return expect(state).toEqual({
         values: [1, 2, 1, 2],
-        errors: [],
-        ended: false
+        errors: []
       });
     });
   });
   return it('if empty array provided should never produce values but not end', function() {
     return withFakeTime(function(clock) {
       var p, state;
-      p = Kefir.repeatedly(100, []);
+      p = activate(Kefir.repeatedly(100, []));
       expect(p).toNotBeEnded();
       state = watch(p);
       clock.tick(1000);
       return expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
     });
   });
@@ -7245,14 +7180,13 @@ describe('.later()', function() {
       clock.tick(1);
       expect(state).toEqual({
         values: [],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(100);
       return expect(state).toEqual({
         values: [1],
         errors: [],
-        ended: true
+        end: void 0
       });
     });
   });
@@ -7260,13 +7194,13 @@ describe('.later()', function() {
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],32:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.map()', function() {
   var x2;
@@ -7276,19 +7210,19 @@ describe('.map()', function() {
   it('should end when source ends', function() {
     var mapped, p;
     p = prop();
-    mapped = p.map(x2);
+    mapped = activate(p.map(x2));
     expect(mapped).toNotBeEnded();
     send(p, 'end');
     return expect(mapped).toBeEnded();
   });
   it('should be ended if source was ended', function() {
-    return expect(send(prop(), 'end').map(x2)).toBeEnded();
+    return expect(activate(send(prop(), 'end').map(x2))).toBeEnded();
   });
   it('should handle initial *value*', function() {
-    return expect(prop(1).map(x2)).toHasValue(2);
+    return expect(activate(prop(1).map(x2))).toHasValue(2);
   });
   it('should handle initial *error*', function() {
-    return expect(prop(null, 1).map(x2)).toHasError(1);
+    return expect(activate(prop(null, 1).map(x2))).toHasError(1);
   });
   it('should activate/deactivate source property', function() {
     var f, mapped, p;
@@ -7310,33 +7244,32 @@ describe('.map()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [2, 4, 6],
-      errors: ['a', 'b', 'c'],
-      ended: false
+      errors: ['a', 'b', 'c']
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],33:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.merge()', function() {
   it('if passed empty array should return ended property without value or error', function() {
     var p;
-    p = Kefir.merge([]);
+    p = activate(Kefir.merge([]));
     expect(p).toBeEnded();
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();
   });
   it('if passed array with all ended properties should return ended property without value or error', function() {
     var p;
-    p = Kefir.merge([send(prop(), 'end'), send(prop(), 'end')]);
+    p = activate(Kefir.merge([send(prop(), 'end'), send(prop(), 'end')]));
     expect(p).toBeEnded();
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();
@@ -7345,24 +7278,24 @@ describe('.merge()', function() {
     var mp, p1, p2;
     p1 = prop();
     p2 = prop();
-    mp = Kefir.merge([p1, p2]);
+    mp = activate(Kefir.merge([p1, p2]));
     expect(mp).toNotBeEnded();
     send(p1, 'end');
     expect(mp).toNotBeEnded();
     send(p2, 'end');
     return expect(mp).toBeEnded();
   });
-  it('should pass initial values', function() {
-    return expect(Kefir.merge([prop(1)])).toHasValue(1);
+  it('should pass current values', function() {
+    return expect(activate(Kefir.merge([prop(1)]))).toHasValue(1);
   });
-  it('if multiple properties has initial should pass value from latest', function() {
-    return expect(Kefir.merge([prop(1), prop(2)])).toHasValue(2);
+  it('if multiple properties has current should pass value from latest', function() {
+    return expect(activate(Kefir.merge([prop(1), prop(2)]))).toHasValue(2);
   });
-  it('should pass initial errors', function() {
-    return expect(Kefir.merge([prop(null, 1)])).toHasError(1);
+  it('should pass current errors', function() {
+    return expect(activate(Kefir.merge([prop(null, 1)]))).toHasError(1);
   });
-  it('if multiple properties has initial should pass error from latest', function() {
-    return expect(Kefir.merge([prop(null, 1), prop(null, 2)])).toHasError(2);
+  it('if multiple properties has current should pass error from latest', function() {
+    return expect(activate(Kefir.merge([prop(null, 1), prop(null, 2)]))).toHasError(2);
   });
   it('should pass further values and errors from all properties', function() {
     var p1, p2, state;
@@ -7371,8 +7304,7 @@ describe('.merge()', function() {
     state = watch(Kefir.merge([p1, p2]));
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 1);
     send(p2, 'error', 'e1');
@@ -7380,8 +7312,7 @@ describe('.merge()', function() {
     send(p2, 'value', 2);
     return expect(state).toEqual({
       values: [1, 2],
-      errors: ['e1', 'e2'],
-      ended: false
+      errors: ['e1', 'e2']
     });
   });
   it('allows to not wrap sources to array', function() {
@@ -7391,8 +7322,7 @@ describe('.merge()', function() {
     state = watch(Kefir.merge(p1, p2));
     expect(state).toEqual({
       values: [0],
-      errors: ['e0'],
-      ended: false
+      errors: ['e0']
     });
     send(p1, 'value', 1);
     send(p2, 'error', 'e1');
@@ -7400,8 +7330,7 @@ describe('.merge()', function() {
     send(p2, 'value', 2);
     return expect(state).toEqual({
       values: [0, 1, 2],
-      errors: ['e0', 'e1', 'e2'],
-      ended: false
+      errors: ['e0', 'e1', 'e2']
     });
   });
   it('should activate/deactivate underlying properties', function() {
@@ -7425,8 +7354,7 @@ describe('.merge()', function() {
     state = watch(p1.merge(p2));
     expect(state).toEqual({
       values: [0],
-      errors: ['e0'],
-      ended: false
+      errors: ['e0']
     });
     send(p1, 'value', 1);
     send(p2, 'error', 'e1');
@@ -7434,57 +7362,56 @@ describe('.merge()', function() {
     send(p2, 'value', 2);
     return expect(state).toEqual({
       values: [0, 1, 2],
-      errors: ['e0', 'e1', 'e2'],
-      ended: false
+      errors: ['e0', 'e1', 'e2']
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],34:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.pool()', function() {
   it('should return not ended property without any value or error', function() {
     var p;
-    p = Kefir.pool();
+    p = activate(Kefir.pool());
     expect(p).toNotBeEnded();
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();
   });
   it('when an property with current *value* added that current *value* should bacame current *value* of pool', function() {
     var p;
-    p = Kefir.pool();
+    p = activate(Kefir.pool());
     p.add(prop(1));
     return expect(p).toHasValue(1);
   });
   it('when an property with current *value* added that current *value* should bacame current *value* of pool (ended)', function() {
     var p;
-    p = Kefir.pool();
+    p = activate(Kefir.pool());
     p.add(send(prop(1), 'end'));
     return expect(p).toHasValue(1);
   });
   it('when an property with current *error* added that current *error* should bacame current *error* of pool', function() {
     var p;
-    p = Kefir.pool();
+    p = activate(Kefir.pool());
     p.add(prop(null, 1));
     return expect(p).toHasError(1);
   });
   it('when an property with current *error* added that current *error* should bacame current *error* of pool (ended)', function() {
     var p;
-    p = Kefir.pool();
+    p = activate(Kefir.pool());
     p.add(send(prop(null, 1), 'end'));
     return expect(p).toHasError(1);
   });
   it('should not end when source ends', function() {
     var p, s;
-    p = Kefir.pool();
+    p = activate(Kefir.pool());
     s = prop();
     p.add(s);
     send(s, 'end');
@@ -7502,8 +7429,7 @@ describe('.pool()', function() {
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [1, 2, 3, 4],
-      errors: ['e1', 'e2'],
-      ended: false
+      errors: ['e1', 'e2']
     });
   });
   return it('should not pass values/errors from removed properties', function() {
@@ -7520,8 +7446,7 @@ describe('.pool()', function() {
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [1, 2, 3],
-      errors: ['e1'],
-      ended: false
+      errors: ['e1']
     });
   });
 });
@@ -7571,14 +7496,14 @@ describe('Property end:', function() {
     send(p, 'end');
     return expect(f.calls.length).toBe(1);
   });
-  it('should not call `end` subscribers after end', function() {
+  it('should not call `end` subscribers after end (on)', function() {
     var f, p;
     p = prop();
     send(p, 'end');
     p.on('end', (f = jasmine.createSpy()));
     return expect(f.calls.length).toBe(0);
   });
-  it('should call `end` subscribers after end (if subscr. via watch)', function() {
+  it('should call `end` subscribers after end (watch)', function() {
     var f, p;
     p = prop();
     send(p, 'end');
@@ -7622,7 +7547,7 @@ describe('Property end:', function() {
     return expect(state).toEqual({
       values: [1, 2],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
   return it('should stop deliver new *errors* after end', function() {
@@ -7635,7 +7560,7 @@ describe('Property end:', function() {
     return expect(state).toEqual({
       values: [],
       errors: [1, 2],
-      ended: true
+      end: void 0
     });
   });
 });
@@ -7653,17 +7578,17 @@ describe('Property active state:', function() {
     p.on('error', function() {});
     return expect(p).toBeActive();
   });
-  it('should activate when first `both` listener added', function() {
-    var p;
-    p = prop();
-    p.on('both', function() {});
-    return expect(p).toBeActive();
-  });
-  it('should *not* activate when `end` listener added', function() {
+  it('should activate when first `end` listener added', function() {
     var p;
     p = prop();
     p.on('end', function() {});
-    return expect(p).toNotBeActive();
+    return expect(p).toBeActive();
+  });
+  it('should activate when first `any` listener added', function() {
+    var p;
+    p = prop();
+    p.on('any', function() {});
+    return expect(p).toBeActive();
   });
   it('should deactivate when, and only when, all listener removed (value)', function() {
     var f1, f2, p;
@@ -7685,27 +7610,38 @@ describe('Property active state:', function() {
     p.off('error', f2);
     return expect(p).toNotBeActive();
   });
-  it('should deactivate when, and only when, all listener removed (both)', function() {
+  it('should deactivate when, and only when, all listener removed (end)', function() {
     var f1, f2, p;
     p = prop();
-    p.on('both', (f1 = function() {}));
-    p.on('both', (f2 = function() {}));
-    p.off('both', f1);
+    p.on('end', (f1 = function() {}));
+    p.on('end', (f2 = function() {}));
+    p.off('end', f1);
     expect(p).toBeActive();
-    p.off('both', f2);
+    p.off('end', f2);
     return expect(p).toNotBeActive();
   });
-  it('should deactivate when, and only when, all listener removed (value + error + both)', function() {
-    var f1, f2, f3, p;
+  it('should deactivate when, and only when, all listener removed (any)', function() {
+    var f1, f2, p;
+    p = prop();
+    p.on('any', (f1 = function() {}));
+    p.on('any', (f2 = function() {}));
+    p.off('any', f1);
+    expect(p).toBeActive();
+    p.off('any', f2);
+    return expect(p).toNotBeActive();
+  });
+  it('should deactivate when, and only when, all listener removed (value + error + end + any)', function() {
+    var f1, f2, f3, f4, p;
     p = prop();
     p.on('value', (f1 = function() {}));
     p.on('error', (f2 = function() {}));
-    p.on('both', (f3 = function() {}));
+    p.on('end', (f3 = function() {}));
+    p.on('any', (f4 = function() {}));
     p.off('value', f1);
-    expect(p).toBeActive();
     p.off('error', f2);
+    p.off('end', f3);
     expect(p).toBeActive();
-    p.off('both', f3);
+    p.off('any', f4);
     return expect(p).toNotBeActive();
   });
   it('should activate when first `value` listener added (via `watch`)', function() {
@@ -7720,16 +7656,22 @@ describe('Property active state:', function() {
     p.watch('error', function() {});
     return expect(p).toBeActive();
   });
-  return it('should activate when first `both` listener added (via `watch`)', function() {
+  it('should activate when first `end` listener added (via `watch`)', function() {
     var p;
     p = prop();
-    p.watch('both', function() {});
+    p.watch('end', function() {});
+    return expect(p).toBeActive();
+  });
+  return it('should activate when first `any` listener added (via `watch`)', function() {
+    var p;
+    p = prop();
+    p.watch('any', function() {});
     return expect(p).toBeActive();
   });
 });
 
-describe('Property initial value/error:', function() {
-  it('should deliver initial *value* to listener added via `watch`', function() {
+describe('Property current value/error:', function() {
+  it('should deliver current *value* to listener added via `watch`', function() {
     var p, v;
     v = null;
     p = prop(1);
@@ -7738,7 +7680,7 @@ describe('Property initial value/error:', function() {
     });
     return expect(v).toBe(1);
   });
-  it('should deliver initial *error* to listener added via `watch`', function() {
+  it('should deliver current *error* to listener added via `watch`', function() {
     var p, v;
     v = null;
     p = prop(null, 1);
@@ -7747,43 +7689,57 @@ describe('Property initial value/error:', function() {
     });
     return expect(v).toBe(1);
   });
-  it('should deliver initial *value* to `both` listener added via `watch`', function() {
+  it('should deliver current *end* to listener added via `watch`', function() {
+    var p, v;
+    v = null;
+    p = prop(null, null, 1);
+    p.watch('end', function(x) {
+      return v = x;
+    });
+    return expect(v).toBe(1);
+  });
+  it('should deliver current *value* to `any` listener added via `watch`', function() {
     var p, v;
     v = null;
     p = prop(1);
-    p.watch('both', function(type, x) {
+    p.watch('any', function(type, x) {
       expect(type).toBe('value');
       return v = x;
     });
     return expect(v).toBe(1);
   });
-  it('should deliver initial *error* to `both` listener added via `watch`', function() {
+  it('should deliver current *error* to `any` listener added via `watch`', function() {
     var p, v;
     v = null;
     p = prop(null, 1);
-    p.watch('both', function(type, x) {
+    p.watch('any', function(type, x) {
       expect(type).toBe('error');
       return v = x;
     });
     return expect(v).toBe(1);
   });
-  it('should deliver initial *error* and *value* to `both` listener added via `watch`', function() {
-    var e, p, v;
+  it('should deliver current *error*, *value*, *end* to `any` listener added via `watch`', function() {
+    var e, en, p, v;
     v = null;
     e = null;
-    p = prop(1, 2);
-    p.watch('both', function(type, x) {
+    en = null;
+    p = send(prop(1, 2), 'end', 3);
+    p.watch('any', function(type, x) {
       if (type === 'value') {
         v = x;
       }
       if (type === 'error') {
-        return e = x;
+        e = x;
+      }
+      if (type === 'end') {
+        return en = x;
       }
     });
     expect(v).toBe(1);
-    return expect(e).toBe(2);
+    expect(e).toBe(2);
+    return expect(en).toBe(3);
   });
-  it('should *not* deliver initial *value* to listener added via `on`', function() {
+  it('should *not* deliver current *value* to listener added via `on`', function() {
     var p, v;
     v = null;
     p = prop(1);
@@ -7792,7 +7748,7 @@ describe('Property initial value/error:', function() {
     });
     return expect(v).toBe(null);
   });
-  it('should *not* deliver initial *error* to listener added via `on`', function() {
+  it('should *not* deliver current *error* to listener added via `on`', function() {
     var p, v;
     v = null;
     p = prop(null, 1);
@@ -7801,67 +7757,94 @@ describe('Property initial value/error:', function() {
     });
     return expect(v).toBe(null);
   });
-  it('should *not* deliver initial *value* to `both` listener added via `on`', function() {
+  it('should *not* deliver current *end* to listener added via `on`', function() {
+    var p, v;
+    v = null;
+    p = prop(null, null, 1);
+    p.on('end', function(x) {
+      return v = x;
+    });
+    return expect(v).toBe(null);
+  });
+  it('should *not* deliver current *value* to `any` listener added via `on`', function() {
     var p, v;
     v = null;
     p = prop(1);
-    p.on('both', function(type, x) {
-      expect(type).toBe('value');
+    p.on('any', function(type, x) {
       return v = x;
     });
     return expect(v).toBe(null);
   });
-  it('should *not* deliver initial *error* to `both` listener added via `on`', function() {
+  it('should *not* deliver current *error* to `any` listener added via `on`', function() {
     var p, v;
     v = null;
     p = prop(null, 1);
-    p.on('both', function(type, x) {
-      expect(type).toBe('error');
+    p.on('any', function(type, x) {
       return v = x;
     });
     return expect(v).toBe(null);
   });
-  it('should call watch callbacks with proper isInitial param (both)', function() {
+  it('should *not* deliver current *end* to `any` listener added via `on`', function() {
+    var p, v;
+    v = null;
+    p = prop(null, null, 1);
+    p.on('any', function(type, x) {
+      return v = x;
+    });
+    return expect(v).toBe(null);
+  });
+  it('should call watch callbacks with proper isCurrent param (any)', function() {
     var log, p;
     log = [];
     p = prop(1, 'e1');
-    p.watch('both', function(type, x, isInitial) {
-      return log.push([type, x, isInitial]);
+    p.watch('any', function(type, x, isCurrent) {
+      return log.push([type, x, isCurrent]);
     });
     send(p, 'value', 2);
     send(p, 'error', 'e2');
-    return expect(log).toEqual([['value', 1, true], ['error', 'e1', true], ['value', 2, void 0], ['error', 'e2', void 0]]);
+    send(p, 'end', 'fin');
+    return expect(log).toEqual([['value', 1, true], ['error', 'e1', true], ['value', 2, false], ['error', 'e2', false], ['end', 'fin', false]]);
   });
-  it('should call watch callbacks with proper isInitial param (value)', function() {
+  it('should call watch callbacks with proper isCurrent param (value)', function() {
     var log, p;
     log = [];
     p = prop(1);
-    p.watch('value', function(x, isInitial) {
-      return log.push([x, isInitial]);
+    p.watch('value', function(x, isCurrent) {
+      return log.push([x, isCurrent]);
     });
     send(p, 'value', 2);
-    return expect(log).toEqual([[1, true], [2, void 0]]);
+    return expect(log).toEqual([[1, true], [2, false]]);
   });
-  it('should call watch callbacks with proper isInitial param (error)', function() {
+  it('should call watch callbacks with proper isCurrent param (error)', function() {
     var log, p;
     log = [];
     p = prop(null, 1);
-    p.watch('error', function(x, isInitial) {
-      return log.push([x, isInitial]);
+    p.watch('error', function(x, isCurrent) {
+      return log.push([x, isCurrent]);
     });
     send(p, 'error', 2);
-    return expect(log).toEqual([[1, true], [2, void 0]]);
+    return expect(log).toEqual([[1, true], [2, false]]);
   });
-  it('should call watch callbacks with proper isInitial param (end)', function() {
+  it('should call watch callbacks with proper isCurrent param (end:current)', function() {
     var log, p;
     log = [];
     p = prop();
     send(p, 'end', 1);
     send(p, 'end', 2);
-    p.watch('end', function(x, isInitial) {
-      return log.push([x, isInitial]);
+    p.watch('end', function(x, isCurrent) {
+      return log.push([x, isCurrent]);
     });
     return expect(log).toEqual([[1, true]]);
+  });
+  it('should call watch callbacks with proper isCurrent param (end:not-current)', function() {
+    var log, p;
+    log = [];
+    p = prop();
+    p.watch('end', function(x, isCurrent) {
+      return log.push([x, isCurrent]);
+    });
+    send(p, 'end', 1);
+    return expect(log).toEqual([[1, false]]);
   });
   it('.has() should always return false for anything except `value`, `error`, `end`', function() {
     var p;
@@ -7997,35 +7980,52 @@ describe('Property listeners', function() {
     send(p, 'end', 2);
     return expect(log).toEqual([1]);
   });
-  return it('should get new values and error when subscribed as `both`', function() {
+  return it('should get new values, error, ends when subscribed as `any`', function() {
     var log, p;
     p = prop();
     log = {
       value: [],
-      error: []
+      error: [],
+      end: []
     };
-    p.on('both', function(type, x) {
+    p.on('any', function(type, x) {
       return log[type].push(x);
     });
     send(p, 'value', 1);
     expect(log).toEqual({
       value: [1],
-      error: []
+      error: [],
+      end: []
     });
     send(p, 'error', 1);
     expect(log).toEqual({
       value: [1],
-      error: [1]
+      error: [1],
+      end: []
     });
     send(p, 'value', 2);
     expect(log).toEqual({
       value: [1, 2],
-      error: [1]
+      error: [1],
+      end: []
     });
     send(p, 'error', 2);
+    expect(log).toEqual({
+      value: [1, 2],
+      error: [1, 2],
+      end: []
+    });
+    send(p, 'end', 3);
+    expect(log).toEqual({
+      value: [1, 2],
+      error: [1, 2],
+      end: [3]
+    });
+    send(p, 'end', 4);
     return expect(log).toEqual({
       value: [1, 2],
-      error: [1, 2]
+      error: [1, 2],
+      end: [3]
     });
   });
 });
@@ -8077,13 +8077,13 @@ describe('Property listener with context and/or args:', function() {
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],36:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.reduce()', function() {
   var subtract;
@@ -8093,16 +8093,16 @@ describe('.reduce()', function() {
   it('should end when source ends', function() {
     var p, reduced;
     p = prop();
-    reduced = p.reduce(0, subtract);
+    reduced = activate(p.reduce(0, subtract));
     expect(reduced).toNotBeEnded();
     send(p, 'end');
     return expect(reduced).toBeEnded();
   });
   it('should not pass initial *value*', function() {
-    return expect(prop(2).reduce(0, subtract)).toHasNoValue();
+    return expect(activate(prop(2).reduce(0, subtract))).toHasNoValue();
   });
   it('should pass initial *error*', function() {
-    return expect(prop(null, 1).reduce(0, subtract)).toHasError(1);
+    return expect(activate(prop(null, 1).reduce(0, subtract))).toHasError(1);
   });
   it('should pass further *errors*', function() {
     var p, state;
@@ -8113,8 +8113,7 @@ describe('.reduce()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -8139,7 +8138,7 @@ describe('.reduce()', function() {
     return expect(state).toEqual({
       values: [-10],
       errors: ['a', 'b', 'c'],
-      ended: true
+      end: void 0
     });
   });
   it('should handle all values and errors (without initial)', function() {
@@ -8154,7 +8153,7 @@ describe('.reduce()', function() {
     return expect(state).toEqual({
       values: [-9],
       errors: ['b', 'c'],
-      ended: true
+      end: void 0
     });
   });
   return it('should has `seed` as result value if source ends vithout any values', function() {
@@ -8165,94 +8164,25 @@ describe('.reduce()', function() {
     return expect(state).toEqual({
       values: [0],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],37:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
-
-describe('.removeCurrent()', function() {
-  it('should end when source ends', function() {
-    var p, removed;
-    p = prop();
-    removed = p.removeCurrent();
-    expect(removed).toNotBeEnded();
-    send(p, 'end');
-    return expect(removed).toBeEnded();
-  });
-  it('should not pass initial *value* (by default)', function() {
-    return expect(prop(1).removeCurrent()).toHasNoValue();
-  });
-  it('should not pass initial *value* (with `both`)', function() {
-    return expect(prop(1).removeCurrent('both')).toHasNoValue();
-  });
-  it('should not pass initial *value* (with `value`)', function() {
-    return expect(prop(1).removeCurrent('value')).toHasNoValue();
-  });
-  it('should DO pass initial *value* (with `error`)', function() {
-    return expect(prop(1).removeCurrent('error')).toHasValue(1);
-  });
-  it('should not pass initial *error* (by default)', function() {
-    return expect(prop(null, 1).removeCurrent()).toHasNoError();
-  });
-  it('should not pass initial *error* (with `both`)', function() {
-    return expect(prop(null, 1).removeCurrent('both')).toHasNoError();
-  });
-  it('should not pass initial *error* (with `error`)', function() {
-    return expect(prop(null, 1).removeCurrent('error')).toHasNoError();
-  });
-  it('should DO pass initial *error* (with `value`)', function() {
-    return expect(prop(null, 1).removeCurrent('value')).toHasError(1);
-  });
-  it('should activate/deactivate source property', function() {
-    var f, p, removed;
-    p = prop();
-    removed = p.removeCurrent();
-    expect(p).toNotBeActive();
-    removed.on('value', (f = function() {}));
-    expect(p).toBeActive();
-    removed.off('value', f);
-    return expect(p).toNotBeActive();
-  });
-  return it('should handle further values and errors', function() {
-    var p, state;
-    p = prop(1, 'a');
-    state = watch(p.removeCurrent());
-    send(p, 'value', 2);
-    send(p, 'error', 'b');
-    send(p, 'value', 3);
-    send(p, 'error', 'c');
-    return expect(state).toEqual({
-      values: [2, 3],
-      errors: ['b', 'c'],
-      ended: false
-    });
-  });
-});
-
-
-},{"../../dist/kefir":1,"../test-helpers.coffee":47}],38:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
-
-Kefir = require('../../dist/kefir');
-
-helpers = require('../test-helpers.coffee');
-
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.sampledBy()', function() {
   it('if passed empty array of samlers should return ended property without value or error', function() {
     var p;
-    p = Kefir.sampledBy([prop()], []);
+    p = activate(Kefir.sampledBy([prop()], []));
     expect(p).toBeEnded();
     expect(p).toHasNoValue();
     return expect(p).toHasNoError();
@@ -8261,42 +8191,42 @@ describe('.sampledBy()', function() {
     var mp, p1, p2;
     p1 = prop();
     p2 = prop();
-    mp = Kefir.sampledBy([prop()], [p1, p2]);
+    mp = activate(Kefir.sampledBy([prop()], [p1, p2]));
     expect(mp).toNotBeEnded();
     send(p1, 'end');
     expect(mp).toNotBeEnded();
     send(p2, 'end');
     return expect(mp).toBeEnded();
   });
-  it('should pass initial values (0 sources, 1 sampler)', function() {
-    return expect(Kefir.sampledBy([], [prop(1)])).toHasEqualValue([1]);
+  it('should pass current values (0 sources, 1 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([], [prop(1)]))).toHasEqualValue([1]);
   });
-  it('should pass initial values (1 source, 1 sampler)', function() {
-    return expect(Kefir.sampledBy([prop(0)], [prop(1)])).toHasEqualValue([0, 1]);
+  it('should pass current values (1 source, 1 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([prop(0)], [prop(1)]))).toHasEqualValue([0, 1]);
   });
-  it('should pass initial values (2 sources, 2 sampler)', function() {
-    return expect(Kefir.sampledBy([prop(0), prop(1)], [prop(2), prop(3)])).toHasEqualValue([0, 1, 2, 3]);
+  it('should pass current values (2 sources, 2 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([prop(0), prop(1)], [prop(2), prop(3)]))).toHasEqualValue([0, 1, 2, 3]);
   });
-  it('if only some of multiple properties has initial should NOT pass', function() {
-    return expect(Kefir.sampledBy([prop(1), prop()], [prop(2), prop(3)])).toHasNoValue();
+  it('if only some of multiple properties has current should NOT pass', function() {
+    return expect(activate(Kefir.sampledBy([prop(1), prop()], [prop(2), prop(3)]))).toHasNoValue();
   });
-  it('should pass initial errors (1 source, 0 samlers)', function() {
-    return expect(Kefir.sampledBy([prop(null, 1)], [])).toHasError(1);
+  it('should pass current errors (1 source, 0 samlers)', function() {
+    return expect(activate(Kefir.sampledBy([prop(null, 1)], []))).toHasError(1);
   });
-  it('should pass initial errors (0 sources, 1 samler)', function() {
-    return expect(Kefir.sampledBy([], [prop(null, 1)])).toHasError(1);
+  it('should pass current errors (0 sources, 1 samler)', function() {
+    return expect(activate(Kefir.sampledBy([], [prop(null, 1)]))).toHasError(1);
   });
-  it('should pass initial errors (1 source, 1 sampler)', function() {
-    return expect(Kefir.sampledBy([prop(null, 0)], [prop(null, 1)])).toHasError(1);
+  it('should pass current errors (1 source, 1 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([prop(null, 0)], [prop(null, 1)]))).toHasError(1);
   });
-  it('should pass initial errors (2 sources, 0 sampler)', function() {
-    return expect(Kefir.sampledBy([prop(null, 0), prop(null, 1)], [])).toHasError(1);
+  it('should pass current errors (2 sources, 0 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([prop(null, 0), prop(null, 1)], []))).toHasError(1);
   });
-  it('should pass initial errors (0 sources, 2 sampler)', function() {
-    return expect(Kefir.sampledBy([], [prop(null, 0), prop(null, 1)])).toHasError(1);
+  it('should pass current errors (0 sources, 2 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([], [prop(null, 0), prop(null, 1)]))).toHasError(1);
   });
-  it('should pass initial errors (2 sources, 2 sampler)', function() {
-    return expect(Kefir.sampledBy([prop(null, 0), prop(null, 1)], [prop(null, 2), prop(null, 3)])).toHasError(3);
+  it('should pass current errors (2 sources, 2 sampler)', function() {
+    return expect(activate(Kefir.sampledBy([prop(null, 0), prop(null, 1)], [prop(null, 2), prop(null, 3)]))).toHasError(3);
   });
   it('should pass further errors from all properties', function() {
     var p1, p2, state;
@@ -8305,15 +8235,13 @@ describe('.sampledBy()', function() {
     state = watch(Kefir.sampledBy([p1], [p2]));
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p2, 'error', 'e1');
     send(p1, 'error', 'e2');
     return expect(state).toEqual({
       values: [],
-      errors: ['e1', 'e2'],
-      ended: false
+      errors: ['e1', 'e2']
     });
   });
   it('should handle further values from all properties', function() {
@@ -8323,32 +8251,27 @@ describe('.sampledBy()', function() {
     state = watch(Kefir.sampledBy([p1], [p2]));
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 1);
     expect(state).toEqual({
       values: [],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p2, 'value', 2);
     expect(state).toEqual({
       values: [[1, 2]],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     expect(state).toEqual({
       values: [[1, 2]],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [[1, 2], [3, 4]],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
   it('should activate/deactivate sources', function() {
@@ -8388,15 +8311,13 @@ describe('.sampledBy()', function() {
     }));
     expect(state).toEqual({
       values: [3],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [3, 7],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
   it('`property.sampledBy(other, f)` should work', function() {
@@ -8408,15 +8329,13 @@ describe('.sampledBy()', function() {
     }));
     expect(state).toEqual({
       values: [3],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [3, 7],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
   return it('`property.sampledBy(other)` should work', function() {
@@ -8426,28 +8345,26 @@ describe('.sampledBy()', function() {
     state = watch(p1.sampledBy(p2));
     expect(state).toEqual({
       values: [1],
-      errors: [],
-      ended: false
+      errors: []
     });
     send(p1, 'value', 3);
     send(p2, 'value', 4);
     return expect(state).toEqual({
       values: [1, 3],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
 });
 
 
-},{"../../dist/kefir":1,"../test-helpers.coffee":47}],39:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+},{"../../dist/kefir":1,"../test-helpers.coffee":47}],38:[function(require,module,exports){
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.scan()', function() {
   var subtract;
@@ -8457,19 +8374,19 @@ describe('.scan()', function() {
   it('should end when source ends', function() {
     var p, scaned;
     p = prop();
-    scaned = p.scan(0, subtract);
+    scaned = activate(p.scan(0, subtract));
     expect(scaned).toNotBeEnded();
     send(p, 'end');
     return expect(scaned).toBeEnded();
   });
-  it('should handle initial *value*', function() {
-    return expect(prop(2).scan(0, subtract)).toHasValue(-2);
+  it('should handle current *value*', function() {
+    return expect(activate(prop(2).scan(0, subtract))).toHasValue(-2);
   });
-  it('if source property has no initial `seed` should became initial *value* of result property', function() {
-    return expect(prop().scan(0, subtract)).toHasValue(0);
+  it('if source property has no current, `seed` should became current *value* of result property', function() {
+    return expect(activate(prop().scan(0, subtract))).toHasValue(0);
   });
-  it('should handle initial *error*', function() {
-    return expect(prop(null, 1).scan(0, subtract)).toHasError(1);
+  it('should handle current *error*', function() {
+    return expect(activate(prop(null, 1).scan(0, subtract))).toHasError(1);
   });
   it('should activate/deactivate source property', function() {
     var f, p, scaned;
@@ -8491,11 +8408,10 @@ describe('.scan()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [-1, -4, -10],
-      errors: ['a', 'b', 'c'],
-      ended: false
+      errors: ['a', 'b', 'c']
     });
   });
-  return it('should handle all values and errors (without initial)', function() {
+  return it('should handle all values and errors (without current)', function() {
     var p, state;
     p = prop();
     state = watch(p.scan(0, subtract));
@@ -8505,36 +8421,97 @@ describe('.scan()', function() {
     send(p, 'error', 'c');
     return expect(state).toEqual({
       values: [0, -3, -9],
-      errors: ['b', 'c'],
-      ended: false
+      errors: ['b', 'c']
+    });
+  });
+});
+
+
+},{"../../dist/kefir":1,"../test-helpers.coffee":47}],39:[function(require,module,exports){
+var Kefir, activate, helpers, prop, send, watch;
+
+Kefir = require('../../dist/kefir');
+
+helpers = require('../test-helpers.coffee');
+
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
+
+describe('.skipCurrent()', function() {
+  it('should end when source ends', function() {
+    var p, removed;
+    p = prop();
+    removed = activate(p.skipCurrent());
+    expect(removed).toNotBeEnded();
+    send(p, 'end');
+    return expect(removed).toBeEnded();
+  });
+  it('should not pass current *value* (by default)', function() {
+    return expect(activate(prop(1).skipCurrent())).toHasNoValue();
+  });
+  it('should not pass current *value* (with `value`)', function() {
+    return expect(activate(prop(1).skipCurrent('value'))).toHasNoValue();
+  });
+  it('should DO pass current *value* (with `error`)', function() {
+    return expect(activate(prop(1).skipCurrent('error'))).toHasValue(1);
+  });
+  it('should not pass current *error* (by default)', function() {
+    return expect(activate(prop(null, 1).skipCurrent())).toHasNoError();
+  });
+  it('should not pass current *error* (with `error`)', function() {
+    return expect(activate(prop(null, 1).skipCurrent('error'))).toHasNoError();
+  });
+  it('should DO pass current *error* (with `value`)', function() {
+    return expect(activate(prop(null, 1).skipCurrent('value'))).toHasError(1);
+  });
+  it('should activate/deactivate source property', function() {
+    var f, p, removed;
+    p = prop();
+    removed = p.skipCurrent();
+    expect(p).toNotBeActive();
+    removed.on('value', (f = function() {}));
+    expect(p).toBeActive();
+    removed.off('value', f);
+    return expect(p).toNotBeActive();
+  });
+  return it('should handle further values and errors', function() {
+    var p, state;
+    p = prop(1, 'a');
+    state = watch(p.skipCurrent());
+    send(p, 'value', 2);
+    send(p, 'error', 'b');
+    send(p, 'value', 3);
+    send(p, 'error', 'c');
+    return expect(state).toEqual({
+      values: [2, 3],
+      errors: ['b', 'c']
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],40:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.skipDuplicates()', function() {
   it('should end when source ends', function() {
     var p, tp;
     p = prop();
-    tp = p.skipDuplicates();
+    tp = activate(p.skipDuplicates());
     expect(tp).toNotBeEnded();
     send(p, 'end');
     return expect(tp).toBeEnded();
   });
   it('should handle initial *value*', function() {
-    return expect(prop(1).skipDuplicates()).toHasValue(1);
+    return expect(activate(prop(1).skipDuplicates())).toHasValue(1);
   });
   it('should handle initial *error*', function() {
-    return expect(prop(null, 1).skipDuplicates()).toHasError(1);
+    return expect(activate(prop(null, 1).skipDuplicates())).toHasError(1);
   });
   it('should handle further *errors* even same', function() {
     var p, state;
@@ -8546,8 +8523,7 @@ describe('.skipDuplicates()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3, 3],
-      ended: false
+      errors: [1, 2, 3, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -8572,8 +8548,7 @@ describe('.skipDuplicates()', function() {
     send(p, 'value', 3);
     return expect(state).toEqual({
       values: [1, 2, null, void 0, 3],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
   return it('should accept optional comparator fn', function() {
@@ -8590,21 +8565,20 @@ describe('.skipDuplicates()', function() {
     send(p, 'value', 3);
     return expect(state).toEqual({
       values: [1, 2, null, 3],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],41:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.skipWhile()', function() {
   var lessThan3;
@@ -8614,19 +8588,19 @@ describe('.skipWhile()', function() {
   it('should end when source ends', function() {
     var p, tp;
     p = prop();
-    tp = p.skipWhile(lessThan3);
+    tp = activate(p.skipWhile(lessThan3));
     expect(tp).toNotBeEnded();
     send(p, 'end');
     return expect(tp).toBeEnded();
   });
   it('should pass initial *value* if they not satisfies condition', function() {
-    return expect(prop(10).skipWhile(lessThan3)).toHasValue(10);
+    return expect(activate(prop(10).skipWhile(lessThan3))).toHasValue(10);
   });
   it('should not pass initial *value* if they do satisfies condition', function() {
-    return expect(prop(2).skipWhile(lessThan3)).toHasNoValue();
+    return expect(activate(prop(2).skipWhile(lessThan3))).toHasNoValue();
   });
   it('should handle initial *error*', function() {
-    return expect(prop(null, 1).skipWhile(lessThan3)).toHasError(1);
+    return expect(activate(prop(null, 1).skipWhile(lessThan3))).toHasError(1);
   });
   it('should handle further *errors*', function() {
     var p, state;
@@ -8637,8 +8611,7 @@ describe('.skipWhile()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -8662,40 +8635,39 @@ describe('.skipWhile()', function() {
     send(p, 'value', 1);
     return expect(state).toEqual({
       values: [3, 2, 1],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],42:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.skip()', function() {
   it('should end when source ends', function() {
     var p, tp;
     p = prop();
-    tp = p.skip(5);
+    tp = activate(p.skip(5));
     expect(tp).toNotBeEnded();
     send(p, 'end');
     return expect(tp).toBeEnded();
   });
-  it('should handle initial *value* if n == 0', function() {
-    return expect(prop(1).skip(0)).toHasValue(1);
+  it('should handle current *value* if n == 0', function() {
+    return expect(activate(prop(1).skip(0))).toHasValue(1);
   });
-  it('should not handle initial *value* if n > 0', function() {
-    return expect(prop(1).skip(1)).toHasNoValue();
+  it('should not handle current *value* if n > 0', function() {
+    return expect(activate(prop(1).skip(1))).toHasNoValue();
   });
-  it('should handle initial *error* whether n > 0 or not', function() {
-    expect(prop(null, 1).skip(1)).toHasError(1);
-    return expect(prop(null, 1).skip(0)).toHasError(1);
+  it('should handle current *error* whether n > 0 or not', function() {
+    expect(activate(prop(null, 1).skip(1))).toHasError(1);
+    return expect(activate(prop(null, 1).skip(0))).toHasError(1);
   });
   it('should handle further *errors*', function() {
     var p, state;
@@ -8706,8 +8678,7 @@ describe('.skip()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -8729,11 +8700,10 @@ describe('.skip()', function() {
     send(p, 'value', 3);
     return expect(state).toEqual({
       values: [3],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
-  return it('should skip first n values (counting initial)', function() {
+  return it('should skip first n values (counting current)', function() {
     var p, state;
     p = prop(1);
     state = watch(p.skip(2));
@@ -8741,21 +8711,20 @@ describe('.skip()', function() {
     send(p, 'value', 3);
     return expect(state).toEqual({
       values: [3],
-      errors: [],
-      ended: false
+      errors: []
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],43:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.takeWhile()', function() {
   var lessThan3;
@@ -8765,16 +8734,16 @@ describe('.takeWhile()', function() {
   it('should end when source ends', function() {
     var p, tp;
     p = prop();
-    tp = p.takeWhile(lessThan3);
+    tp = activate(p.takeWhile(lessThan3));
     expect(tp).toNotBeEnded();
     send(p, 'end');
     return expect(tp).toBeEnded();
   });
   it('should handle initial *value*', function() {
-    return expect(prop(1).takeWhile(lessThan3)).toHasValue(1);
+    return expect(activate(prop(1).takeWhile(lessThan3))).toHasValue(1);
   });
   it('should handle initial *error*', function() {
-    return expect(prop(null, 1).takeWhile(lessThan3)).toHasError(1);
+    return expect(activate(prop(null, 1).takeWhile(lessThan3))).toHasError(1);
   });
   it('should handle further *errors*', function() {
     var p, state;
@@ -8785,8 +8754,7 @@ describe('.takeWhile()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -8809,13 +8777,13 @@ describe('.takeWhile()', function() {
     return expect(state).toEqual({
       values: [1, 2],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
   return it('if initial value not satisfies condition should end without any initial value', function() {
     var p, tp;
     p = prop(10);
-    tp = p.takeWhile(lessThan3);
+    tp = activate(p.takeWhile(lessThan3));
     expect(tp).toBeEnded();
     return expect(tp).toHasNoValue();
   });
@@ -8823,28 +8791,28 @@ describe('.takeWhile()', function() {
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],44:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
 describe('.take()', function() {
   it('should end when source ends', function() {
     var p, tp;
     p = prop();
-    tp = p.take(5);
+    tp = activate(p.take(5));
     expect(tp).toNotBeEnded();
     send(p, 'end');
     return expect(tp).toBeEnded();
   });
   it('should handle initial *value*', function() {
-    return expect(prop(1).take(5)).toHasValue(1);
+    return expect(activate(prop(1).take(5))).toHasValue(1);
   });
   it('should handle initial *error*', function() {
-    return expect(prop(null, 1).take(5)).toHasError(1);
+    return expect(activate(prop(null, 1).take(5))).toHasError(1);
   });
   it('should handle further *errors*', function() {
     var p, state;
@@ -8855,8 +8823,7 @@ describe('.take()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -8879,7 +8846,7 @@ describe('.take()', function() {
     return expect(state).toEqual({
       values: [1, 2, 3],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
   it('should take first n values (counting initial) then end', function() {
@@ -8891,7 +8858,7 @@ describe('.take()', function() {
     return expect(state).toEqual({
       values: [1, 2, 3],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
   it('should end immediately if n == 0', function() {
@@ -8901,7 +8868,7 @@ describe('.take()', function() {
     return expect(state).toEqual({
       values: [],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
   return it('should end immediately if n == -1', function() {
@@ -8911,45 +8878,45 @@ describe('.take()', function() {
     return expect(state).toEqual({
       values: [],
       errors: [],
-      ended: true
+      end: void 0
     });
   });
 });
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],45:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch, withFakeTime;
+var Kefir, activate, helpers, prop, send, watch, withFakeTime;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, withFakeTime = helpers.withFakeTime, activate = helpers.activate;
 
 describe('.throttle()', function() {
   it('should end when source ends', function() {
     var p, throttled;
     p = prop();
-    throttled = p.throttle(100);
+    throttled = activate(p.throttle(100));
     expect(throttled).toNotBeEnded();
     send(p, 'end');
     return expect(throttled).toBeEnded();
   });
   it('should always pass initial *value*', function() {
-    expect(prop(1).throttle(100)).toHasValue(1);
-    expect(prop(1).throttle(100, {
+    expect(activate(prop(1).throttle(100))).toHasValue(1);
+    expect(activate(prop(1).throttle(100, {
       leading: false
-    })).toHasValue(1);
-    expect(prop(1).throttle(100, {
+    }))).toHasValue(1);
+    expect(activate(prop(1).throttle(100, {
       trailing: false
-    })).toHasValue(1);
-    return expect(prop(1).throttle(100, {
+    }))).toHasValue(1);
+    return expect(activate(prop(1).throttle(100, {
       trailing: false,
       leading: false
-    })).toHasValue(1);
+    }))).toHasValue(1);
   });
   it('should pass initial *error*', function() {
-    return expect(prop(null, 1).throttle(100)).toHasError(1);
+    return expect(activate(prop(null, 1).throttle(100))).toHasError(1);
   });
   it('should pass further *errors*', function() {
     var p, state;
@@ -8960,8 +8927,7 @@ describe('.throttle()', function() {
     send(p, 'error', 3);
     return expect(state).toEqual({
       values: [],
-      errors: [1, 2, 3],
-      ended: false
+      errors: [1, 2, 3]
     });
   });
   it('should activate/deactivate source property', function() {
@@ -9067,14 +9033,13 @@ describe('.throttle()', function() {
       send(p, 'end');
       expect(state).toEqual({
         values: [1, 2],
-        errors: [],
-        ended: false
+        errors: []
       });
       clock.tick(71);
       return expect(state).toEqual({
         values: [1, 2, 3],
         errors: [],
-        ended: true
+        end: void 0
       });
     });
   });
@@ -9092,7 +9057,7 @@ describe('.throttle()', function() {
       return expect(state).toEqual({
         values: [1, 2],
         errors: [],
-        ended: true
+        end: void 0
       });
     });
   });
@@ -9100,117 +9065,191 @@ describe('.throttle()', function() {
 
 
 },{"../../dist/kefir":1,"../test-helpers.coffee":47}],46:[function(require,module,exports){
-var Kefir, helpers, prop, send, watch;
+var Kefir, activate, helpers, prop, send, watch;
 
 Kefir = require('../../dist/kefir');
 
 helpers = require('../test-helpers.coffee');
 
-prop = helpers.prop, watch = helpers.watch, send = helpers.send;
+prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = helpers.activate;
 
-describe('.withHandler()', function() {
-  var mirror, skipInitial;
-  it('should not end when source ends (by default)', function() {
-    var p, wh;
-    p = prop();
-    wh = p.withHandler(function() {});
-    expect(wh).toNotBeEnded();
-    send(p, 'end');
-    return expect(wh).toNotBeEnded();
-  });
-  it('should not pass initial *value* (by default)', function() {
-    return expect(prop(1).withHandler(function() {})).toHasNoValue();
-  });
-  it('should not pass initial *error* (by default)', function() {
-    return expect(prop(null, 1).withHandler(function() {})).toHasNoError();
-  });
-  it('should activate/deactivate source property', function() {
-    var f, p, wh;
-    p = prop();
-    wh = p.withHandler(function() {});
-    expect(p).toNotBeActive();
-    wh.on('value', (f = function() {}));
-    expect(p).toBeActive();
-    wh.off('value', f);
-    return expect(p).toNotBeActive();
-  });
-  it('should pass no values or errors (by default)', function() {
-    var p, state;
-    p = prop(1, 'a');
-    state = watch(p.withHandler(function() {}));
-    send(p, 'value', 2);
-    send(p, 'error', 'b');
-    send(p, 'value', 3);
-    send(p, 'error', 'c');
-    return expect(state).toEqual({
-      values: [],
-      errors: [],
-      ended: false
-    });
-  });
-  mirror = function(send, type, x) {
+describe('.withHandler(echo)', function() {
+  var echo;
+  echo = function(send, type, x) {
     return send(type, x);
   };
-  it('should end when source ends (with `mirror` handler)', function() {
-    var p, wh;
-    p = prop();
-    wh = p.withHandler(mirror);
-    expect(wh).toNotBeEnded();
-    send(p, 'end');
-    return expect(wh).toBeEnded();
+  it('cur *value* of source should not became cur *value* of result', function() {
+    return expect(prop(1).withHandler(echo)).toHasNoValue();
   });
-  it('should pass initial *value* (with `mirror` handler)', function() {
-    return expect(prop(1).withHandler(mirror)).toHasValue(1);
+  it('cur *value* of source should became cur *value* of result after activation', function() {
+    return expect(activate(prop(1).withHandler(echo))).toHasValue(1);
   });
-  it('should pass initial *error* (with `mirror` handler)', function() {
-    return expect(prop(null, 1).withHandler(mirror)).toHasError(1);
+  it('cur *error* of source should not became cur *error* of result', function() {
+    return expect(prop(null, 1).withHandler(echo)).toHasNoError();
   });
-  it('should pass all values or errors (with `mirror` handler)', function() {
+  it('cur *error* of source should became cur *error* of result after activation', function() {
+    return expect(activate(prop(null, 1).withHandler(echo))).toHasError(1);
+  });
+  it('cur *end* of source should not became cur *end* of result', function() {
+    return expect(prop(null, null, 1).withHandler(echo)).toHasNoEnd();
+  });
+  it('cur *end* of source should became cur *end* of result after activation', function() {
+    return expect(activate(prop(null, null, 1).withHandler(echo))).toHasEnd(1);
+  });
+  it('deliver cur *value* to first listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p = prop(1).withHandler(echo);
+    p.watch('value', logger);
+    return expect(log).toEqual([[1, true]]);
+  });
+  it('deliver cur *error* to first listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p = prop(null, 1).withHandler(echo);
+    p.watch('error', logger);
+    return expect(log).toEqual([[1, true]]);
+  });
+  it('deliver cur *end* to first listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p = prop(null, null, 1).withHandler(echo);
+    p.watch('end', logger);
+    return expect(log).toEqual([[1, true]]);
+  });
+  it('deliver cur *value*, *error*, *end* to first "any" listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b, c) {
+      return log.push([a, b, c]);
+    };
+    p = prop(1, 2, 3).withHandler(echo);
+    p.watch('any', logger);
+    return expect(log).toEqual([['value', 1, true], ['error', 2, true], ['end', 3, true]]);
+  });
+  it('should deliver further *value*, *error*, *end*', function() {
     var p, state;
     p = prop(1, 'a');
-    state = watch(p.withHandler(mirror));
+    state = watch(p.withHandler(echo));
     send(p, 'value', 2);
     send(p, 'error', 'b');
     send(p, 'value', 3);
     send(p, 'error', 'c');
+    send(p, 'end', 'fin');
     return expect(state).toEqual({
       values: [1, 2, 3],
       errors: ['a', 'b', 'c'],
-      ended: false
+      end: 'fin'
     });
   });
-  skipInitial = function(send, type, x, isInitial) {
-    if (!isInitial) {
-      return send(type, x);
-    }
-  };
-  it('should end when source ends (with `skipInitial` handler)', function() {
-    var p, wh;
+  return it('should activate/deactivate source property', function() {
+    var f, mapped, p;
     p = prop();
-    wh = p.withHandler(skipInitial);
-    expect(wh).toNotBeEnded();
-    send(p, 'end');
-    return expect(wh).toBeEnded();
+    mapped = p.withHandler(echo);
+    expect(p).toNotBeActive();
+    mapped.on('value', (f = function() {}));
+    expect(p).toBeActive();
+    mapped.off('value', f);
+    return expect(p).toNotBeActive();
   });
-  it('should not pass initial *value* (with `skipInitial` handler)', function() {
-    return expect(prop(1).withHandler(skipInitial)).toHasNoValue();
+});
+
+describe('.withHandler(skipCur)', function() {
+  var skipCur;
+  skipCur = function(send, type, x, isCur) {
+    return isCur || send(type, x);
+  };
+  it('cur *value* of source should not became cur *value* of result', function() {
+    return expect(prop(1).withHandler(skipCur)).toHasNoValue();
   });
-  it('should not pass initial *error* (with `skipInitial` handler)', function() {
-    return expect(prop(null, 1).withHandler(skipInitial)).toHasNoError();
+  it('cur *value* of source should not became cur *value* of result after activation', function() {
+    return expect(activate(prop(1).withHandler(skipCur))).toHasNoValue();
   });
-  return it('should pass all but initial values or errors (with `skipInitial` handler)', function() {
+  it('cur *error* of source should not became cur *error* of result', function() {
+    return expect(prop(null, 1).withHandler(skipCur)).toHasNoError();
+  });
+  it('cur *error* of source should not became cur *error* of result after activation', function() {
+    return expect(activate(prop(null, 1).withHandler(skipCur))).toHasNoError();
+  });
+  it('cur *end* of source should not became cur *end* of result', function() {
+    return expect(prop(null, null, 1).withHandler(skipCur)).toHasNoEnd();
+  });
+  it('cur *end* of source should not became cur *end* of result after activation', function() {
+    return expect(activate(prop(null, null, 1).withHandler(skipCur))).toHasNoEnd();
+  });
+  it('not deliver cur *value* to first listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p = prop(1).withHandler(skipCur);
+    p.watch('value', logger);
+    return expect(log).toEqual([]);
+  });
+  it('not deliver cur *error* to first listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p = prop(null, 1).withHandler(skipCur);
+    p.watch('error', logger);
+    return expect(log).toEqual([]);
+  });
+  it('not deliver cur *end* to first listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b) {
+      return log.push([a, b]);
+    };
+    p = prop(null, null, 1).withHandler(skipCur);
+    p.watch('end', logger);
+    return expect(log).toEqual([]);
+  });
+  it('not deliver cur *value*, *error*, *end* to first "any" listener', function() {
+    var log, logger, p;
+    log = [];
+    logger = function(a, b, c) {
+      return log.push([a, b, c]);
+    };
+    p = prop(1, 2, 3).withHandler(skipCur);
+    p.watch('any', logger);
+    return expect(log).toEqual([]);
+  });
+  it('should deliver further *value*, *error*, *end*', function() {
     var p, state;
     p = prop(1, 'a');
-    state = watch(p.withHandler(skipInitial));
+    state = watch(p.withHandler(skipCur));
     send(p, 'value', 2);
     send(p, 'error', 'b');
     send(p, 'value', 3);
     send(p, 'error', 'c');
+    send(p, 'end', 'fin');
     return expect(state).toEqual({
       values: [2, 3],
       errors: ['b', 'c'],
-      ended: false
+      end: 'fin'
     });
+  });
+  return it('should activate/deactivate source property', function() {
+    var f, mapped, p;
+    p = prop();
+    mapped = p.withHandler(skipCur);
+    expect(p).toNotBeActive();
+    mapped.on('value', (f = function() {}));
+    expect(p).toBeActive();
+    mapped.off('value', f);
+    return expect(p).toNotBeActive();
   });
 });
 
@@ -9226,8 +9265,7 @@ exports.watch = function(property) {
   var result;
   result = {
     values: [],
-    errors: [],
-    ended: false
+    errors: []
   };
   property.watch('value', function(x) {
     return result.values.push(x);
@@ -9235,25 +9273,33 @@ exports.watch = function(property) {
   property.watch('error', function(e) {
     return result.errors.push(e);
   });
-  property.watch('end', function() {
-    return result.ended = true;
+  property.watch('end', function(x) {
+    return result.end = x;
   });
   return result;
 };
 
 exports.send = function(property, type, x) {
-  property.__send(type, x);
+  property._send(type, x);
   return property;
 };
 
-exports.prop = function(initialValue, initialError) {
+exports.activate = function(property) {
+  property.on('end', function() {});
+  return property;
+};
+
+exports.prop = function(initialValue, initialError, initialEnd) {
   var prop;
   prop = new Kefir.Property();
   if (initialValue != null) {
-    prop.__send('value', initialValue);
+    prop._send('value', initialValue);
   }
   if (initialError != null) {
-    prop.__send('error', initialError);
+    prop._send('error', initialError);
+  }
+  if (initialEnd != null) {
+    prop._send('end', initialEnd);
   }
   return prop;
 };
@@ -9279,23 +9325,32 @@ beforeEach(function() {
     toHasEqualError: function(error) {
       return this.actual.has('error') && this.env.equals_(this.actual.get('error'), error);
     },
+    toHasEnd: function(end) {
+      return this.actual.has('end') && this.actual.get('end') === end;
+    },
+    toHasEqualEnd: function(end) {
+      return this.actual.has('end') && this.env.equals_(this.actual.get('end'), end);
+    },
     toHasNoValue: function() {
       return !this.actual.has('value');
     },
     toHasNoError: function() {
       return !this.actual.has('error');
     },
-    toBeEnded: function() {
-      return this.actual.has('end');
+    toHasNoEnd: function() {
+      return !this.actual.has('end');
     },
     toBeActive: function() {
       return this.actual.isActive();
     },
+    toNotBeActive: function() {
+      return !this.actual.isActive();
+    },
     toNotBeEnded: function() {
       return !this.actual.has('end');
     },
-    toNotBeActive: function() {
-      return !this.actual.isActive();
+    toBeEnded: function() {
+      return this.actual.has('end');
     }
   });
 });

@@ -1,7 +1,7 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, withFakeTime} = helpers
+{prop, watch, send, withFakeTime, activate} = helpers
 
 
 describe '.delay()', ->
@@ -9,18 +9,18 @@ describe '.delay()', ->
   it 'should end after timeout when source ends', ->
     withFakeTime (clock) ->
       p = prop()
-      delayed = p.delay(100)
+      delayed = activate(p.delay(100))
       expect(delayed).toNotBeEnded()
       send(p, 'end')
       expect(delayed).toNotBeEnded()
       clock.tick(101)
       expect(delayed).toBeEnded()
 
-  it 'should pass initial *value*', ->
-    expect(  prop(1).delay(100)  ).toHasValue(1)
+  it 'should pass current *value*', ->
+    expect(  activate(prop(1).delay(100))  ).toHasValue(1)
 
-  it 'should pass initial *error*', ->
-    expect(  prop(null, 1).delay(100)  ).toHasError(1)
+  it 'should pass current *error*', ->
+    expect(  activate(prop(null, 1).delay(100))  ).toHasError(1)
 
   it 'should pass further *errors* without timeout', ->
     p = prop()
@@ -28,7 +28,7 @@ describe '.delay()', ->
     send(p, 'error', 1)
     send(p, 'error', 2)
     send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3],ended:false})
+    expect(state).toEqual({values:[],errors:[1,2,3]})
 
   it 'should activate/deactivate source property', ->
     p = prop()

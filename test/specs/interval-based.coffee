@@ -1,14 +1,14 @@
 Kefir = require('../../dist/kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, withFakeTime} = helpers
+{prop, watch, send, withFakeTime, activate} = helpers
 
 
 describe '.withInterval()', ->
 
   it 'should create not ended property without value or error', ->
     withFakeTime (clock) ->
-      p = Kefir.withInterval(100, ->)
+      p = activate(Kefir.withInterval(100, ->))
       expect(p).toNotBeEnded()
       expect(p).toHasNoValue()
       expect(p).toHasNoError()
@@ -29,19 +29,19 @@ describe '.withInterval()', ->
         send(event[0], event[1])
 
       clock.tick(1)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:false})
+      expect(state).toEqual({values:[1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:false})
+      expect(state).toEqual({values:[1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:['e1'],ended:false})
+      expect(state).toEqual({values:[1],errors:['e1']})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:['e1'],ended:true})
+      expect(state).toEqual({values:[1],errors:['e1'],end:undefined})
 
       clock.tick(1000)
 
@@ -97,13 +97,13 @@ describe '.fromPoll()', ->
       state = watch Kefir.fromPoll 100, -> ++i
 
       clock.tick(1)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:false})
+      expect(state).toEqual({values:[1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1,2],errors:[],ended:false})
+      expect(state).toEqual({values:[1,2],errors:[]})
 
 
 
@@ -114,13 +114,13 @@ describe '.interval()', ->
       state = watch Kefir.interval 100, 1
 
       clock.tick(1)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:false})
+      expect(state).toEqual({values:[1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1,1],errors:[],ended:false})
+      expect(state).toEqual({values:[1,1],errors:[]})
 
 
 
@@ -131,16 +131,16 @@ describe '.sequentially()', ->
       state = watch Kefir.sequentially 100, [1,2]
 
       clock.tick(1)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:false})
+      expect(state).toEqual({values:[1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1,2],errors:[],ended:true})
+      expect(state).toEqual({values:[1,2],errors:[],end:undefined})
 
   it 'if empty array provided should end immediately', ->
-    p = Kefir.sequentially 100, []
+    p = activate(Kefir.sequentially 100, [])
     expect(p).toBeEnded()
 
 
@@ -151,28 +151,28 @@ describe '.repeatedly()', ->
       state = watch Kefir.repeatedly 100, [1,2]
 
       clock.tick(1)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:false})
+      expect(state).toEqual({values:[1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1,2],errors:[],ended:false})
+      expect(state).toEqual({values:[1,2],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1,2,1],errors:[],ended:false})
+      expect(state).toEqual({values:[1,2,1],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1,2,1,2],errors:[],ended:false})
+      expect(state).toEqual({values:[1,2,1,2],errors:[]})
 
   it 'if empty array provided should never produce values but not end', ->
     withFakeTime (clock) ->
-      p = Kefir.repeatedly 100, []
+      p = activate(Kefir.repeatedly 100, [])
       expect(p).toNotBeEnded()
 
       state = watch p
       clock.tick(1000)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
 
 
@@ -183,7 +183,7 @@ describe '.later()', ->
       state = watch Kefir.later 100, 1
 
       clock.tick(1)
-      expect(state).toEqual({values:[],errors:[],ended:false})
+      expect(state).toEqual({values:[],errors:[]})
 
       clock.tick(100)
-      expect(state).toEqual({values:[1],errors:[],ended:true})
+      expect(state).toEqual({values:[1],errors:[],end:undefined})
