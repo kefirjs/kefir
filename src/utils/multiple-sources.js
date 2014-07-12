@@ -104,18 +104,13 @@ extend(MultSubscriber.prototype, {
 
   subToProp: function(property) {
     if (this.active) {
-      property.watch('any', [this.handleAny, this, property]);
+      property.watch('any', this.listener);
+      property.watch('end', [this.remove, this, property]);
     }
   },
   unsubFromProp: function(property) {
-    property.off('any', [this.handleAny, this, property]);
-  },
-
-  handleAny: function(property, type, x, isCurrent) {
-    Fn.call(this.listener, [type, x, isCurrent]);
-    if (type === 'end') {
-      this.remove(property);
-    }
+    property.off('any', this.listener);
+    property.off('end', [this.remove, this, property]);
   },
 
   addAll: function(properties) {
