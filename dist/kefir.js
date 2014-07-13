@@ -471,6 +471,7 @@ function Fn(fnMeta) {
     throw new Error('can\'t convert to Fn ' + fnMeta);
   }
 }
+Kefir.Fn = Fn;
 
 Fn.call = function(callable, args) {
   if (isFn(callable)) {

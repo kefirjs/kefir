@@ -9,6 +9,13 @@ module.exports = (grunt) ->
 
   """
 
+  addonBanner = """
+    /*! #{pkg.name} addon - #{pkg.version}
+     *  #{pkg.homepage}
+     */
+
+  """
+
   intro = """
     ;(function(global){
       "use strict";
@@ -50,6 +57,15 @@ module.exports = (grunt) ->
           sourceMap: true
         files:
           'dist/kefir.min.js': 'dist/kefir.js'
+      addons:
+        options:
+          banner: addonBanner
+          sourceMap: true
+        expand: true
+        cwd: 'dist/addons'
+        src: ['*.js', '!*.min.js']
+        dest: 'dist/addons'
+        ext: '.min.js'
 
     concat:
       kefir:
@@ -63,6 +79,13 @@ module.exports = (grunt) ->
             'src/core.js'
             'src/*.js'
           ]
+      addons:
+        options:
+          banner: addonBanner
+        expand: true
+        cwd: 'addons'
+        src: '*.js'
+        dest: 'dist/addons'
 
     jasmine_node:
       main:
@@ -88,7 +111,7 @@ module.exports = (grunt) ->
 
     clean:
       main:
-        src: ['.grunt', 'dist']
+        src: ['dist']
 
     bower:
       install:
@@ -124,9 +147,10 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
+  grunt.registerTask 'build-addons', ['concat:addons', 'uglify:addons']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
   grunt.registerTask 'release-patch', ['bump', 'release']
   grunt.registerTask 'release-minor', ['bump:minor', 'release']
   grunt.registerTask 'release-major', ['bump:major', 'release']
   grunt.registerTask 'release-pre', ['bump:prerelease', 'release']
-  grunt.registerTask 'default', ['clean', 'build-kefir', 'build-browser-tests', 'test']
+  grunt.registerTask 'default', ['clean', 'build-kefir', 'build-addons', 'build-browser-tests', 'test']
