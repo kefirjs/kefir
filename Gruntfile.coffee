@@ -100,18 +100,38 @@ module.exports = (grunt) ->
         jshintrc: true
       main: ['src/*.js', 'test/test-helpers.js', 'test/specs/*.js']
 
+    jade:
+      docs:
+        options:
+          data: {pkg}
+          filters:
+            escapehtml: (block) ->
+              block
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+        files:
+          'index.html': 'docs-src/index.jade'
 
     watch:
       kefir:
         files: 'src/*.js'
         tasks: ['build-kefir', 'build-browser-tests']
+      addons:
+        files: 'addons/*.js'
+        tasks: ['build-addons', 'build-browser-tests']
+      docs:
+        files: 'docs-src/**/*'
+        tasks: ['build-docs']
       tests:
         files: ['test-helpers.js', 'specs/*.js']
         tasks: ['build-browser-tests']
 
     clean:
       main:
-        src: ['dist']
+        src: ['dist', 'index.html']
 
     bower:
       install:
@@ -149,8 +169,10 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
   grunt.registerTask 'build-addons', ['concat:addons', 'uglify:addons']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
+  grunt.registerTask 'build-docs', ['jade:docs']
   grunt.registerTask 'release-patch', ['bump', 'release']
   grunt.registerTask 'release-minor', ['bump:minor', 'release']
   grunt.registerTask 'release-major', ['bump:major', 'release']
   grunt.registerTask 'release-pre', ['bump:prerelease', 'release']
-  grunt.registerTask 'default', ['clean', 'build-kefir', 'build-addons', 'build-browser-tests', 'test']
+  grunt.registerTask 'default', [
+    'clean', 'build-docs', 'build-kefir', 'build-addons', 'build-browser-tests', 'test']

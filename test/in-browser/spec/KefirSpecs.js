@@ -4480,6 +4480,7 @@ if (typeof module !== "undefined" && module.exports && typeof require == "functi
             push.call(this.args, args);
             push.call(this.callIds, callId++);
 
+            // Make call properties available from within the spied function:
             createCallProperties.call(this);
 
             try {
@@ -4499,6 +4500,9 @@ if (typeof module !== "undefined" && module.exports && typeof require == "functi
 
             push.call(this.exceptions, exception);
             push.call(this.returnValues, returnValue);
+
+            // Make return value and exception available in the calls:
+            createCallProperties.call(this);
 
             if (exception !== undefined) {
                 throw exception;
@@ -5236,6 +5240,10 @@ if (typeof sinon == "undefined") {
         },
 
         clearTimeout: function clearTimeout(timerId) {
+            if (!timerId) {
+                // null appears to be allowed in most browsers, and appears to be relied upon by some libraries, like Bootstrap carousel
+                return;
+            }
             if (!this.timeouts) {
                 this.timeouts = [];
             }

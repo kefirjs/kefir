@@ -1,0 +1,140 @@
+h2#create Create a property
+
+
++descr-method('emitter', 'emitter', 'Kefir.emitter()').
+  Creates an emitter, that is ordinary property, but also has additional
+  <tt>.emit(type, value)</tt> method.
+  Then you can easily send events to property via <b>emit()</b>.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.log(); // log events to console (see <a href="#log">log</a>)
+  emitter.emit('value', 1);
+  emitter.emit('error', 'e1');
+  emitter.emit('value', 2);
+  emitter.emit('error', 'e2');
+  emitter.emit('end');
+
+pre(title='console output')
+  :escapehtml
+    => [emitter] <value> 1
+    => [emitter] <error> e1
+    => [emitter] <value> 2
+    => [emitter] <error> e2
+    => [emitter] <end> undefined
+
+p.
+  <img data-emoji="point_up"> <b>emitter</b> is the easiest way
+  to create general purpose property,
+  but it doesn't give control over <b>active</b> state of property
+  (see <a href="#active-state">active state</a>).
+  If you want to create general purpose property and
+  have control over <b>active</b> state, you should use
+  <a href="from-binder">fromBinder</a>.
+
+
+
+
++descr-method('empty', 'empty', 'Kefir.empty()').
+  Creates an empty property, that already ended and doesn't has any current
+  <b>value</b> or <b>error</b>.
+
+pre(title='code').
+  property = Kefir.empty();
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    => [empty] <end:current> undefined
+div
+
+
+
++descr-method('constant', 'constant', 'Kefir.constant(value)').
+  Creates ended property, with specified current <b>value</b>.
+
+pre(title='code').
+  property = Kefir.constant(1);
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    => [constant] <value:current> 1
+    => [constant] <end:current> undefined
+div
+
+
+
++descr-method('constant-error', 'constantError', 'Kefir.constantError(error)').
+  Creates ended property, with specified current <b>error</b>.
+
+pre(title='code').
+  property = Kefir.constantError('e1');
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    => [constantError] <error:current> e1
+    => [constantError] <end:current> undefined
+div
+
+
+
++descr-method('later', 'later', 'Kefir.later(wait, value)').
+  Creates a property, that produces single <b>value</b>
+  after <b>wait</b> milliseconds then ends.
+
+pre(title='code').
+  property = Kefir.later(1000, 1);
+  property.log();
+
+pre(title='console output (after 1 second)')
+  :escapehtml
+    => [later] <value> 1
+    => [later] <end>
+div
+
+
+
++descr-method('interval', 'interval', 'Kefir.interval(interval, value)').
+  Creates a property, that produces same <b>value</b>
+  each <b>interval</b> milliseconds. Never ends.
+
+pre(title='code').
+  property = Kefir.interval(1000, 1);
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    => [interval] <value> 1
+    => [interval] <value> 1
+    => [interval] <value> 1
+    ...
+div
+
+
++descr-method('sequentially', 'sequentially', 'Kefir.sequentially(interval, values)').
+  Creates a property containing given <b>values</b> (array),
+  delivered with given <b>interval</b> in milliseconds.
+  Ends after all <b>values</b> delivered.
+
+pre(title='code').
+  property = Kefir.sequentially(1000, [1, 2, 3]);
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    => [sequentially] <value> 1
+    => [sequentially] <value> 2
+    => [sequentially] <value> 3
+    => [sequentially] <end>
+div
+
+
++descr-method('repeatedly', 'repeatedly', 'Kefir.repeatedly(interval, values)').
+
++descr-method('from-poll', 'fromPoll', 'Kefir.fromPoll(interval, fn)').
+
++descr-method('with-interval', 'withInterval', 'Kefir.withInterval(interval, fn)').
+
++descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(fn)').

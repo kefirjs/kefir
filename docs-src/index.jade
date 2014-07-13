@@ -1,0 +1,44 @@
+include includes/mixins
+
+doctype html
+html(lang="en")
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    title Kefir.js — Bacon.js / RxJS inspired FRP library for JavaScript with focus on high performance and low memory usage
+    meta(name='description', content='Kefir.js — Bacon.js / RxJS inspired FRP library with focus on high performance and low memory usage')
+    meta(name='viewport', content='width=1000')
+    style(type='text/css')
+      include:uglify-css includes/stylesheet.css
+  body
+
+    .sidebar
+      include includes/side-menu
+
+    .container
+      include descriptions/intro
+      include descriptions/create
+      include descriptions/main-methods
+      include descriptions/one-source
+      include descriptions/multiple-sources
+
+      h2#active-state Active state
+      h2#callbacks About callbacks
+
+    script(src='lib/jquery/jquery.js')
+    script(src='dist/kefir.min.js')
+    script(src='dist/addons/kefir-jquery.min.js')
+
+    script.
+      $.getJSON('https://api.github.com/emojis', function(emojis){
+        $('[data-emoji]').each(function(){
+          var name = $(this).data('emoji');
+          $(this).attr({
+            src: emojis[name],
+            width: 20,
+            height: 20,
+            title: ':' + name + ':',
+            alt: ':' + name + ':'
+          });
+        });
+      });
