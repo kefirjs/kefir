@@ -35,6 +35,16 @@ exports.withFakeTime = (cb) ->
   clock.restore()
 
 
+exports.inBrowser = window? and document?
+
+exports.withDOM = (cb) ->
+  div = document.createElement('div')
+  document.body.appendChild(div)
+  cd(div)
+  document.body.removeChild(div)
+
+
+
 beforeEach ->
   @addMatchers {
     toHasValue: (value) -> @actual.has('value') && @actual.get('value') == value

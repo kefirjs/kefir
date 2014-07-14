@@ -29,7 +29,7 @@ to get a glance on progress.
 
 To build `/dist` from `/src` and run tests on Node.js type this in console:
 
-    grunt
+    NODE_PATH=./dist grunt
 
 To run memory tests:
 

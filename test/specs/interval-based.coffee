@@ -1,4 +1,4 @@
-Kefir = require('../../dist/kefir')
+Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
 {prop, watch, send, withFakeTime, activate} = helpers
