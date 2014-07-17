@@ -22,7 +22,7 @@ here marked as implemented it means that they are implemented but produces Prope
 
 | Bacon feature | Status | Kefir feature |
 |:---|:---:|:---|
-| `$::asEventStream(eventName)` | :broken_heart: | |
+| `$.fn.asEventStream(eventName)` | :rocket: |  `$.fn.asStream(eventName)`, `$.fn.asProperty(eventName, getter)` |
 | `Bacon.fromPromise(promise [, abort])` | :broken_heart: |  |
 | `Bacon.fromEventTarget(target, eventName [, eventTransformer])` | :broken_heart: |  |
 | `Bacon.fromCallback(f [, args...])` | :broken_heart: |  |
