@@ -17508,7 +17508,7 @@ describe('.later()', function() {
 
 
 },{"../test-helpers.coffee":49,"kefir":51}],33:[function(require,module,exports){
-var $, Kefir, activate, helpers, prop, send, watch, withDOM;
+var $, Kefir, activate, countListentrs, helpers, prop, send, watch, withDOM;
 
 Kefir = require('kefir');
 
@@ -17519,9 +17519,389 @@ prop = helpers.prop, watch = helpers.watch, send = helpers.send, activate = help
 if (helpers.inBrowser) {
   $ = require('jquery');
   require('addons/kefir-jquery');
-  describe('$.fn.asStream()', function() {
-    return it('$() should have method named "asStream"', function() {
-      return expect($([]).asStream).toBeDefined();
+  countListentrs = function($el, event, selector) {
+    var allListeners, count, listener, _i, _len, _ref;
+    allListeners = $._data($el.get(0), "events");
+    count = 0;
+    if ((allListeners != null ? allListeners[event] : void 0) != null) {
+      _ref = allListeners[event];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        if (listener.selector === selector) {
+          count++;
+        }
+      }
+    }
+    return count;
+  };
+  describe('jQuery addon', function() {
+    describe('making sure test enviroment is ok', function() {
+      describe('countListentrs()', function() {
+        it('returns 0 when no listeners at all', function() {
+          return withDOM(function(tmpDom) {
+            expect(countListentrs($(tmpDom), 'click')).toBe(0);
+            return expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+          });
+        });
+        it('returns 0 when there is listeners but for different event', function() {
+          return withDOM(function(tmpDom) {
+            $(tmpDom).on('mouseover', function() {});
+            expect(countListentrs($(tmpDom), 'click')).toBe(0);
+            return expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+          });
+        });
+        it('returns 0 when there is listeners but for different selector', function() {
+          return withDOM(function(tmpDom) {
+            $(tmpDom).on('click', '.bar', function() {});
+            expect(countListentrs($(tmpDom), 'click')).toBe(0);
+            return expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+          });
+        });
+        it('returns right ammount of listeners', function() {
+          return withDOM(function(tmpDom) {
+            $(tmpDom).on('mouseover', function() {});
+            $(tmpDom).on('click', function() {});
+            $(tmpDom).on('click', '.foo', function() {});
+            $(tmpDom).on('click', '.foo', function() {});
+            $(tmpDom).on('click', '.bar', function() {});
+            expect(countListentrs($(tmpDom), 'click')).toBe(1);
+            expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(2);
+            $(tmpDom).off('click');
+            expect(countListentrs($(tmpDom), 'click')).toBe(0);
+            expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+            return expect(countListentrs($(tmpDom), 'mouseover')).toBe(1);
+          });
+        });
+        return it('returns right ammount of listeners (custom events)', function() {
+          return withDOM(function(tmpDom) {
+            $(tmpDom).on('kick', function() {});
+            $(tmpDom).on('lick', function() {});
+            $(tmpDom).on('lick', '.foo', function() {});
+            $(tmpDom).on('lick', '.foo', function() {});
+            $(tmpDom).on('lick', '.bar', function() {});
+            expect(countListentrs($(tmpDom), 'lick')).toBe(1);
+            expect(countListentrs($(tmpDom), 'lick', '.foo')).toBe(2);
+            $(tmpDom).off('lick');
+            expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+            expect(countListentrs($(tmpDom), 'lick', '.foo')).toBe(0);
+            return expect(countListentrs($(tmpDom), 'kick')).toBe(1);
+          });
+        });
+      });
+      return describe('$.fn.trigger()', function() {
+        it('callback being called', function() {
+          return withDOM(function(tmpDom) {
+            var callCount;
+            callCount = 0;
+            $(tmpDom).on('click', function() {
+              return callCount++;
+            });
+            expect(callCount).toBe(0);
+            $(tmpDom).trigger('click');
+            expect(callCount).toBe(1);
+            $(tmpDom).trigger('click');
+            return expect(callCount).toBe(2);
+          });
+        });
+        it('callback being called (custom event)', function() {
+          return withDOM(function(tmpDom) {
+            var callCount;
+            callCount = 0;
+            $(tmpDom).on('lick', function() {
+              return callCount++;
+            });
+            expect(callCount).toBe(0);
+            $(tmpDom).trigger('lick');
+            expect(callCount).toBe(1);
+            $(tmpDom).trigger('lick');
+            return expect(callCount).toBe(2);
+          });
+        });
+        it('callback with selector being called', function() {
+          return withDOM(function(tmpDom) {
+            var $bar, $foo, callCount;
+            callCount = 0;
+            $(tmpDom).on('click', '.foo', function() {
+              return callCount++;
+            });
+            $foo = $('<div class="foo"></div>').appendTo(tmpDom);
+            expect(callCount).toBe(0);
+            $foo.trigger('click');
+            expect(callCount).toBe(1);
+            $foo.trigger('click');
+            expect(callCount).toBe(2);
+            $bar = $('<div class="bar"></div>').appendTo(tmpDom);
+            $bar.trigger('click');
+            return expect(callCount).toBe(2);
+          });
+        });
+        return it('callback with selector being called (custom event)', function() {
+          return withDOM(function(tmpDom) {
+            var $bar, $foo, callCount;
+            callCount = 0;
+            $(tmpDom).on('lick', '.foo', function() {
+              return callCount++;
+            });
+            $foo = $('<div class="foo"></div>').appendTo(tmpDom);
+            expect(callCount).toBe(0);
+            $foo.trigger('lick');
+            expect(callCount).toBe(1);
+            $foo.trigger('lick');
+            expect(callCount).toBe(2);
+            $bar = $('<div class="bar"></div>').appendTo(tmpDom);
+            $bar.trigger('lick');
+            return expect(callCount).toBe(2);
+          });
+        });
+      });
+    });
+    describe('$.fn.asStream()', function() {
+      it('should add/remove jquery-listener on activation/deactivation', function() {
+        return withDOM(function(tmpDom) {
+          var clicks, f, f2, licks;
+          clicks = $(tmpDom).asStream('click');
+          licks = $(tmpDom).asStream('lick');
+          f = function() {};
+          f2 = function() {};
+          expect(countListentrs($(tmpDom), 'click')).toBe(0);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          clicks.on('value', f);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          licks.on('value', f);
+          clicks.on('value', f2);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(1);
+          licks.off('value', f);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          clicks.off('value', f);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          clicks.off('value', f2);
+          expect(countListentrs($(tmpDom), 'click')).toBe(0);
+          return expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+        });
+      });
+      it('should add/remove jquery-listener on activation/deactivation (with selector)', function() {
+        return withDOM(function(tmpDom) {
+          var clicks, f;
+          clicks = $(tmpDom).asStream('click', '.foo');
+          expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+          clicks.on('value', f = function() {});
+          expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(1);
+          clicks.off('value', f);
+          return expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+        });
+      });
+      it('should deliver events', function() {
+        return withDOM(function(tmpDom) {
+          var state;
+          state = watch($(tmpDom).asStream('click').map(function(e) {
+            return e.type;
+          }));
+          $(tmpDom).trigger('click');
+          expect(state).toEqual({
+            values: ['click'],
+            errors: []
+          });
+          $(tmpDom).trigger('click');
+          return expect(state).toEqual({
+            values: ['click', 'click'],
+            errors: []
+          });
+        });
+      });
+      it('should deliver events (with selector)', function() {
+        return withDOM(function(tmpDom) {
+          var $bar, $foo, state;
+          state = watch($(tmpDom).asStream('click', '.foo').map(function(e) {
+            return e.type;
+          }));
+          $foo = $('<div class="foo"></div>').appendTo(tmpDom);
+          $foo.trigger('click');
+          expect(state).toEqual({
+            values: ['click'],
+            errors: []
+          });
+          $foo.trigger('click');
+          expect(state).toEqual({
+            values: ['click', 'click'],
+            errors: []
+          });
+          $bar = $('<div class="bar"></div>').appendTo(tmpDom);
+          $bar.trigger('click');
+          return expect(state).toEqual({
+            values: ['click', 'click'],
+            errors: []
+          });
+        });
+      });
+      it('should accept optional transformer fn', function() {
+        return withDOM(function(tmpDom) {
+          var state;
+          state = watch($(tmpDom).asStream('click', function(e) {
+            return e.type;
+          }));
+          $(tmpDom).trigger('click');
+          expect(state).toEqual({
+            values: ['click'],
+            errors: []
+          });
+          $(tmpDom).trigger('click');
+          return expect(state).toEqual({
+            values: ['click', 'click'],
+            errors: []
+          });
+        });
+      });
+      return it('should pass data to transformer', function() {
+        return withDOM(function(tmpDom) {
+          var state;
+          state = watch($(tmpDom).asStream('click', function(e, data) {
+            return data;
+          }));
+          $(tmpDom).trigger('click', 1);
+          expect(state).toEqual({
+            values: [1],
+            errors: []
+          });
+          $(tmpDom).trigger('click', 2);
+          return expect(state).toEqual({
+            values: [1, 2],
+            errors: []
+          });
+        });
+      });
+    });
+    return describe('$.fn.asProperty()', function() {
+      it('should throw when no getter fn provided', function() {
+        return withDOM(function(tmpDom) {
+          expect(function() {
+            return $(tmpDom).asProperty('click');
+          }).toThrow();
+          expect(function() {
+            return $(tmpDom).asProperty('click', '.foo');
+          }).toThrow();
+          expect(function() {
+            return $(tmpDom).asProperty('click', function() {});
+          }).not.toThrow();
+          return expect(function() {
+            return $(tmpDom).asProperty('click', '.foo', function() {});
+          }).not.toThrow();
+        });
+      });
+      it('should get current value from getter on activation', function() {
+        return withDOM(function(tmpDom) {
+          var state;
+          state = watch($(tmpDom).asProperty('click', function() {
+            return 1;
+          }));
+          return expect(state).toEqual({
+            values: [1],
+            errors: []
+          });
+        });
+      });
+      it('should add/remove jquery-listener on activation/deactivation', function() {
+        return withDOM(function(tmpDom) {
+          var clicks, f, f2, licks;
+          clicks = $(tmpDom).asProperty('click', function() {});
+          licks = $(tmpDom).asProperty('lick', function() {});
+          f = function() {};
+          f2 = function() {};
+          expect(countListentrs($(tmpDom), 'click')).toBe(0);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          clicks.on('value', f);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          licks.on('value', f);
+          clicks.on('value', f2);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(1);
+          licks.off('value', f);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          clicks.off('value', f);
+          expect(countListentrs($(tmpDom), 'click')).toBe(1);
+          expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+          clicks.off('value', f2);
+          expect(countListentrs($(tmpDom), 'click')).toBe(0);
+          return expect(countListentrs($(tmpDom), 'lick')).toBe(0);
+        });
+      });
+      it('should add/remove jquery-listener on activation/deactivation (with selector)', function() {
+        return withDOM(function(tmpDom) {
+          var clicks, f;
+          clicks = $(tmpDom).asProperty('click', '.foo', function() {});
+          expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+          clicks.on('value', f = function() {});
+          expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(1);
+          clicks.off('value', f);
+          return expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
+        });
+      });
+      it('should deliver events', function() {
+        return withDOM(function(tmpDom) {
+          var state;
+          state = watch($(tmpDom).asProperty('click', function(el, e) {
+            return (e != null ? e.type : void 0) || 1;
+          }));
+          $(tmpDom).trigger('click');
+          expect(state).toEqual({
+            values: [1, 'click'],
+            errors: []
+          });
+          $(tmpDom).trigger('click');
+          return expect(state).toEqual({
+            values: [1, 'click', 'click'],
+            errors: []
+          });
+        });
+      });
+      it('should deliver events (with selector)', function() {
+        return withDOM(function(tmpDom) {
+          var $bar, $foo, state;
+          state = watch($(tmpDom).asProperty('click', '.foo', function(el, e) {
+            return (e != null ? e.type : void 0) || 1;
+          }));
+          $foo = $('<div class="foo"></div>').appendTo(tmpDom);
+          $foo.trigger('click');
+          expect(state).toEqual({
+            values: [1, 'click'],
+            errors: []
+          });
+          $foo.trigger('click');
+          expect(state).toEqual({
+            values: [1, 'click', 'click'],
+            errors: []
+          });
+          $bar = $('<div class="bar"></div>').appendTo(tmpDom);
+          $bar.trigger('click');
+          return expect(state).toEqual({
+            values: [1, 'click', 'click'],
+            errors: []
+          });
+        });
+      });
+      return it('should pass data to getter', function() {
+        return withDOM(function(tmpDom) {
+          var state;
+          state = watch($(tmpDom).asProperty('click', function(el, e, data) {
+            return data || 0;
+          }));
+          $(tmpDom).trigger('click', 1);
+          expect(state).toEqual({
+            values: [0, 1],
+            errors: []
+          });
+          $(tmpDom).trigger('click', 2);
+          return expect(state).toEqual({
+            values: [0, 1, 2],
+            errors: []
+          });
+        });
+      });
     });
   });
 }
@@ -19651,7 +20031,7 @@ exports.withDOM = function(cb) {
   var div;
   div = document.createElement('div');
   document.body.appendChild(div);
-  cd(div);
+  cb(div);
   return document.body.removeChild(div);
 };
 

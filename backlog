@@ -31,6 +31,8 @@ streamOfFunctions.apply(seed)
 .map(valueFn, errorFn)
 .filter(valueFn, errorFn)
 
+add `ignoreCurrent` option to `scan`, `diff` etc.
+
 
 
 

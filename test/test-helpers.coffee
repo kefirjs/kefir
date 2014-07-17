@@ -40,7 +40,7 @@ exports.inBrowser = window? and document?
 exports.withDOM = (cb) ->
   div = document.createElement('div')
   document.body.appendChild(div)
-  cd(div)
+  cb(div)
   document.body.removeChild(div)
 
 

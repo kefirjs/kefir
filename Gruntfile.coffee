@@ -98,7 +98,7 @@ module.exports = (grunt) ->
     jshint:
       options:
         jshintrc: true
-      main: ['src/*.js', 'test/test-helpers.js', 'test/specs/*.js']
+      main: ['src/*.js']
 
     jade:
       docs:
@@ -126,7 +126,7 @@ module.exports = (grunt) ->
         files: 'docs-src/**/*'
         tasks: ['build-docs']
       tests:
-        files: ['test-helpers.js', 'specs/*.js']
+        files: ['test/specs/*', 'test/test-helpers*']
         tasks: ['build-browser-tests']
 
     clean:
