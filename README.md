@@ -1,3 +1,5 @@
+:bangbang: WARNING: Current API is very unstable. I am about to change a lot of things in near feature. 
+
 # Kefir
 
 Kefir — is an FRP (functional reactive programming) library for JavaScript
