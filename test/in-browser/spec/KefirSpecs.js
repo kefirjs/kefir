@@ -1114,32 +1114,8 @@ Observable.prototype.flatMap = function(fn) {
 
 
 
-
-
-
-// // .flatMapLatest()
-
-// function FlatMapLatestProperty() {
-//   FlatMapProperty.apply(this, arguments);
-// }
-
-// inherit(FlatMapLatestProperty, FlatMapProperty, {
-//   _name: 'flatMapLatest',
-//   _onValue: function(x) {
-//     this._multSubscriber.removeAll();
-//     FlatMapProperty.prototype._onValue.call(this, x);
-//   }
-// });
-
-// Property.prototype.flatMapLatest = function(fn) {
-//   return new FlatMapLatestProperty([this, fn]);
-// };
-
-
-
-
-
-
+// .flatMapLatest()
+// TODO
 
 
 // .toProperty()
@@ -6258,6 +6234,7 @@ describe('changes', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],22:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref,
   __slice = [].slice;
@@ -6360,6 +6337,7 @@ describe('combine', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],23:[function(require,module,exports){
 var Kefir;
 
@@ -6377,6 +6355,7 @@ describe('constant', function() {
     ]);
   });
 });
+
 
 
 },{"kefir":54}],24:[function(require,module,exports){
@@ -6446,6 +6425,7 @@ describe('delay', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],25:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -6507,6 +6487,7 @@ describe('diff', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],26:[function(require,module,exports){
 var Kefir;
 
@@ -6532,6 +6513,7 @@ describe('emitter', function() {
 });
 
 
+
 },{"kefir":54}],27:[function(require,module,exports){
 var Kefir;
 
@@ -6545,6 +6527,7 @@ describe('empty', function() {
     return expect(Kefir.empty()).toEmit(['<end:current>']);
   });
 });
+
 
 
 },{"kefir":54}],28:[function(require,module,exports){
@@ -6613,6 +6596,7 @@ describe('filter', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],29:[function(require,module,exports){
@@ -6714,10 +6698,19 @@ describe('flatMap', function() {
       deactivate(map);
       activate(map);
       deactivate(map);
-      return expect(map).toEmit([]);
+      return expect(map).toEmit([
+        {
+          current: 0
+        }, {
+          current: 0
+        }, {
+          current: 0
+        }
+      ]);
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],30:[function(require,module,exports){
@@ -6778,6 +6771,7 @@ describe('fromBinder', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],31:[function(require,module,exports){
 var Kefir;
 
@@ -6797,6 +6791,7 @@ describe('fromPoll', function() {
 });
 
 
+
 },{"kefir":54}],32:[function(require,module,exports){
 var Kefir;
 
@@ -6812,6 +6807,7 @@ describe('interval', function() {
 });
 
 
+
 },{"kefir":54}],33:[function(require,module,exports){
 var Kefir;
 
@@ -6825,6 +6821,7 @@ describe('later', function() {
     return expect(Kefir.later(100, 1)).toEmitInTime([[100, 1], [100, '<end>']]);
   });
 });
+
 
 
 },{"kefir":54}],34:[function(require,module,exports){
@@ -6886,6 +6883,7 @@ describe('map', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],35:[function(require,module,exports){
@@ -6985,6 +6983,7 @@ describe('merge', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
@@ -7073,6 +7072,7 @@ describe('pool', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],37:[function(require,module,exports){
@@ -7202,6 +7202,7 @@ describe('Property', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],38:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -7267,6 +7268,7 @@ describe('reduce', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],39:[function(require,module,exports){
 var Kefir;
 
@@ -7283,6 +7285,7 @@ describe('repeatedly', function() {
     return expect(Kefir.repeatedly(100, [1, 2, 3])).toEmitInTime([[100, 1], [200, 2], [300, 3], [400, 1], [500, 2], [600, 3], [700, 1]], null, 750);
   });
 });
+
 
 
 },{"kefir":54}],40:[function(require,module,exports){
@@ -7396,6 +7399,7 @@ describe('sampledBy', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],41:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -7457,6 +7461,7 @@ describe('scan', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],42:[function(require,module,exports){
 var Kefir;
 
@@ -7473,6 +7478,7 @@ describe('sequentially', function() {
     return expect(Kefir.sequentially(100, [1, 2, 3])).toEmitInTime([[100, 1], [200, 2], [300, 3], [300, '<end>']]);
   });
 });
+
 
 
 },{"kefir":54}],43:[function(require,module,exports){
@@ -7552,6 +7558,7 @@ describe('skipDuplicates', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],44:[function(require,module,exports){
@@ -7663,6 +7670,7 @@ describe('skipWhile', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],45:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -7764,6 +7772,7 @@ describe('skip', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],46:[function(require,module,exports){
@@ -7933,6 +7942,7 @@ describe('Stream', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],47:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -8051,6 +8061,7 @@ describe('takeWhile', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],48:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -8130,6 +8141,7 @@ describe('take', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],49:[function(require,module,exports){
@@ -8409,6 +8421,7 @@ describe('throttle', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],50:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
@@ -8456,6 +8469,7 @@ describe('toProperty', function() {
     });
   });
 });
+
 
 
 },{"../test-helpers.coffee":53,"kefir":54}],51:[function(require,module,exports){
@@ -8531,6 +8545,7 @@ describe('withHandler', function() {
 });
 
 
+
 },{"../test-helpers.coffee":53,"kefir":54}],52:[function(require,module,exports){
 var Kefir;
 
@@ -8554,6 +8569,7 @@ describe('withInterval', function() {
     return expect(Kefir.withInterval(100, fn)).toEmitInTime([[100, 1], [100, 2], [200, 2], [200, 4], [300, 3], [300, 6], [300, '<end>']]);
   });
 });
+
 
 
 },{"kefir":54}],53:[function(require,module,exports){
@@ -8802,6 +8818,7 @@ beforeEach(function() {
     }
   });
 });
+
 
 
 },{"../dist/kefir":1,"sinon":6}],54:[function(require,module,exports){

@@ -1,5 +1,3 @@
-:bangbang: WARNING: Current API is very unstable. I am about to change a lot of things in near feature. 
-
 # Kefir
 
 Kefir — is an FRP (functional reactive programming) library for JavaScript
@@ -7,7 +5,7 @@ inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
 
-For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
+For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir) (outdated).
 
 :construction: It still behind Bacon in number of features,
 but also has some unique features that not are in Bacon.

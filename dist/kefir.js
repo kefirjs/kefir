@@ -1113,32 +1113,8 @@ Observable.prototype.flatMap = function(fn) {
 
 
 
-
-
-
-// // .flatMapLatest()
-
-// function FlatMapLatestProperty() {
-//   FlatMapProperty.apply(this, arguments);
-// }
-
-// inherit(FlatMapLatestProperty, FlatMapProperty, {
-//   _name: 'flatMapLatest',
-//   _onValue: function(x) {
-//     this._multSubscriber.removeAll();
-//     FlatMapProperty.prototype._onValue.call(this, x);
-//   }
-// });
-
-// Property.prototype.flatMapLatest = function(fn) {
-//   return new FlatMapLatestProperty([this, fn]);
-// };
-
-
-
-
-
-
+// .flatMapLatest()
+// TODO
 
 
 // .toProperty()
