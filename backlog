@@ -1,17 +1,17 @@
-# Core property methods
+# Core methods
 
 .forceActive(), .stopForceActive() need better names
 or maybe .activate(id) / .deactivate(id)
 
 
 
-# Creating new properties with external sources
+# Creating new streams with external sources
 
 .fromArray(values) ???
 
 .fromCallback(fn)
 .fromNodeCallback(fn)
-.fromPromise(promise)
+.fromPromise(promise) ???
 
 
 
@@ -24,41 +24,44 @@ http://underscorejs.org/#defer
 
 streamOfFunctions.apply(seed)
 
-.toPromise()
+.toPromise() ???
   .then()
 
 
-.map(valueFn, errorFn)
-.filter(valueFn, errorFn)
 
-add `ignoreCurrent` option to `scan`, `diff` etc.
+
+
 
 
 
 
 # Two sources
 
-property.filter(property)
-property.takeWhile(property)
-property.skipWhile(property)
+a.filter(property)
+a.takeWhile(property)
+a.skipWhile(property)
 
-property.awaiting(property2)
-property.skipUntil(property2)
+a.awaiting(b)
+a.skipUntil(b)
+
 
 
 
 # Multiple sources
 
 .flatMapFirst(f)
-.zip(other, f)
-.concat(other)
+Kefir.zip(properties, fn), also should support arrays as value sequences
+Kefir.concat(properties)
 
-.flatMap(valueFn, errorFn) !!!
 
 Kefir.on('value', properties, f)
 Kefir.on('value', properties, samplers, f)
 Kefir.watch('value', properties, f)
 Kefir.watch('value', properties, samplers, f)
+
+ability to return an array from `flatMap` map fn
+
+
 
 
 # Model
@@ -117,10 +120,4 @@ Kefir.watchValues(properties, f)
 
 .fromEventTarget(target, eventName [, eventTransformer])
 
-
-
-# jQuery
-
-.asStream(eventName, [selector], [eventTransformer])
-.asProperty(eventName, [selector], getter)
 

@@ -177,7 +177,7 @@
 
             oscillation: oscillationGenerator(Kefir.interval(1000 / 25))
 
-            subscribe: (prop, f) -> prop.watch('value', f)
+            subscribe: (prop, f) -> prop.on('value', f)
 
             constructor: (parent, addAngle) ->
               addAngle = randomize(addAngle, .4)
