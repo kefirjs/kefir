@@ -1,37 +1,68 @@
 Kefir = require("../dist/kefir")
 sinon = require('sinon')
 
-exports.watch = (property) ->
-  result = {
-    values: []
-    errors: []
-  }
-  property.watch 'value', (x) -> result.values.push(x)
-  property.watch 'error', (e) -> result.errors.push(e)
-  property.watch 'end', (x) -> result.end = x
-  result
 
-exports.send = (property, type, x) ->
-  property._send(type, x)
-  property
 
-exports.activate = (property) ->
-  property.on 'end', ->
-  property
+logItem = (type, x, isCurrent) ->
+  if type == 'value'
+    if isCurrent
+      {current: x}
+    else
+      x
+  else
+    if isCurrent
+      '<end:current>'
+    else
+      '<end>'
 
-exports.prop = (initialValue, initialError, initialEnd) ->
+exports.watch = (obs) ->
+  log = []
+  obs.on 'any', (type, x, isCurrent) ->
+    log.push(logItem type, x, isCurrent)
+  log
+
+exports.watchWithTime = (obs) ->
+  startTime = new Date()
+  log = []
+  obs.on 'any', (type, x, isCurrent) ->
+    log.push([(new Date() - startTime), (logItem type, x, isCurrent)])
+  log
+
+
+exports.send = (obs, events) ->
+  for event in events
+    if event == '<end>'
+      obs._send('end')
+    else
+      obs._send('value', event)
+  obs
+
+
+_activateHelper = ->
+
+exports.activate = (obs) ->
+  obs.on 'end', _activateHelper
+  obs
+
+exports.deactivate = (obs) ->
+  obs.off 'end', _activateHelper
+  obs
+
+
+exports.prop = (initialValue, ended) ->
   prop = new Kefir.Property()
   if initialValue?
     prop._send('value', initialValue)
-  if initialError?
-    prop._send('error', initialError)
-  if initialEnd?
-    prop._send('end', initialEnd)
+  if ended?
+    prop._send('end')
   prop
+
+exports.stream = ->
+  new Kefir.Stream()
 
 exports.withFakeTime = (cb) ->
   clock = sinon.useFakeTimers(10000)
-  cb(clock)
+  cb(  (t) -> clock.tick(t)  )
   clock.restore()
 
 
@@ -45,22 +76,62 @@ exports.withDOM = (cb) ->
 
 
 
+getCurrent = (prop) ->
+  val = getCurrent.NOTHING
+  save = (x, isCurrent) ->
+    if isCurrent
+      val = x
+  prop.on 'value', save
+  prop.off 'value', save
+  val
+getCurrent.NOTHING = ['<getCurrent.NOTHING>']
+
+
+
+
 beforeEach ->
   @addMatchers {
-    toHasValue: (value) -> @actual.has('value') && @actual.get('value') == value
-    toHasEqualValue: (value) -> @actual.has('value') && @env.equals_(@actual.get('value'), value)
-    toHasError: (error) -> @actual.has('error') && @actual.get('error') == error
-    toHasEqualError: (error) -> @actual.has('error') && @env.equals_(@actual.get('error'), error)
-    toHasEnd: (end) -> @actual.has('end') && @actual.get('end') == end
-    toHasEqualEnd: (end) -> @actual.has('end') && @env.equals_(@actual.get('end'), end)
-    toHasNoValue: -> !@actual.has('value')
-    toHasNoError: -> !@actual.has('error')
-    toHasNoEnd: -> !@actual.has('end')
-    toBeActive: -> @actual.isActive()
-    toNotBeActive: -> !@actual.isActive()
+    toBeProperty: -> @actual instanceof Kefir.Property
+    toBeStream: -> @actual instanceof Kefir.Stream
 
-    # deprecated
-    toNotBeEnded: -> !@actual.has('end')
-    toBeEnded: -> @actual.has('end')
+    toBeActive: -> @actual._active
+
+    toEmit: (expectedLog, cb) ->
+      log = exports.watch(@actual)
+      cb?()
+      @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
+      @env.equals_(expectedLog, log)
+
+    toEmitInTime: (expectedLog, cb, timeLimit = 100000000000) ->
+      log = null
+      exports.withFakeTime (tick) =>
+        log = exports.watchWithTime(@actual)
+        cb?(tick)
+        tick(timeLimit)
+      @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
+      @env.equals_(expectedLog, log)
+
+    toHasNoCurrent: -> getCurrent(@actual) == getCurrent.NOTHING
+    toHasCurrent: (x) -> getCurrent(@actual) == x
+    toHasEqualCurrent: (x) -> @env.equals_(x, getCurrent(@actual))
+
+    toActivate: (obss...) ->
+      conditions = []
+      conditions.push (!obs._active for obs in obss)...
+      exports.activate(@actual)
+      conditions.push (obs._active for obs in obss)...
+      exports.deactivate(@actual)
+      conditions.push (!obs._active for obs in obss)...
+      exports.activate(@actual)
+      conditions.push (obs._active for obs in obss)...
+      exports.deactivate(@actual)
+      conditions.push (!obs._active for obs in obss)...
+      allTrue = true
+      for condition in conditions
+        allTrue = allTrue && condition
+      @message = ->
+        obssString = (obs.toString() for obs in obss).join(', ')
+        "Expected #{@actual.toString()} to activate #{obssString} (results: #{jasmine.pp(conditions)})"
+      allTrue
   }
 

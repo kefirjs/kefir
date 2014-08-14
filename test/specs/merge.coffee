@@ -1,89 +1,66 @@
 Kefir = require('kefir')
-helpers = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
 
-describe '.merge()', ->
+describe 'merge', ->
 
-  it 'if passed empty array should return ended property without value or error', ->
-    p = activate(Kefir.merge([]))
-    expect(p).toBeEnded()
-    expect(p).toHasNoValue()
-    expect(p).toHasNoError()
+  it 'should return stream', ->
+    expect(Kefir.merge([])).toBeStream()
+    expect(Kefir.merge([stream(), prop()])).toBeStream()
+    expect(stream().merge(stream())).toBeStream()
+    expect(prop().merge(prop())).toBeStream()
 
-  it 'if passed array with all ended properties should return ended property without value or error', ->
-    p = activate(Kefir.merge([send(prop(), 'end'), send(prop(), 'end')]))
-    expect(p).toBeEnded()
-    expect(p).toHasNoValue()
-    expect(p).toHasNoError()
+  it 'should be ended if empty array provided', ->
+    expect(Kefir.merge([])).toEmit ['<end:current>']
 
-  it 'should end when all sources ends', ->
-    p1 = prop()
-    p2 = prop()
-    mp = activate(Kefir.merge([p1, p2]))
-    expect(mp).toNotBeEnded()
-    send(p1, 'end')
-    expect(mp).toNotBeEnded()
-    send(p2, 'end')
-    expect(mp).toBeEnded()
+  it 'should be ended if array of ended observables provided', ->
+    a = send(stream(), ['<end>'])
+    b = send(prop(), ['<end>'])
+    c = send(stream(), ['<end>'])
+    expect(Kefir.merge([a, b, c])).toEmit ['<end:current>']
+    expect(a.merge(b)).toEmit ['<end:current>']
 
-  it 'should pass current values', ->
-    expect(  activate(Kefir.merge([prop(1)]))  ).toHasValue(1)
+  it 'should activate sources', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.merge([a, b, c])).toActivate(a, b, c)
+    expect(a.merge(b)).toActivate(a, b)
 
-  it 'if multiple properties has current should pass value from latest', ->
-    expect(  activate(Kefir.merge([prop(1), prop(2)]))  ).toHasValue(2)
+  it 'should deliver events from observables, then end when all of them end', ->
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    expect(Kefir.merge([a, b, c])).toEmit [{current: 0}, 1, 2, 3, 4, 5, 6, '<end>'], ->
+      send(a, [1])
+      send(b, [2])
+      send(c, [3])
+      send(a, ['<end>'])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
+    a = stream()
+    b = send(prop(), [0])
+    expect(a.merge(b)).toEmit [{current: 0}, 1, 2, 3, '<end>'], ->
+      send(a, [1])
+      send(b, [2])
+      send(a, ['<end>'])
+      send(b, [3, '<end>'])
 
-  it 'should pass current errors', ->
-    expect(  activate(Kefir.merge([prop(null, 1)]))  ).toHasError(1)
+  it 'should deliver currents from all source properties, but only to first subscriber on each activation', ->
+    a = send(prop(), [0])
+    b = send(prop(), [1])
+    c = send(prop(), [2])
 
-  it 'if multiple properties has current should pass error from latest', ->
-    expect(  activate(Kefir.merge([prop(null, 1), prop(null, 2)]))  ).toHasError(2)
+    merge = Kefir.merge([a, b, c])
+    expect(merge).toEmit [{current: 0}, {current: 1}, {current: 2}]
 
-  it 'should pass further values and errors from all properties', ->
-    p1 = prop()
-    p2 = prop()
-    state = watch Kefir.merge([p1, p2])
-    expect(state).toEqual({values:[],errors:[]})
-    send(p1, 'value', 1)
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 2)
-    expect(state).toEqual({values:[1,2],errors:['e1','e2']})
+    merge = Kefir.merge([a, b, c])
+    activate(merge)
+    expect(merge).toEmit []
 
-  it 'allows to not wrap sources to array', ->
-    p1 = prop(0)
-    p2 = prop(null, 'e0')
-    state = watch Kefir.merge(p1, p2)
-    expect(state).toEqual({values:[0],errors:['e0']})
-    send(p1, 'value', 1)
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 2)
-    expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2']})
-
-  it 'should activate/deactivate underlying properties', ->
-    p1 = prop()
-    p2 = prop()
-    merged = Kefir.merge(p1, p2)
-    expect(p1).toNotBeActive()
-    expect(p2).toNotBeActive()
-    merged.on 'value', (f = ->)
-    expect(p1).toBeActive()
-    expect(p2).toBeActive()
-    merged.off 'value', f
-    expect(p1).toNotBeActive()
-    expect(p2).toNotBeActive()
-
-  it '`property.merge(other)` should work', ->
-    p1 = prop(0)
-    p2 = prop(null, 'e0')
-    state = watch p1.merge(p2)
-    expect(state).toEqual({values:[0],errors:['e0']})
-    send(p1, 'value', 1)
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 2)
-    expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2']})
-
+    merge = Kefir.merge([a, b, c])
+    activate(merge)
+    deactivate(merge)
+    expect(merge).toEmit [{current: 0}, {current: 1}, {current: 2}]
 
 

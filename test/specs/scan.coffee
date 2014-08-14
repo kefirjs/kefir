@@ -1,52 +1,45 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'scan', ->
 
 
-describe '.scan()', ->
+  describe 'stream', ->
 
-  subtract = (prev, next) -> prev - next
+    it 'should return stream', ->
+      expect(stream().scan 0, ->).toBeStream()
 
-  it 'should end when source ends', ->
-    p = prop()
-    scaned = activate(p.scan(0, subtract))
-    expect(scaned).toNotBeEnded()
-    send(p, 'end')
-    expect(scaned).toBeEnded()
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.scan 0, ->).toActivate(a)
 
-  it 'should handle current *value*', ->
-    expect(  activate(prop(2).scan(0, subtract))  ).toHasValue(-2)
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).scan 0, ->).toEmit ['<end:current>']
 
-  it 'if source property has no current, `seed` should became current *value* of result property', ->
-    expect(  activate(prop().scan(0, subtract))  ).toHasValue(0)
+    it 'should handle events', ->
+      a = stream()
+      expect(a.scan 0, (prev, next) -> prev - next).toEmit [-1, -4, '<end>'], ->
+        send(a, [1, 3, '<end>'])
 
-  it 'should handle current *error*', ->
-    expect(  activate(prop(null, 1).scan(0, subtract))  ).toHasError(1)
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    scaned = p.scan(0, subtract)
-    expect(p).toNotBeActive()
-    scaned.on 'value', (f = ->)
-    expect(p).toBeActive()
-    scaned.off 'value', f
-    expect(p).toNotBeActive()
 
-  it 'should handle all values and errors', ->
-    p = prop(1, 'a')
-    state = watch(p.scan(0, subtract))
-    send(p, 'value', 3)
-    send(p, 'error', 'b')
-    send(p, 'value', 6)
-    send(p, 'error', 'c')
-    expect(state).toEqual({values:[-1,-4,-10],errors:['a','b','c']})
+  describe 'property', ->
 
-  it 'should handle all values and errors (without current)', ->
-    p = prop()
-    state = watch(p.scan(0, subtract))
-    send(p, 'value', 3)
-    send(p, 'error', 'b')
-    send(p, 'value', 6)
-    send(p, 'error', 'c')
-    expect(state).toEqual({values:[0,-3,-9],errors:['b','c']})
+    it 'should return property', ->
+      expect(prop().scan 0, ->).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.scan 0, ->).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).scan 0, ->).toEmit ['<end:current>']
+
+    it 'should handle events and current', ->
+      a = send(prop(), [1])
+      expect(a.scan 0, (prev, next) -> prev - next).toEmit [{current: -1}, -4, -10, '<end>'], ->
+        send(a, [3, 6, '<end>'])
+
+

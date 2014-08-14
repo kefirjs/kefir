@@ -1,43 +1,49 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'filter', ->
 
 
-describe '.filter()', ->
+  describe 'stream', ->
 
-  isEven = (x) -> x % 2 == 0
+    it 'should return stream', ->
+      expect(stream().filter ->).toBeStream()
 
-  it 'should end when source ends', ->
-    p = prop()
-    filtered = activate(p.filter(isEven))
-    expect(filtered).toNotBeEnded()
-    send(p, 'end')
-    expect(filtered).toBeEnded()
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.filter ->).toActivate(a)
 
-  it 'should handle initial *value* (pass filter)', ->
-    expect(  activate(prop(2).filter(isEven))  ).toHasValue(2)
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).filter ->).toEmit ['<end:current>']
 
-  it 'should handle initial *value* (not pass filter)', ->
-    expect(  activate(prop(1).filter(isEven))  ).toHasNoValue()
+    it 'should handle events', ->
+      a = stream()
+      expect(a.filter (x) -> x > 3).toEmit [4, 5, 6, '<end>'], ->
+        send(a, [1, 2, 4, 5, 0, 6, '<end>'])
 
-  it 'should handle initial *error*', ->
-    expect(  activate(prop(null, 1).filter(isEven))  ).toHasError(1)
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    filtered = p.filter(isEven)
-    expect(p).toNotBeActive()
-    filtered.on 'value', (f = ->)
-    expect(p).toBeActive()
-    filtered.off 'value', f
-    expect(p).toNotBeActive()
 
-  it 'should handle all values and errors', ->
-    p = prop(1, 'a')
-    state = watch(p.filter(isEven))
-    send(p, 'value', 2)
-    send(p, 'error', 'b')
-    send(p, 'value', 3)
-    send(p, 'error', 'c')
-    expect(state).toEqual({values:[2],errors:['a','b','c']})
+  describe 'property', ->
+
+    it 'should return property', ->
+      expect(prop().filter ->).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.filter ->).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).filter ->).toEmit ['<end:current>']
+
+    it 'should handle events and current', ->
+      a = send(prop(), [5])
+      expect(a.filter (x) -> x > 2).toEmit [{current: 5}, 4, 3, '<end>'], ->
+        send(a, [4, 3, 2, 1, '<end>'])
+
+    it 'should handle current (not pass)', ->
+      a = send(prop(), [1])
+      expect(a.filter (x) -> x > 2).toEmit []
+
+

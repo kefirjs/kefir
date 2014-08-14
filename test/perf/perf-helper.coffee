@@ -44,6 +44,12 @@ exports.setupTest = (title, options) ->
   if options.kefir
     suite.add('Kefir', buildKefir(options.kefir))
 
+  if options.kefirA
+    suite.add('Kefir A', buildKefir(options.kefirA))
+
+  if options.kefirB
+    suite.add('Kefir B', buildKefir(options.kefirB))
+
   if options.bacon
     suite.add('Bacon', buildBacon(options.bacon))
 
