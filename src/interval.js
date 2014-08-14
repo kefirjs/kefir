@@ -70,9 +70,6 @@ withInterval('sequentially', {
   },
   _onTick: function() {
     switch (this._xs.length) {
-      case 0:
-        this._send('end');
-        break;
       case 1:
         this._send('value', this._xs[0]);
         this._send('end');
