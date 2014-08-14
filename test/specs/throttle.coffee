@@ -1,134 +1,169 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, withFakeTime, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'throttle', ->
 
 
-describe '.throttle()', ->
+  describe 'stream', ->
 
-  it 'should end when source ends', ->
-    p = prop()
-    throttled = activate(p.throttle(100))
-    expect(throttled).toNotBeEnded()
-    send(p, 'end')
-    expect(throttled).toBeEnded()
+    it 'should return stream', ->
+      expect(stream().throttle(100)).toBeStream()
 
-  it 'should always pass initial *value*', ->
-    expect(  activate(prop(1).throttle(100))  ).toHasValue(1)
-    expect(  activate(prop(1).throttle(100, {leading: false}))  ).toHasValue(1)
-    expect(  activate(prop(1).throttle(100, {trailing: false}))  ).toHasValue(1)
-    expect(  activate(prop(1).throttle(100, {trailing: false, leading: false}))  ).toHasValue(1)
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.throttle(100)).toActivate(a)
 
-  it 'should pass initial *error*', ->
-    expect(  activate(prop(null, 1).throttle(100))  ).toHasError(1)
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).throttle(100)).toEmit ['<end:current>']
 
-  it 'should pass further *errors*', ->
-    p = prop()
-    state = watch(p.throttle(100))
-    send(p, 'error', 1)
-    send(p, 'error', 2)
-    send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3]})
+    it 'should handle events', ->
+      a = stream()
+      expect(a.throttle(100)).toEmitInTime(
+        [[ 0, 1 ], [ 100, 4 ], [ 200, 5 ], [ 320, 6 ], [ 520, 7 ], [ 620, 9 ], [ 620, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    throttled = p.throttle(100)
-    expect(p).toNotBeActive()
-    throttled.on 'value', (f = ->)
-    expect(p).toBeActive()
-    throttled.off 'value', f
-    expect(p).toNotBeActive()
+    it 'should handle events {trailing: false}', ->
+      a = stream()
+      expect(a.throttle(100, {trailing: false})).toEmitInTime(
+        [[ 0, 1 ], [ 120, 5 ], [ 320, 6 ], [ 520, 7 ], [ 610, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
 
-  it 'should pass value from *leading* event immediately', ->
-    p = prop(1)
-    state = watch(p.throttle(100))
-    send(p, 'value', 2)
-    expect(state.values).toEqual([1,2])
+    it 'should handle events {leading: false}', ->
+      a = stream()
+      expect(a.throttle(100, {leading: false})).toEmitInTime(
+        [[ 100, 4 ], [ 220, 5 ], [ 420, 6 ], [ 620, 9 ], [ 620, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
 
-  it 'if `leading` option set to false, should pass value from *leading* event after timeout', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100, {leading: false}))
-      send(p, 'value', 2)
-      expect(state.values).toEqual([1])
-      clock.tick(101)
-      expect(state.values).toEqual([1,2])
-
-  it 'should skip too frequent events', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100))
-      send(p, 'value', 2)
-      expect(state.values).toEqual([1,2])
-      clock.tick(30)
-      send(p, 'value', 3)
-      expect(state.values).toEqual([1,2])
-      clock.tick(30)
-      send(p, 'value', 4)
-      expect(state.values).toEqual([1,2])
-      clock.tick(41)
-      expect(state.values).toEqual([1,2,4])
-
-
-  it 'should wait after trailing event', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100))
-      send(p, 'value', 2)
-      clock.tick(30)
-      send(p, 'value', 3)
-      clock.tick(71)
-      expect(state.values).toEqual([1,2,3])
-      send(p, 'value', 4)
-      expect(state.values).toEqual([1,2,3])
-      clock.tick(101)
-      expect(state.values).toEqual([1,2,3,4])
-
-
-  it 'should pass immediately if events not to frequent', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100))
-      send(p, 'value', 2)
-      clock.tick(101)
-      send(p, 'value', 3)
-      expect(state.values).toEqual([1,2,3])
-      clock.tick(101)
-      send(p, 'value', 4)
-      expect(state.values).toEqual([1,2,3,4])
+    it 'should handle events {leading: false, trailing: false}', ->
+      a = stream()
+      expect(a.throttle(100, {leading: false, trailing: false})).toEmitInTime(
+        [[ 120, 5 ], [ 320, 6 ], [ 520, 7 ], [ 610, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
 
 
-  it 'should not deliver trailing events if {trailing: false}', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100, {trailing: false}))
-      send(p, 'value', 2)
-      clock.tick(30)
-      send(p, 'value', 3)
-      expect(state.values).toEqual([1,2])
-      clock.tick(500)
-      expect(state.values).toEqual([1,2])
 
+  describe 'property', ->
 
-  it 'should not end until trailing event delivered', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100))
-      send(p, 'value', 2)
-      clock.tick(30)
-      send(p, 'value', 3)
-      send(p, 'end')
-      expect(state).toEqual({values:[1,2],errors:[]})
-      clock.tick(71)
-      expect(state).toEqual({values:[1,2,3],errors:[],end:undefined})
+    it 'should return property', ->
+      expect(prop().throttle(100)).toBeProperty()
 
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.throttle(100)).toActivate(a)
 
-  it 'should end rignt after source if {trailing: false}', ->
-    withFakeTime (clock) ->
-      p = prop(1)
-      state = watch(p.throttle(100, {trailing: false}))
-      send(p, 'value', 2)
-      clock.tick(30)
-      send(p, 'value', 3)
-      send(p, 'end')
-      expect(state).toEqual({values:[1,2],errors:[],end:undefined})
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).throttle(100)).toEmit ['<end:current>']
+
+    it 'should handle events', ->
+      a = send(prop(), [0])
+      expect(a.throttle(100)).toEmitInTime(
+        [[0, {current: 0}], [ 0, 1 ], [ 100, 4 ], [ 200, 5 ], [ 320, 6 ], [ 520, 7 ], [ 620, 9 ], [ 620, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
+
+    it 'should handle events {trailing: false}', ->
+      a = send(prop(), [0])
+      expect(a.throttle(100, {trailing: false})).toEmitInTime(
+        [[0, {current: 0}], [ 0, 1 ], [ 120, 5 ], [ 320, 6 ], [ 520, 7 ], [ 610, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
+
+    it 'should handle events {leading: false}', ->
+      a = send(prop(), [0])
+      expect(a.throttle(100, {leading: false})).toEmitInTime(
+        [[0, {current: 0}], [ 100, 4 ], [ 220, 5 ], [ 420, 6 ], [ 620, 9 ], [ 620, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )
+
+    it 'should handle events {leading: false, trailing: false}', ->
+      a = send(prop(), [0])
+      expect(a.throttle(100, {leading: false, trailing: false})).toEmitInTime(
+        [[0, {current: 0}], [ 120, 5 ], [ 320, 6 ], [ 520, 7 ], [ 610, '<end>' ]],
+        (tick) ->
+          send(a, [1])
+          tick(30); send(a, [2])
+          tick(30); send(a, [3])
+          tick(30); send(a, [4])
+          tick(30); send(a, [5])
+          tick(200); send(a, [6])
+          tick(200); send(a, [7])
+          tick(30); send(a, [8])
+          tick(30); send(a, [9])
+          tick(30); send(a, ['<end>'])
+      )

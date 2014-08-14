@@ -43,4 +43,4 @@ To run all memory tests (see [results](https://github.com/pozadi/kefir/blob/mast
 
 To run performance tests:
 
-    coffee test/perf/benchmarks/[some spec].coffee
+    coffee test/perf/perf-specs/[some spec].coffee

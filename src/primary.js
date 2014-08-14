@@ -1,13 +1,12 @@
-
-
 // Kefir.fromBinder(fn)
 
-function FromBinderProperty(fn) {
-  Property.call(this);
+function FromBinder(fn) {
+  Stream.call(this);
   this._fn = new Fn(fn);
+  this._unsubscribe = null;
 }
 
-inherit(FromBinderProperty, Property, {
+inherit(FromBinder, Stream, {
 
   _name: 'fromBinder',
 
@@ -25,14 +24,14 @@ inherit(FromBinderProperty, Property, {
   },
 
   _clear: function() {
-    Property.prototype._clear.call(this);
+    Stream.prototype._clear.call(this);
     this._fn = null;
   }
 
 })
 
 Kefir.fromBinder = function(fn) {
-  return new FromBinderProperty(fn);
+  return new FromBinder(fn);
 }
 
 
@@ -43,14 +42,13 @@ Kefir.fromBinder = function(fn) {
 // Kefir.emitter()
 
 function Emitter() {
-  Property.call(this);
+  Stream.call(this);
 }
 
-inherit(Emitter, Property, {
+inherit(Emitter, Stream, {
   _name: 'emitter',
-  emit: function(type, x) {
-    this._send(type, x);
-  }
+  emit: function(x) {  this._send('value', x)  },
+  end: function() {  this._send('end')  },
 });
 
 Kefir.emitter = function() {
@@ -65,7 +63,7 @@ Kefir.emitter = function() {
 
 // Kefir.empty()
 
-var emptyObj = new Property();
+var emptyObj = new Stream();
 emptyObj._send('end');
 emptyObj._name = 'empty';
 Kefir.empty = function() {  return emptyObj  }
@@ -88,23 +86,4 @@ inherit(ConstantProperty, Property, {
 
 Kefir.constant = function(x) {
   return new ConstantProperty(x);
-}
-
-
-
-
-// Kefir.constantError(x)
-
-function ConstantErrorProperty(x) {
-  Property.call(this);
-  this._send('error', x);
-  this._send('end');
-}
-
-inherit(ConstantErrorProperty, Property, {
-  _name: 'constantError'
-})
-
-Kefir.constantError = function(x) {
-  return new ConstantErrorProperty(x);
 }

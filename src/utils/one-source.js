@@ -1,50 +1,86 @@
-function withOneSource(name, mixin) {
+function withOneSource(name, mixin, options) {
 
-  function AnonymousProperty(source, args) {
-    Property.call(this);
-    this._source = source;
-    this._init(args);
-  }
 
-  inherit(AnonymousProperty, Property, {
+  options = extend({
+    streamMethod: function(StreamClass, PropertyClass) {
+      return function() {  return new StreamClass(this, arguments)  }
+    },
+    propertyMethod: function(StreamClass, PropertyClass) {
+      return function() {  return new PropertyClass(this, arguments)  }
+    }
+  }, options || {});
 
-    _name: name,
 
+
+  mixin = extend({
     _init: function(args) {},
     _free: function() {},
 
-    _handleValue: function(x, isCurrent) {  this._send('value', x)  },
-    _handleError: function(x, isCurrent) {  this._send('error', x)  },
-    _handleEnd: function(x, isCurrent) {  this._send('end', x)  },
+    _handleValue: function(x, isCurrent) {  this._send('value', x, isCurrent)  },
+    _handleEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+
     _onActivationHook: function() {},
     _onDeactivationHook: function() {},
 
     _handleAny: function(type, x, isCurrent) {
       switch (type) {
         case 'value': this._handleValue(x, isCurrent); break;
-        case 'error': this._handleError(x, isCurrent); break;
         case 'end': this._handleEnd(x, isCurrent); break;
       }
     },
 
     _onActivation: function() {
-      this._source.watch('any', [this._handleAny, this]);
       this._onActivationHook();
+      this._source.on('any', [this._handleAny, this]);
     },
     _onDeactivation: function() {
-      this._source.off('any', [this._handleAny, this]);
       this._onDeactivationHook();
-    },
+      this._source.off('any', [this._handleAny, this]);
+    }
+  }, mixin || {});
 
+
+
+  function AnonymousStream(source, args) {
+    Stream.call(this);
+    this._source = source;
+    this._name = source._name + '.' + name;
+    this._init(args);
+  }
+
+  inherit(AnonymousStream, Stream, {
+    _clear: function() {
+      Stream.prototype._clear.call(this);
+      this._source = null;
+      this._free();
+    }
+  }, mixin);
+
+
+
+  function AnonymousProperty(source, args) {
+    Property.call(this);
+    this._source = source;
+    this._name = source._name + '.' + name;
+    this._init(args);
+  }
+
+  inherit(AnonymousProperty, Property, {
     _clear: function() {
       Property.prototype._clear.call(this);
       this._source = null;
       this._free();
     }
-
   }, mixin);
 
-  Property.prototype[name] = function() {
-    return new AnonymousProperty(this, arguments);
+
+
+  if (options.streamMethod) {
+    Stream.prototype[name] = options.streamMethod(AnonymousStream, AnonymousProperty);
   }
+
+  if (options.propertyMethod) {
+    Property.prototype[name] = options.propertyMethod(AnonymousStream, AnonymousProperty);
+  }
+
 }

@@ -29,20 +29,20 @@ function Fn(fnMeta) {
 }
 Kefir.Fn = Fn;
 
-Fn.call = function(callable, args) {
-  if (isFn(callable)) {
-    return call(callable, null, args);
-  } else if (callable instanceof Fn) {
-    if (callable.args) {
+Fn.call = function(fn, args) {
+  if (isFn(fn)) {
+    return call(fn, null, args);
+  } else if (fn instanceof Fn) {
+    if (fn.args) {
       if (args) {
-        args = concat(callable.args, args);
+        args = concat(fn.args, args);
       } else {
-        args = callable.args;
+        args = fn.args;
       }
     }
-    return call(callable.fn, callable.context, args);
+    return call(fn.fn, fn.context, args);
   } else {
-    return Fn.call(new Fn(callable), args);
+    return Fn.call(new Fn(fn), args);
   }
 }
 
@@ -67,7 +67,6 @@ Fn.isEqual = function(a, b) {
 
 function Subscribers() {
   this.value = [];
-  this.error = [];
   this.end = [];
   this.any = [];
   this.total = 0;
@@ -79,12 +78,12 @@ extend(Subscribers.prototype, {
     this.total++;
   },
   remove: function(type, fn) {
-    var callable = new Fn(fn)
-      , subs = this[type]
+    var subs = this[type]
       , length = subs.length
       , i;
+    fn = new Fn(fn);
     for (i = 0; i < length; i++) {
-      if (Fn.isEqual(subs[i], callable)) {
+      if (Fn.isEqual(subs[i], fn)) {
         subs.splice(i, 1);
         this.total--;
         return;
@@ -115,20 +114,18 @@ extend(Subscribers.prototype, {
 
 
 
-// Property
+// Observable
 
-function Property() {
+function Observable() {
   this._subscribers = new Subscribers();
   this._active = false;
-  this._current = {value: NOTHING, error: NOTHING, end: NOTHING};
+  this._alive = true;
 }
-Kefir.Property = Property;
+Kefir.Observable = Observable;
 
+extend(Observable.prototype, {
 
-extend(Property.prototype, {
-
-  _name: 'property',
-
+  _name: 'observable',
 
   _onActivation: function() {},
   _onDeactivation: function() {},
@@ -144,77 +141,51 @@ extend(Property.prototype, {
     }
   },
 
-
   _clear: function() {
     this._setActive(false);
+    this._alive = false;
     this._subscribers = null;
   },
 
-
-  _send: function(type, x) {
-    if (!this.has('end')) {
-      this._current[type] = x;
-      this._subscribers.call(type, [x, false]);
-      this._subscribers.call('any', [type, x, false]);
-      if (type === 'end') {
-        this._clear();
+  _send: function(type, x, isCurrent) {
+    if (this._alive) {
+      if (!(type === 'end' && isCurrent)) {
+        if (type === 'end') {  x = undefined  }
+        this._subscribers.call(type, [x, !!isCurrent]);
+        this._subscribers.call('any', [type, x, !!isCurrent]);
       }
+      if (type === 'end') {  this._clear()  }
     }
   },
 
+  _callWithCurrent: function(fnType, fn, valueType, value) {
+    if (fnType === valueType) {
+      Fn.call(fn, [value, true]);
+    } else if (fnType === 'any') {
+      Fn.call(fn, [valueType, value, true]);
+    }
+  },
 
-  on: function(type, fnMeta) {
-    if (!this.has('end')) {
+  on: function(type, fn) {
+    if (this._alive) {
+      this._subscribers.add(type, fn);
       this._setActive(true);
-      if (!this.has('end')) {
-        this._subscribers.add(type, fnMeta);
-      }
+    }
+    if (!this._alive) {
+      this._callWithCurrent(type, fn, 'end');
     }
     return this;
   },
-  off: function(type, fnMeta) {
-    if (!this.has('end')) {
-      this._subscribers.remove(type, fnMeta);
+
+  off: function(type, fn) {
+    if (this._alive) {
+      this._subscribers.remove(type, fn);
       if (this._subscribers.isEmpty()) {
         this._setActive(false);
       }
     }
     return this;
   },
-
-
-
-  watch: function(type, fnMeta) {
-    this.on(type, fnMeta);
-    if (type === 'any') {
-      if (this.has('value')) {
-        Fn.call(fnMeta, ['value', this.get('value'), true]);
-      }
-      if (this.has('error')) {
-        Fn.call(fnMeta, ['error', this.get('error'), true]);
-      }
-      if (this.has('end')) {
-        Fn.call(fnMeta, ['end', this.get('end'), true]);
-      }
-    } else {
-      if (this.has(type)) {
-        Fn.call(fnMeta, [this.get(type), true]);
-      }
-    }
-    return this;
-  },
-  has: function(type) {
-    return (type === 'end' || type === 'value' || type === 'error') && this._current[type] !== NOTHING;
-  },
-  get: function(type, fallback) {
-    if (this.has(type)) {
-      return this._current[type];
-    } else {
-      return fallback;
-    }
-  },
-
-  isActive: function() {  return this._active  },
 
   toString: function() {  return '[' + this._name + ']'  }
 
@@ -224,14 +195,86 @@ extend(Property.prototype, {
 
 
 
+
+
+
+
+// Stream
+
+function Stream() {
+  Observable.call(this);
+}
+Kefir.Stream = Stream;
+
+inherit(Stream, Observable, {
+
+  _name: 'stream'
+
+});
+
+
+
+
+
+
+
+// Property
+
+function Property() {
+  Observable.call(this);
+  this._current = NOTHING;
+}
+Kefir.Property = Property;
+
+inherit(Property, Observable, {
+
+  _name: 'property',
+
+  _send: function(type, x, isCurrent) {
+    if (this._alive) {
+      if (!isCurrent) {
+        if (type === 'end') {  x = undefined  }
+        this._subscribers.call(type, [x, false]);
+        this._subscribers.call('any', [type, x, false]);
+      }
+      if (type === 'value') {  this._current = x  }
+      if (type === 'end') {  this._clear()  }
+    }
+  },
+
+  on: function(type, fn) {
+    if (this._alive) {
+      this._subscribers.add(type, fn);
+      this._setActive(true);
+    }
+    if (this._current !== NOTHING) {
+      this._callWithCurrent(type, fn, 'value', this._current);
+    }
+    if (!this._alive) {
+      this._callWithCurrent(type, fn, 'end');
+    }
+    return this;
+  }
+
+});
+
+
+
+
+
+
 // Log
 
-Property.prototype.log = function(name) {
-  if (name == null) {
-    name = this.toString();
-  }
-  this.watch('any', function(type, x, isCurrent) {
-    console.log(name, '<' + type + (isCurrent ? ':current' : '') + '>', x);
-  });
+function logCb(name, type, x, isCurrent) {
+  console.log(name, '<' + type + (isCurrent ? ':current' : '') + '>', x);
+}
+
+Observable.prototype.log = function(name) {
+  this.on('any', [logCb, null, name || this.toString()]);
+  return this;
+}
+
+Observable.prototype.offLog = function(name) {
+  this.off('any', [logCb, null, name || this.toString()]);
   return this;
 }

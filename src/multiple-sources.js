@@ -1,153 +1,136 @@
-
-
 // .merge()
 
-withMultSource('merge', {
-  _init: function(args) {
-    var sources = agrsToArray(args);
-    if (sources.length > 0) {
-      this._multSubscriber.addAll(sources);
-      this._multSubscriber.onLastRemoved([this._send, this, 'end']);
-    } else {
-      this._send('end');
-    }
+function Merge(sources) {
+  Stream.call(this);
+  if (sources.length === 0) {
+    this._send('end');
+  } else {
+    this._sources = sources;
+    this._aliveCount = 0;
   }
+}
+
+inherit(Merge, Stream, {
+
+  _name: 'merge',
+
+  _onActivation: function() {
+    var length = this._sources.length,
+        i;
+    this._aliveCount = length;
+    for (i = 0; i < length; i++) {
+      this._sources[i].on('any', [this._handleAny, this]);
+    }
+  },
+
+  _onDeactivation: function() {
+    var length = this._sources.length,
+        i;
+    for (i = 0; i < length; i++) {
+      this._sources[i].off('any', [this._handleAny, this]);
+    }
+  },
+
+  _handleAny: function(type, x, isCurrent) {
+    if (type === 'value') {
+      this._send('value', x, isCurrent);
+    } else {
+      this._aliveCount--;
+      if (this._aliveCount === 0) {
+        this._send('end', null, isCurrent);
+      }
+    }
+  },
+
+  _clear: function() {
+    Stream.prototype._clear.call(this);
+    this._sources = null;
+  }
+
 });
 
-Property.prototype.merge = function(other) {
+Kefir.merge = function(sources) {
+  return new Merge(sources);
+}
+
+Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
 }
 
 
 
 
+
+
+
 // .combine()
 
-withMultSource('combine', {
-  _init: function(args) {
-    this._sources = args[0];
-    this._fn = args[1] ? new Fn(args[1]) : null;
-    if (this._sources.length > 0) {
-      this._multSubscriber.addAll(this._sources);
-      this._multSubscriber.onLastRemoved([this._send, this, 'end']);
+function Combine(sources, combinator) {
+  Property.call(this);
+  if (sources.length === 0) {
+    this._send('end');
+  } else {
+    this._combinator = combinator ? new Fn(combinator) : null;
+    this._sources = map(sources, toProperty);
+    this._aliveCount = 0;
+    this._currents = new Array(sources.length);
+  }
+}
+
+inherit(Combine, Property, {
+
+  _name: 'combine',
+
+  _onActivation: function() {
+    var length = this._sources.length,
+        i;
+    this._aliveCount = length;
+    fillArray(this._currents, NOTHING);
+    for (i = 0; i < length; i++) {
+      this._sources[i].on('any', [this._handleAny, this, i]);
+    }
+  },
+
+  _onDeactivation: function() {
+    var length = this._sources.length,
+        i;
+    for (i = 0; i < length; i++) {
+      this._sources[i].off('any', [this._handleAny, this, i]);
+    }
+  },
+
+  _handleAny: function(i, type, x, isCurrent) {
+    if (type === 'value') {
+      this._currents[i] = x;
+      if (!contains(this._currents, NOTHING)) {
+        var combined = cloneArray(this._currents);
+        if (this._combinator) {
+          combined = Fn.call(this._combinator, this._currents);
+        }
+        this._send('value', combined, isCurrent);
+      }
     } else {
-      this._send('end');
+      this._aliveCount--;
+      if (this._aliveCount === 0) {
+        this._send('end', null, isCurrent);
+      }
     }
   },
-  _free: function() {
+
+  _clear: function() {
+    Property.prototype._clear.call(this);
     this._sources = null;
-    this._fn = null;
-  },
-  _handleValue: function(x) {
-    var xs = getValueAll(this._sources);
-    if (xs !== null) {
-      this._send('value', this._fn ? Fn.call(this._fn, xs) : xs);
-    }
   }
+
 });
 
-Property.prototype.combine = function(other, fn) {
-  return Kefir.combine([this, other], fn);
+Kefir.combine = function(sources, combinator) {
+  return new Combine(sources, combinator);
 }
 
-
-
-
-
-
-
-
-// .flatMap()
-
-var FlatMapProperty = withMultSource('flatMap', {
-  _init: function(args) {
-    this._source = args[0];
-    this._fn = args[1] ? new Fn(args[1]) : null;
-  },
-  _free: function() {
-    this._source = null;
-    this._fn = null;
-  },
-  _onActivationHook: function() {
-    this._source.watch('any', [this._onAny, this]);
-    if (!this.has('end')) {
-      this._multSubscriber.onLastRemoved([this._endIfSourceEnded, this]);
-    }
-  },
-  _onDeactivationHook: function() {
-    this._source.off('any', [this._onAny, this]);
-    this._multSubscriber.offLastRemoved();
-  },
-  _onValue: function(x) {
-    this._multSubscriber.add(this._fn ? Fn.call(this._fn, [x]) : x);
-  },
-  _onError: function(e) {
-    this._send('error', e);
-  },
-  _onAny: function(type, x) {
-    switch (type) {
-      case 'value': this._onValue(x); break;
-      case 'error': this._onError(x); break;
-      case 'end': this._endIfNoSubSources(); break;
-    }
-  },
-  _endIfSourceEnded: function() {
-    if (this._source.has('end')) {
-      this._send('end');
-    }
-  },
-  _endIfNoSubSources: function() {
-    if (!this._multSubscriber.hasProperties()) {
-      this._send('end');
-    }
-  }
-
-}, false);
-
-Property.prototype.flatMap = function(fn) {
-  return new FlatMapProperty([this, fn]);
-};
-
-
-
-
-
-
-// .flatMapLatest()
-
-function FlatMapLatestProperty() {
-  FlatMapProperty.apply(this, arguments);
+Observable.prototype.combine = function(other, combinator) {
+  return Kefir.combine([this, other], combinator);
 }
-
-inherit(FlatMapLatestProperty, FlatMapProperty, {
-  _name: 'flatMapLatest',
-  _onValue: function(x) {
-    this._multSubscriber.removeAll();
-    FlatMapProperty.prototype._onValue.call(this, x);
-  }
-});
-
-Property.prototype.flatMapLatest = function(fn) {
-  return new FlatMapLatestProperty([this, fn]);
-};
-
-
-
-
-
-
-// .pool()
-
-withMultSource('pool', {
-  add: function(property) {
-    this._multSubscriber.add(property);
-  },
-  remove: function(property) {
-    this._multSubscriber.remove(property);
-  }
-});
-
-
 
 
 
@@ -156,47 +139,224 @@ withMultSource('pool', {
 
 // .sampledBy()
 
-withMultSource('sampledBy', {
-  _init: function(args) {
-    var sources = args[0]
-      , samplers = args[1];
-    this._allSources = concat(sources, samplers);
-    this._sourcesSubscriber = new MultSubscriber([this._passErrors, this]);
-    this._sourcesSubscriber.addAll(sources);
-    this._fn = args[2] ? new Fn(args[2]) : null;
-    if (samplers.length > 0) {
-      this._multSubscriber.addAll(samplers);
-      this._multSubscriber.onLastRemoved([this._send, this, 'end']);
+function SampledBy(passive, active, combinator) {
+  Stream.call(this);
+  if (active.length === 0) {
+    this._send('end');
+  } else {
+    this._passiveCount = passive.length;
+    this._combinator = combinator ? new Fn(combinator) : null;
+    this._sources = concat(passive, active);
+    this._aliveCount = 0;
+    this._currents = new Array(this._sources.length);
+    fillArray(this._currents, NOTHING);
+  }
+}
+
+inherit(SampledBy, Stream, {
+
+  _name: 'sampledBy',
+
+  _onActivation: function() {
+    var length = this._sources.length,
+        i;
+    this._aliveCount = length - this._passiveCount;
+    for (i = 0; i < length; i++) {
+      this._sources[i].on('any', [this._handleAny, this, i]);
+    }
+  },
+
+  _onDeactivation: function() {
+    var length = this._sources.length,
+        i;
+    for (i = 0; i < length; i++) {
+      this._sources[i].off('any', [this._handleAny, this, i]);
+    }
+  },
+
+  _handleAny: function(i, type, x, isCurrent) {
+    if (type === 'value') {
+      this._currents[i] = x;
+      if (i >= this._passiveCount) {
+        if (!contains(this._currents, NOTHING)) {
+          var combined = cloneArray(this._currents);
+          if (this._combinator) {
+            combined = Fn.call(this._combinator, this._currents);
+          }
+          this._send('value', combined, isCurrent);
+        }
+      }
     } else {
-      this._sourcesSubscriber.start();
+      if (i >= this._passiveCount) {
+        this._aliveCount--;
+        if (this._aliveCount === 0) {
+          this._send('end', null, isCurrent);
+        }
+      }
+    }
+  },
+
+  _clear: function() {
+    Stream.prototype._clear.call(this);
+    this._sources = null;
+  }
+
+});
+
+Kefir.sampledBy = function(passive, active, combinator) {
+  return new SampledBy(passive, active, combinator);
+}
+
+Observable.prototype.sampledBy = function(other, combinator) {
+  return Kefir.sampledBy([this], [other], combinator);
+}
+
+
+
+
+
+
+// .pool()
+
+function _AbstractPool() {
+  Stream.call(this);
+  this._sources = [];
+}
+
+inherit(_AbstractPool, Stream, {
+
+  _name: 'abstractPool',
+
+  _sub: function(obs) {
+    obs.on('value', [this._send, this, 'value']);
+    obs.on('end', [this._remove, this, obs]);
+  },
+  _unsub: function(obs) {
+    obs.off('value', [this._send, this, 'value']);
+    obs.off('end', [this._remove, this, obs]);
+  },
+
+  _add: function(obs) {
+    this._sources.push(obs);
+    if (this._active) {
+      this._sub(obs);
+    }
+  },
+  _remove: function(obs) {
+    if (this._active) {
+      this._unsub(obs);
+    }
+    for (var i = 0; i < this._sources.length; i++) {
+      if (this._sources[i] === obs) {
+        this._sources.splice(i, 1);
+        return;
+      }
+    }
+  },
+
+  _onActivation: function() {
+    var sources = cloneArray(this._sources);
+    for (var i = 0; i < sources.length; i++) {
+      this._sub(sources[i]);
+    }
+  },
+  _onDeactivation: function() {
+    for (var i = 0; i < this._sources.length; i++) {
+      this._unsub(this._sources[i]);
+    }
+  }
+
+});
+
+
+
+function Pool() {
+  _AbstractPool.call(this);
+}
+
+inherit(Pool, _AbstractPool, {
+
+  _name: 'pool',
+
+  add: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  remove: function(obs) {
+    this._remove(obs);
+    return this;
+  }
+
+});
+
+Kefir.pool = function() {
+  return new Pool();
+}
+
+
+
+
+
+// .flatMap()
+
+function FlatMap(source, fn) {
+  _AbstractPool.call(this);
+  this._source = source;
+  this._name = source._name + '.flatMap';
+  this._fn = fn ? new Fn(fn) : null;
+  this._mainEnded = false;
+}
+
+inherit(FlatMap, _AbstractPool, {
+
+  _onActivation: function() {
+    _AbstractPool.prototype._onActivation.call(this);
+    this._source.on('any', [this._handleMainSource, this]);
+  },
+  _onDeactivation: function() {
+    _AbstractPool.prototype._onDeactivation.call(this);
+    this._source.off('any', [this._handleMainSource, this]);
+  },
+
+  _handleMainSource: function(type, x, isCurrent) {
+    if (type === 'value') {
+      if (this._fn) {
+        x = Fn.call(this._fn, [x]);
+      }
+      this._add(x);
+    } else {
+      if (this._sources.length === 0) {
+        this._send('end', null, isCurrent);
+      } else {
+        this._mainEnded = true;
+      }
+    }
+  },
+
+  _remove: function(obs) {
+    _AbstractPool.prototype._remove.call(this, obs);
+    if (this._mainEnded && this._sources.length === 0) {
       this._send('end');
     }
   },
-  _passErrors: function(type, e) {
-    if (type === 'error') {
-      this._send(type, e);
-    }
-  },
-  _free: function() {
-    this._allSources = null;
-    this._sourcesSubscriber.clear();
-    this._sourcesSubscriber = null;
-    this._fn = null;
-  },
-  _handleValue: function(x) {
-    var xs = getValueAll(this._allSources);
-    if (xs !== null) {
-      this._send('value', this._fn ? Fn.call(this._fn, xs) : xs);
-    }
-  },
-  _onPreActivationHook: function() {
-    this._sourcesSubscriber.start();
-  },
-  _onDeactivationHook: function() {
-    this._sourcesSubscriber.stop();
+
+  _clear: function() {
+    _AbstractPool.prototype._clear.call(this);
+    this._source = null;
   }
+
 });
 
-Property.prototype.sampledBy = function(sampler, fn) {
-  return Kefir.sampledBy([this], [sampler], fn || id);
+Observable.prototype.flatMap = function(fn) {
+  return new FlatMap(this, fn);
 }
+
+
+
+
+
+
+
+// .flatMapLatest()
+// TODO
+

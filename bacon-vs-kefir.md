@@ -1,4 +1,8 @@
-# Bacon.js vs Kefir.js
+
+# This file is outdated, will be updated soon!
+
+
+## Bacon.js vs Kefir.js
 
 
 :rocket: — implemented

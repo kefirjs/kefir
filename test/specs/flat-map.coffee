@@ -1,81 +1,81 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send, activate, deactivate} = helpers
+
+describe 'flatMap', ->
 
 
-describe '.flatMap()', ->
+  describe 'stream', ->
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    flatMapped = p.flatMap()
-    expect(p).toNotBeActive()
-    flatMapped.on 'value', (f = ->)
-    expect(p).toBeActive()
-    flatMapped.off 'value', f
-    expect(p).toNotBeActive()
+    it 'should return stream', ->
+      expect(stream().flatMap()).toBeStream()
 
-  it 'if has no sub-sources should end when source ends', ->
-    p = prop()
-    flatMapped = activate(p.flatMap())
-    expect(flatMapped).toNotBeEnded()
-    send(p, 'end')
-    expect(flatMapped).toBeEnded()
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.flatMap()).toActivate(a)
 
-  it 'if original property was ended should produce ended property', ->
-    expect(  activate(send(prop(), 'end').flatMap())  ).toBeEnded()
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).flatMap()).toEmit ['<end:current>']
 
-  it 'if sorce ended should end when all sub-sources ends', ->
-    p = prop()
-    flatMapped = activate(p.flatMap())
-    send(p, 'value', (subP1 = prop()))
-    send(p, 'value', (subP2 = prop()))
-    send(p, 'end')
-    expect(flatMapped).toNotBeEnded()
-    send(subP2, 'end')
-    expect(flatMapped).toNotBeEnded()
-    send(subP1, 'end')
-    expect(flatMapped).toBeEnded()
+    it 'should handle events', ->
+      a = stream()
+      b = stream()
+      c = send(prop(), [0])
+      expect(a.flatMap()).toEmit [1, 2, {current: 0}, 3, 4, '<end>'], ->
+        send(b, [0])
+        send(a, [b])
+        send(b, [1, 2])
+        send(a, [c, '<end>'])
+        send(b, [3, '<end>'])
+        send(c, [4, '<end>'])
 
-  it 'if orig property has current *value*, and it is property that in turn has current *value*, that current *value* should became current *value* of result property', ->
-    expect(  activate(prop(prop(1)).flatMap())  ).toHasValue(1)
+    it 'should activate sub-sources', ->
+      a = stream()
+      b = stream()
+      c = send(prop(), [0])
+      map = a.flatMap()
+      activate(map)
+      send(a, [b, c])
+      deactivate(map)
+      expect(map).toActivate(b, c)
 
-  it 'if orig property has current *value* (another prop with current) and *end*', ->
-    p = activate(prop(prop(1, null, 3), null, 2).flatMap())
-    expect(p).toHasValue(1)
-    expect(p).toBeEnded()
 
-  it 'if orig property has current *error*, and it is property that in turn has current *error*, that current *error* should became current *error* of result property', ->
-    expect(  activate(prop(prop(null, 1)).flatMap())  ).toHasError(1)
+    it 'should accept optional map fn', ->
+      a = stream()
+      b = stream()
+      expect(a.flatMap((x) -> x.obs)).toEmit [1, 2, '<end>'], ->
+        send(b, [0])
+        send(a, [{obs: b}, '<end>'])
+        send(b, [1, 2, '<end>'])
 
-  it 'should handle current *error*', ->
-    expect(  activate(prop(null, 1).flatMap())  ).toHasError(1)
 
-  it 'should pass further errors from source', ->
-    p = prop()
-    state = watch(p.flatMap())
-    send(p, 'error', 'b')
-    send(p, 'error', 'c')
-    expect(state).toEqual({values:[],errors:['b','c']})
 
-  it 'should pass all values/errors from sub sources', ->
-    p = prop()
-    state = watch(p.flatMap())
-    send(p, 'value', (p1 = prop()))
-    send(p, 'value', (p2 = prop()))
-    send(p1, 'value', 1)
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 2)
-    expect(state).toEqual({values:[1,2],errors:['e1','e2']})
+  describe 'property', ->
 
-  it 'allows to pass optional mapFn', ->
-    p = prop({prop: prop(0, 'e0')})
-    state = watch(p.flatMap((x) -> x.prop))
-    send(p, 'value', {prop: (p1 = prop())})
-    send(p, 'value', {prop: (p2 = prop())})
-    send(p1, 'value', 1)
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 2)
-    expect(state).toEqual({values:[0,1,2],errors:['e0','e1','e2']})
+    it 'should return stream', ->
+      expect(prop().flatMap()).toBeStream()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.flatMap()).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).flatMap()).toEmit ['<end:current>']
+
+    it 'should handle current value', ->
+      a = send(prop(), [0])
+      b = send(prop(), [a])
+      expect(b.flatMap()).toEmit [{current: 0}]
+
+    it 'should costantly adding current value on each activation (documented bug)', ->
+      a = send(prop(), [0])
+      b = send(prop(), [a])
+      map = b.flatMap()
+      activate(map)
+      deactivate(map)
+      activate(map)
+      deactivate(map)
+      expect(map).toEmit [{current: 0}, {current: 0}, {current: 0}]
+
+

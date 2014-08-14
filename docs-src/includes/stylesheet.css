@@ -117,9 +117,9 @@ pre {
     position: absolute;
     top: 0;
     right: 0;
-    background: #ddd;
     padding: 0 .5em;
     font-size: .8em;
+    color: #8b8b8b;
   }
   pre + pre {
     margin-top: -10px;

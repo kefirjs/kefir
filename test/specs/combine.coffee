@@ -1,77 +1,74 @@
 Kefir = require('kefir')
-helpers = require('../test-helpers.coffee')
-
-{prop, watch, send, activate} = helpers
-
-describe '.combine()', ->
-
-  it 'if passed empty array should return ended property without value or error', ->
-    p = activate(Kefir.combine([]))
-    expect(p).toBeEnded()
-    expect(p).toHasNoValue()
-    expect(p).toHasNoError()
-
-  it 'should end when all sources ends', ->
-    p1 = prop()
-    p2 = prop()
-    mp = activate(Kefir.combine([p1, p2]))
-    expect(mp).toNotBeEnded()
-    send(p1, 'end')
-    expect(mp).toNotBeEnded()
-    send(p2, 'end')
-    expect(mp).toBeEnded()
-
-  it 'should pass current values', ->
-    expect(  activate(Kefir.combine([prop(1)]))  ).toHasEqualValue([1])
-
-  it 'if multiple properties has current should pass them all', ->
-    expect(  activate(Kefir.combine([prop(1), prop(2)]))  ).toHasEqualValue([1, 2])
-
-  it 'if only some of multiple properties has current should NOT pass', ->
-    expect(  activate(Kefir.combine([prop(1), prop()]))  ).toHasNoValue()
-
-  it 'should pass current errors', ->
-    expect(  activate(Kefir.combine([prop(null, 1)]))  ).toHasError(1)
-
-  it 'if multiple properties has current error should pass error from latest', ->
-    expect(  activate(Kefir.combine([prop(null, 1), prop(null, 2)]))  ).toHasError(2)
-
-  it 'should pass further errors from all properties', ->
-    p1 = prop()
-    p2 = prop()
-    state = watch Kefir.combine([p1, p2])
-    expect(state).toEqual({values:[],errors:[]})
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    expect(state).toEqual({values:[],errors:['e1','e2']})
-
-  it 'should handle further values from all properties', ->
-    p1 = prop()
-    p2 = prop()
-    state = watch Kefir.combine([p1, p2])
-    expect(state).toEqual({values:[],errors:[]})
-    send(p1, 'value', 1)
-    expect(state).toEqual({values:[],errors:[]})
-    send(p2, 'value', 2)
-    expect(state).toEqual({values:[[1,2]],errors:[]})
-    send(p1, 'value', 3)
-    expect(state).toEqual({values:[[1,2],[3,2]],errors:[]})
+{stream, prop, send} = require('../test-helpers.coffee')
 
 
-  it 'allows to pass optional combimator', ->
-    p1 = prop(1)
-    p2 = prop(2)
-    state = watch Kefir.combine([p1, p2], (a,b) -> a+b)
-    expect(state).toEqual({values:[3],errors:[]})
-    send(p1, 'value', 3)
-    send(p2, 'value', 4)
-    expect(state).toEqual({values:[3,5,7],errors:[]})
+describe 'combine', ->
 
-  it '`property.combine(other, f)` should work', ->
-    p1 = prop(1)
-    p2 = prop(2)
-    state = watch p1.combine(p2, (a,b) -> a+b)
-    expect(state).toEqual({values:[3],errors:[]})
-    send(p1, 'value', 3)
-    send(p2, 'value', 4)
-    expect(state).toEqual({values:[3,5,7],errors:[]})
+  it 'should return property', ->
+    expect(Kefir.combine([])).toBeProperty()
+    expect(Kefir.combine([stream(), prop()])).toBeProperty()
+    expect(stream().combine(stream())).toBeProperty()
+    expect(prop().combine(prop())).toBeProperty()
+
+  it 'should be ended if empty array provided', ->
+    expect(Kefir.combine([])).toEmit ['<end:current>']
+
+  it 'should be ended if array of ended observables provided', ->
+    a = send(stream(), ['<end>'])
+    b = send(prop(), ['<end>'])
+    c = send(stream(), ['<end>'])
+    expect(Kefir.combine([a, b, c])).toEmit ['<end:current>']
+    expect(a.combine(b)).toEmit ['<end:current>']
+
+  it 'should be ended and has current if array of ended properties provided and each of them has current', ->
+    a = send(prop(), [1, '<end>'])
+    b = send(prop(), [2, '<end>'])
+    c = send(prop(), [3, '<end>'])
+    expect(Kefir.combine([a, b, c])).toEmit [{current: [1, 2, 3]}, '<end:current>']
+    expect(a.combine(b)).toEmit [{current: [1, 2]}, '<end:current>']
+
+  it 'should activate sources', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.combine([a, b, c])).toActivate(a, b, c)
+    expect(a.combine(b)).toActivate(a, b)
+
+  it 'should handle events and current from observables', ->
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    expect(Kefir.combine([a, b, c])).toEmit [[1, 0, 2], [1, 3, 2], [1, 4, 2], [1, 4, 5], [1, 4, 6], '<end>'], ->
+      send(a, [1])
+      send(c, [2])
+      send(b, [3])
+      send(a, ['<end>'])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
+    a = stream()
+    b = send(prop(), [0])
+    expect(a.combine(b)).toEmit [[1, 0], [1, 2], [1, 3], '<end>'], ->
+      send(a, [1])
+      send(b, [2])
+      send(a, ['<end>'])
+      send(b, [3, '<end>'])
+
+  it 'should accept optional combinator function', ->
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    join = (args...) -> args.join('+')
+    expect(Kefir.combine([a, b, c], join)).toEmit ['1+0+2', '1+3+2', '1+4+2', '1+4+5', '1+4+6', '<end>'], ->
+      send(a, [1])
+      send(c, [2])
+      send(b, [3])
+      send(a, ['<end>'])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
+    a = stream()
+    b = send(prop(), [0])
+    expect(a.combine(b, join)).toEmit ['1+0', '1+2', '1+3', '<end>'], ->
+      send(a, [1])
+      send(b, [2])
+      send(a, ['<end>'])
+      send(b, [3, '<end>'])

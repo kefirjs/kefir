@@ -104,12 +104,41 @@ function concat(a, b) {
 
 function cloneArray(input) {
   var length = input.length
-    , sliced = new Array(length)
+    , result = new Array(length)
     , i;
   for (i = 0; i < length; i++) {
-    sliced[i] = input[i];
+    result[i] = input[i];
   }
-  return sliced;
+  return result;
+}
+
+function map(input, fn) {
+  var length = input.length
+    , result = new Array(length)
+    , i;
+  for (i = 0; i < length; i++) {
+    result[i] = fn(input[i]);
+  }
+  return result;
+}
+
+function fillArray(arr, value) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    arr[i] = value;
+  }
+}
+
+function contains(arr, value) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (arr[i] === value) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function rest(arr, start, onEmpty) {
@@ -171,4 +200,20 @@ function isEqualArrays(a, b) {
     }
   }
   return true;
+}
+
+function toStream(obs) {
+  if (obs instanceof Stream) {
+    return obs;
+  } else {
+    return obs.changes();
+  }
+}
+
+function toProperty(obs) {
+  if (obs instanceof Stream) {
+    return obs.toProperty();
+  } else {
+    return obs;
+  }
 }

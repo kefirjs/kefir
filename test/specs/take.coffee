@@ -1,63 +1,64 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'take', ->
 
 
-describe '.take()', ->
+  describe 'stream', ->
 
-  it 'should end when source ends', ->
-    p = prop()
-    tp = activate(p.take(5))
-    expect(tp).toNotBeEnded()
-    send(p, 'end')
-    expect(tp).toBeEnded()
+    it 'should return stream', ->
+      expect(stream().take(3)).toBeStream()
 
-  it 'should handle initial *value*', ->
-    expect(  activate(prop(1).take(5))  ).toHasValue(1)
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.take(3)).toActivate(a)
 
-  it 'should handle initial *error*', ->
-    expect(  activate(prop(null, 1).take(5))  ).toHasError(1)
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).take(3)).toEmit ['<end:current>']
 
-  it 'should handle further *errors*', ->
-    p = prop()
-    state = watch(p.take(2))
-    send(p, 'error', 1)
-    send(p, 'error', 2)
-    send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3]})
+    it 'should be ended if `n` is 0', ->
+      expect(stream().take(0)).toEmit ['<end:current>']
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    tp = p.take(5)
-    expect(p).toNotBeActive()
-    tp.on 'value', (f = ->)
-    expect(p).toBeActive()
-    tp.off 'value', f
-    expect(p).toNotBeActive()
+    it 'should handle events (less than `n`)', ->
+      a = stream()
+      expect(a.take(3)).toEmit [1, 2, '<end>'], ->
+        send(a, [1, 2, '<end>'])
 
-  it 'should take first n values then end', ->
-    p = prop()
-    state = watch(p.take(3))
-    send(p, 'value', 1)
-    send(p, 'value', 2)
-    send(p, 'value', 3)
-    expect(state).toEqual({values:[1,2,3],errors:[],end:undefined})
+    it 'should handle events (more than `n`)', ->
+      a = stream()
+      expect(a.take(3)).toEmit [1, 2, 3, '<end>'], ->
+        send(a, [1, 2, 3, 4, 5, '<end>'])
 
-  it 'should take first n values (counting initial) then end', ->
-    p = prop(1)
-    state = watch(p.take(3))
-    send(p, 'value', 2)
-    send(p, 'value', 3)
-    expect(state).toEqual({values:[1,2,3],errors:[],end:undefined})
 
-  it 'should end immediately if n == 0', ->
-    p = prop(1)
-    state = watch(p.take(0))
-    expect(state).toEqual({values:[],errors:[],end:undefined})
 
-  it 'should end immediately if n == -1', ->
-    p = prop(1)
-    state = watch(p.take(-1))
-    expect(state).toEqual({values:[],errors:[],end:undefined})
+
+  describe 'property', ->
+
+    it 'should return property', ->
+      expect(prop().take(3)).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.take(3)).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).take(3)).toEmit ['<end:current>']
+
+    it 'should be ended if `n` is 0', ->
+      expect(prop().take(0)).toEmit ['<end:current>']
+
+    it 'should handle events and current (less than `n`)', ->
+      a = send(prop(), [1])
+      expect(a.take(3)).toEmit [{current: 1}, 2, '<end>'], ->
+        send(a, [2, '<end>'])
+
+    it 'should handle events and current (more than `n`)', ->
+      a = send(prop(), [1])
+      expect(a.take(3)).toEmit [{current: 1}, 2, 3, '<end>'], ->
+        send(a, [2, 3, 4, 5, '<end>'])
+
+
+
 

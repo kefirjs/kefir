@@ -1,43 +1,45 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'map', ->
 
 
-describe '.map()', ->
+  describe 'stream', ->
 
-  x2 = (x) -> x * 2
+    it 'should return stream', ->
+      expect(stream().map ->).toBeStream()
 
-  it 'should end when source ends', ->
-    p = prop()
-    mapped = activate(p.map(x2))
-    expect(mapped).toNotBeEnded()
-    send(p, 'end')
-    expect(mapped).toBeEnded()
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.map ->).toActivate(a)
 
-  it 'should be ended if source was ended', ->
-    expect(  activate(send(prop(), 'end').map(x2))  ).toBeEnded()
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).map ->).toEmit ['<end:current>']
 
-  it 'should handle initial *value*', ->
-    expect(  activate(prop(1).map(x2))  ).toHasValue(2)
+    it 'should handle events', ->
+      a = stream()
+      expect(a.map (x) -> x * 2).toEmit [2, 4, '<end>'], ->
+        send(a, [1, 2, '<end>'])
 
-  it 'should handle initial *error*', ->
-    expect(  activate(prop(null, 1).map(x2))  ).toHasError(1)
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    mapped = p.map(x2)
-    expect(p).toNotBeActive()
-    mapped.on 'value', (f = ->)
-    expect(p).toBeActive()
-    mapped.off 'value', f
-    expect(p).toNotBeActive()
 
-  it 'should handle all values and errors', ->
-    p = prop(1, 'a')
-    state = watch(p.map(x2))
-    send(p, 'value', 2)
-    send(p, 'error', 'b')
-    send(p, 'value', 3)
-    send(p, 'error', 'c')
-    expect(state).toEqual({values:[2,4,6],errors:['a','b','c']})
+  describe 'property', ->
+
+    it 'should return property', ->
+      expect(prop().map ->).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.map ->).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).map ->).toEmit ['<end:current>']
+
+    it 'should handle events and current', ->
+      a = send(prop(), [1])
+      expect(a.map (x) -> x * 2).toEmit [{current: 2}, 4, 6, '<end>'], ->
+        send(a, [2, 3, '<end>'])
+
+

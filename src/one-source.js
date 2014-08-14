@@ -1,3 +1,37 @@
+// .toProperty()
+
+withOneSource('toProperty', {
+  _init: function(args) {
+    if (args.length > 0) {
+      this._send('value', args[0]);
+    }
+  }
+}, {
+  propertyMethod: null,
+  streamMethod: function(StreamClass, PropertyClass) {
+    return function() {  return new PropertyClass(this, arguments)  }
+  }
+});
+
+
+
+
+// .changes()
+
+withOneSource('changes', {
+  _handleValue: function(x, isCurrent) {
+    if (!isCurrent) {
+      this._send('value', x);
+    }
+  }
+}, {
+  streamMethod: null,
+  propertyMethod: function(StreamClass, PropertyClass) {
+    return function() {  return new StreamClass(this)  }
+  }
+});
+
+
 
 
 // .withHandler()
@@ -6,55 +40,16 @@ withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
     this._handler = new Fn(args[0]);
-    this._bindedSend = function(type, x) {  _this._send(type, x)  }
+    this._bindedSend = function(type, x, isCurrent) {  _this._send(type, x, isCurrent)  }
   },
   _free: function() {
     this._handler = null;
     this._bindedSend = null;
   },
-  _handleAny: function(type, x, current) {
-    Fn.call(this._handler, [this._bindedSend, type, x, current]);
+  _handleAny: function(type, x, isCurrent) {
+    Fn.call(this._handler, [this._bindedSend, type, x, isCurrent]);
   }
 });
-
-
-
-
-
-// .skipCurrent()
-
-withOneSource('skipCurrent', {
-  _init: function(args) {
-    this._type = args[0];
-  },
-  _handleValue: function(x, current) {
-    if (!current || (this._type !== 'value' && this._type != null)) {
-      this._send('value', x);
-    }
-  },
-  _handleError: function(x, current) {
-    if (!current || (this._type !== 'error' && this._type != null)) {
-      this._send('error', x);
-    }
-  }
-});
-
-
-
-
-
-// .addCurrent()
-
-withOneSource('addCurrent', {
-  _init: function(args) {
-    this._type = args[0];
-    this._x = args[1];
-  },
-  _onActivationHook: function() {
-    this._send(this._type, this._x);
-  }
-});
-
 
 
 
@@ -69,8 +64,8 @@ withOneSource('map', {
   _free: function() {
     this._fn = null;
   },
-  _handleValue: function(x) {
-    this._send('value', Fn.call(this._fn, [x]));
+  _handleValue: function(x, isCurrent) {
+    this._send('value', Fn.call(this._fn, [x]), isCurrent);
   }
 });
 
@@ -87,32 +82,13 @@ withOneSource('filter', {
   _free: function() {
     this._fn = null;
   },
-  _handleValue: function(x) {
+  _handleValue: function(x, isCurrent) {
     if (Fn.call(this._fn, [x])) {
-      this._send('value', x);
+      this._send('value', x, isCurrent);
     }
   }
 });
 
-
-
-
-// .diff(seed, fn)
-
-withOneSource('diff', {
-  _init: function(args) {
-    this._prev = args[0];
-    this._fn = new Fn(rest(args, 1));
-  },
-  _free: function() {
-    this._prev = null;
-    this._fn = null;
-  },
-  _handleValue: function(x) {
-    this._send('value', Fn.call(this._fn, [this._prev, x]));
-    this._prev = x;
-  }
-});
 
 
 
@@ -126,11 +102,11 @@ withOneSource('takeWhile', {
   _free: function() {
     this._fn = null;
   },
-  _handleValue: function(x) {
+  _handleValue: function(x, isCurrent) {
     if (Fn.call(this._fn, [x])) {
-      this._send('value', x);
+      this._send('value', x, isCurrent);
     } else {
-      this._send('end');
+      this._send('end', null, isCurrent);
     }
   }
 });
@@ -148,9 +124,9 @@ withOneSource('take', {
       this._send('end');
     }
   },
-  _handleValue: function(x) {
+  _handleValue: function(x, isCurrent) {
     this._n--;
-    this._send('value', x);
+    this._send('value', x, isCurrent);
     if (this._n === 0) {
       this._send('end');
     }
@@ -165,11 +141,11 @@ withOneSource('take', {
 
 withOneSource('skip', {
   _init: function(args) {
-    this._n = args[0];
+    this._n = args[0] < 0 ? 0 : args[0];
   },
-  _handleValue: function(x) {
-    if (this._n <= 0) {
-      this._send('value', x);
+  _handleValue: function(x, isCurrent) {
+    if (this._n === 0) {
+      this._send('value', x, isCurrent);
     } else {
       this._n--;
     }
@@ -196,9 +172,9 @@ withOneSource('skipDuplicates', {
     this._fn = null;
     this._prev = null;
   },
-  _handleValue: function(x) {
+  _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !Fn.call(this._fn, [this._prev, x])) {
-      this._send('value', x);
+      this._send('value', x, isCurrent);
     }
     this._prev = x;
   }
@@ -218,16 +194,37 @@ withOneSource('skipWhile', {
   _free: function() {
     this._fn = null;
   },
-  _handleValue: function(x) {
+  _handleValue: function(x, isCurrent) {
     if (!this._skip) {
-      this._send('value', x);
+      this._send('value', x, isCurrent);
       return;
     }
     if (!Fn.call(this._fn, [x])) {
       this._skip = false;
       this._fn = null;
-      this._send('value', x);
+      this._send('value', x, isCurrent);
     }
+  }
+});
+
+
+
+
+
+// .diff(seed, fn)
+
+withOneSource('diff', {
+  _init: function(args) {
+    this._prev = args[0];
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function() {
+    this._prev = null;
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    this._send('value', Fn.call(this._fn, [this._prev, x]), isCurrent);
+    this._prev = x;
   }
 });
 
@@ -239,18 +236,18 @@ withOneSource('skipWhile', {
 
 withOneSource('scan', {
   _init: function(args) {
-    this._send('value', args[0]);
+    this._prev = args[0];
     this._fn = new Fn(rest(args, 1));
   },
-  _free: function(){
+  _free: function() {
+    this._prev = null;
     this._fn = null;
   },
-  _handleValue: function(x) {
-    this._send('value', Fn.call(this._fn, [this.get('value'), x]));
+  _handleValue: function(x, isCurrent) {
+    this._prev = Fn.call(this._fn, [this._prev, x]);
+    this._send('value', this._prev, isCurrent);
   }
 });
-
-
 
 
 
@@ -270,13 +267,11 @@ withOneSource('reduce', {
   _handleValue: function(x) {
     this._result = Fn.call(this._fn, [this._result, x]);
   },
-  _handleEnd: function() {
-    this._send('value', this._result);
-    this._send('end');
+  _handleEnd: function(__, isCurrent) {
+    this._send('value', this._result, isCurrent);
+    this._send('end', null, isCurrent);
   }
 });
-
-
 
 
 
@@ -300,9 +295,9 @@ withOneSource('throttle', {
     this._trailingCallValue = null;
     this._makeTrailingCallBinded = null;
   },
-  _handleValue: function(x, current) {
-    if (current) {
-      this._send('value', x);
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
       return;
     }
     var curTime = now();
@@ -318,7 +313,11 @@ withOneSource('throttle', {
       this._scheduleTralingCall(x, remaining);
     }
   },
-  _handleEnd: function() {
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+      return;
+    }
     if (this._trailingCallTimeoutId) {
       this._endAfterTrailingCall = true;
     } else {
@@ -354,22 +353,25 @@ withOneSource('throttle', {
 
 
 
-
 // .delay()
 
 withOneSource('delay', {
   _init: function(args) {
     this._wait = args[0];
   },
-  _handleValue: function(x, current) {
-    if (current) {
-      this._send('value', x);
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
       return;
     }
     var _this = this;
     setTimeout(function() {  _this._send('value', x)  }, this._wait);
   },
-  _handleEnd: function() {
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+      return;
+    }
     var _this = this;
     setTimeout(function() {  _this._send('end')  }, this._wait);
   }

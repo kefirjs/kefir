@@ -1,53 +1,67 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'takeWhile', ->
 
 
-describe '.takeWhile()', ->
+  describe 'stream', ->
 
-  lessThan3 = (x) -> x < 3
+    it 'should return stream', ->
+      expect(stream().takeWhile(-> true)).toBeStream()
 
-  it 'should end when source ends', ->
-    p = prop()
-    tp = activate(p.takeWhile(lessThan3))
-    expect(tp).toNotBeEnded()
-    send(p, 'end')
-    expect(tp).toBeEnded()
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.takeWhile(-> true)).toActivate(a)
 
-  it 'should handle initial *value*', ->
-    expect(  activate(prop(1).takeWhile(lessThan3))  ).toHasValue(1)
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).takeWhile(-> true)).toEmit ['<end:current>']
 
-  it 'should handle initial *error*', ->
-    expect(  activate(prop(null, 1).takeWhile(lessThan3))  ).toHasError(1)
+    it 'should handle events', ->
+      a = stream()
+      expect(a.takeWhile((x) -> x < 4)).toEmit [1, 2, 3, '<end>'], ->
+        send(a, [1, 2, 3, 4, 5, '<end>'])
 
-  it 'should handle further *errors*', ->
-    p = prop()
-    state = watch(p.takeWhile(lessThan3))
-    send(p, 'error', 1)
-    send(p, 'error', 2)
-    send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3]})
+    it 'should handle events (natural end)', ->
+      a = stream()
+      expect(a.takeWhile((x) -> x < 4)).toEmit [1, 2, '<end>'], ->
+        send(a, [1, 2, '<end>'])
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    tp = p.takeWhile(lessThan3)
-    expect(p).toNotBeActive()
-    tp.on 'value', (f = ->)
-    expect(p).toBeActive()
-    tp.off 'value', f
-    expect(p).toNotBeActive()
+    it 'should handle events (with `-> false`)', ->
+      a = stream()
+      expect(a.takeWhile(-> false)).toEmit ['<end>'], ->
+        send(a, [1, 2, '<end>'])
 
-  it 'should take first n values then end', ->
-    p = prop()
-    state = watch(p.takeWhile(lessThan3))
-    send(p, 'value', 1)
-    send(p, 'value', 2)
-    send(p, 'value', 3)
-    expect(state).toEqual({values:[1,2],errors:[],end:undefined})
 
-  it 'if initial value not satisfies condition should end without any initial value', ->
-    p = prop(10)
-    tp = activate(p.takeWhile(lessThan3))
-    expect(tp).toBeEnded()
-    expect(tp).toHasNoValue()
+
+
+  describe 'property', ->
+
+    it 'should return property', ->
+      expect(prop().takeWhile(-> true)).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.takeWhile(-> true)).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).takeWhile(-> true)).toEmit ['<end:current>']
+
+    it 'should be ended if calback was `-> false` and source has a current', ->
+      expect(send(prop(), [1]).takeWhile(-> false)).toEmit ['<end:current>']
+
+    it 'should handle events', ->
+      a = send(prop(), [1])
+      expect(a.takeWhile((x) -> x < 4)).toEmit [{current: 1}, 2, 3, '<end>'], ->
+        send(a, [2, 3, 4, 5, '<end>'])
+
+    it 'should handle events (natural end)', ->
+      a = send(prop(), [1])
+      expect(a.takeWhile((x) -> x < 4)).toEmit [{current: 1}, 2, '<end>'], ->
+        send(a, [2, '<end>'])
+
+    it 'should handle events (with `-> false`)', ->
+      a = prop()
+      expect(a.takeWhile(-> false)).toEmit ['<end>'], ->
+        send(a, [1, 2, '<end>'])

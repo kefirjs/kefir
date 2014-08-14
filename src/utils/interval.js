@@ -1,7 +1,7 @@
 function withInterval(name, mixin) {
 
-  function AnonymousProperty(wait, args) {
-    Property.call(this);
+  function AnonymousStream(wait, args) {
+    Stream.call(this);
     this._wait = wait;
     this._intervalId = null;
     var _this = this;
@@ -9,7 +9,7 @@ function withInterval(name, mixin) {
     this._init(args);
   }
 
-  inherit(AnonymousProperty, Property, {
+  inherit(AnonymousStream, Stream, {
 
     _name: name,
 
@@ -29,7 +29,7 @@ function withInterval(name, mixin) {
     },
 
     _clear: function() {
-      Property.prototype._clear.call(this);
+      Stream.prototype._clear.call(this);
       this._bindedOnTick = null;
       this._free();
     }
@@ -37,6 +37,6 @@ function withInterval(name, mixin) {
   }, mixin);
 
   Kefir[name] = function(wait) {
-    return new AnonymousProperty(wait, rest(arguments, 1, []));
+    return new AnonymousStream(wait, rest(arguments, 1, []));
   }
 }

@@ -1,52 +1,65 @@
 Kefir = require('kefir')
 helpers = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
+{stream, prop, send} = helpers
+
+describe 'skipWhile', ->
 
 
-describe '.skipWhile()', ->
+  describe 'stream', ->
 
-  lessThan3 = (x) -> x < 3
+    it 'should return stream', ->
+      expect(stream().skipWhile(-> false)).toBeStream()
 
-  it 'should end when source ends', ->
-    p = prop()
-    tp = activate(p.skipWhile(lessThan3))
-    expect(tp).toNotBeEnded()
-    send(p, 'end')
-    expect(tp).toBeEnded()
+    it 'should activate/deactivate source', ->
+      a = stream()
+      expect(a.skipWhile(-> false)).toActivate(a)
 
-  it 'should pass initial *value* if they not satisfies condition', ->
-    expect(  activate(prop(10).skipWhile(lessThan3))  ).toHasValue(10)
+    it 'should be ended if source was ended', ->
+      expect(send(stream(), ['<end>']).skipWhile(-> false)).toEmit ['<end:current>']
 
-  it 'should not pass initial *value* if they do satisfies condition', ->
-    expect(  activate(prop(2).skipWhile(lessThan3))  ).toHasNoValue()
+    it 'should handle events (`-> true`)', ->
+      a = stream()
+      expect(a.skipWhile(-> true)).toEmit ['<end>'], ->
+        send(a, [1, 2, '<end>'])
 
-  it 'should handle initial *error*', ->
-    expect(  activate(prop(null, 1).skipWhile(lessThan3))  ).toHasError(1)
+    it 'should handle events (`-> false`)', ->
+      a = stream()
+      expect(a.skipWhile(-> false)).toEmit [1, 2, 3, '<end>'], ->
+        send(a, [1, 2, 3, '<end>'])
 
-  it 'should handle further *errors*', ->
-    p = prop()
-    state = watch(p.skipWhile(lessThan3))
-    send(p, 'error', 1)
-    send(p, 'error', 2)
-    send(p, 'error', 3)
-    expect(state).toEqual({values:[],errors:[1,2,3]})
+    it 'should handle events (`(x) -> x < 3`)', ->
+      a = stream()
+      expect(a.skipWhile((x) -> x < 3)).toEmit [3, 4, 5, '<end>'], ->
+        send(a, [1, 2, 3, 4, 5, '<end>'])
 
-  it 'should activate/deactivate source property', ->
-    p = prop()
-    tp = p.skipWhile(lessThan3)
-    expect(p).toNotBeActive()
-    tp.on 'value', (f = ->)
-    expect(p).toBeActive()
-    tp.off 'value', f
-    expect(p).toNotBeActive()
 
-  it 'should skip first values that satisfies condition but pass any further', ->
-    p = prop()
-    state = watch(p.skipWhile(lessThan3))
-    send(p, 'value', 1)
-    send(p, 'value', 2)
-    send(p, 'value', 3)
-    send(p, 'value', 2)
-    send(p, 'value', 1)
-    expect(state).toEqual({values:[3,2,1],errors:[]})
+
+
+
+  describe 'property', ->
+
+    it 'should return property', ->
+      expect(prop().skipWhile(-> false)).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.skipWhile(-> false)).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).skipWhile(-> false)).toEmit ['<end:current>']
+
+    it 'should handle events and current (`-> true`)', ->
+      a = send(prop(), [1])
+      expect(a.skipWhile(-> true)).toEmit ['<end>'], ->
+        send(a, [2, '<end>'])
+
+    it 'should handle events and current (`-> false`)', ->
+      a = send(prop(), [1])
+      expect(a.skipWhile(-> false)).toEmit [{current: 1}, 2, 3, '<end>'], ->
+        send(a, [2, 3, '<end>'])
+
+    it 'should handle events and current (`(x) -> x < 3`)', ->
+      a = send(prop(), [1])
+      expect(a.skipWhile((x) -> x < 3)).toEmit [3, 4, 5, '<end>'], ->
+        send(a, [2, 3, 4, 5, '<end>'])

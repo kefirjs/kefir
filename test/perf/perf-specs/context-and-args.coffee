@@ -27,3 +27,11 @@ helper.setupTest 'stream.map(->, {}, 0, 1, 2)', {
 helper.setupTest 'stream.map(->, null, 0, 1, 2)', {
   kefir: (stream) -> stream.map([(->), null, 0, 1, 2])
 }
+
+helper.setupTest 'stream.map(->, null, 0, 1, 2, 3, 4, 5, 6)', {
+  kefir: (stream) -> stream.map([(->), null, 0, 1, 2, 3, 4, 5, 6])
+}
+
+helper.setupTest 'stream.map(->, {}, 0, 1, 2, 3, 4, 5, 6)', {
+  kefir: (stream) -> stream.map([(->), {}, 0, 1, 2, 3, 4, 5, 6])
+}

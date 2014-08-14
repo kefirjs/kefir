@@ -1,63 +1,61 @@
 Kefir = require('kefir')
-helpers = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
 
-{prop, watch, send, activate} = helpers
 
-describe '.pool()', ->
+describe 'pool', ->
 
-  it 'should return not ended property without any value or error', ->
-    p = activate(Kefir.pool())
-    expect(p).toNotBeEnded()
-    expect(p).toHasNoValue()
-    expect(p).toHasNoError()
+  it 'should return stream', ->
+    expect(Kefir.pool()).toBeStream()
 
-  it 'when an property with current *value* added that current *value* should bacame current *value* of pool', ->
-    p = activate(Kefir.pool())
-    p.add(prop(1))
-    expect(p).toHasValue(1)
+  it 'should activate sources', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    pool = Kefir.pool().add(a).add(b).add(c)
+    expect(pool).toActivate(a, b, c)
+    pool.remove(b)
+    expect(pool).toActivate(a, c)
+    expect(pool).not.toActivate(b)
 
-  it 'when an property with current *value* added that current *value* should bacame current *value* of pool (ended)', ->
-    p = activate(Kefir.pool())
-    p.add(send(prop(1), 'end'))
-    expect(p).toHasValue(1)
+  it 'should deliver events from observables', ->
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    pool = Kefir.pool().add(a).add(b).add(c)
+    expect(pool).toEmit [{current: 0}, 1, 2, 3, 4, 5, 6], ->
+      send(a, [1])
+      send(b, [2])
+      send(c, [3])
+      send(a, ['<end>'])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
 
-  it 'when an property with current *error* added that current *error* should bacame current *error* of pool', ->
-    p = activate(Kefir.pool())
-    p.add(prop(null, 1))
-    expect(p).toHasError(1)
+  it 'should deliver currents from all source properties, but only to first subscriber on each activation', ->
+    a = send(prop(), [0])
+    b = send(prop(), [1])
+    c = send(prop(), [2])
 
-  it 'when an property with current *error* added that current *error* should bacame current *error* of pool (ended)', ->
-    p = activate(Kefir.pool())
-    p.add(send(prop(null, 1), 'end'))
-    expect(p).toHasError(1)
+    pool = Kefir.pool().add(a).add(b).add(c)
+    expect(pool).toEmit [{current: 0}, {current: 1}, {current: 2}]
 
-  it 'should not end when source ends', ->
-    p = activate(Kefir.pool())
-    s = prop()
-    p.add(s)
-    send(s, 'end')
-    expect(p).toNotBeEnded()
+    pool = Kefir.pool().add(a).add(b).add(c)
+    activate(pool)
+    expect(pool).toEmit []
 
-  it 'should pass all values/errors', ->
-    pool = Kefir.pool()
-    state = watch pool
-    pool.add(p1 = prop(1))
-    pool.add(p2 = prop(2))
-    send(p1, 'value', 3)
-    send(p2, 'error', 'e1')
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 4)
-    expect(state).toEqual({values:[1,2,3,4],errors:['e1','e2']})
+    pool = Kefir.pool().add(a).add(b).add(c)
+    activate(pool)
+    deactivate(pool)
+    expect(pool).toEmit [{current: 0}, {current: 1}, {current: 2}]
 
-  it 'should not pass values/errors from removed properties', ->
-    pool = Kefir.pool()
-    state = watch pool
-    pool.add(p1 = prop(1))
-    pool.add(p2 = prop(2))
-    send(p1, 'value', 3)
-    send(p2, 'error', 'e1')
-    pool.remove(p1)
-    pool.remove(p2)
-    send(p1, 'error', 'e2')
-    send(p2, 'value', 4)
-    expect(state).toEqual({values:[1,2,3],errors:['e1']})
+  it 'should not deliver events from removed sources', ->
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    pool = Kefir.pool().add(a).add(b).add(c).remove(b)
+    expect(pool).toEmit [1, 3, 5, 6], ->
+      send(a, [1])
+      send(b, [2])
+      send(c, [3])
+      send(a, ['<end>'])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
