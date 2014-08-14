@@ -5,7 +5,7 @@ inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
 
-For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir) (outdated).
+For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir) (__outdated__).
 
 :construction: It still behind Bacon in number of features,
 but also has some unique features that not are in Bacon.
@@ -16,12 +16,10 @@ to get a glance on progress.
 [![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir)
 [![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
 [![devDependency Status](https://david-dm.org/pozadi/kefir/dev-status.svg)](https://david-dm.org/pozadi/kefir#info=devDependencies)
-[![NPM package version](http://img.shields.io/npm/v/kefir.svg)](https://www.npmjs.org/package/kefir)
-![Bower version](https://badge.fury.io/bo/kefir.svg)
 
 [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
 
-[Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch)
+<!-- [Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch) -->
 
 
 
