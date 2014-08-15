@@ -7,11 +7,6 @@ with focus on high performance and low memory usage.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir) (__outdated__).
 
-:construction: It still behind Bacon in number of features,
-but also has some unique features that not are in Bacon.
-See ["Bacon vs Kefir"](https://github.com/pozadi/kefir/blob/master/bacon-vs-kefir.md)
-to get a glance on progress.
-
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
 [![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir)
 [![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
