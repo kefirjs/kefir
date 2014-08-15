@@ -25,26 +25,7 @@
 
 
 
-
-
-    $.fn.asProperty = function(event, selector, getter) {
-      var $el = this;
-      if (getter == null && selector != null && 'string' !== typeof selector) {
-        getter = selector;
-        selector = null;
-      }
-      getter = new Kefir.Fn(getter);
-      return Kefir.fromBinder(function(send) {
-        send('value', Kefir.Fn.call(getter, [$el]));
-        function onEvent(e, _1, _2, _3) {
-          send('value', Kefir.Fn.call(getter, [$el, e, _1, _2, _3]));
-        }
-        $el.on(event, selector, onEvent);
-        return function() {  $el.off(event, selector, onEvent)  }
-      });
-    }
-
-
+    // $.fn.asProperty = function(event, selector, getter) { ... }
 
 
 
