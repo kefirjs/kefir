@@ -1,123 +1,12 @@
-# Core methods
-
-.forceActive(), .stopForceActive() need better names
-or maybe .activate(id) / .deactivate(id)
-
-
-
-# Creating new streams with external sources
-
-.fromArray(values) ???
-
 .fromCallback(fn)
 .fromNodeCallback(fn)
-.fromPromise(promise) ???
 
-
-
-
-
-# One source
 
 .debounce(wait, immediate)
 http://underscorejs.org/#defer
 
 streamOfFunctions.apply(seed)
 
-.toPromise() ???
-  .then()
-
-
-
-
-
-
-
-
-
-# Two sources
-
-a.filter(property)
-a.takeWhile(property)
-a.skipWhile(property)
-
-a.awaiting(b)
-a.skipUntil(b)
-
-
-
-
-# Multiple sources
-
-.flatMapFirst(f)
-Kefir.zip(properties, fn), also should support arrays as value sequences
-Kefir.concat(properties)
-
-
-Kefir.on('value', properties, f)
-Kefir.on('value', properties, samplers, f)
-Kefir.watch('value', properties, f)
-Kefir.watch('value', properties, samplers, f)
-
-ability to return an array from `flatMap` map fn
-
-
-
-
-# Model
-
-lenses
-
-
-
-# Errors
-
-.mapError(f)
-.errors()
-.skipErrors()
-.endOnError(f)
-
-
-
-# Buffer
-
-.bufferWithTime(delay)
-.bufferWithTime(f)
-.bufferWithCount(count)
-.bufferWithTimeOrCount(delay, count)
-
-
-
-
-# Syntax sugar
-
-.not()
-.and(other)
-.or(other)
 
 http://underscorejs.org/#pluck
 http://underscorejs.org/#invoke
-
-
-.value(f) = .on('value', f)
-.error(f) = .on('error', f)
-.both(f) = .on('both', f)
-.end(f) = .on('both', f)
-
-.watchValue(f) = .wathc('value', f)
-.watchError(f) = .wathc('error', f)
-.watchBoth(f) = .wathc('both', f)
-
-
-Kefir.onValues(properties, f)
-Kefir.watchValues(properties, f)
-
-
-
-
-
-# Native browser API
-
-.fromEventTarget(target, eventName [, eventTransformer])
-
-
