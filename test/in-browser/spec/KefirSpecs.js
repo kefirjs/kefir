@@ -17257,17 +17257,17 @@ if (inBrowser) {
         });
       });
     });
-    return describe('$.fn.asStream()', function() {
+    return describe('$.fn.asKefirStream()', function() {
       it('should return stream', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click')).toBeStream();
+          return expect($(tmpDom).asKefirStream('click')).toBeStream();
         });
       });
       it('should add/remove jquery-listener on activation/deactivation', function() {
         return withDOM(function(tmpDom) {
           var clicks, f, f2, licks;
-          clicks = $(tmpDom).asStream('click');
-          licks = $(tmpDom).asStream('lick');
+          clicks = $(tmpDom).asKefirStream('click');
+          licks = $(tmpDom).asKefirStream('lick');
           f = function() {};
           f2 = function() {};
           expect(countListentrs($(tmpDom), 'click')).toBe(0);
@@ -17293,7 +17293,7 @@ if (inBrowser) {
       it('should add/remove jquery-listener on activation/deactivation (with selector)', function() {
         return withDOM(function(tmpDom) {
           var clicks, f;
-          clicks = $(tmpDom).asStream('click', '.foo');
+          clicks = $(tmpDom).asKefirStream('click', '.foo');
           expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
           clicks.on('value', f = function() {});
           expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(1);
@@ -17303,7 +17303,7 @@ if (inBrowser) {
       });
       it('should deliver events', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click').map(function(e) {
+          return expect($(tmpDom).asKefirStream('click').map(function(e) {
             return e.type;
           })).toEmit(['click', 'click'], function() {
             return $(tmpDom).trigger('click').trigger('click');
@@ -17312,7 +17312,7 @@ if (inBrowser) {
       });
       it('should deliver events (with selector)', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click', '.foo').map(function(e) {
+          return expect($(tmpDom).asKefirStream('click', '.foo').map(function(e) {
             return $(e.target).attr('class');
           })).toEmit(['foo', 'foo', 'foo bar'], function() {
             var $bar, $foo;
@@ -17327,7 +17327,7 @@ if (inBrowser) {
       });
       it('should accept optional transformer fn', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click', function(e) {
+          return expect($(tmpDom).asKefirStream('click', function(e) {
             return e.type;
           })).toEmit(['click', 'click'], function() {
             return $(tmpDom).trigger('click').trigger('click');
@@ -17336,7 +17336,7 @@ if (inBrowser) {
       });
       return it('should pass data to transformer', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click', function(e, data) {
+          return expect($(tmpDom).asKefirStream('click', function(e, data) {
             return data;
           })).toEmit([1, 2], function() {
             return $(tmpDom).trigger('click', 1).trigger('click', 2);
@@ -19418,7 +19418,7 @@ beforeEach(function() {
 
 
 
-    $.fn.asStream = function(event, selector, transformer) {
+    $.fn.asKefirStream = function(event, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
@@ -19437,7 +19437,7 @@ beforeEach(function() {
 
 
 
-    // $.fn.asProperty = function(event, selector, getter) { ... }
+    // $.fn.asKefirProperty = function(event, selector, getter) { ... }
 
 
 

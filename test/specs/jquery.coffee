@@ -129,18 +129,18 @@ if inBrowser
             expect(callCount).toBe(2)
 
 
-    describe '$.fn.asStream()', ->
+    describe '$.fn.asKefirStream()', ->
 
       it 'should return stream', ->
         withDOM (tmpDom) ->
-          expect($(tmpDom).asStream('click')).toBeStream()
+          expect($(tmpDom).asKefirStream('click')).toBeStream()
 
 
 
       it 'should add/remove jquery-listener on activation/deactivation', ->
         withDOM (tmpDom) ->
-          clicks = $(tmpDom).asStream('click')
-          licks = $(tmpDom).asStream('lick')
+          clicks = $(tmpDom).asKefirStream('click')
+          licks = $(tmpDom).asKefirStream('lick')
 
           f = ->
           f2 = ->
@@ -176,7 +176,7 @@ if inBrowser
 
       it 'should add/remove jquery-listener on activation/deactivation (with selector)', ->
         withDOM (tmpDom) ->
-          clicks = $(tmpDom).asStream('click', '.foo')
+          clicks = $(tmpDom).asKefirStream('click', '.foo')
           expect(  countListentrs($(tmpDom), 'click', '.foo')  ).toBe(0)
           clicks.on 'value', f = ->
           expect(  countListentrs($(tmpDom), 'click', '.foo')  ).toBe(1)
@@ -186,7 +186,7 @@ if inBrowser
       it 'should deliver events', ->
         withDOM (tmpDom) ->
           expect(
-            $(tmpDom).asStream('click').map (e) -> e.type
+            $(tmpDom).asKefirStream('click').map (e) -> e.type
           ).toEmit ['click', 'click'], ->
             $(tmpDom).trigger('click').trigger('click')
 
@@ -194,7 +194,7 @@ if inBrowser
       it 'should deliver events (with selector)', ->
         withDOM (tmpDom) ->
           expect(
-            $(tmpDom).asStream('click', '.foo').map (e) -> $(e.target).attr('class')
+            $(tmpDom).asKefirStream('click', '.foo').map (e) -> $(e.target).attr('class')
           ).toEmit ['foo', 'foo', 'foo bar'], ->
 
             $foo = $('<div class="foo"></div>').appendTo(tmpDom)
@@ -210,14 +210,14 @@ if inBrowser
       it 'should accept optional transformer fn', ->
         withDOM (tmpDom) ->
           expect(
-            $(tmpDom).asStream 'click', (e) -> e.type
+            $(tmpDom).asKefirStream 'click', (e) -> e.type
           ).toEmit ['click', 'click'], ->
             $(tmpDom).trigger('click').trigger('click')
 
       it 'should pass data to transformer', ->
         withDOM (tmpDom) ->
           expect(
-            $(tmpDom).asStream 'click', (e, data) -> data
+            $(tmpDom).asKefirStream 'click', (e, data) -> data
           ).toEmit [1, 2], ->
             $(tmpDom).trigger('click', 1).trigger('click', 2)
 
