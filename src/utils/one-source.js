@@ -31,11 +31,11 @@ function withOneSource(name, mixin, options) {
 
     _onActivation: function() {
       this._onActivationHook();
-      this._source.on('any', [this._handleAny, this]);
+      this._source.onAny([this._handleAny, this]);
     },
     _onDeactivation: function() {
       this._onDeactivationHook();
-      this._source.off('any', [this._handleAny, this]);
+      this._source.offAny([this._handleAny, this]);
     }
   }, mixin || {});
 

@@ -15,7 +15,7 @@ buildKefir = (modify) ->
   send = null
   property = Kefir.fromBinder (newSend) ->
     send = newSend
-  modify(property).on('value', noop)
+  modify(property).onValue(noop)
   -> send('value', 1)
 
 

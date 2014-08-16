@@ -177,8 +177,6 @@
 
             oscillation: oscillationGenerator(Kefir.interval(1000 / 25))
 
-            subscribe: (prop, f) -> prop.on('value', f)
-
             constructor: (parent, addAngle) ->
               addAngle = randomize(addAngle, .4)
 
@@ -194,11 +192,11 @@
 
               line = {x1: 0, y1: 0, x2: 0, y2: 0, width: @width}
 
-              @subscribe parent.top, (p) ->
+              parent.top.onValue (p) ->
                 line.x1 = p.x
                 line.y1 = p.y
 
-              @subscribe @top, (p) ->
+              @top.onValue (p) ->
                 line.x2 = p.x
                 line.y2 = p.y
 
@@ -209,7 +207,6 @@
 
             oscillation: oscillationGenerator(Bacon.interval(1000 / 25))
 
-            subscribe: (prop, f) -> prop.onValue(f)
 
 
 

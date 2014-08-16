@@ -19,7 +19,7 @@ inherit(Merge, Stream, {
         i;
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
-      this._sources[i].on('any', [this._handleAny, this]);
+      this._sources[i].onAny([this._handleAny, this]);
     }
   },
 
@@ -27,7 +27,7 @@ inherit(Merge, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].off('any', [this._handleAny, this]);
+      this._sources[i].offAny([this._handleAny, this]);
     }
   },
 
@@ -87,7 +87,7 @@ inherit(Combine, Property, {
     this._aliveCount = length;
     fillArray(this._currents, NOTHING);
     for (i = 0; i < length; i++) {
-      this._sources[i].on('any', [this._handleAny, this, i]);
+      this._sources[i].onAny([this._handleAny, this, i]);
     }
   },
 
@@ -95,7 +95,7 @@ inherit(Combine, Property, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].off('any', [this._handleAny, this, i]);
+      this._sources[i].offAny([this._handleAny, this, i]);
     }
   },
 
@@ -162,7 +162,7 @@ inherit(SampledBy, Stream, {
         i;
     this._aliveCount = length - this._passiveCount;
     for (i = 0; i < length; i++) {
-      this._sources[i].on('any', [this._handleAny, this, i]);
+      this._sources[i].onAny([this._handleAny, this, i]);
     }
   },
 
@@ -170,7 +170,7 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].off('any', [this._handleAny, this, i]);
+      this._sources[i].offAny([this._handleAny, this, i]);
     }
   },
 
@@ -228,12 +228,12 @@ inherit(_AbstractPool, Stream, {
   _name: 'abstractPool',
 
   _sub: function(obs) {
-    obs.on('value', [this._send, this, 'value']);
-    obs.on('end', [this._remove, this, obs]);
+    obs.onValue([this._send, this, 'value']);
+    obs.onEnd([this._remove, this, obs]);
   },
   _unsub: function(obs) {
-    obs.off('value', [this._send, this, 'value']);
-    obs.off('end', [this._remove, this, obs]);
+    obs.offValue([this._send, this, 'value']);
+    obs.offEnd([this._remove, this, obs]);
   },
 
   _add: function(obs) {
@@ -311,11 +311,11 @@ inherit(FlatMap, _AbstractPool, {
 
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
-    this._source.on('any', [this._handleMainSource, this]);
+    this._source.onAny([this._handleMainSource, this]);
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
-    this._source.off('any', [this._handleMainSource, this]);
+    this._source.offAny([this._handleMainSource, this]);
   },
 
   _handleMainSource: function(type, x, isCurrent) {

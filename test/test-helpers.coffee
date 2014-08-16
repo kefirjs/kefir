@@ -17,14 +17,14 @@ logItem = (type, x, isCurrent) ->
 
 exports.watch = (obs) ->
   log = []
-  obs.on 'any', (type, x, isCurrent) ->
+  obs.onAny (type, x, isCurrent) ->
     log.push(logItem type, x, isCurrent)
   log
 
 exports.watchWithTime = (obs) ->
   startTime = new Date()
   log = []
-  obs.on 'any', (type, x, isCurrent) ->
+  obs.onAny (type, x, isCurrent) ->
     log.push([(new Date() - startTime), (logItem type, x, isCurrent)])
   log
 
@@ -41,21 +41,16 @@ exports.send = (obs, events) ->
 _activateHelper = ->
 
 exports.activate = (obs) ->
-  obs.on 'end', _activateHelper
+  obs.onEnd _activateHelper
   obs
 
 exports.deactivate = (obs) ->
-  obs.off 'end', _activateHelper
+  obs.offEnd _activateHelper
   obs
 
 
-exports.prop = (initialValue, ended) ->
-  prop = new Kefir.Property()
-  if initialValue?
-    prop._send('value', initialValue)
-  if ended?
-    prop._send('end')
-  prop
+exports.prop = ->
+  new Kefir.Property()
 
 exports.stream = ->
   new Kefir.Stream()

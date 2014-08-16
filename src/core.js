@@ -187,7 +187,15 @@ extend(Observable.prototype, {
     return this;
   },
 
-  toString: function() {  return '[' + this._name + ']'  }
+  toString: function() {  return '[' + this._name + ']'  },
+
+  onValue:  function(fn) {  this.on('value', fn)   },
+  onEnd:    function(fn) {  this.on('end', fn)     },
+  onAny:    function(fn) {  this.on('any', fn)     },
+
+  offValue: function(fn) {  this.off('value', fn)  },
+  offEnd:   function(fn) {  this.off('end', fn)    },
+  offAny:   function(fn) {  this.off('any', fn)    }
 
 });
 
@@ -270,11 +278,11 @@ function logCb(name, type, x, isCurrent) {
 }
 
 Observable.prototype.log = function(name) {
-  this.on('any', [logCb, null, name || this.toString()]);
+  this.onAny([logCb, null, name || this.toString()]);
   return this;
 }
 
 Observable.prototype.offLog = function(name) {
-  this.off('any', [logCb, null, name || this.toString()]);
+  this.offAny([logCb, null, name || this.toString()]);
   return this;
 }

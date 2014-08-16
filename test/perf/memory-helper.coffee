@@ -113,7 +113,7 @@ exports.setupSpec = (title, options) ->
 
   if options.kefir
     generator = createGenerator(options.kefir, baseKefir, Kefir, options)
-    sub = (p) -> p.on 'value', noop
+    sub = (s) -> s.onValue noop
     results['Kefir'] = createNObservable(sub, n, generator)
     printResult('Kefir', results['Kefir'])
 
