@@ -630,7 +630,12 @@ inherit(Property, Observable, {
 // Log
 
 function logCb(name, type, x, isCurrent) {
-  console.log(name, '<' + type + (isCurrent ? ':current' : '') + '>', x);
+  var typeStr = '<' + type + (isCurrent ? ':current' : '') + '>';
+  if (type === 'value') {
+    console.log(name, typeStr, x);
+  } else {
+    console.log(name, typeStr);
+  }
 }
 
 Observable.prototype.log = function(name) {
