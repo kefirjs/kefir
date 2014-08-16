@@ -1567,12 +1567,12 @@ Kefir.emitter = function() {
 
 
 
-// Kefir.empty()
+// Kefir.never()
 
-var emptyObj = new Stream();
-emptyObj._send('end');
-emptyObj._name = 'empty';
-Kefir.empty = function() {  return emptyObj  }
+var neverObj = new Stream();
+neverObj._send('end');
+neverObj._name = 'never';
+Kefir.never = function() {  return neverObj  }
 
 
 
