@@ -1,2 +1,1 @@
 language: node_js
-env: NODE_PATH=./dist
