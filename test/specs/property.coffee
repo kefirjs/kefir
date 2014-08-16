@@ -29,8 +29,8 @@ describe 'Property', ->
     it 'should call `end` subscribers', ->
       s = prop()
       log = []
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 2])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
       expect(log).toEqual([])
       send(s, ['<end>'])
       expect(log).toEqual([[undefined, false, 1], [undefined, false, 2]])
@@ -39,8 +39,8 @@ describe 'Property', ->
       s = prop()
       send(s, ['<end>'])
       log = []
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 2])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
       expect(log).toEqual([[undefined, true, 1], [undefined, true, 2]])
 
     it 'should deactivate on end', ->
@@ -59,34 +59,34 @@ describe 'Property', ->
 
     it 'should activate when first subscriber added (value)', ->
       s = prop()
-      s.on 'value', ->
+      s.onValue ->
       expect(s).toBeActive()
 
     it 'should activate when first subscriber added (end)', ->
       s = prop()
-      s.on 'end', ->
+      s.onEnd ->
       expect(s).toBeActive()
 
     it 'should activate when first subscriber added (any)', ->
       s = prop()
-      s.on 'any', ->
+      s.onAny ->
       expect(s).toBeActive()
 
     it 'should deactivate when all subscribers removed', ->
       s = prop()
-      s.on 'any', (any1 = ->)
-      s.on 'any', (any2 = ->)
-      s.on 'value', (value1 = ->)
-      s.on 'value', (value2 = ->)
-      s.on 'end', (end1 = ->)
-      s.on 'end', (end2 = ->)
-      s.off 'value', value1
-      s.off 'value', value2
-      s.off 'any', any1
-      s.off 'any', any2
-      s.off 'end', end1
+      s.onAny (any1 = ->)
+      s.onAny (any2 = ->)
+      s.onValue (value1 = ->)
+      s.onValue (value2 = ->)
+      s.onEnd (end1 = ->)
+      s.onEnd (end2 = ->)
+      s.offValue value1
+      s.offValue value2
+      s.offAny any1
+      s.offAny any2
+      s.offEnd end1
       expect(s).toBeActive()
-      s.off 'end', end2
+      s.offEnd end2
       expect(s).not.toBeActive()
 
 

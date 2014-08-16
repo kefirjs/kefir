@@ -29,8 +29,8 @@ describe 'Stream', ->
     it 'should call `end` subscribers', ->
       s = stream()
       log = []
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 2])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
       expect(log).toEqual([])
       send(s, ['<end>'])
       expect(log).toEqual([[undefined, false, 1], [undefined, false, 2]])
@@ -39,8 +39,8 @@ describe 'Stream', ->
       s = stream()
       send(s, ['<end>'])
       log = []
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.on 'end', (x, isCurrent) -> log.push([x, isCurrent, 2])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
+      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
       expect(log).toEqual([[undefined, true, 1], [undefined, true, 2]])
 
     it 'should deactivate on end', ->
@@ -59,34 +59,34 @@ describe 'Stream', ->
 
     it 'should activate when first subscriber added (value)', ->
       s = stream()
-      s.on 'value', ->
+      s.onValue ->
       expect(s).toBeActive()
 
     it 'should activate when first subscriber added (end)', ->
       s = stream()
-      s.on 'end', ->
+      s.onEnd ->
       expect(s).toBeActive()
 
     it 'should activate when first subscriber added (any)', ->
       s = stream()
-      s.on 'any', ->
+      s.onAny ->
       expect(s).toBeActive()
 
     it 'should deactivate when all subscribers removed', ->
       s = stream()
-      s.on 'any', (any1 = ->)
-      s.on 'any', (any2 = ->)
-      s.on 'value', (value1 = ->)
-      s.on 'value', (value2 = ->)
-      s.on 'end', (end1 = ->)
-      s.on 'end', (end2 = ->)
-      s.off 'value', value1
-      s.off 'value', value2
-      s.off 'any', any1
-      s.off 'any', any2
-      s.off 'end', end1
+      s.onAny (any1 = ->)
+      s.onAny (any2 = ->)
+      s.onValue (value1 = ->)
+      s.onValue (value2 = ->)
+      s.onEnd (end1 = ->)
+      s.onEnd (end2 = ->)
+      s.offValue value1
+      s.offValue value2
+      s.offAny any1
+      s.offAny any2
+      s.offEnd end1
       expect(s).toBeActive()
-      s.off 'end', end2
+      s.offEnd end2
       expect(s).not.toBeActive()
 
 
@@ -108,7 +108,7 @@ describe 'Stream', ->
         name: 'foo',
         getName: -> log.push @name
       }
-      s.on 'value', [obj.getName, obj]
+      s.onValue [obj.getName, obj]
       send(s, [1])
       expect(log).toEqual(['foo'])
 
@@ -119,7 +119,7 @@ describe 'Stream', ->
         name: 'foo',
         getName: (a, b, c) -> log.push(@name + a + b + c)
       }
-      s.on 'value', [obj.getName, obj, 'b', 'a']
+      s.onValue [obj.getName, obj, 'b', 'a']
       send(s, ['r'])
       expect(log).toEqual(['foobar'])
 
@@ -130,6 +130,6 @@ describe 'Stream', ->
         name: 'foo',
         getName: -> log.push @name
       }
-      s.on 'value', ['getName', obj]
+      s.onValue ['getName', obj]
       send(s, [1])
       expect(log).toEqual(['foo'])

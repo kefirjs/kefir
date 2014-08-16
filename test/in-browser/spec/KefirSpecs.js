@@ -17665,10 +17665,10 @@ describe('Property', function() {
       var log, s;
       s = prop();
       log = [];
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 1]);
       });
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 2]);
       });
       expect(log).toEqual([]);
@@ -17680,10 +17680,10 @@ describe('Property', function() {
       s = prop();
       send(s, ['<end>']);
       log = [];
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 1]);
       });
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 2]);
       });
       return expect(log).toEqual([[void 0, true, 1], [void 0, true, 2]]);
@@ -17708,37 +17708,37 @@ describe('Property', function() {
     it('should activate when first subscriber added (value)', function() {
       var s;
       s = prop();
-      s.on('value', function() {});
+      s.onValue(function() {});
       return expect(s).toBeActive();
     });
     it('should activate when first subscriber added (end)', function() {
       var s;
       s = prop();
-      s.on('end', function() {});
+      s.onEnd(function() {});
       return expect(s).toBeActive();
     });
     it('should activate when first subscriber added (any)', function() {
       var s;
       s = prop();
-      s.on('any', function() {});
+      s.onAny(function() {});
       return expect(s).toBeActive();
     });
     return it('should deactivate when all subscribers removed', function() {
       var any1, any2, end1, end2, s, value1, value2;
       s = prop();
-      s.on('any', (any1 = function() {}));
-      s.on('any', (any2 = function() {}));
-      s.on('value', (value1 = function() {}));
-      s.on('value', (value2 = function() {}));
-      s.on('end', (end1 = function() {}));
-      s.on('end', (end2 = function() {}));
-      s.off('value', value1);
-      s.off('value', value2);
-      s.off('any', any1);
-      s.off('any', any2);
-      s.off('end', end1);
+      s.onAny((any1 = function() {}));
+      s.onAny((any2 = function() {}));
+      s.onValue((value1 = function() {}));
+      s.onValue((value2 = function() {}));
+      s.onEnd((end1 = function() {}));
+      s.onEnd((end2 = function() {}));
+      s.offValue(value1);
+      s.offValue(value2);
+      s.offAny(any1);
+      s.offAny(any2);
+      s.offEnd(end1);
       expect(s).toBeActive();
-      s.off('end', end2);
+      s.offEnd(end2);
       return expect(s).not.toBeActive();
     });
   });
@@ -18365,10 +18365,10 @@ describe('Stream', function() {
       var log, s;
       s = stream();
       log = [];
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 1]);
       });
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 2]);
       });
       expect(log).toEqual([]);
@@ -18380,10 +18380,10 @@ describe('Stream', function() {
       s = stream();
       send(s, ['<end>']);
       log = [];
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 1]);
       });
-      s.on('end', function(x, isCurrent) {
+      s.onEnd(function(x, isCurrent) {
         return log.push([x, isCurrent, 2]);
       });
       return expect(log).toEqual([[void 0, true, 1], [void 0, true, 2]]);
@@ -18408,37 +18408,37 @@ describe('Stream', function() {
     it('should activate when first subscriber added (value)', function() {
       var s;
       s = stream();
-      s.on('value', function() {});
+      s.onValue(function() {});
       return expect(s).toBeActive();
     });
     it('should activate when first subscriber added (end)', function() {
       var s;
       s = stream();
-      s.on('end', function() {});
+      s.onEnd(function() {});
       return expect(s).toBeActive();
     });
     it('should activate when first subscriber added (any)', function() {
       var s;
       s = stream();
-      s.on('any', function() {});
+      s.onAny(function() {});
       return expect(s).toBeActive();
     });
     return it('should deactivate when all subscribers removed', function() {
       var any1, any2, end1, end2, s, value1, value2;
       s = stream();
-      s.on('any', (any1 = function() {}));
-      s.on('any', (any2 = function() {}));
-      s.on('value', (value1 = function() {}));
-      s.on('value', (value2 = function() {}));
-      s.on('end', (end1 = function() {}));
-      s.on('end', (end2 = function() {}));
-      s.off('value', value1);
-      s.off('value', value2);
-      s.off('any', any1);
-      s.off('any', any2);
-      s.off('end', end1);
+      s.onAny((any1 = function() {}));
+      s.onAny((any2 = function() {}));
+      s.onValue((value1 = function() {}));
+      s.onValue((value2 = function() {}));
+      s.onEnd((end1 = function() {}));
+      s.onEnd((end2 = function() {}));
+      s.offValue(value1);
+      s.offValue(value2);
+      s.offAny(any1);
+      s.offAny(any2);
+      s.offEnd(end1);
       expect(s).toBeActive();
-      s.off('end', end2);
+      s.offEnd(end2);
       return expect(s).not.toBeActive();
     });
   });
@@ -18462,7 +18462,7 @@ describe('Stream', function() {
           return log.push(this.name);
         }
       };
-      s.on('value', [obj.getName, obj]);
+      s.onValue([obj.getName, obj]);
       send(s, [1]);
       return expect(log).toEqual(['foo']);
     });
@@ -18476,7 +18476,7 @@ describe('Stream', function() {
           return log.push(this.name + a + b + c);
         }
       };
-      s.on('value', [obj.getName, obj, 'b', 'a']);
+      s.onValue([obj.getName, obj, 'b', 'a']);
       send(s, ['r']);
       return expect(log).toEqual(['foobar']);
     });
@@ -18490,7 +18490,7 @@ describe('Stream', function() {
           return log.push(this.name);
         }
       };
-      s.on('value', ['getName', obj]);
+      s.onValue(['getName', obj]);
       send(s, [1]);
       return expect(log).toEqual(['foo']);
     });
