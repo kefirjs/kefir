@@ -86,8 +86,12 @@ getCurrent.NOTHING = ['<getCurrent.NOTHING>']
 
 beforeEach ->
   @addMatchers {
-    toBeProperty: -> @actual instanceof Kefir.Property
-    toBeStream: -> @actual instanceof Kefir.Stream
+    toBeProperty: ->
+      @message = -> "Expected #{@actual.toString()} to be instance of Property"
+      @actual instanceof Kefir.Property
+    toBeStream: ->
+      @message = -> "Expected #{@actual.toString()} to be instance of Stream"
+      @actual instanceof Kefir.Stream
 
     toBeActive: -> @actual._active
 

@@ -1131,6 +1131,14 @@ Observable.prototype.flatMap = function(fn) {
 // TODO
 
 
+function produceStream(StreamClass, PropertyClass) {
+  return function() {  return new StreamClass(this, arguments)  }
+}
+function produceProperty(StreamClass, PropertyClass) {
+  return function() {  return new PropertyClass(this, arguments)  }
+}
+
+
 // .toProperty()
 
 withOneSource('toProperty', {
@@ -1139,12 +1147,7 @@ withOneSource('toProperty', {
       this._send('value', args[0]);
     }
   }
-}, {
-  propertyMethod: null,
-  streamMethod: function(StreamClass, PropertyClass) {
-    return function() {  return new PropertyClass(this, arguments)  }
-  }
-});
+}, {propertyMethod: null, streamMethod: produceProperty});
 
 
 
@@ -1157,12 +1160,7 @@ withOneSource('changes', {
       this._send('value', x);
     }
   }
-}, {
-  streamMethod: null,
-  propertyMethod: function(StreamClass, PropertyClass) {
-    return function() {  return new StreamClass(this)  }
-  }
-});
+}, {streamMethod: null, propertyMethod: produceStream});
 
 
 
@@ -1369,18 +1367,16 @@ withOneSource('diff', {
 
 withOneSource('scan', {
   _init: function(args) {
-    this._prev = args[0];
+    this._send('value', args[0], true);
     this._fn = new Fn(rest(args, 1));
   },
   _free: function() {
-    this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._prev = Fn.call(this._fn, [this._prev, x]);
-    this._send('value', this._prev, isCurrent);
+    this._send('value', Fn.call(this._fn, [this._current, x]), isCurrent);
   }
-});
+}, {streamMethod: produceProperty});
 
 
 
@@ -17991,7 +17987,7 @@ stream = helpers.stream, prop = helpers.prop, send = helpers.send;
 describe('scan', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().scan(0, function() {})).toBeStream();
+      return expect(stream().scan(0, function() {})).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
@@ -17999,14 +17995,22 @@ describe('scan', function() {
       return expect(a.scan(0, function() {})).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).scan(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(stream(), ['<end>']).scan(0, function() {})).toEmit([
+        {
+          current: 0
+        }, '<end:current>'
+      ]);
     });
     return it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.scan(0, function(prev, next) {
         return prev - next;
-      })).toEmit([-1, -4, '<end>'], function() {
+      })).toEmit([
+        {
+          current: 0
+        }, -1, -4, '<end>'
+      ], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
@@ -18021,7 +18025,11 @@ describe('scan', function() {
       return expect(a.scan(0, function() {})).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).scan(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(prop(), ['<end>']).scan(0, function() {})).toEmit([
+        {
+          current: 0
+        }, '<end:current>'
+      ]);
     });
     return it('should handle events and current', function() {
       var a;
@@ -19266,9 +19274,15 @@ getCurrent.NOTHING = ['<getCurrent.NOTHING>'];
 beforeEach(function() {
   return this.addMatchers({
     toBeProperty: function() {
+      this.message = function() {
+        return "Expected " + (this.actual.toString()) + " to be instance of Property";
+      };
       return this.actual instanceof Kefir.Property;
     },
     toBeStream: function() {
+      this.message = function() {
+        return "Expected " + (this.actual.toString()) + " to be instance of Stream";
+      };
       return this.actual instanceof Kefir.Stream;
     },
     toBeActive: function() {
