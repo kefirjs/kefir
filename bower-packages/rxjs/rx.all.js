@@ -31,12 +31,12 @@
     
   // Defaults
   var noop = Rx.helpers.noop = function () { },
-    notDefined = Rx.helpers.notDefined = function (x) { return typeof x === 'undefined'; },
-    isScheduler = Rx.helpers.isScheduler = function (x) { return x instanceof Rx.Scheduler; },
+    notDefined = Rx.helpers.notDefined = function (x) { return typeof x === 'undefined'; },  
+    isScheduler = Rx.helpers.isScheduler = function (x) { return x instanceof Rx.Scheduler; },  
     identity = Rx.helpers.identity = function (x) { return x; },
     pluck = Rx.helpers.pluck = function (property) { return function (x) { return x[property]; }; },
-    just = Rx.helpers.just = function (value) { return function () { return value; }; },
-    defaultNow = Rx.helpers.defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
+    just = Rx.helpers.just = function (value) { return function () { return value; }; },    
+    defaultNow = Rx.helpers.defaultNow = Date.now,
     defaultComparer = Rx.helpers.defaultComparer = function (x, y) { return isEqual(x, y); },
     defaultSubComparer = Rx.helpers.defaultSubComparer = function (x, y) { return x > y ? 1 : (x < y ? -1 : 0); },
     defaultKeySerializer = Rx.helpers.defaultKeySerializer = function (x) { return x.toString(); },
@@ -49,8 +49,8 @@
   var sequenceContainsNoElements = 'Sequence contains no elements.';
   var argumentOutOfRange = 'Argument out of range';
   var objectDisposed = 'Object has been disposed';
-  function checkDisposed() { if (this.isDisposed) { throw new Error(objectDisposed); } }
-
+  function checkDisposed() { if (this.isDisposed) { throw new Error(objectDisposed); } }  
+  
   // Shim in iterator support
   var $iterator$ = (typeof Symbol === 'function' && Symbol.iterator) ||
     '_es6shim_iterator_';
@@ -393,124 +393,6 @@
             a[i] = factory();
         }
         return a;
-    }
-
-    // Utilities
-    if (!Function.prototype.bind) {
-        Function.prototype.bind = function (that) {
-            var target = this,
-                args = slice.call(arguments, 1);
-            var bound = function () {
-                if (this instanceof bound) {
-                    function F() { }
-                    F.prototype = target.prototype;
-                    var self = new F();
-                    var result = target.apply(self, args.concat(slice.call(arguments)));
-                    if (Object(result) === result) {
-                        return result;
-                    }
-                    return self;
-                } else {
-                    return target.apply(that, args.concat(slice.call(arguments)));
-                }
-            };
-
-            return bound;
-        };
-    }
-
-    var boxedString = Object("a"),
-        splitString = boxedString[0] != "a" || !(0 in boxedString);
-    if (!Array.prototype.every) {
-        Array.prototype.every = function every(fun /*, thisp */) {
-            var object = Object(this),
-                self = splitString && {}.toString.call(this) == stringClass ?
-                    this.split("") :
-                    object,
-                length = self.length >>> 0,
-                thisp = arguments[1];
-
-            if ({}.toString.call(fun) != funcClass) {
-                throw new TypeError(fun + " is not a function");
-            }
-
-            for (var i = 0; i < length; i++) {
-                if (i in self && !fun.call(thisp, self[i], i, object)) {
-                    return false;
-                }
-            }
-            return true;
-        };
-    }
-
-    if (!Array.prototype.map) {
-        Array.prototype.map = function map(fun /*, thisp*/) {
-            var object = Object(this),
-                self = splitString && {}.toString.call(this) == stringClass ?
-                    this.split("") :
-                    object,
-                length = self.length >>> 0,
-                result = Array(length),
-                thisp = arguments[1];
-
-            if ({}.toString.call(fun) != funcClass) {
-                throw new TypeError(fun + " is not a function");
-            }
-
-            for (var i = 0; i < length; i++) {
-                if (i in self)
-                    result[i] = fun.call(thisp, self[i], i, object);
-            }
-            return result;
-        };
-    }
-
-    if (!Array.prototype.filter) {
-        Array.prototype.filter = function (predicate) {
-            var results = [], item, t = new Object(this);
-            for (var i = 0, len = t.length >>> 0; i < len; i++) {
-                item = t[i];
-                if (i in t && predicate.call(arguments[1], item, i, t)) {
-                    results.push(item);
-                }
-            }
-            return results;
-        };
-    }
-
-    if (!Array.isArray) {
-        Array.isArray = function (arg) {
-            return Object.prototype.toString.call(arg) == arrayClass;
-        };
-    }
-
-    if (!Array.prototype.indexOf) {
-        Array.prototype.indexOf = function indexOf(searchElement) {
-            var t = Object(this);
-            var len = t.length >>> 0;
-            if (len === 0) {
-                return -1;
-            }
-            var n = 0;
-            if (arguments.length > 1) {
-                n = Number(arguments[1]);
-                if (n !== n) {
-                    n = 0;
-                } else if (n !== 0 && n != Infinity && n !== -Infinity) {
-                    n = (n > 0 || -1) * Math.floor(Math.abs(n));
-                }
-            }
-            if (n >= len) {
-                return -1;
-            }
-            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-            for (; k < len; k++) {
-                if (k in t && t[k] === searchElement) {
-                    return k;
-                }
-            }
-            return -1;
-        };
     }
 
     // Collections
@@ -3743,7 +3625,15 @@
         concatMap(this, function () { return selector; });
     };
 
-  observableProto.concatMapObserver = function(onNext, onError, onCompleted, thisArg) {
+  /**
+   * Projects each notification of an observable sequence to an observable sequence and concats the resulting observable sequences into one observable sequence.
+   * @param {Function} onNext A transform function to apply to each element; the second parameter of the function represents the index of the source element.
+   * @param {Function} onError A transform function to apply when an error occurs in the source sequence.
+   * @param {Function} onCompleted A transform function to apply when the end of the source sequence is reached.
+   * @param {Any} [thisArg] An optional "this" to use to invoke each transform.   
+   * @returns {Observable} An observable sequence whose elements are the result of invoking the one-to-many transform function corresponding to each notification in the input sequence.
+   */  
+  observableProto.concatMapObserver = observableProto.selectConcatObserver = function(onNext, onError, onCompleted, thisArg) {
     var source = this;
     return new AnonymousObservable(function (observer) {
       var index = 0;
@@ -3757,6 +3647,7 @@
             observer.onError(e);
             return;
           }
+          isPromise(result) && (result = observableFromPromise(result));
           observer.onNext(result);
         },
         function (err) {
@@ -3767,6 +3658,7 @@
             observer.onError(e);
             return;
           }
+          isPromise(result) && (result = observableFromPromise(result));
           observer.onNext(result);
           observer.onCompleted();
         }, 
@@ -3777,7 +3669,8 @@
           } catch (e) {
             observer.onError(e);
             return;
-          }          
+          } 
+          isPromise(result) && (result = observableFromPromise(result));         
           observer.onNext(result);
           observer.onCompleted();
         });
@@ -4071,6 +3964,14 @@
         flatMap(this, function () { return selector; });
     };
 
+  /**
+   * Projects each notification of an observable sequence to an observable sequence and merges the resulting observable sequences into one observable sequence.
+   * @param {Function} onNext A transform function to apply to each element; the second parameter of the function represents the index of the source element.
+   * @param {Function} onError A transform function to apply when an error occurs in the source sequence.
+   * @param {Function} onCompleted A transform function to apply when the end of the source sequence is reached.
+   * @param {Any} [thisArg] An optional "this" to use to invoke each transform.
+   * @returns {Observable} An observable sequence whose elements are the result of invoking the one-to-many transform function corresponding to each notification in the input sequence.
+   */
   observableProto.flatMapObserver = observableProto.selectManyObserver = function (onNext, onError, onCompleted, thisArg) {
     var source = this;
     return new AnonymousObservable(function (observer) {
@@ -4085,6 +3986,7 @@
             observer.onError(e);
             return;
           }
+          isPromise(result) && (result = observableFromPromise(result));
           observer.onNext(result);
         },
         function (err) {
@@ -4095,6 +3997,7 @@
             observer.onError(e);
             return;
           }
+          isPromise(result) && (result = observableFromPromise(result));
           observer.onNext(result);
           observer.onCompleted();
         }, 
@@ -4105,7 +4008,8 @@
           } catch (e) {
             observer.onError(e);
             return;
-          }          
+          }       
+          isPromise(result) && (result = observableFromPromise(result));   
           observer.onNext(result);
           observer.onCompleted();
         });
@@ -5058,89 +4962,14 @@
     };
   };
 
-  function fixEvent(event) {
-    var stopPropagation = function () {
-      this.cancelBubble = true;
-    };
-
-    var preventDefault = function () {
-      this.bubbledKeyCode = this.keyCode;
-      if (this.ctrlKey) {
-        try {
-          this.keyCode = 0;
-        } catch (e) { }
-      }
-      this.defaultPrevented = true;
-      this.returnValue = false;
-      this.modified = true;
-    };
-
-    event || (event = root.event);
-    if (!event.target) {
-      event.target = event.target || event.srcElement; 
-
-      if (event.type == 'mouseover') {
-        event.relatedTarget = event.fromElement;
-      }
-      if (event.type == 'mouseout') {
-        event.relatedTarget = event.toElement;
-      }
-      // Adding stopPropogation and preventDefault to IE
-      if (!event.stopPropagation){
-        event.stopPropagation = stopPropagation;
-        event.preventDefault = preventDefault;
-      }
-      // Normalize key events
-      switch(event.type){
-        case 'keypress':
-          var c = ('charCode' in event ? event.charCode : event.keyCode);
-          if (c == 10) {
-            c = 0;
-            event.keyCode = 13;
-          } else if (c == 13 || c == 27) {
-            c = 0; 
-          } else if (c == 3) {
-            c = 99; 
-          }
-          event.charCode = c;
-          event.keyChar = event.charCode ? String.fromCharCode(event.charCode) : '';
-          break;
-      }                    
-    }
-
-    return event;
-  }
-
   function createListener (element, name, handler) {
-    // Node.js specific
-    if (element.addListener) {
-      element.addListener(name, handler);
-      return disposableCreate(function () {
-        element.removeListener(name, handler);
-      });
-    }
-    // Standards compliant
     if (element.addEventListener) {
       element.addEventListener(name, handler, false);
       return disposableCreate(function () {
         element.removeEventListener(name, handler, false);
       });
-    } 
-    if (element.attachEvent) {
-      // IE Specific
-      var innerHandler = function (event) {
-        handler(fixEvent(event));
-      };
-      element.attachEvent('on' + name, innerHandler);
-      return disposableCreate(function () {
-        element.detachEvent('on' + name, innerHandler);
-      });         
     }
-    // Level 1 DOM Events      
-    element['on' + name] = handler;
-    return disposableCreate(function () {
-      element['on' + name] = null;
-    });
+    throw new Error('No listener found');
   }
 
   function createEventListener (el, eventName, handler) {
@@ -5157,6 +4986,11 @@
 
     return disposables;
   }
+
+  /**
+   * Configuration option to determine whether to use native events only 
+   */
+  Rx.config.useNativeEvents = false;
 
   // Check for Angular/jQuery/Zepto support
   var jq =
@@ -5182,29 +5016,36 @@
    * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.     
    * @returns {Observable} An observable sequence of events from the specified element and the specified event.
    */
-  
-  
-
   Observable.fromEvent = function (element, eventName, selector) {
+    // Node.js specific
+    if (element.addListener) {
+      return fromEventPattern(
+        function (h) { element.addListener(eventName, h); },
+        function (h) { element.removeListener(eventName, h); },
+        selector);
+    } 
     
-    if (marionette) {
-      return fromEventPattern(
-        function (h) { element.on(eventName, h); },
-        function (h) { element.off(eventName, h); },
-        selector);
-    }
-    if (ember) {
-      return fromEventPattern(
-        function (h) { Ember.addListener(element, eventName, h); },
-        function (h) { Ember.removeListener(element, eventName, h); },
-        selector);
-    }    
-    if (jq) {
-      var $elem = jq(element);
-      return fromEventPattern(
-        function (h) { $elem.on(eventName, h); },
-        function (h) { $elem.off(eventName, h); },
-        selector);
+    // Use only if non-native events are allowed
+    if (!Rx.config.useNativeEvents) {
+      if (marionette) {
+        return fromEventPattern(
+          function (h) { element.on(eventName, h); },
+          function (h) { element.off(eventName, h); },
+          selector);
+      }
+      if (ember) {
+        return fromEventPattern(
+          function (h) { Ember.addListener(element, eventName, h); },
+          function (h) { Ember.removeListener(element, eventName, h); },
+          selector);
+      }    
+      if (jq) {
+        var $elem = jq(element);
+        return fromEventPattern(
+          function (h) { $elem.on(eventName, h); },
+          function (h) { $elem.off(eventName, h); },
+          selector);
+      }
     }
     return new AnonymousObservable(function (observer) {
       return createEventListener(

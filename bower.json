@@ -29,17 +29,11 @@
   ],
   "license": "MIT",
   "ignore": [
-    "**/.*",
-    "test",
-    "src",
-    "Gruntfile.coffee",
-    "grunt-tasks",
-    "lib",
-    "docs-src",
-    "backlog",
-    "package.json",
-    "addons",
-    "!dist/addons"
+    "**",
+    "!dist/**",
+    "!LICENSE.txt",
+    "!demos/**",
+    "!index.html"
   ],
   "devDependencies": {
     "bacon": "~0.7.21",

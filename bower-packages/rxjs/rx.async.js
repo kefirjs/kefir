@@ -190,13 +190,6 @@
   };
 
   function createListener (element, name, handler) {
-    // Node.js specific
-    if (element.addListener) {
-      element.addListener(name, handler);
-      return disposableCreate(function () {
-        element.removeListener(name, handler);
-      });
-    } 
     if (element.addEventListener) {
       element.addEventListener(name, handler, false);
       return disposableCreate(function () {
@@ -221,6 +214,11 @@
     return disposables;
   }
 
+  /**
+   * Configuration option to determine whether to use native events only 
+   */
+  Rx.config.useNativeEvents = false;
+
   // Check for Angular/jQuery/Zepto support
   var jq =
    !!root.angular && !!angular.element ? angular.element :
@@ -229,6 +227,10 @@
 
   // Check for ember
   var ember = !!root.Ember && typeof root.Ember.addListener === 'function';
+  
+  // Check for Backbone.Marionette. Note if using AMD add Marionette as a dependency of rxjs
+  // for proper loading order!
+  var marionette = !!root.Backbone && !!root.Backbone.Marionette;
 
   /**
    * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
@@ -242,18 +244,35 @@
    * @returns {Observable} An observable sequence of events from the specified element and the specified event.
    */
   Observable.fromEvent = function (element, eventName, selector) {
-    if (ember) {
+    // Node.js specific
+    if (element.addListener) {
       return fromEventPattern(
-        function (h) { Ember.addListener(element, eventName, h); },
-        function (h) { Ember.removeListener(element, eventName, h); },
+        function (h) { element.addListener(eventName, h); },
+        function (h) { element.removeListener(eventName, h); },
         selector);
-    }    
-    if (jq) {
-      var $elem = jq(element);
-      return fromEventPattern(
-        function (h) { $elem.on(eventName, h); },
-        function (h) { $elem.off(eventName, h); },
-        selector);
+    } 
+    
+    // Use only if non-native events are allowed
+    if (!Rx.config.useNativeEvents) {
+      if (marionette) {
+        return fromEventPattern(
+          function (h) { element.on(eventName, h); },
+          function (h) { element.off(eventName, h); },
+          selector);
+      }
+      if (ember) {
+        return fromEventPattern(
+          function (h) { Ember.addListener(element, eventName, h); },
+          function (h) { Ember.removeListener(element, eventName, h); },
+          selector);
+      }    
+      if (jq) {
+        var $elem = jq(element);
+        return fromEventPattern(
+          function (h) { $elem.on(eventName, h); },
+          function (h) { $elem.off(eventName, h); },
+          selector);
+      }
     }
     return new AnonymousObservable(function (observer) {
       return createEventListener(
