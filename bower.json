@@ -34,7 +34,11 @@
     "src",
     "Gruntfile.coffee",
     "grunt-tasks",
-    "lib"
+    "lib",
+    "docs-src",
+    "backlog",
+    "package.json",
+    "addons"
   ],
   "devDependencies": {
     "bacon": "~0.7.21",
