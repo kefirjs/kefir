@@ -72,7 +72,7 @@ h2 {
 table, tr, td {
   margin: 0; padding: 0;
 }
-  td {
+  td, th {
     padding: 2px 12px 2px 0;
   }
   table .rule {
