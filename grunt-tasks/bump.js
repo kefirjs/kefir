@@ -26,7 +26,7 @@ module.exports = function(grunt){
     grunt.file.write('bower.json', JSON.stringify(bower, null, '  ') + '\n');
     grunt.log.ok('bumped version in bower.json to ' + pkg.version);
 
-    run('grunt') // lol
+    run('NODE_PATH=./dist grunt') // lol
     run('git add .')
     run('git commit -m "'+ pkg.version +'"');
     run('git push');

@@ -1,765 +1,89 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Kefir.js &mdash; Bacon.js / RxJS inspired FRP library for JavaScript with focus on high performance and low memory usage</title>
-    <meta name="description" content="Kefir.js &mdash; Bacon.js / RxJS inspired FRP library with focus on high performance and low memory usage">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Kefir.js — Bacon.js / RxJS inspired FRP library for JavaScript with focus on high performance and low memory usage</title><meta name="description" content="Kefir.js — Bacon.js / RxJS inspired FRP library with focus on high performance and low memory usage"><meta name="viewport" content="width=1000"><style type="text/css">html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}body{font-size:14px;line-height:22px;background:#f4f4f4;color:#000}a{color:#476cff;text-decoration:none}a:hover{text-decoration:underline}p{margin:20px 0}h1,h2{padding-top:1em}h2{font-size:20px}h2 small,h2 sup,h2 sub{font-weight:normal}table,tr,td{margin:0;padding:0}td{padding:2px 12px 2px 0}table .rule{height:1px;background:#ccc;margin:5px 0}ul{list-style-type:circle;padding:0 0 0 20px}li{margin-bottom:10px}code,pre,tt{font-family:Monaco, Consolas, "Lucida Console", monospace;font-size:12px;line-height:18px;font-style:normal}tt{padding:0px 3px;background:#fff;border:1px solid #ddd;zoom:1;font-size:.8em}code{margin-left:20px}pre{font-size:12px;padding:2px 0 2px 15px;border-left:5px solid #bbb;margin:0 0 30px;overflow:auto;background:white;position:relative}pre[title]:after{content:attr(title);position:absolute;top:0;right:0;padding:0 .5em;font-size:.8em;color:#8b8b8b}pre + pre{margin-top:-10px}.sidebar{background:#fff;position:fixed;top:0;left:0;bottom:0;width:240px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:15px 30px 30px;border-right:1px solid #bbb;box-shadow:0 0 20px #ccc;font-family:"Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif}@media (max-width: 1050px){.sidebar{width:140px}}.sidebar a{color:inherit}.toc-title{display:block;font-weight:bold;margin-top:20px;line-height:1.2;margin-bottom:10px}.toc-section{font-size:11px;line-height:14px;margin:5px 0 0 0;padding-left:0px;list-style-type:none}.toc-section li{margin:0 0 3px 0}.toc-section a{text-decoration:none}.toc-section a:hover{text-decoration:underline}.container{max-width:680px;margin:40px 10px 50px 330px;font-family:Helvetica, Arial, sans-serif}@media (max-width: 1050px){.container{margin-left:230px}}.warning{margin-top:15px;font:bold 11px Arial;color:#770000}.header{font-size:16px;line-height:30px;font-weight:bold;color:inherit}.alias{font-size:14px;font-style:italic;margin-left:20px}p[id]{margin-top:4em}h2[id]:not(.no-extra-padding){margin-top:3em}h2[id] + p[id]{margin-top:3em}</style></head><body><div class="sidebar"><a href="#" class="toc-title">Kefir.js <span class="version">(0.2.0)</span></a><ul class="toc-section"><li><a href="#download">Download</a></li><li><a href="#npm">Install via NPM</a></li><li><a href="#bower">Install via Bower</a></li></ul><a href="#create-stream" class="toc-title">Create a stream</a><ul class="toc-section"><li>- <a href="#emitter">emitter</a></li><li>- <a href="#never">never</a></li><li>- <a href="#later">later</a></li><li>- <a href="#interval">interval</a></li><li>- <a href="#sequentially">sequentially</a></li><li>- <a href="#repeatedly">repeatedly</a></li><li>- <a href="#from-poll">fromPoll</a></li><li>- <a href="#with-interval">withInterval</a></li><li>- <a href="#from-binder">fromBinder</a></li></ul><a href="#create-property" class="toc-title">Create a property</a><ul class="toc-section"><li>- <a href="#constant">constant</a></li></ul><a href="#convert" class="toc-title">Convert observables</a><ul class="toc-section"><li>- <a href="#to-property">toProperty</a></li><li>- <a href="#changes">changes</a></li></ul><a href="#main-methods" class="toc-title">Main observable methods</a><ul class="toc-section"><li>- <a href="#on-value">onValue</a></li><li>- <a href="#off-value">offValue</a></li><li>- <a href="#on-end">onEnd</a></li><li>- <a href="#off-end">offEnd</a></li><li>- <a href="#log">log</a></li></ul><a href="#modify" class="toc-title">Modify an observable</a><ul class="toc-section"><li>- <a href="#map">map</a></li><li>- <a href="#filter">filter</a></li><li>- <a href="#take">take</a></li><li>- <a href="#take-while">takeWhile</a></li><li>- <a href="#skip">skip</a></li><li>- <a href="#skip-while">skipWhile</a></li><li>- <a href="#skip-duplicates">skipDuplicates</a></li><li>- <a href="#diff">diff</a></li><li>- <a href="#scan">scan</a></li><li>- <a href="#reduce">reduce</a></li><li>- <a href="#with-handler">withHandler</a></li><li>- <a href="#delay">delay</a></li><li>- <a href="#throttle">throttle</a></li></ul><a href="#combine-observables" class="toc-title">Combine observables</a><ul class="toc-section"><li>- <a href="#combine">combine</a></li><li>- <a href="#sampled-by">sampledBy</a></li><li>- <a href="#merge">merge</a></li><li>- <a href="#pool">pool</a></li><li>- <a href="#flat-map">flatMap</a></li></ul><a href="#active-state" class="toc-title">Active state</a><a href="#callbacks" class="toc-title">About callbacks</a></div><div class="container"><h1>Kefir.js</h1><p>Kefir &mdash; is an
+<a href="http://en.wikipedia.org/wiki/Functional_reactive_programming">
+  FRP (functional reactive programming)</a>
+library for JavaScript inspired by
+<a href="https://github.com/baconjs/bacon.js">Bacon.js</a>
+and
+<a href="http://reactive-extensions.github.io/RxJS/">RxJS</a>
+with focus on high perfomance and low memory consumption.
 
-    <style type="text/css">
-      /*! normalize.css v3.0.1 | MIT License | git.io/normalize */
-      html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
-      body{margin:0}
-      article,aside,details,figcaption,figure,
-      footer,header,hgroup,main,nav,section,summary{display:block}
-      audio,canvas,progress,video{display:inline-block;vertical-align:baseline}
-      audio:not([controls]){display:none;height:0}[hidden],template{display:none}
-      a{background:0 0}
-      a:active,a:hover{outline:0}
-      abbr[title]{border-bottom:1px dotted}
-      b,strong{font-weight:700}
-      dfn{font-style:italic}
-      h1{font-size:2em;margin:.67em 0}
-      mark{background:#ff0;color:#000}
-      small{font-size:80%}
-      sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
-      sup{top:-.5em}
-      sub{bottom:-.25em}
-      img{border:0}svg:not(:root){overflow:hidden}
-      figure{margin:1em 40px}
-      hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
-      pre{overflow:auto}
-      code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}
-      button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}
-      button{overflow:visible}
-      button,select{text-transform:none}
-      button,html input[type=button],input[type=reset],input[type=submit]{
-        -webkit-appearance:button;cursor:pointer}
-      button[disabled],html input[disabled]{cursor:default}
-      button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
-      input{line-height:normal}
-      input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}
-      input[type=number]::-webkit-inner-spin-button,
-      input[type=number]::-webkit-outer-spin-button{height:auto}
-      input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;
-        -webkit-box-sizing:content-box;box-sizing:content-box}
-      input[type=search]::-webkit-search-cancel-button,
-      input[type=search]::-webkit-search-decoration{-webkit-appearance:none}
-      fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
-      legend{border:0;padding:0}
-      textarea{overflow:auto}
-      optgroup{font-weight:700}
-      table{border-collapse:collapse;border-spacing:0}
-      td,th{padding:0}
+</p><p>Kefir has
+<a href="https://github.com/pozadi/kefir">
+  <img data-emoji="octocat"> GitHub repository</a>, where you can
+<a href="https://github.com/pozadi/kefir/pulls">send pull requests</a>,
+<a href="https://github.com/pozadi/kefir/issues">report bugs</a>,
+and have fun reading
+<a href="https://github.com/pozadi/kefir/tree/master/src">source code</a>.
+</p><h2 id="download" class="no-extra-padding">Download <sup>(0.2.0)</sup></h2><table><tr><td><a href="dist/kefir.js">kefir.js</a></td><td><i>~ 30 kb</i></td></tr><tr><td><a href="dist/kefir.min.js">kefir.min.js</a></td><td><i>~ 5 kb (when gzipped)</i></td></tr></table><p>You can also
+<a href="https://github.com/pozadi/kefir/tree/master/dist">
+  get edge version from GitHub</a>,
+but use it at your own risk
 
-
-      body {
-        font-size: 14px;
-        line-height: 22px;
-        background: #f4f4f4;
-        color: #000;
-      }
-      a {
-        color: #476cff;
-        text-decoration: none;
-      }
-        a:hover {
-          text-decoration: underline;
-        }
-      p {
-        margin: 20px 0;
-      }
-      h1, h2 {
-        padding-top: 1em;
-      }
-      h2 {
-        font-size: 20px;
-      }
-        h2 small, h2 sup, h2 sub {
-          font-weight: normal;
-        }
-      table, tr, td {
-        margin: 0; padding: 0;
-      }
-        td {
-          padding: 2px 12px 2px 0;
-        }
-        table .rule {
-          height: 1px;
-          background: #ccc;
-          margin: 5px 0;
-        }
-      ul {
-        list-style-type: circle;
-        padding: 0 0 0 20px;
-      }
-        li {
-          margin-bottom: 10px;
-        }
-      code, pre, tt {
-        font-family: Monaco, Consolas, "Lucida Console", monospace;
-        font-size: 12px;
-        line-height: 18px;
-        font-style: normal;
-      }
-        tt {
-          padding: 0px 3px;
-          background: #fff;
-          border: 1px solid #ddd;
-          zoom: 1;
-          font-size: .8em;
-        }
-      code {
-        margin-left: 20px;
-      }
-      pre {
-        font-size: 12px;
-        padding: 2px 0 2px 15px;
-        border-left: 5px solid #bbb;
-        margin: 0px 0 30px;
-        overflow: auto;
-        background: white
-      }
-
-
-      .sidebar {
-        background: #fff;
-        position: fixed;
-        top: 0; left: 0; bottom: 0;
-        width: 170px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        padding: 15px 0 30px 30px;
-        border-right: 1px solid #bbb;
-        box-shadow: 0 0 20px #ccc;
-        font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
-      }
-        .sidebar a {
-          color: inherit;
-        }
-        .toc-title {
-          display: block;
-          font-weight: bold;
-          margin-top: 15px;
-        }
-        .toc-section {
-          font-size: 11px;
-          line-height: 14px;
-          margin: 5px 0 0 0;
-          padding-left: 0px;
-          list-style-type: none;
-        }
-          .toc-section li {
-            cursor: pointer;
-            margin: 0 0 3px 0;
-          }
-            .toc-section a {
-              text-decoration: none;
-            }
-              .toc-section a:hover {
-                text-decoration: underline;
-              }
-
-      .container {
-        max-width: 680px;
-        margin: 40px 10px 50px 230px;
-        font-family: Helvetica, Arial, sans-serif;
-      }
-        .warning {
-          margin-top: 15px;
-          font: bold 11px Arial;
-          color: #770000;
-        }
-        .header {
-          font-size: 16px;
-          line-height: 30px;
-          font-weight: bold;
-          color: inherit;
-        }
-        .alias {
-          font-size: 14px;
-          font-style: italic;
-          margin-left: 20px;
-        }
-
-      p[id] {
-        margin-top: 4em;
-      }
-      h2[id]:not(.no-extra-padding) {
-        margin-top: 3em;
-      }
-      h2[id] + p[id]{
-        margin-top: 3em;
-      }
-    </style>
-
-  </head>
-  <body>
-    <div class="sidebar">
-
-      <a class="toc-title" href="#">
-        Kefir.js <span class="version">(0.1.12)</span>
-      </a>
-
-      <ul class="toc-section">
-        <li><a href="#download">Download</a></li>
-        <li><a href="#npm">Install via NPM</a></li>
-        <li><a href="#bower">Install via Bower</a></li>
-      </ul>
-
-      <!-- <a class="toc-title" href="#introduction">
-        Introduction
-      </a> -->
-
-      <a class="toc-title" href="#static-methods">
-        Static methods<br>(Kefir.&mdash;)
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#from-poll">fromPoll</a></li>
-        <li>- <a href="#interval">interval</a></li>
-        <li>- <a href="#sequentially">sequentially</a></li>
-        <li>- <a href="#repeatedly">repeatedly</a></li>
-        <li>- <a href="#bus">bus</a></li>
-        <li>- <a href="#once">once</a></li>
-        <li>- <a href="#never">never</a></li>
-        <li>- <a href="#later">later</a></li>
-        <li>- <a href="#from-binder">fromBinder</a></li>
-        <li>- <a href="#kefir-merge">merge</a></li>
-        <li>- <a href="#kefir-combine">combine</a></li>
-        <li>- <a href="#on-values">onValues</a></li>
-      </ul>
-
-
-      <a class="toc-title" href="#observable">
-        Observable
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#on-value">onValue</a></li>
-        <li>- <a href="#off-value">offValue</a></li>
-        <li>- <a href="#on-error">onError</a></li>
-        <li>- <a href="#off-error">offError</a></li>
-        <li>- <a href="#on-end">onEnd</a></li>
-        <li>- <a href="#off-end">offEnd</a></li>
-
-        <li>- <a href="#map">map</a></li>
-        <li>- <a href="#filter">filter</a></li>
-        <li>- <a href="#take">take</a></li>
-        <li>- <a href="#take-while">takeWhile</a></li>
-        <li>- <a href="#skip">skip</a></li>
-        <li>- <a href="#skip-while">skipWhile</a></li>
-        <li>- <a href="#skip-duplicates">skipDuplicates</a></li>
-        <li>- <a href="#diff">diff</a></li>
-        <li>- <a href="#scan">scan</a></li>
-        <li>- <a href="#reduce">reduce</a></li>
-        <li>- <a href="#delay">delay</a></li>
-        <li>- <a href="#throttle">throttle</a></li>
-
-        <li>- <a href="#merge">merge</a></li>
-        <li>- <a href="#combine">combine</a></li>
-        <li>- <a href="#flat-map">flatMap</a></li>
-        <li>- <a href="#flat-map-latest">flatMapLatest</a></li>
-        <li>- <a href="#sampled-by">sampledBy</a></li>
-
-        <li>- <a href="#log">log</a></li>
-      </ul>
+</p><h2 id="npm" class="no-extra-padding">NPM</h2><pre>npm install kefir
+</pre><h2 id="bower" class="no-extra-padding">Bower</h2><pre>bower install kefir
+</pre><p><img data-emoji="construction">
+As you can see docs aren't finished yet,
+but you can already get some info here.
+If you have questions feel free to talk to me on
+<a href="https://twitter.com/rpominov">twitter</a>,
+<a href="https://github.com/pozadi/kefir/issues">github issues</a> or via
+<a href="mailto:rpominov@gmail.com" target="_blank">email</a>.</p><h2 id="create-stream">Create a stream</h2><p id="emitter"><a href="#emitter" class="header">emitter</a><code>Kefir.emitter()</code><br/>Creates an emitter, that is ordinary stream, but also has additional methods:
+<tt>.emit(value)</tt> and <tt>.end()</tt>.
+Then you can easily send events to stream via <b>emit()</b>.
+</p><pre title="code">var emitter = Kefir.emitter();
+emitter.log(); // log events to console (see <a href="#log">log</a>)
+emitter.emit(1);
+emitter.emit(2);
+emitter.end();
+</pre><pre title="console output">=&gt; [emitter] &lt;value&gt; 1
+=&gt; [emitter] &lt;value&gt; 2
+=&gt; [emitter] &lt;end&gt;
+</pre><p><img data-emoji="point_up"> <b>emitter</b> is the easiest way
+to create general purpose stream,
+but it doesn't give control over <b>active</b> state of stream
+(see <a href="#active-state">active state</a>).
+If you want to create general purpose stream and
+have control over <b>active</b> state, you should use
+<a href="from-binder">fromBinder</a>.
 
 
 
-      <a class="toc-title" href="#stream">
-        Stream
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#stream-on-new-value">onNewValue</a></li>
-        <li>- <a href="#stream-to-property">toProperty</a></li>
-      </ul>
-
-
-      <a class="toc-title" href="#property">
-        Property
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#property-on-new-value">onNewValue</a></li>
-        <li>- <a href="#has-value">hasValue</a></li>
-        <li>- <a href="#get-value">getValue</a></li>
-        <li>- <a href="#property-to-property">toProperty</a></li>
-        <li>- <a href="#changes">changes</a></li>
-      </ul>
-
-      <a class="toc-title" href="#bus">
-        Bus
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#push">push</a></li>
-        <li>- <a href="#bus-error">error</a></li>
-        <li>- <a href="#bus-end">end</a></li>
-        <li>- <a href="#plug">plug</a></li>
-        <li>- <a href="#unplug">unplug</a></li>
-      </ul>
-
-
-      <a class="toc-title" href="#special-values">
-        Special values
-      </a>
-
-      <ul class="toc-section">
-        <li>- <a href="#nothing">NOTHING</a></li>
-        <li>- <a href="#end">END</a></li>
-        <li>- <a href="#error">error</a></li>
-        <li>- <a href="#bunch">bunch</a></li>
-        <li>- <a href="#no-more">NO_MORE</a></li>
-      </ul>
-
-    </div>
-
-    <!-- =================================================================== -->
-    <!-- =================================================================== -->
-    <!-- =================================================================== -->
-
-    <div class="container">
-
-      <h1>Kefir.js</h1>
-
-      <p>
-        Kefir &mdash; is an
-        <a href="http://en.wikipedia.org/wiki/Functional_reactive_programming"
-        >FRP (functional reactive programming)</a> library for
-        JavaScript inspired by
-        <a href="https://github.com/baconjs/bacon.js">Bacon.js</a>
-        and
-        <a href="http://reactive-extensions.github.io/RxJS/">RxJS</a>
-        with focus on high perfomance and low memory consumption.<br>
-        It has nice Bacon.js like API and
-        RxJS's performance / memory usage characteristics.
-      </p>
-
-      <p>
-        Kefir has
-        <a href="https://github.com/pozadi/kefir"><img class="emoji" title=":octocat:" alt=":octocat:" src="https://assets-cdn.github.com/images/icons/emoji/octocat.png" height="20" width="20" align="absmiddle">
-        GitHub repository</a>, where you can
-        <a href="https://github.com/pozadi/kefir/pulls">send pull requests</a>,
-        <a href="https://github.com/pozadi/kefir/issues">report bugs</a>,
-        and have fun reading <a href="https://github.com/pozadi/kefir/tree/master/src">source code</a>.
-      </p>
-
-      <h2 class="no-extra-padding" id="download">Download <sup>(0.1.12)</sup></h2>
-
-      <table>
-        <tr>
-          <td><a href="dist/kefir.js">kefir.js</a></td>
-          <td><i>~ 30 kb</i></td>
-        </tr>
-        <tr>
-          <td><a href="dist/kefir.min.js">kefir.min.js</a></td>
-          <td><i>~ 5 kb (when gzipped)</i></td>
-        </tr>
-      </table>
-
-      <p>You can also
-        <a href="https://github.com/pozadi/kefir/tree/master/dist">get edge version from GitHub</a>,
-        but use it at your own risk</p>
-
-      <h2 class="no-extra-padding" id="npm">NPM</h2>
-
-      <pre>
-npm install kefir
-</pre>
-
-      <h2 class="no-extra-padding" id="bower">Bower</h2>
-
-      <pre>
-bower install kefir
-</pre>
-
-      <p>
-        <img class="emoji" title=":construction:" alt=":construction:" src="https://assets-cdn.github.com/images/icons/emoji/construction.png" height="20" width="20" align="absmiddle">
-        As you can see docs aren't finished yet, but you can already get some info here.
-        If you have questions feel free to talk to me on
-        <a href="https://twitter.com/rpominov">twitter</a>,
-        <a href="https://github.com/pozadi/kefir/issues">github issues</a> or via
-        <a href="mailto:rpominov@gmail.com" target="_blank">email</a>.
-      </p>
-
-      <p>
-        <a href="test/in-browser/SpecRunner.html">tests</a>
-      </p>
-
-      <!-- <h2 id="introduction">Introduction</h2>
-
-      <p>TODO</p> -->
-
-
-      <h2 id="static-methods">Static methods (Kefir.&mdash;)</h2>
-
-      <p id="from-poll">
-        <a href="#from-poll" class="header">fromPoll</a><code>stream = Kefir.fromPoll(interval, fn, [context], *arg)</code>
-        <br>
-        Returns a <b>Stream</b>.
-        When <b>stream</b> has subscribers, <b>fn</b> being polled with given <b>interval</b> (in milliseconds).
-        Values returned by <b>fn</b> will be delivered to subscribers.
-        <b>fn</b> can return <a href="#special-values">special values</a>.
-        When <b>fn</b> returns <tt>Kefir.END</tt> <b>stream</b> ends as well as polling of <b>fn</b>.
-      </p>
-      <pre>
-var values = [1, 2, 3, Kefir.END];
-var stream = Kefir.fromPoll(100, function(){
-  return values.shift();
-});
+</p><p id="never"><a href="#never" class="header">never</a><code>Kefir.never()</code><br/>Creates a stream, that already ended will never produce any events.
+</p><pre title="code">var stream = Kefir.never();
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 3
-=&gt; [FromPollStream] &lt;end&gt;
-</pre>
-
-      <p id="interval">
-        <a href="#interval" class="header">interval</a><code>stream = Kefir.interval(interval, value)</code>
-        <br>
-        Returns a <b>Stream</b>. Delivers <b>value</b> to <b>stream's</b> subscribers every
-        milliseconds <b>interval</b>. Never ends.
-      </p>
-      <pre>
-var stream = Kefir.interval(100, 1);
+</pre><pre title="console output">=&gt; [never] &lt;end:current&gt;</pre><div></div><p id="later"><a href="#later" class="header">later</a><code>Kefir.later(wait, value)</code><br/>Creates a stream, that produces single <b>value</b>
+after <b>wait</b> milliseconds then ends.
+</p><pre title="code">var stream = Kefir.later(1000, 1);
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; ...
-</pre>
-
-      <p id="sequentially">
-        <a href="#sequentially" class="header">sequentially</a><code>stream = Kefir.sequentially(interval, values)</code>
-        <br>
-        Returns a <b>Stream</b> containing given <b>values</b> (array).
-        Delivered with given <b>interval</b> in milliseconds. Ends after all <b>values</b> delivered.
-      </p>
-      <pre>
-var stream = Kefir.sequentially(100, [1, 2, 3]);
+</pre><pre title="console output (after 1 second)">=&gt; [later] &lt;value&gt; 1
+=&gt; [later] &lt;end&gt;</pre><div></div><p id="interval"><a href="#interval" class="header">interval</a><code>Kefir.interval(interval, value)</code><br/>Creates a stream, that produces same <b>value</b>
+each <b>interval</b> milliseconds. Never ends.
+</p><pre title="code">var stream = Kefir.interval(1000, 1);
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 3
-=&gt; [FromPollStream] &lt;end&gt;
-</pre>
-
-      <p id="repeatedly">
-        <a href="#repeatedly" class="header">repeatedly</a><code>stream = Kefir.repeatedly(interval, values)</code>
-        <br>
-        Returns a <b>Stream</b>. Repeats given <b>values</b> (array) indefinitely with given <b>interval</b> in milliseconds. Never ends.
-      </p>
-      <pre>
-var stream = Kefir.repeatedly(100, [1, 2]);
+</pre><pre title="console output">=&gt; [interval] &lt;value&gt; 1
+=&gt; [interval] &lt;value&gt; 1
+=&gt; [interval] &lt;value&gt; 1
+...</pre><div></div><p id="sequentially"><a href="#sequentially" class="header">sequentially</a><code>Kefir.sequentially(interval, values)</code><br/>Creates a stream containing given <b>values</b> (array),
+delivered with given <b>interval</b> in milliseconds.
+Ends after all <b>values</b> delivered.
+</p><pre title="code">var stream = Kefir.sequentially(1000, [1, 2, 3]);
 stream.log();
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; [FromPollStream] &lt;value&gt; 2
-=&gt; [FromPollStream] &lt;value&gt; 1
-=&gt; ...
-</pre>
-
-      <p id="bus">
-        <a href="#bus" class="header">bus</a><code>bus = Kefir.bus()</code>
-        <br>
-        Returns a <b>Bus</b>. See <a href="#bus">Bus</a>.
-      </p>
-
-      <p id="once">
-        <a href="#" class="header">once</a><code>stream = Kefir.once(value)</code>
-        <br>
-        Returns a <b>Stream</b>. Delivers <b>value</b> to first subscriber then ends.
-      </p>
-      <pre>
-var stream = Kefir.once(1);
-stream.log();
-=&gt; [OnceStream] &lt;value&gt; 1
-=&gt; [OnceStream] &lt;end&gt;
-</pre>
-
-      <p id="never">
-        <a href="#never" class="header">never</a><code>stream = Kefir.never()</code>
-        <br>
-        Returns a <b>Stream</b> that already ended.
-      </p>
-      <pre>
-var stream = Kefir.never();
-stream.log();
-=&gt; [Stream | Kefir.never()] &lt;end&gt;
-</pre>
-
-      <p id="later">
-        <a href="#later" class="header">later</a><code>stream = Kefir.later(wait, value)</code>
-        <br>
-        TODO: description
-      </p>
-      <pre>
-var stream = Kefir.later(100, 1);
-stream.log();
-=&gt; [LaterStream] &lt;value&gt; 1
-=&gt; [LaterStream] &lt;end&gt;
-</pre>
-
-      <p id="from-binder">
-        <a href="#from-binder" class="header">fromBinder</a><code>stream = Kefir.fromBinder(subscribe, [context], *arg)</code>
-        <br>
-        Returns a <b>Stream</b>.
-        The parameter <b>subscribe</b> is a function that accepts a <b>sink</b>
-        which is a function that your <b>subscribe</b> funtion can "push" values to.
-      </p>
-      <pre>
-var stream = Kefir.fromBinder(function(sink){
-  setTimeout(function(){
-    sink(1);
-    sink(2);
-    sink(Kefir.error('oops'));
-    sink(3);
-    sink(Kefir.END);
-  }, 0);
-});
-stream.log();
-=&gt; [FromBinderStream] &lt;value&gt; 1
-=&gt; [FromBinderStream] &lt;value&gt; 2
-=&gt; [FromBinderStream] &lt;error&gt; oops
-=&gt; [FromBinderStream] &lt;value&gt; 3
-=&gt; [FromBinderStream] &lt;end&gt;
-</pre>
-      <p>
-        You can pass <a href="#special-values">special values</a> to <b>sink</b>.
-      </p>
-      <p>
-        The <b>subscribe</b> function may return a function.
-        Let's call that function <b>unsubscribe</b>. This function is called
-        when the last listener removes from <b>stream</b>.
-        You can use <b>unsubscribe</b> function to unsubscribe from your original
-        source of values, for example jQuery events listener.
-      </p>
-      <pre>
-var stream = Kefir.fromBinder(function(sink){
-  $('#button').on('click', sink);
-  return function(){
-    $('#button').off('click', sink);
-  }
-});
-stream.log();
-=&gt; [FromBinderStream] jQuery.Event {type: "click"...}
-=&gt; [FromBinderStream] jQuery.Event {type: "click"...}
-</pre>
-      <p>
-        The <b>subscribe</b> function is called when the first stream
-        listener is added, and the <b>unsubscribe</b> function is called only
-        after the last listener has been removed. The subscribe-unsubscribe
-        cycle may of course be repeated indefinitely,
-        so prepare for multiple calls to the <b>subscribe</b> function.
-      </p>
-      <p>
-        <b>Kefir.fromBinder()</b> is a base building block upon which
-        you can build your own custom <b>Stream</b> with any original
-        source of values. Also consider using <a href="#bus">bus</a> if you
-        want to build custom stream.
-      </p>
-
-      <p id="kefir-merge">
-        <a href="#" class="header">merge</a><code>stream = Kefir.merge(observables), stream = Kefir.merge(*observable)</code>
-      </p>
-      <!-- <pre>
-var stream
-</pre> -->
-
-      <p id="kefir-combine">
-        <a href="#kefir-combine" class="header">combine</a><code>stream = Kefir.combine(observables, [fn], [context], *arg)</code>
-      </p>
-
-      <p id="on-values">
-        <a href="#on-values" class="header">onValues</a><code>Kefir.onValues(observables, fn, [context], *arg)</code>
-      </p>
-
-
-
-
-      <h2 id="observable">Observable</h2>
-
-      <!-- <p>TODO: intro, what is Observable</p> -->
-
-
-      <p id="on-value">
-        <a href="#on-value" class="header">onValue</a><code>observable.onValue(fn, [context], *arg)</code>
-      </p>
-      <p id="off-value">
-        <a href="#off-value" class="header">offValue</a><code>observable.offValue(fn, [context], *arg)</code>
-      </p>
-      <p id="on-error">
-        <a href="#" class="header">onError</a><code>observable.onError(fn, [context], *arg)</code>
-      </p>
-      <p id="off-error">
-        <a href="#" class="header">offError</a><code>observable.offError(fn, [context], *arg)</code>
-      </p>
-      <p id="on-end">
-        <a href="#" class="header">onEnd</a><code>observable.onEnd(fn, [context], *arg)</code>
-      </p>
-      <p id="off-end">
-        <a href="#" class="header">offEnd</a><code>observable.offEnd(fn, [context], *arg)</code>
-      </p>
-
-      <p id="map">
-        <a href="#" class="header">map</a><code>observable = observable.map(fn, [context], *arg)</code>
-      </p>
-      <p id="filter">
-        <a href="#" class="header">filter</a><code>observable = observable.filter(fn, [context], *arg)</code>
-      </p>
-      <p id="take">
-        <a href="#" class="header">take</a><code>observable = observable.take(n)</code>
-      </p>
-      <p id="take-while">
-        <a href="#" class="header">takeWhile</a><code>observable = observable.takeWhile(fn, [context], *arg)</code>
-      </p>
-      <p id="skip">
-        <a href="#" class="header">skip</a><code>observable = observable.skip(n)</code>
-      </p>
-      <p id="skip-while">
-        <a href="#" class="header">skipWhile</a><code>observable = observable.skipWhile(fn, [context], *arg)</code>
-      </p>
-      <p id="skip-duplicates">
-        <a href="#" class="header">skipDuplicates</a><code>observable = observable.skipDuplicates([fn])</code>
-      </p>
-      <p id="diff">
-        <a href="#" class="header">diff</a><code>observable = observable.diff(start, fn, [context], *arg)</code>
-      </p>
-      <p id="scan">
-        <a href="#" class="header">scan</a><code>property = observable.scan(seed, fn, [context], *arg)</code>
-      </p>
-      <p id="reduce">
-        <a href="#" class="header">reduce</a><code>property = observable.reduce(seed, fn, [context], *arg)</code>
-      </p>
-      <p id="delay">
-        <a href="#" class="header">delay</a><code>observable = observable.delay(wait)</code>
-      </p>
-      <p id="trottle">
-        <a href="#" class="header">trottle</a><code>observable = observable.trottle(wait, options)</code>
-      </p>
-
-      <p id="merge">
-        <a href="#" class="header">merge</a><code>stream = observable.merge(observables), stream = observable.merge(*observable)</code>
-      </p>
-      <p id="combine">
-        <a href="#" class="header">combine</a><code>stream = observable.combine(observables, [fn], [context], *arg)</code>
-      </p>
-      <p id="flat-map">
-        <a href="#" class="header">flatMap</a><code>stream = observable.flatMap(fn, [context], *arg)</code>
-      </p>
-      <p id="flat-map-latest">
-        <a href="#" class="header">flatMapLatest</a><code>stream = observable.flatMapLatest(fn, [context], *arg)</code>
-      </p>
-      <p id="sampled-by">
-        <a href="#" class="header">sampledBy</a><code>observable = observable.sampledBy(observable)</code>
-      </p>
-
-      <p id="log">
-        <a href="#" class="header">log</a><code>observable.log([name])</code>
-      </p>
-
-
-
-
-      <h2 id="stream">Stream</h2>
-
-      <!-- <p>TODO</p> -->
-
-
-      <p id="stream-on-new-value">
-        <a href="#" class="header">onNewValue</a><code>stream.onNewValue(fn, [context], *arg)</code>
-      </p>
-      <p id="stream-to-property">
-        <a href="#" class="header">toProperty</a><code>property = stream.toProperty([initial])</code>
-      </p>
-
-
-
-
-      <h2 id="property">Property</h2>
-
-      <!-- <p>TODO</p> -->
-
-
-      <p id="property-on-new-value">
-        <a href="#" class="header">onNewValue</a><code>property.onNewValue(fn, [context], *arg)</code>
-      </p>
-      <p id="has-value">
-        <a href="#" class="header">hasValue</a><code>boolean = property.hasValue()</code>
-      </p>
-      <p id="get-value">
-        <a href="#" class="header">getValue</a><code>x = property.getValue()</code>
-      </p>
-      <p id="property-to-property">
-        <a href="#" class="header">toProperty</a><code>property = property.toProperty([initial])</code>
-      </p>
-      <p id="changes">
-        <a href="#" class="header">changes</a><code>stream = property.changes()</code>
-      </p>
-
-
-
-
-      <h2 id="bus">Bus</h2>
-
-      <!-- <p>TODO</p> -->
-
-
-      <p id="push">
-        <a href="#" class="header">push</a><code>bus.push(value)</code>
-      </p>
-      <p id="bus-error">
-        <a href="#" class="header">error</a><code>bus.error(e)</code>
-      </p>
-      <p id="bus-end">
-        <a href="#" class="header">end</a><code>bus.end()</code>
-      </p>
-      <p id="plug">
-        <a href="#" class="header">plug</a><code>bus.plug(observable)</code>
-      </p>
-      <p id="unplug">
-        <a href="#" class="header">unplug</a><code>bus.unplug(observable)</code>
-      </p>
-
-
-
-
-      <h2 id="special-values">Special values</h2>
-
-      <p>
-        Whenever you pass around <b>values</b>, for example
-        pass to <b>bus.push()</b>, you can use
-        <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">
-        <b>Special Values</b>
-        <img class="emoji" title=":sparkles:" alt=":sparkles:" src="https://assets-cdn.github.com/images/icons/emoji/sparkles.png" height="20" width="20" align="absmiddle">.
-      </p>
-
-      <p id="nothing">
-        <a href="#" class="header">NOTHING</a><code>Kefir.NOTHING</code>
-      </p>
-      <p id="end">
-        <a href="#" class="header">END</a><code>Kefir.END</code>
-      </p>
-      <p id="error">
-        <a href="#" class="header">error</a><code>Kefir.error(e)</code>
-      </p>
-      <p id="bunch">
-        <a href="#" class="header">bunch</a><code>Kefir.bunch(values), Kefir.bunch(*value)</code>
-      </p>
-      <p id="no-more">
-        <a href="#" class="header">NO_MORE</a><code>Kefir.NO_MORE</code>
-      </p>
-
-
-    </div>
-
-
-    <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="dist/kefir.js"></script>
-  </body>
-</html>
+</pre><pre title="console output">=&gt; [sequentially] &lt;value&gt; 1
+=&gt; [sequentially] &lt;value&gt; 2
+=&gt; [sequentially] &lt;value&gt; 3
+=&gt; [sequentially] &lt;end&gt;</pre><div></div><p id="repeatedly"><a href="#repeatedly" class="header">repeatedly</a><code>Kefir.repeatedly(interval, values)</code><br/></p><p id="from-poll"><a href="#from-poll" class="header">fromPoll</a><code>Kefir.fromPoll(interval, fn)</code><br/></p><p id="with-interval"><a href="#with-interval" class="header">withInterval</a><code>Kefir.withInterval(interval, fn)</code><br/></p><p id="from-binder"><a href="#from-binder" class="header">fromBinder</a><code>Kefir.fromBinder(fn)</code><br/></p><h2 id="create-property">Create a property</h2><p id="constant"><a href="#constant" class="header">constant</a><code>Kefir.constant(value)</code><br/>Creates ended property, with specified <b>current value</b>.
+</p><pre title="code">property = Kefir.constant(1);
+property.log();
+</pre><pre title="console output">=&gt; [constant] &lt;value:current&gt; 1
+=&gt; [constant] &lt;end:current&gt;</pre><div></div><h2 id="convert">Convert observables</h2><p id="to-property"><a href="#to-property" class="header">toProperty</a><code>stream.toProperty([current])</code><br/></p><p id="changes"><a href="#changes" class="header">changes</a><code>property.changes()</code><br/></p><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>observable.onValue(fn)</code><br/></p><p id="off-value"><a href="#off-value" class="header">offValue</a><code>observable.offValue(fn)</code><br/></p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>observable.onEnd(fn)</code><br/></p><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>observable.offEnd(fn)</code><br/></p><p id="log"><a href="#log" class="header">log</a><code>observable.log([name])</code><br/></p><h2 id="modify">Modify an observable</h2><p id="map"><a href="#map" class="header">map</a><code>observable.map(fn)</code><br/></p><p id="filter"><a href="#filter" class="header">filter</a><code>observable.filter(fn)</code><br/></p><p id="take"><a href="#take" class="header">take</a><code>observable.take(n)</code><br/></p><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>observable.takeWhile(fn)</code><br/></p><p id="skip"><a href="#skip" class="header">skip</a><code>observable.skip(n)</code><br/></p><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>observable.skipWhile(fn)</code><br/></p><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>observable.skipDuplicates([fn])</code><br/></p><p id="diff"><a href="#diff" class="header">diff</a><code>observable.diff(seed, fn)</code><br/></p><p id="scan"><a href="#scan" class="header">scan</a><code>observable.scan(seed, fn)</code><br/></p><p id="reduce"><a href="#reduce" class="header">reduce</a><code>observable.reduce(seed, fn)</code><br/></p><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>observable.withHandler(fn)</code><br/></p><p id="delay"><a href="#delay" class="header">delay</a><code>observable.delay(wait)</code><br/></p><p id="throttle"><a href="#throttle" class="header">throttle</a><code>observable.throttle(wait, [options])</code><br/></p><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(observables, [fn])</code><br/></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObservables, activeObservables, [fn])</code><br/></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(observables)</code><br/></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>property.flatMap(fn)</code><br/></p><h2 id="active-state">Active state</h2><h2 id="callbacks">About callbacks</h2></div><script src="lib/jquery/jquery.js"></script><script src="dist/kefir.min.js"></script><script src="dist/addons/kefir-jquery.min.js"></script><script>$.getJSON('https://api.github.com/emojis', function(emojis){
+  $('[data-emoji]').each(function(){
+    var name = $(this).data('emoji');
+    $(this).attr({
+      src: emojis[name],
+      width: 20,
+      height: 20,
+      title: ':' + name + ':',
+      alt: ':' + name + ':'
+    });
+  });
+});</script></body></html>

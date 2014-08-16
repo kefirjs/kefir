@@ -1,0 +1,12 @@
+mixin method(anchor, name)
+  li
+    = "- "
+    a(href=anchor)= name
+
+
+mixin descr-method(anchor, name, code)
+  p(id=anchor)
+    a.header(href='#' + anchor) #{name}
+    code #{code}
+    br
+    block

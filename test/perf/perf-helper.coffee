@@ -9,10 +9,15 @@ Benchmark.options.minSamples = 15;
 
 noop = ->
 
+
+
 buildKefir = (modify) ->
-  stream = new Kefir.Stream()
-  modify(stream).onValue(noop)
-  -> stream.__sendValue(1)
+  send = null
+  property = Kefir.fromBinder (newSend) ->
+    send = newSend
+  modify(property).onValue(noop)
+  -> send('value', 1)
+
 
 buildBacon = (modify) ->
   sink = null
@@ -38,6 +43,12 @@ exports.setupTest = (title, options) ->
 
   if options.kefir
     suite.add('Kefir', buildKefir(options.kefir))
+
+  if options.kefirA
+    suite.add('Kefir A', buildKefir(options.kefirA))
+
+  if options.kefirB
+    suite.add('Kefir B', buildKefir(options.kefirB))
 
   if options.bacon
     suite.add('Bacon', buildBacon(options.bacon))

@@ -1,202 +1,73 @@
-var WithSourceStreamMixin = {
-  __Constructor: function(source) {
-    this.__source = source;
-    source.onEnd(this.__sendEnd, this);
-    if (source instanceof Property && this instanceof Property && source.hasValue()) {
-      this.__handle(source.getValue());
+// .toProperty()
+
+withOneSource('toProperty', {
+  _init: function(args) {
+    if (args.length > 0) {
+      this._send('value', args[0]);
     }
-  },
-  __handle: function(x) {
-    this.__sendAny(x);
-  },
-  __handleBoth: function(type, x) {
-    if (type === 'value') {
-      this.__handle(x);
-    } else {
-      this.__sendError(x);
-    }
-  },
-  __onFirstIn: function() {
-    this.__source.onNewBoth(this.__handleBoth, this);
-  },
-  __onLastOut: function() {
-    this.__source.offBoth(this.__handleBoth, this);
-  },
-  __clear: function() {
-    Observable.prototype.__clear.call(this);
-    this.__source = null;
   }
-}
-
-
-
-
-
-// observable.toProperty([initial])
-
-var PropertyFromStream = function PropertyFromStream(source, initial) {
-  Property.call(this, null, null, initial);
-  this.__Constructor(source);
-}
-
-inherit(PropertyFromStream, Property, WithSourceStreamMixin, {
-  __ClassName: 'PropertyFromStream'
-})
-
-Stream.prototype.toProperty = function(initial) {
-  return new PropertyFromStream(this, initial);
-}
-
-Property.prototype.toProperty = function(initial) {
-  if (isUndefined(initial)) {
-    return this
-  } else {
-    var prop = new PropertyFromStream(this);
-    prop.__sendValue(initial);
-    return prop;
+}, {
+  propertyMethod: null,
+  streamMethod: function(StreamClass, PropertyClass) {
+    return function() {  return new PropertyClass(this, arguments)  }
   }
-}
-
-
-
-
-
-
-// .scan(seed, fn)
-
-var ScanProperty = function ScanProperty(source, seed, fnMeta) {
-  Property.call(this, null, null, seed);
-  this.__fn = new Callable(fnMeta);
-  this.__Constructor(source);
-}
-
-inherit(ScanProperty, Property, WithSourceStreamMixin, {
-
-  __ClassName: 'ScanProperty',
-
-  __handle: function(x) {
-    this.__sendValue(Callable.call(this.__fn, [this.getValue(), x]));
-  },
-  __clear: function() {
-    WithSourceStreamMixin.__clear.call(this);
-    this.__fn = null;
-  }
-
-})
-
-Observable.prototype.scan = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new ScanProperty(this, seed, rest(arguments, 1));
-}
-
-
-
-
-// .reduce(seed, fn)
-
-var ReducedProperty = function ReducedProperty(source, seed, fnMeta) {
-  Property.call(this);
-  this.__fn = new Callable(fnMeta);
-  this.__result = seed;
-  source.onEnd('__sendResult', this);
-  this.__Constructor(source);
-}
-
-inherit(ReducedProperty, Property, WithSourceStreamMixin, {
-
-  __ClassName: 'ReducedProperty',
-
-  __handle: function(x) {
-    this.__result = Callable.call(this.__fn, [this.__result, x]);
-  },
-  __sendResult: function() {
-    this.__sendValue(this.__result);
-  },
-  __clear: function() {
-    WithSourceStreamMixin.__clear.call(this);
-    this.__fn = null;
-    this.__result = null;
-  }
-
 });
 
-Observable.prototype.reduce = function(seed/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new ReducedProperty(this, seed, rest(arguments, 1));
-}
+
+
+
+// .changes()
+
+withOneSource('changes', {
+  _handleValue: function(x, isCurrent) {
+    if (!isCurrent) {
+      this._send('value', x);
+    }
+  }
+}, {
+  streamMethod: null,
+  propertyMethod: function(StreamClass, PropertyClass) {
+    return function() {  return new StreamClass(this)  }
+  }
+});
+
+
+
+
+// .withHandler()
+
+withOneSource('withHandler', {
+  _init: function(args) {
+    var _this = this;
+    this._handler = new Fn(args[0]);
+    this._bindedSend = function(type, x, isCurrent) {  _this._send(type, x, isCurrent)  }
+  },
+  _free: function() {
+    this._handler = null;
+    this._bindedSend = null;
+  },
+  _handleAny: function(type, x, isCurrent) {
+    Fn.call(this._handler, [this._bindedSend, type, x, isCurrent]);
+  }
+});
+
 
 
 
 
 // .map(fn)
 
-var MapMixin = {
-  __Constructor: function(source, mapFnMeta) {
-    if (this instanceof Property) {
-      Property.call(this);
-    } else {
-      Stream.call(this);
-    }
-    this.__mapFn = mapFnMeta && new Callable(mapFnMeta);
-    WithSourceStreamMixin.__Constructor.call(this, source);
+withOneSource('map', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
   },
-  __handle: function(x) {
-    this.__sendAny(
-      this.__mapFn ? Callable.call(this.__mapFn, [x]) : x
-    );
+  _free: function() {
+    this._fn = null;
   },
-  __clear: function() {
-    WithSourceStreamMixin.__clear.call(this);
-    this.__mapFn = null;
+  _handleValue: function(x, isCurrent) {
+    this._send('value', Fn.call(this._fn, [x]), isCurrent);
   }
-}
-inheritMixin(MapMixin, WithSourceStreamMixin);
-
-var MappedStream = function MappedStream() {
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(MappedStream, Stream, MapMixin, {
-  __ClassName: 'MappedStream'
 });
-
-var MappedProperty = function MappedProperty() {
-  this.__Constructor.apply(this, arguments);
-}
-
-inherit(MappedProperty, Property, MapMixin, {
-  __ClassName: 'MappedProperty'
-})
-
-Stream.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new MappedStream(this, arguments);
-}
-
-Property.prototype.map = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  return new MappedProperty(this, arguments);
-}
-
-
-
-
-// property.changes()
-
-Property.prototype.changes = function() {
-  return new MappedStream(this);
-}
-
-
-
-
-// .diff(seed, fn)
-
-Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fn = new Callable(rest(arguments, 1));
-  var prev = start;
-  return this.map(function(x) {
-    var result = Callable.call(fn, [prev, x]);
-    prev = x;
-    return result;
-  });
-}
 
 
 
@@ -204,86 +75,110 @@ Observable.prototype.diff = function(start/*fn[, context[, arg1, arg2, ...]]*/) 
 
 // .filter(fn)
 
-Observable.prototype.filter = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fn = new Callable(arguments);
-  return this.map(function(x) {
-    if (Callable.call(fn, [x])) {
-      return x;
-    } else {
-      return NOTHING;
+withOneSource('filter', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (Fn.call(this._fn, [x])) {
+      this._send('value', x, isCurrent);
     }
-  });
-}
+  }
+});
+
 
 
 
 
 // .takeWhile(fn)
 
-Observable.prototype.takeWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fn = new Callable(arguments);
-  return this.map(function(x) {
-    if (Callable.call(fn, [x])) {
-      return x;
+withOneSource('takeWhile', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (Fn.call(this._fn, [x])) {
+      this._send('value', x, isCurrent);
     } else {
-      return END;
+      this._send('end', null, isCurrent);
     }
-  });
-}
+  }
+});
+
 
 
 
 
 // .take(n)
 
-Observable.prototype.take = function(n) {
-  return this.map(function(x) {
-    if (n <= 0) {
-      return END;
+withOneSource('take', {
+  _init: function(args) {
+    this._n = args[0];
+    if (this._n <= 0) {
+      this._send('end');
     }
-    if (n === 1) {
-      return Kefir.bunch(x, END);
+  },
+  _handleValue: function(x, isCurrent) {
+    this._n--;
+    this._send('value', x, isCurrent);
+    if (this._n === 0) {
+      this._send('end');
     }
-    n--;
-    return x;
-  });
-}
+  }
+});
+
 
 
 
 
 // .skip(n)
 
-Observable.prototype.skip = function(n) {
-  return this.map(function(x) {
-    if (n <= 0) {
-      return x;
+withOneSource('skip', {
+  _init: function(args) {
+    this._n = args[0] < 0 ? 0 : args[0];
+  },
+  _handleValue: function(x, isCurrent) {
+    if (this._n === 0) {
+      this._send('value', x, isCurrent);
     } else {
-      n--;
-      return NOTHING;
+      this._n--;
     }
-  });
-}
-
+  }
+});
 
 
 
 
 // .skipDuplicates([fn])
 
-Observable.prototype.skipDuplicates = function(fn) {
-  var prev = NOTHING;
-  return this.map(function(x) {
-    var result;
-    if (prev !== NOTHING && (fn ? fn(prev, x) : prev === x)) {
-      result = NOTHING;
+function strictlyEqual(a, b) {  return a === b  }
+
+withOneSource('skipDuplicates', {
+  _init: function(args) {
+    if (args.length > 0) {
+      this._fn = new Fn(args[0]);
     } else {
-      result = x;
+      this._fn = strictlyEqual;
     }
-    prev = x;
-    return result;
-  });
-}
+    this._prev = NOTHING;
+  },
+  _free: function() {
+    this._fn = null;
+    this._prev = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (this._prev === NOTHING || !Fn.call(this._fn, [this._prev, x])) {
+      this._send('value', x, isCurrent);
+    }
+    this._prev = x;
+  }
+});
 
 
 
@@ -291,15 +186,193 @@ Observable.prototype.skipDuplicates = function(fn) {
 
 // .skipWhile(fn)
 
-Observable.prototype.skipWhile = function(/*fn[, context[, arg1, arg2, ...]]*/) {
-  var fn = new Callable(arguments);
-  var skip = true;
-  return this.map(function(x) {
-    if (skip && Callable.call(fn, [x])) {
-      return NOTHING;
-    } else {
-      skip = false;
-      return x;
+withOneSource('skipWhile', {
+  _init: function(args) {
+    this._fn = new Fn(args[0]);
+    this._skip = true;
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (!this._skip) {
+      this._send('value', x, isCurrent);
+      return;
     }
-  });
-}
+    if (!Fn.call(this._fn, [x])) {
+      this._skip = false;
+      this._fn = null;
+      this._send('value', x, isCurrent);
+    }
+  }
+});
+
+
+
+
+
+// .diff(seed, fn)
+
+withOneSource('diff', {
+  _init: function(args) {
+    this._prev = args[0];
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function() {
+    this._prev = null;
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    this._send('value', Fn.call(this._fn, [this._prev, x]), isCurrent);
+    this._prev = x;
+  }
+});
+
+
+
+
+
+// .scan(seed, fn)
+
+withOneSource('scan', {
+  _init: function(args) {
+    this._prev = args[0];
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function() {
+    this._prev = null;
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    this._prev = Fn.call(this._fn, [this._prev, x]);
+    this._send('value', this._prev, isCurrent);
+  }
+});
+
+
+
+
+
+// .reduce(seed, fn)
+
+withOneSource('reduce', {
+  _init: function(args) {
+    this._result = args[0];
+    this._fn = new Fn(rest(args, 1));
+  },
+  _free: function(){
+    this._fn = null;
+    this._result = null;
+  },
+  _handleValue: function(x) {
+    this._result = Fn.call(this._fn, [this._result, x]);
+  },
+  _handleEnd: function(__, isCurrent) {
+    this._send('value', this._result, isCurrent);
+    this._send('end', null, isCurrent);
+  }
+});
+
+
+
+
+
+// .throttle(wait, {leading, trailing})
+
+withOneSource('throttle', {
+  _init: function(args) {
+    this._wait = args[0];
+    this._leading = get(args[1], 'leading', true);
+    this._trailing = get(args[1], 'trailing', true);
+    this._trailingCallValue = null;
+    this._trailingCallTimeoutId = null;
+    this._endAfterTrailingCall = false;
+    this._lastCallTime = 0;
+    var _this = this;
+    this._makeTrailingCallBinded = function() {  _this._makeTrailingCall()  };
+  },
+  _free: function() {
+    this._trailingCallValue = null;
+    this._makeTrailingCallBinded = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
+      return;
+    }
+    var curTime = now();
+    if (this._lastCallTime === 0 && !this._leading) {
+      this._lastCallTime = curTime;
+    }
+    var remaining = this._wait - (curTime - this._lastCallTime);
+    if (remaining <= 0) {
+      this._cancelTralingCall();
+      this._lastCallTime = curTime;
+      this._send('value', x);
+    } else if (this._trailing) {
+      this._scheduleTralingCall(x, remaining);
+    }
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+      return;
+    }
+    if (this._trailingCallTimeoutId) {
+      this._endAfterTrailingCall = true;
+    } else {
+      this._send('end');
+    }
+  },
+  _scheduleTralingCall: function(value, wait) {
+    if (this._trailingCallTimeoutId) {
+      this._cancelTralingCall();
+    }
+    this._trailingCallValue = value;
+    this._trailingCallTimeoutId = setTimeout(this._makeTrailingCallBinded, wait);
+  },
+  _cancelTralingCall: function() {
+    if (this._trailingCallTimeoutId !== null) {
+      clearTimeout(this._trailingCallTimeoutId);
+      this._trailingCallTimeoutId = null;
+    }
+  },
+  _makeTrailingCall: function() {
+    this._send('value', this._trailingCallValue);
+    this._trailingCallTimeoutId = null;
+    this._trailingCallValue = null;
+    this._lastCallTime = !this._leading ? 0 : now();
+    if (this._endAfterTrailingCall) {
+      this._send('end');
+    }
+  }
+});
+
+
+
+
+
+
+// .delay()
+
+withOneSource('delay', {
+  _init: function(args) {
+    this._wait = args[0];
+  },
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
+      return;
+    }
+    var _this = this;
+    setTimeout(function() {  _this._send('value', x)  }, this._wait);
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+      return;
+    }
+    var _this = this;
+    setTimeout(function() {  _this._send('end')  }, this._wait);
+  }
+});

@@ -1,165 +1,83 @@
-Kefir = require('../../dist/kefir.js')
-helpers = require('../test-helpers')
-
-
-
-describe ".sampledBy()", ->
-
-  it "property.sampledBy(stream)", ->
-
-    prop = new Kefir.Property()
-    stream = new Kefir.Stream()
-
-    sampled = prop.sampledBy(stream)
-
-    expect(sampled).toEqual(jasmine.any(Kefir.Stream))
-
-    result = helpers.getOutput(sampled)
-
-    expect(result.xs).toEqual []
-
-    stream.__sendValue(1)
-    expect(result.xs).toEqual []
-
-    prop.__sendValue(2)
-    expect(result.xs).toEqual []
-
-    stream.__sendValue(3)
-    expect(result.xs).toEqual [2]
-
-    stream.__sendValue(4)
-    expect(result.xs).toEqual [2, 2]
-
-    prop.__sendValue(5)
-    expect(result.xs).toEqual [2, 2]
-
-    stream.__sendValue(6)
-    expect(result.xs).toEqual [2, 2, 5]
-
-    stream.__sendEnd()
-    expect(result).toEqual(
-      ended: true
-      xs: [2, 2, 5]
-    )
-
-
-
-  it "property.sampledBy(stream, fn)", ->
-
-    prop = new Kefir.Property()
-    stream = new Kefir.Stream()
-
-    sampled = prop.sampledBy(stream, (a, b) -> a + b)
-
-    expect(sampled).toEqual(jasmine.any(Kefir.Stream))
-
-    result = helpers.getOutput(sampled)
-
-    expect(result.xs).toEqual []
-
-    stream.__sendValue(1)
-    expect(result.xs).toEqual []
-
-    prop.__sendValue(2)
-    expect(result.xs).toEqual []
-
-    stream.__sendValue(3)
-    expect(result.xs).toEqual [5]
-
-    stream.__sendValue(4)
-    expect(result.xs).toEqual [5, 6]
-
-    prop.__sendValue(5)
-    expect(result.xs).toEqual [5, 6]
-
-    stream.__sendValue(6)
-    expect(result.xs).toEqual [5, 6, 11]
-
-    stream.__sendEnd()
-    expect(result).toEqual(
-      ended: true
-      xs: [5, 6, 11]
-    )
-
-
-
-  it "stream.sampledBy(property, fn)", ->
-
-    prop = new Kefir.Property()
-    stream = new Kefir.Stream()
-
-    sampled = stream.sampledBy(prop, (a, b) -> a + b)
-
-    expect(sampled).toEqual(jasmine.any(Kefir.Property))
-    expect(sampled.hasValue()).toEqual(false)
-    expect(sampled.getValue()).toEqual(Kefir.NOTHING)
-
-    result = helpers.getOutput(sampled)
-
-    expect(result.xs).toEqual []
-
-    prop.__sendValue(1)
-    expect(result.xs).toEqual []
-
-    stream.__sendValue(2)
-    expect(result.xs).toEqual []
-
-    prop.__sendValue(3)
-    expect(result.xs).toEqual [5]
-
-    prop.__sendValue(4)
-    expect(result.xs).toEqual [5, 6]
-
-    stream.__sendValue(5)
-    expect(result.xs).toEqual [5, 6]
-
-    prop.__sendValue(6)
-    expect(result.xs).toEqual [5, 6, 11]
-
-    prop.__sendEnd()
-    expect(result).toEqual(
-      ended: true
-      xs: [5, 6, 11]
-    )
-
-
-  it "propert.sampledBy(property, fn) both has initial values", ->
-
-    prop1 = new Kefir.Property(null, null, 1)
-    prop2 = new Kefir.Property(null, null, 2)
-
-    sampled = prop1.sampledBy(prop2, (a, b) -> a + b)
-
-    expect(sampled).toEqual(jasmine.any(Kefir.Property))
-    expect(sampled.hasValue()).toEqual(true)
-    expect(sampled.getValue()).toEqual(3)
-
-    result = helpers.getOutput(sampled)
-
-    expect(result.xs).toEqual [3]
-
-
-
-
-  it ".sampledBy() and errors", ->
-
-    stream1 = new Kefir.Stream()
-    stream2 = new Kefir.Stream()
-
-    sampled = stream1.sampledBy(stream2)
-
-    result = helpers.getOutputAndErrors(sampled)
-
-    stream1.__sendError('e1-1')
-    stream2.__sendError('e2-1')
-    stream1.__sendError('e1-2')
-    stream2.__sendError('e2-2')
-
-    expect(result).toEqual(
-      ended: false
-      xs: []
-      errors: ['e1-1', 'e2-1', 'e1-2', 'e2-2']
-    )
-
-
-
+Kefir = require('kefir')
+{stream, prop, send} = require('../test-helpers.coffee')
+
+
+describe 'sampledBy', ->
+
+  it 'should return stream', ->
+    expect(Kefir.sampledBy([], [])).toBeStream()
+    expect(Kefir.sampledBy([stream(), prop()], [stream(), prop()])).toBeStream()
+    expect(prop().sampledBy(stream())).toBeStream()
+    expect(stream().sampledBy(prop())).toBeStream()
+
+  it 'should be ended if empty array provided', ->
+    expect(Kefir.sampledBy([stream(), prop()], [])).toEmit ['<end:current>']
+    expect(Kefir.sampledBy([], [stream(), prop()])).toEmit []
+
+  it 'should be ended if array of ended observables provided', ->
+    a = send(stream(), ['<end>'])
+    b = send(prop(), ['<end>'])
+    c = send(stream(), ['<end>'])
+    expect(Kefir.sampledBy([stream(), prop()], [a, b, c])).toEmit ['<end:current>']
+    expect(prop().sampledBy(a)).toEmit ['<end:current>']
+
+  it 'should be ended and emmit current (once) if array of ended properties provided and each of them has current', ->
+    a = send(prop(), [1, '<end>'])
+    b = send(prop(), [2, '<end>'])
+    c = send(prop(), [3, '<end>'])
+    s1 = Kefir.sampledBy([a], [b, c])
+    s2 = a.sampledBy(b)
+    expect(s1).toEmit [{current: [1, 2, 3]}, '<end:current>']
+    expect(s2).toEmit [{current: [1, 2]}, '<end:current>']
+    expect(s1).toEmit ['<end:current>']
+    expect(s2).toEmit ['<end:current>']
+
+  it 'should activate sources', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.sampledBy([a], [b, c])).toActivate(a, b, c)
+    expect(a.sampledBy(b)).toActivate(a, b)
+
+  it 'should handle events and current from observables', ->
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    d = stream()
+    expect(Kefir.sampledBy([a, b], [c, d])).toEmit [[1, 0, 2, 3], [1, 4, 5, 3], [1, 4, 6, 3], [1, 4, 6, 7], '<end>'], ->
+      send(a, [1])
+      send(c, [2])
+      send(d, [3])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
+      send(d, [7, '<end>'])
+    a = stream()
+    b = send(prop(), [0])
+    expect(a.sampledBy(b)).toEmit [[2, 3], [4, 5], [4, 6], '<end>'], ->
+      send(b, [1])
+      send(a, [2])
+      send(b, [3])
+      send(a, [4])
+      send(b, [5, 6, '<end>'])
+
+  it 'should accept optional combinator function', ->
+    join = (args...) -> args.join('+')
+    a = stream()
+    b = send(prop(), [0])
+    c = stream()
+    d = stream()
+    expect(Kefir.sampledBy([a, b], [c, d], join)).toEmit ['1+0+2+3', '1+4+5+3', '1+4+6+3', '1+4+6+7', '<end>'], ->
+      send(a, [1])
+      send(c, [2])
+      send(d, [3])
+      send(b, [4, '<end>'])
+      send(c, [5, 6, '<end>'])
+      send(d, [7, '<end>'])
+    a = stream()
+    b = send(prop(), [0])
+    expect(a.sampledBy(b, join)).toEmit ['2+3', '4+5', '4+6', '<end>'], ->
+      send(b, [1])
+      send(a, [2])
+      send(b, [3])
+      send(a, [4])
+      send(b, [5, 6, '<end>'])

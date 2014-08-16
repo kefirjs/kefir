@@ -1,0 +1,124 @@
+h2#create-stream Create a stream
+
+
++descr-method('emitter', 'emitter', 'Kefir.emitter()').
+  Creates an emitter, that is ordinary stream, but also has additional methods:
+  <tt>.emit(value)</tt> and <tt>.end()</tt>.
+  Then you can easily send events to stream via <b>emit()</b>.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.log(); // log events to console (see <a href="#log">log</a>)
+  emitter.emit(1);
+  emitter.emit(2);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    => [emitter] <value> 1
+    => [emitter] <value> 2
+    => [emitter] <end>
+
+p.
+  <img data-emoji="point_up"> <b>emitter</b> is the easiest way
+  to create general purpose stream,
+  but it doesn't give control over <b>active</b> state of stream
+  (see <a href="#active-state">active state</a>).
+  If you want to create general purpose stream and
+  have control over <b>active</b> state, you should use
+  <a href="from-binder">fromBinder</a>.
+
+
+
+
++descr-method('never', 'never', 'Kefir.never()').
+  Creates a stream, that already ended will never produce any events.
+
+pre(title='code').
+  var stream = Kefir.never();
+  stream.log();
+
+pre(title='console output')
+  :escapehtml
+    => [never] <end:current>
+div
+
+
+
+
++descr-method('later', 'later', 'Kefir.later(wait, value)').
+  Creates a stream, that produces single <b>value</b>
+  after <b>wait</b> milliseconds then ends.
+
+pre(title='code').
+  var stream = Kefir.later(1000, 1);
+  stream.log();
+
+pre(title='console output (after 1 second)')
+  :escapehtml
+    => [later] <value> 1
+    => [later] <end>
+div
+
+
+
++descr-method('interval', 'interval', 'Kefir.interval(interval, value)').
+  Creates a stream, that produces same <b>value</b>
+  each <b>interval</b> milliseconds. Never ends.
+
+pre(title='code').
+  var stream = Kefir.interval(1000, 1);
+  stream.log();
+
+pre(title='console output')
+  :escapehtml
+    => [interval] <value> 1
+    => [interval] <value> 1
+    => [interval] <value> 1
+    ...
+div
+
+
++descr-method('sequentially', 'sequentially', 'Kefir.sequentially(interval, values)').
+  Creates a stream containing given <b>values</b> (array),
+  delivered with given <b>interval</b> in milliseconds.
+  Ends after all <b>values</b> delivered.
+
+pre(title='code').
+  var stream = Kefir.sequentially(1000, [1, 2, 3]);
+  stream.log();
+
+pre(title='console output')
+  :escapehtml
+    => [sequentially] <value> 1
+    => [sequentially] <value> 2
+    => [sequentially] <value> 3
+    => [sequentially] <end>
+div
+
+
++descr-method('repeatedly', 'repeatedly', 'Kefir.repeatedly(interval, values)').
+
++descr-method('from-poll', 'fromPoll', 'Kefir.fromPoll(interval, fn)').
+
++descr-method('with-interval', 'withInterval', 'Kefir.withInterval(interval, fn)').
+
++descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(fn)').
+
+
+
+h2#create-property Create a property
+
++descr-method('constant', 'constant', 'Kefir.constant(value)').
+  Creates ended property, with specified <b>current value</b>.
+
+pre(title='code').
+  property = Kefir.constant(1);
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    => [constant] <value:current> 1
+    => [constant] <end:current>
+div
+

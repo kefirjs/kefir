@@ -1,0 +1,63 @@
+a.toc-title(href='#') Kefir.js <span class="version">(#{pkg.version})</span>
+ul.toc-section
+  li: a(href='#download') Download
+  li: a(href='#npm') Install via NPM
+  li: a(href='#bower') Install via Bower
+
+a.toc-title(href='#create-stream') Create a stream
+ul.toc-section
+  +method('#emitter', 'emitter')
+  +method('#never', 'never')
+  +method('#later', 'later')
+  +method('#interval', 'interval')
+  +method('#sequentially', 'sequentially')
+  +method('#repeatedly', 'repeatedly')
+  +method('#from-poll', 'fromPoll')
+  +method('#with-interval', 'withInterval')
+  +method('#from-binder', 'fromBinder')
+
+a.toc-title(href='#create-property') Create a property
+ul.toc-section
+  +method('#constant', 'constant')
+
+a.toc-title(href='#convert') Convert observables
+ul.toc-section
+  +method('#to-property', 'toProperty')
+  +method('#changes', 'changes')
+
+a.toc-title(href='#main-methods') Main observable methods
+ul.toc-section
+  +method('#on-value', 'onValue')
+  +method('#off-value', 'offValue')
+  +method('#on-end', 'onEnd')
+  +method('#off-end', 'offEnd')
+  +method('#log', 'log')
+
+a.toc-title(href='#modify') Modify an observable
+ul.toc-section
+  +method('#map', 'map')
+  +method('#filter', 'filter')
+  +method('#take', 'take')
+  +method('#take-while', 'takeWhile')
+  +method('#skip', 'skip')
+  +method('#skip-while', 'skipWhile')
+  +method('#skip-duplicates', 'skipDuplicates')
+  +method('#diff', 'diff')
+  +method('#scan', 'scan')
+  +method('#reduce', 'reduce')
+  +method('#with-handler', 'withHandler')
+  +method('#delay', 'delay')
+  +method('#throttle', 'throttle')
+
+a.toc-title(href='#combine-observables') Combine observables
+ul.toc-section
+  +method('#combine', 'combine')
+  +method('#sampled-by', 'sampledBy')
+  +method('#merge', 'merge')
+  +method('#pool', 'pool')
+  +method('#flat-map', 'flatMap')
+  //- +method('#flat-map-latest', 'flatMapLatest')
+
+a.toc-title(href='#active-state') Active state
+a.toc-title(href='#callbacks') About callbacks
+

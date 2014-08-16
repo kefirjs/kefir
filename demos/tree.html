@@ -31,7 +31,7 @@
     <body>
 
       <p>
-        <a href="http://pozadi.github.io/kefir/">&larr; back to Kefir.js documentation</a>
+        <a href="http://pozadi.github.io/kefir/">↩ back to Kefir.js documentation</a>
       </p>
 
       <h1>Kefir.js / Bacon.js tree demo</h1>
@@ -164,8 +164,6 @@
                   cur = min
                 Math.sin(cur)
 
-          Kefir.constant = (x) ->
-            new Kefir.Property(null, null, x)
 
 
 
@@ -175,15 +173,11 @@
 
           # Branch represents tree branch
 
-          totalBranches = 0
-
           class BranchKefir
 
             oscillation: oscillationGenerator(Kefir.interval(1000 / 25))
 
             constructor: (parent, addAngle) ->
-              totalBranches++
-
               addAngle = randomize(addAngle, .4)
 
               @width = randomize(parent.width * 3/4)
@@ -217,6 +211,7 @@
 
 
 
+
           # Setup world
 
           depth = getParam('depth', DEFAULT_DEPTH)
@@ -245,7 +240,8 @@
 
 
 
-          $('#total').html totalBranches
+          $('#total').html lines.length
+
 
         </script>
     </body>

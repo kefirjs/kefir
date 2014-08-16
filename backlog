@@ -1,0 +1,12 @@
+.fromCallback(fn)
+.fromNodeCallback(fn)
+
+
+.debounce(wait, immediate)
+http://underscorejs.org/#defer
+
+streamOfFunctions.apply(seed)
+
+
+http://underscorejs.org/#pluck
+http://underscorejs.org/#invoke

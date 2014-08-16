@@ -4,22 +4,17 @@ Kefir — is an FRP (functional reactive programming) library for JavaScript
 inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
-It has nice Bacon.js like API
-and RxJS's performance / memory usage characteristics.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
-:construction: It still in alpha developnet stage. See [Bacon.js API implementation status](https://github.com/pozadi/kefir/blob/master/bacon-api-impl-status.md).
-
-
-
-# Tests
-
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
+[![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir)
+[![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
+[![devDependency Status](https://david-dm.org/pozadi/kefir/dev-status.svg)](https://david-dm.org/pozadi/kefir#info=devDependencies)
 
 [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
 
-[Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch)
+<!-- [Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch) -->
 
 
 
@@ -27,7 +22,7 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 To build `/dist` from `/src` and run tests on Node.js type this in console:
 
-    grunt
+    NODE_PATH=./dist grunt
 
 To run memory tests:
 
@@ -39,8 +34,4 @@ To run all memory tests (see [results](https://github.com/pozadi/kefir/blob/mast
 
 To run performance tests:
 
-    coffee test/perf/benchmarks/[some spec].coffee
-
-To run all performance tests:
-
-    coffee test/perf/all-benchmarks.coffee
+    coffee test/perf/perf-specs/[some spec].coffee
