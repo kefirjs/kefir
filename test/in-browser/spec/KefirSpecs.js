@@ -819,8 +819,8 @@ inherit(Merge, Stream, {
 
 });
 
-Kefir.merge = function(sources) {
-  return new Merge(sources);
+Kefir.merge = function() {
+  return new Merge(agrsToArray(arguments));
 }
 
 Observable.prototype.merge = function(other) {
@@ -1131,6 +1131,14 @@ Observable.prototype.flatMap = function(fn) {
 // TODO
 
 
+function produceStream(StreamClass, PropertyClass) {
+  return function() {  return new StreamClass(this, arguments)  }
+}
+function produceProperty(StreamClass, PropertyClass) {
+  return function() {  return new PropertyClass(this, arguments)  }
+}
+
+
 // .toProperty()
 
 withOneSource('toProperty', {
@@ -1139,12 +1147,7 @@ withOneSource('toProperty', {
       this._send('value', args[0]);
     }
   }
-}, {
-  propertyMethod: null,
-  streamMethod: function(StreamClass, PropertyClass) {
-    return function() {  return new PropertyClass(this, arguments)  }
-  }
-});
+}, {propertyMethod: null, streamMethod: produceProperty});
 
 
 
@@ -1157,12 +1160,7 @@ withOneSource('changes', {
       this._send('value', x);
     }
   }
-}, {
-  streamMethod: null,
-  propertyMethod: function(StreamClass, PropertyClass) {
-    return function() {  return new StreamClass(this)  }
-  }
-});
+}, {streamMethod: null, propertyMethod: produceStream});
 
 
 
@@ -1369,18 +1367,16 @@ withOneSource('diff', {
 
 withOneSource('scan', {
   _init: function(args) {
-    this._prev = args[0];
+    this._send('value', args[0], true);
     this._fn = new Fn(rest(args, 1));
   },
   _free: function() {
-    this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._prev = Fn.call(this._fn, [this._prev, x]);
-    this._send('value', this._prev, isCurrent);
+    this._send('value', Fn.call(this._fn, [this._current, x]), isCurrent);
   }
-});
+}, {streamMethod: produceProperty});
 
 
 
@@ -17261,17 +17257,17 @@ if (inBrowser) {
         });
       });
     });
-    return describe('$.fn.asStream()', function() {
+    return describe('$.fn.asKefirStream()', function() {
       it('should return stream', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click')).toBeStream();
+          return expect($(tmpDom).asKefirStream('click')).toBeStream();
         });
       });
       it('should add/remove jquery-listener on activation/deactivation', function() {
         return withDOM(function(tmpDom) {
           var clicks, f, f2, licks;
-          clicks = $(tmpDom).asStream('click');
-          licks = $(tmpDom).asStream('lick');
+          clicks = $(tmpDom).asKefirStream('click');
+          licks = $(tmpDom).asKefirStream('lick');
           f = function() {};
           f2 = function() {};
           expect(countListentrs($(tmpDom), 'click')).toBe(0);
@@ -17297,7 +17293,7 @@ if (inBrowser) {
       it('should add/remove jquery-listener on activation/deactivation (with selector)', function() {
         return withDOM(function(tmpDom) {
           var clicks, f;
-          clicks = $(tmpDom).asStream('click', '.foo');
+          clicks = $(tmpDom).asKefirStream('click', '.foo');
           expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(0);
           clicks.on('value', f = function() {});
           expect(countListentrs($(tmpDom), 'click', '.foo')).toBe(1);
@@ -17307,7 +17303,7 @@ if (inBrowser) {
       });
       it('should deliver events', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click').map(function(e) {
+          return expect($(tmpDom).asKefirStream('click').map(function(e) {
             return e.type;
           })).toEmit(['click', 'click'], function() {
             return $(tmpDom).trigger('click').trigger('click');
@@ -17316,7 +17312,7 @@ if (inBrowser) {
       });
       it('should deliver events (with selector)', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click', '.foo').map(function(e) {
+          return expect($(tmpDom).asKefirStream('click', '.foo').map(function(e) {
             return $(e.target).attr('class');
           })).toEmit(['foo', 'foo', 'foo bar'], function() {
             var $bar, $foo;
@@ -17331,7 +17327,7 @@ if (inBrowser) {
       });
       it('should accept optional transformer fn', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click', function(e) {
+          return expect($(tmpDom).asKefirStream('click', function(e) {
             return e.type;
           })).toEmit(['click', 'click'], function() {
             return $(tmpDom).trigger('click').trigger('click');
@@ -17340,7 +17336,7 @@ if (inBrowser) {
       });
       return it('should pass data to transformer', function() {
         return withDOM(function(tmpDom) {
-          return expect($(tmpDom).asStream('click', function(e, data) {
+          return expect($(tmpDom).asKefirStream('click', function(e, data) {
             return data;
           })).toEmit([1, 2], function() {
             return $(tmpDom).trigger('click', 1).trigger('click', 2);
@@ -17494,7 +17490,7 @@ describe('merge', function() {
       return send(b, [3, '<end>']);
     });
   });
-  return it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
+  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
     var a, b, c, merge;
     a = send(prop(), [0]);
     b = send(prop(), [1]);
@@ -17524,6 +17520,24 @@ describe('merge', function() {
         current: 2
       }
     ]);
+  });
+  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
+    var a, b, c;
+    a = stream();
+    b = send(prop(), [0]);
+    c = stream();
+    return expect(Kefir.merge(a, b, c)).toEmit([
+      {
+        current: 0
+      }, 1, 2, 3, 4, 5, 6, '<end>'
+    ], function() {
+      send(a, [1]);
+      send(b, [2]);
+      send(c, [3]);
+      send(a, ['<end>']);
+      send(b, [4, '<end>']);
+      return send(c, [5, 6, '<end>']);
+    });
   });
 });
 
@@ -17973,7 +17987,7 @@ stream = helpers.stream, prop = helpers.prop, send = helpers.send;
 describe('scan', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().scan(0, function() {})).toBeStream();
+      return expect(stream().scan(0, function() {})).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
@@ -17981,14 +17995,22 @@ describe('scan', function() {
       return expect(a.scan(0, function() {})).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).scan(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(stream(), ['<end>']).scan(0, function() {})).toEmit([
+        {
+          current: 0
+        }, '<end:current>'
+      ]);
     });
     return it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.scan(0, function(prev, next) {
         return prev - next;
-      })).toEmit([-1, -4, '<end>'], function() {
+      })).toEmit([
+        {
+          current: 0
+        }, -1, -4, '<end>'
+      ], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
@@ -18003,7 +18025,11 @@ describe('scan', function() {
       return expect(a.scan(0, function() {})).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).scan(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(prop(), ['<end>']).scan(0, function() {})).toEmit([
+        {
+          current: 0
+        }, '<end:current>'
+      ]);
     });
     return it('should handle events and current', function() {
       var a;
@@ -19248,9 +19274,15 @@ getCurrent.NOTHING = ['<getCurrent.NOTHING>'];
 beforeEach(function() {
   return this.addMatchers({
     toBeProperty: function() {
+      this.message = function() {
+        return "Expected " + (this.actual.toString()) + " to be instance of Property";
+      };
       return this.actual instanceof Kefir.Property;
     },
     toBeStream: function() {
+      this.message = function() {
+        return "Expected " + (this.actual.toString()) + " to be instance of Stream";
+      };
       return this.actual instanceof Kefir.Stream;
     },
     toBeActive: function() {
@@ -19386,7 +19418,7 @@ beforeEach(function() {
 
 
 
-    $.fn.asStream = function(event, selector, transformer) {
+    $.fn.asKefirStream = function(event, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
@@ -19405,7 +19437,7 @@ beforeEach(function() {
 
 
 
-    // $.fn.asProperty = function(event, selector, getter) { ... }
+    // $.fn.asKefirProperty = function(event, selector, getter) { ... }
 
 
 

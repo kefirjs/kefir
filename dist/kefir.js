@@ -818,8 +818,8 @@ inherit(Merge, Stream, {
 
 });
 
-Kefir.merge = function(sources) {
-  return new Merge(sources);
+Kefir.merge = function() {
+  return new Merge(agrsToArray(arguments));
 }
 
 Observable.prototype.merge = function(other) {
@@ -1130,6 +1130,14 @@ Observable.prototype.flatMap = function(fn) {
 // TODO
 
 
+function produceStream(StreamClass, PropertyClass) {
+  return function() {  return new StreamClass(this, arguments)  }
+}
+function produceProperty(StreamClass, PropertyClass) {
+  return function() {  return new PropertyClass(this, arguments)  }
+}
+
+
 // .toProperty()
 
 withOneSource('toProperty', {
@@ -1138,12 +1146,7 @@ withOneSource('toProperty', {
       this._send('value', args[0]);
     }
   }
-}, {
-  propertyMethod: null,
-  streamMethod: function(StreamClass, PropertyClass) {
-    return function() {  return new PropertyClass(this, arguments)  }
-  }
-});
+}, {propertyMethod: null, streamMethod: produceProperty});
 
 
 
@@ -1156,12 +1159,7 @@ withOneSource('changes', {
       this._send('value', x);
     }
   }
-}, {
-  streamMethod: null,
-  propertyMethod: function(StreamClass, PropertyClass) {
-    return function() {  return new StreamClass(this)  }
-  }
-});
+}, {streamMethod: null, propertyMethod: produceStream});
 
 
 
@@ -1368,18 +1366,16 @@ withOneSource('diff', {
 
 withOneSource('scan', {
   _init: function(args) {
-    this._prev = args[0];
+    this._send('value', args[0], true);
     this._fn = new Fn(rest(args, 1));
   },
   _free: function() {
-    this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._prev = Fn.call(this._fn, [this._prev, x]);
-    this._send('value', this._prev, isCurrent);
+    this._send('value', Fn.call(this._fn, [this._current, x]), isCurrent);
   }
-});
+}, {streamMethod: produceProperty});
 
 
 

@@ -6,7 +6,7 @@
 
 
 
-    $.fn.asStream = function(event, selector, transformer) {
+    $.fn.asKefirStream = function(event, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
@@ -25,7 +25,7 @@
 
 
 
-    // $.fn.asProperty = function(event, selector, getter) { ... }
+    // $.fn.asKefirProperty = function(event, selector, getter) { ... }
 
 
 

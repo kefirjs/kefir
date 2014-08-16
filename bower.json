@@ -29,25 +29,18 @@
   ],
   "license": "MIT",
   "ignore": [
-    "**/.*",
-    "test",
-    "src",
-    "Gruntfile.coffee",
-    "grunt-tasks",
-    "lib",
-    "docs-src",
-    "backlog",
-    "package.json",
-    "addons",
-    "!dist/addons"
+    "**",
+    "!dist/**",
+    "!LICENSE.txt",
+    "!demos/**",
+    "!index.html"
   ],
   "devDependencies": {
     "bacon": "~0.7.21",
     "jquery": "~1.11.1",
     "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#~0.4.1",
     "coffeescript": "git@github.com:jashkenas/coffeescript.git#~1.7.1",
-    "stats.js": "git@github.com:mrdoob/stats.js.git#r12",
-    "rxjs": "~2.3.3"
+    "stats.js": "git@github.com:mrdoob/stats.js.git#r12"
   },
   "exportsOverride": {
     "coffeescript": {

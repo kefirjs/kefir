@@ -83,7 +83,7 @@ module.exports = (grunt) ->
         options:
           banner: addonBanner
         expand: true
-        cwd: 'addons'
+        cwd: 'src/addons'
         src: '*.js'
         dest: 'dist/addons'
 
@@ -138,6 +138,7 @@ module.exports = (grunt) ->
         options:
           cleanup: true
           verbose: true
+          targetDir: './bower-packages'
 
     release:
       options:

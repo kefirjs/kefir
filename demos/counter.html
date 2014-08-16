@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Kefir.js counter demo</title>
+        <script src="../bower-packages/jquery/jquery.js"></script>
+        <script src="../dist/kefir.min.js"></script>
+        <script src="../dist/addons/kefir-jquery.min.js"></script>
+        <style type="text/css">
+          body {
+            font-size: 14px;
+            line-height: 22px;
+            background: #f4f4f4;
+            color: #000;
+            font-family: Helvetica, Arial, sans-serif;
+            max-width: 700px;
+          }
+          a {
+            color: #476cff;
+            text-decoration: none;
+          }
+            a:hover {
+              text-decoration: underline;
+            }
+
+          pre {
+            font-family: Monaco, Consolas, "Lucida Console", monospace;
+            font-size: 12px;
+            line-height: 18px;
+            font-style: normal;
+            padding: 2px 0 2px 15px;
+            border-left: 5px solid #bbb;
+            margin: 0 0 30px;
+            overflow: auto;
+            background: white;
+            position: relative;
+          }
+            pre[title]:after {
+              content: attr(title);
+              position: absolute;
+              top: 0;
+              right: 0;
+              padding: 0 .5em;
+              font-size: .8em;
+              color: #8b8b8b;
+            }
+            pre + pre {
+              margin-top: -10px;
+            }
+        </style>
+    </head>
+    <body>
+
+      <p>
+        <a href="http://pozadi.github.io/kefir/">↩ back to Kefir.js documentation</a>
+      </p>
+
+      <h1>Kefir.js counter demo</h1>
+
+      <p>
+        This is the most basic Kefir.js example.
+        Click «+» or «-» buttons to change value in between them.
+        This example also uses <b>kefir-jquery.js</b> addon,
+        so make sure to include
+        <a href="https://github.com/pozadi/kefir/tree/master/dist/addons">addon file</a>
+        if you will use this code.
+      </p>
+
+      <h3>Result</h3>
+
+      <button data-plus-btn>+</button>
+      <span data-result></span>
+      <button data-minus-btn>-</button>
+
+      <h3>Source code</h3>
+
+      <pre>
+&lt;button data-plus-btn&gt;+&lt;/button&gt;
+&lt;span data-result&gt;&lt;/span&gt;
+&lt;button data-minus-btn&gt;-&lt;/button&gt;
+
+
+&lt;script src="...jquery.js"&gt;&lt;/script&gt;
+&lt;script src="...dist/kefir.min.js"&gt;&lt;/script&gt;
+&lt;script src="...dist/addons/kefir-jquery.min.js"&gt;&lt;/script&gt;
+
+&lt;script type="text/javascript"&gt;
+
+  var plusClicks = $('[data-plus-btn]').asKefirStream('click', function() {
+    return 1
+  });
+  var minusClicks = $('[data-minus-btn]').asKefirStream('click', function() {
+    return -1
+  });
+
+  var result = Kefir.merge(plusClicks, minusClicks).scan(0, function(cur, add) {
+    return cur + add;
+  });
+
+  result.onValue(function(x) {
+    $('[data-result]').text(x);
+  });
+
+&lt;/script&gt;
+</pre>
+
+      <br>
+      <br>
+
+      <script type="text/javascript">
+
+        var plusClicks = $('[data-plus-btn]').asKefirStream('click', function(){  return 1  });
+        var minusClicks = $('[data-minus-btn]').asKefirStream('click', function(){  return -1  });
+
+        var result = Kefir.merge(plusClicks, minusClicks).scan(0, function(cur, add) {
+          return cur + add;
+        });
+
+        result.onValue(function(x) {
+          $('[data-result]').text(x);
+        });
+
+      </script>
+
+    </body>
+</html>

@@ -9,18 +9,18 @@ describe 'scan', ->
   describe 'stream', ->
 
     it 'should return stream', ->
-      expect(stream().scan 0, ->).toBeStream()
+      expect(stream().scan 0, ->).toBeProperty()
 
     it 'should activate/deactivate source', ->
       a = stream()
       expect(a.scan 0, ->).toActivate(a)
 
     it 'should be ended if source was ended', ->
-      expect(send(stream(), ['<end>']).scan 0, ->).toEmit ['<end:current>']
+      expect(send(stream(), ['<end>']).scan 0, ->).toEmit [{current: 0}, '<end:current>']
 
     it 'should handle events', ->
       a = stream()
-      expect(a.scan 0, (prev, next) -> prev - next).toEmit [-1, -4, '<end>'], ->
+      expect(a.scan 0, (prev, next) -> prev - next).toEmit [{current: 0}, -1, -4, '<end>'], ->
         send(a, [1, 3, '<end>'])
 
 
@@ -35,7 +35,7 @@ describe 'scan', ->
       expect(a.scan 0, ->).toActivate(a)
 
     it 'should be ended if source was ended', ->
-      expect(send(prop(), ['<end>']).scan 0, ->).toEmit ['<end:current>']
+      expect(send(prop(), ['<end>']).scan 0, ->).toEmit [{current: 0}, '<end:current>']
 
     it 'should handle events and current', ->
       a = send(prop(), [1])
