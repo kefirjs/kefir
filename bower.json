@@ -38,7 +38,8 @@
     "docs-src",
     "backlog",
     "package.json",
-    "addons"
+    "addons",
+    "!dist/addons"
   ],
   "devDependencies": {
     "bacon": "~0.7.21",
