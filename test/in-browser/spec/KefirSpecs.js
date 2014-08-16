@@ -819,8 +819,8 @@ inherit(Merge, Stream, {
 
 });
 
-Kefir.merge = function(sources) {
-  return new Merge(sources);
+Kefir.merge = function() {
+  return new Merge(agrsToArray(arguments));
 }
 
 Observable.prototype.merge = function(other) {
@@ -17494,7 +17494,7 @@ describe('merge', function() {
       return send(b, [3, '<end>']);
     });
   });
-  return it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
+  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
     var a, b, c, merge;
     a = send(prop(), [0]);
     b = send(prop(), [1]);
@@ -17524,6 +17524,24 @@ describe('merge', function() {
         current: 2
       }
     ]);
+  });
+  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
+    var a, b, c;
+    a = stream();
+    b = send(prop(), [0]);
+    c = stream();
+    return expect(Kefir.merge(a, b, c)).toEmit([
+      {
+        current: 0
+      }, 1, 2, 3, 4, 5, 6, '<end>'
+    ], function() {
+      send(a, [1]);
+      send(b, [2]);
+      send(c, [3]);
+      send(a, ['<end>']);
+      send(b, [4, '<end>']);
+      return send(c, [5, 6, '<end>']);
+    });
   });
 });
 

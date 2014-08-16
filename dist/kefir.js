@@ -818,8 +818,8 @@ inherit(Merge, Stream, {
 
 });
 
-Kefir.merge = function(sources) {
-  return new Merge(sources);
+Kefir.merge = function() {
+  return new Merge(agrsToArray(arguments));
 }
 
 Observable.prototype.merge = function(other) {
