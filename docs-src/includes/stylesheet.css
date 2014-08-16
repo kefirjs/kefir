@@ -130,7 +130,7 @@ pre {
   background: #fff;
   position: fixed;
   top: 0; left: 0; bottom: 0;
-  width: 140px;
+  width: 240px;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -138,6 +138,11 @@ pre {
   border-right: 1px solid #bbb;
   box-shadow: 0 0 20px #ccc;
   font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
+}
+@media (max-width: 1050px) {
+  .sidebar {
+    width: 140px;
+  }
 }
   .sidebar a {
     color: inherit;
@@ -157,7 +162,6 @@ pre {
     list-style-type: none;
   }
     .toc-section li {
-      cursor: pointer;
       margin: 0 0 3px 0;
     }
       .toc-section a {
@@ -169,8 +173,13 @@ pre {
 
 .container {
   max-width: 680px;
-  margin: 40px 10px 50px 230px;
+  margin: 40px 10px 50px 330px;
   font-family: Helvetica, Arial, sans-serif;
+}
+@media (max-width: 1050px) {
+  .container {
+    margin-left: 230px;
+  }
 }
   .warning {
     margin-top: 15px;
