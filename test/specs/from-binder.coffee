@@ -45,6 +45,24 @@ describe 'fromBinder', ->
     expect(unsubCount).toBe(2)
 
 
+  it 'should automatically controll isCurent argument in `send`', ->
+
+    expect(
+      Kefir.fromBinder (send) ->
+        send('end')
+    ).toEmit ['<end:current>']
+
+    expect(
+      Kefir.fromBinder  (send) ->
+        send('value', 1)
+        send('value', 2)
+        setTimeout ->
+          send('value', 2)
+          send('end')
+        , 1000
+    ).toEmitInTime [[0, {current: 1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
+
+
 
 
 

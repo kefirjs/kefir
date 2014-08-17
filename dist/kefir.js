@@ -1,4 +1,4 @@
-/*! kefir - 0.2.1
+/*! kefir - 0.2.2
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1519,9 +1519,11 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var _this = this;
+    var isCurrent = true;
     this._unsubscribe = Fn.call(this._fn, [
-      function(type, x) {  _this._send(type, x)  }
+      function(type, x) {  _this._send(type, x, isCurrent)  }
     ]);
+    isCurrent = false;
   },
   _onDeactivation: function() {
     if (isFn(this._unsubscribe)) {
