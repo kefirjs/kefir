@@ -1,4 +1,6 @@
-# Kefir
+# <img src="http://pozadi.github.io/kefir/Kefir-with-bg.svg" width="60" height="60" /> Kefir
+
+
 
 Kefir — is an FRP (functional reactive programming) library for JavaScript
 inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
@@ -6,6 +8,8 @@ and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
+
+
 
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
 [![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir)
