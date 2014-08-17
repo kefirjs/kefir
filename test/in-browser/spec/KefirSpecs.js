@@ -1520,9 +1520,11 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var _this = this;
+    var isCurrent = true;
     this._unsubscribe = Fn.call(this._fn, [
-      function(type, x) {  _this._send(type, x)  }
+      function(type, x) {  _this._send(type, x, isCurrent)  }
     ]);
+    isCurrent = false;
   },
   _onDeactivation: function() {
     if (isFn(this._unsubscribe)) {
@@ -17044,7 +17046,7 @@ describe('fromBinder', function() {
       return send('end');
     });
   });
-  return it('should call `subscribe` / `unsubscribe` on activation / deactivation', function() {
+  it('should call `subscribe` / `unsubscribe` on activation / deactivation', function() {
     var a, subCount, unsubCount;
     subCount = 0;
     unsubCount = 0;
@@ -17070,6 +17072,29 @@ describe('fromBinder', function() {
     expect(unsubCount).toBe(1);
     deactivate(a);
     return expect(unsubCount).toBe(2);
+  });
+  return it('should automatically controll isCurent argument in `send`', function() {
+    expect(Kefir.fromBinder(function(send) {
+      return send('end');
+    })).toEmit(['<end:current>']);
+    return expect(Kefir.fromBinder(function(send) {
+      send('value', 1);
+      send('value', 2);
+      return setTimeout(function() {
+        send('value', 2);
+        return send('end');
+      }, 1000);
+    })).toEmitInTime([
+      [
+        0, {
+          current: 1
+        }
+      ], [
+        0, {
+          current: 2
+        }
+      ], [1000, 2], [1000, '<end>']
+    ]);
   });
 });
 
