@@ -184,7 +184,67 @@ emitter.emit(2);
 emitter.end();
 </pre><pre title="console output">=&gt; [emitter.toProperty.changes] &lt;value&gt; 1
 =&gt; [emitter.toProperty.changes] &lt;value&gt; 2
-=&gt; [emitter.toProperty.changes] &lt;end&gt;</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>observable.onValue(fn)</code><br/></p><p id="off-value"><a href="#off-value" class="header">offValue</a><code>observable.offValue(fn)</code><br/></p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>observable.onEnd(fn)</code><br/></p><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>observable.offEnd(fn)</code><br/></p><p id="log"><a href="#log" class="header">log</a><code>observable.log([name])</code><br/></p><h2 id="modify">Modify an observable</h2><p id="map"><a href="#map" class="header">map</a><code>observable.map(fn)</code><br/></p><p id="filter"><a href="#filter" class="header">filter</a><code>observable.filter(fn)</code><br/></p><p id="take"><a href="#take" class="header">take</a><code>observable.take(n)</code><br/></p><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>observable.takeWhile(fn)</code><br/></p><p id="skip"><a href="#skip" class="header">skip</a><code>observable.skip(n)</code><br/></p><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>observable.skipWhile(fn)</code><br/></p><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>observable.skipDuplicates([fn])</code><br/></p><p id="diff"><a href="#diff" class="header">diff</a><code>observable.diff(seed, fn)</code><br/></p><p id="scan"><a href="#scan" class="header">scan</a><code>observable.scan(seed, fn)</code><br/></p><p id="reduce"><a href="#reduce" class="header">reduce</a><code>observable.reduce(seed, fn)</code><br/></p><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>observable.withHandler(fn)</code><br/></p><p id="delay"><a href="#delay" class="header">delay</a><code>observable.delay(wait)</code><br/></p><p id="throttle"><a href="#throttle" class="header">throttle</a><code>observable.throttle(wait, [options])</code><br/></p><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(observables, [fn])</code><br/></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObservables, activeObservables, [fn])</code><br/></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(observables)</code><br/></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>property.flatMap(fn)</code><br/></p><h2 id="active-state">Active state</h2><h2 id="callbacks">About callbacks</h2></div><script src="bower-packages/jquery/jquery.js"></script><script src="dist/kefir.min.js"></script><script src="dist/addons/kefir-jquery.min.js"></script><script>$.getJSON('https://api.github.com/emojis', function(emojis){
+=&gt; [emitter.toProperty.changes] &lt;end&gt;</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>observable.onValue(fn)</code><br/></p><p id="off-value"><a href="#off-value" class="header">offValue</a><code>observable.offValue(fn)</code><br/></p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>observable.onEnd(fn)</code><br/></p><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>observable.offEnd(fn)</code><br/></p><p id="log"><a href="#log" class="header">log</a><code>observable.log([name])</code><br/></p><h2 id="modify">Modify an observable</h2><p id="map"><a href="#map" class="header">map</a><code>observable.map(fn)</code><br/></p><p id="filter"><a href="#filter" class="header">filter</a><code>observable.filter(fn)</code><br/></p><p id="take"><a href="#take" class="header">take</a><code>observable.take(n)</code><br/></p><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>observable.takeWhile(fn)</code><br/></p><p id="skip"><a href="#skip" class="header">skip</a><code>observable.skip(n)</code><br/></p><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>observable.skipWhile(fn)</code><br/></p><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>observable.skipDuplicates([fn])</code><br/></p><p id="diff"><a href="#diff" class="header">diff</a><code>observable.diff(seed, fn)</code><br/></p><p id="scan"><a href="#scan" class="header">scan</a><code>observable.scan(seed, fn)</code><br/></p><p id="reduce"><a href="#reduce" class="header">reduce</a><code>observable.reduce(seed, fn)</code><br/></p><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>observable.withHandler(fn)</code><br/></p><p id="delay"><a href="#delay" class="header">delay</a><code>observable.delay(wait)</code><br/></p><p id="throttle"><a href="#throttle" class="header">throttle</a><code>observable.throttle(wait, [options])</code><br/></p><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(observables, [fn])</code><br/></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObservables, activeObservables, [fn])</code><br/></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(observables)</code><br/></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>property.flatMap(fn)</code><br/></p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
+active or inactive. When observable in inactive state it not emits any
+events, and not subscribes to it's original source.
+Observables automatically became active when first listener added,
+and became inactive when last listener removed.
+</p><p>For example <tt>stream = $('.foo').asKefirStream('click')</tt> won't
+immediately subscribe to <tt>'click'</tt> event on <tt>$('.foo')</tt>,
+it will subscribe only when first listener will be added to
+<tt>stream</tt>. And will automatically unsubscribe when last listener
+will be removed from <tt>stream</tt>.
+</p><pre>var stream = $(&#x27;.foo&#x27;).asKefirStream(&#x27;click&#x27;)
+// at this moment event listener to .foo not added
+
+stream.onValue(someFn);
+// now &#x27;click&#x27; listener added to .foo
+
+stream.offValue(someFn);
+// and now it removed again
+</pre><p>If one observable depends on another,
+its active state propagates to its dependencies.
+For example, in following code,
+<b>mapA</b> will activate <b>A</b>,
+<b>filterMapA</b> will activate <b>mapA</b> and <b>A</b>,
+<b>mergeAB</b> will activate <b>A</b> and <b>B</b>.
+</p><pre>var A = Kefir.emitter();
+var B = Kefir.emitter();
+
+var mapA = A.map(function(){ ... });
+var filterMapA = mapA.filter(function(){ ... });
+var mergeAB = Kefir.merge(A, B);
+</pre><p><img data-emoji="point_up"> Notice that current value of a
+property won't update when property is inactive.
+For example, we convert an <b>emitter</b> to property,
+then emit some values via <b>emitter</b>,
+while property has no subscribers (i.e. inactive).
+In this case property won't get those values and
+won't update its current value.
+</p><pre>var emitter = Kefir.emitter();
+var property = emitter.toProperty(0);
+
+// 1 and 2 won&#x27;t become property current value
+emitter.emit(1);
+emitter.emit(2);
+
+// now we activate property by subscribing to it,
+// and also check current value
+property.onValue(function(x) {  console.log(x)  }) // =&gt; 0
+
+// those values will become property current
+emitter.emit(3);
+emitter.emit(4);
+
+property.onValue(function(x) {  console.log(x)  }) // =&gt; 4
+</pre><p>In fact active state is just a convention that strictly
+followed in Kefir code, for better performance.
+But you free to not follow it in your custom plugins or combinators.
+For example you can create your own jQuery <tt>.asKefirStream()</tt>
+plugin using <b>emitter</b> and always subscribe to DOM event, even when
+stream has no subscribers. Or you can create your own <tt>.map()</tt>
+combinator that always keeps subscription to its source observable
+(i.e keeps it in active state).</p><h2 id="callbacks">About callbacks</h2></div><script src="bower-packages/jquery/jquery.js"></script><script src="dist/kefir.min.js"></script><script src="dist/addons/kefir-jquery.min.js"></script><script>$.getJSON('https://api.github.com/emojis', function(emojis){
   $('[data-emoji]').each(function(){
     var name = $(this).data('emoji');
     $(this).attr({
