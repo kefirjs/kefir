@@ -12,8 +12,16 @@ helper.setupTest 'stream.map(->, {})', {
   kefir: (stream) -> stream.map([(->), {}])
 }
 
+helper.setupTest 'stream.map(->.bind({}))', {
+  kefir: (stream) -> stream.map([(->).bind({})])
+}
+
 helper.setupTest 'stream.map(->, {}, 0)', {
   kefir: (stream) -> stream.map([(->), {}, 0])
+}
+
+helper.setupTest 'stream.map(->.bind({}, 0))', {
+  kefir: (stream) -> stream.map([(->).bind({}, 0)])
 }
 
 helper.setupTest 'stream.map(->, {}, 0, 1)', {
