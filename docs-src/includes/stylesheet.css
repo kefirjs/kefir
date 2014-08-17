@@ -60,7 +60,7 @@ a {
 p {
   margin: 20px 0;
 }
-h1, h2 {
+h2 {
   padding-top: 1em;
 }
 h2 {
@@ -206,4 +206,12 @@ h2[id]:not(.no-extra-padding) {
 }
 h2[id] + p[id]{
   margin-top: 3em;
+}
+
+
+.logo-img {
+  width: 60px;
+  height: 60px;
+  vertical-align: bottom;
+  margin-bottom: -4px;
 }
