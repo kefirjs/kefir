@@ -98,12 +98,133 @@ div
 
 
 +descr-method('repeatedly', 'repeatedly', 'Kefir.repeatedly(interval, values)').
+  Creates a stream, that produces given <b>values</b> (array),
+  with given <b>interval</b> in milliseconds.
+  When all values emitted, it begins to produce them again from start.
+  Never ends.
+
+pre(title='code').
+  var stream = Kefir.repeatedly(1000, [1, 2, 3]);
+  stream.log();
+
+pre(title='console output')
+  :escapehtml
+    => [repeatedly] <value> 1
+    => [repeatedly] <value> 2
+    => [repeatedly] <value> 3
+    => [repeatedly] <value> 1
+    => [repeatedly] <value> 2
+    => [repeatedly] <value> 3
+    => [repeatedly] <value> 1
+    ...
+div
+
 
 +descr-method('from-poll', 'fromPoll', 'Kefir.fromPoll(interval, fn)').
+  Creates a stream, that polls given <b>fn</b> function,
+  with given <b>interval</b> in milliseconds,
+  and emits values returned by <b>fn</b>.
+  Never ends.
 
-+descr-method('with-interval', 'withInterval', 'Kefir.withInterval(interval, fn)').
+pre(title='code').
+  var start = new Date();
+  var stream = Kefir.fromPoll(1000, function(){ return new Date() - start });
+  stream.log();
 
-+descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(fn)').
+pre(title='console output')
+  :escapehtml
+    => [fromPoll] <value> 1001
+    => [fromPoll] <value> 2002
+    => [fromPoll] <value> 3004
+    => [fromPoll] <value> 4006
+    => [fromPoll] <value> 5007
+    => [fromPoll] <value> 6007
+    ...
+div
+
+
++descr-method('with-interval', 'withInterval', 'Kefir.withInterval(interval, handler)').
+  General method to create an interval based stream.
+  Creates a stream, that call given <b>handler</b> function,
+  with given <b>interval</b> in milliseconds.
+  <b>Handler</b> beings called with one argument — <b>send</b> function,
+  which you can call to emit value or end the stream (see example).
+
+pre(title='code')
+  :escapehtml
+    var start = new Date();
+    var stream = Kefir.withInterval(1000, function(send) {
+      var time = new Date() - start;
+      if (time < 4000) {
+        send('value', time);   // emit value
+      } else {
+        send('end');           // end the stream
+      }
+    });
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    => [withInterval] <value> 1002
+    => [withInterval] <value> 2003
+    => [withInterval] <value> 3005
+    => [withInterval] <end>
+    ...
+div
+
+p.
+  <b>Send</b> function accepts two arguments —
+  event <b>type</b> (<tt>'value'</tt> or <tt>'end'</tt>),
+  and <b>value</b> (ignored if <b>type</b> is <tt>'end'</tt>).
+  You may call <b>send</b> several times on each interval tick,
+  or not call it at all.
+
+
+
+
++descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
+  Another method for creation general purpose stream,
+  along with <a href="#emitter">emitter</a>.
+  Unlike <b>emitter</b> it gives you control over
+  <a href="#active-state">active state</a> of the stream.
+
+p.
+  Creates stream which call <b>subscribe</b> function on each <b>activation</b>,
+  passing to it an <b>send</b> function
+  (just like in <a href="#with-interval">withInterval</a>).
+  Then you can call <b>send</b> at any time to emit value or end the stream.
+  <b>Subscribe</b> function can also return an <b>unsubscribe</b> function,
+  that will be called on <b>deactivation</b> of the stream.
+  Read about <a href="#active-state">active state</a> to understand what
+  <b>activation</b> and <b>deactivation</b> means.
+
+pre(title='code')
+  :escapehtml
+    var stream = Kefir.fromBinder(function(send) {
+      console.log('!activation');
+      var i = 0;
+      var intervalId = setInterval(function() {
+        send('value', ++i);
+      }, 1000);
+      return function() {
+        console.log('!deactivation');
+        clearInterval(intervalId);
+      }
+    });
+    stream.log();
+    setTimeout(function() {
+      stream.offLog(); // turn off logging to deactivate stream
+    }, 3500);
+
+pre(title='console output')
+  :escapehtml
+    => !activation
+    => [fromBinder] <value> 1
+    => [fromBinder] <value> 2
+    => [fromBinder] <value> 3
+    => !deactivation
+div
+
 
 
 
