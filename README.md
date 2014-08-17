@@ -1,4 +1,4 @@
-# <img src="http://pozadi.github.io/kefir/Kefir-with-bg.svg" width="60" height="60" /> Kefir
+# <a href="http://pozadi.github.io/kefir/"><img src="http://pozadi.github.io/kefir/Kefir-with-bg.svg" width="60" height="60"></a> Kefir
 
 
 
