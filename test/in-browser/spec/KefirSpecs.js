@@ -516,11 +516,7 @@ extend(Observable.prototype, {
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
     if (fnType === valueType) {
-      if (fnType === 'value') {
-        Fn.call(fn, [value]);
-      } else {
-        Fn.call(fn);
-      }
+      Fn.call(fn, fnType === 'value' ? [value] : []);
     } else if (fnType === 'any') {
       Fn.call(fn, [valueType, value, true]);
     }
