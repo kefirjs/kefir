@@ -6,7 +6,12 @@ p.
   with which function will be called.
 
 p.
-  For example all following code snippets are equivalent.
+  It works everywhere in Kefir where function passes as argument,
+  for example in <tt>.map(fn)</tt>, <tt>.filter(fn)</tt>,
+  <tt>.fromPoll(wait, fn)</tt> — everywhere.
+
+p.
+  All following code snippets are equivalent.
 
 pre
   :escapehtml
@@ -27,9 +32,9 @@ pre(title="also equivalent but slower and consumes more memory than all above").
   someStream.onValue(someObj.someMethod.bind(someObj, 1, 2));
 
 p.
-  You also can pass method name as a string instead
-  of method itself in first position of array (see last code snippet).
-  It may be useful, for example you may do this:
+  You can pass method name as a string instead
+  of method itself in first position of array.
+  Here some real world example where it can be useful:
 
 pre
   :escapehtml
@@ -42,8 +47,10 @@ pre(title="equivalent to above")
     isVisibleProperty.onValue(['toggleClass', $('.foo'), 'is-visible']);
 
 p.
-  This works everywhere in Kefir where function passes as argument,
-  for example in <tt>.map(fn)</tt>, <tt>.filter(fn)</tt>, <tt>.fromPoll(wait, fn)</tt> — everywhere.
+  If you don't need aditional arguments, but only <tt>this</tt> context,
+  just don't add them to array: <tt>[foo.bar, foo]</tt>.
+  And if you don't need context, pass <tt>null</tt>
+  in its place: <tt>[foo, null, 1, 2, 3]</tt>.
 
 p.
   <img data-emoji="point_up"> In order to unsubscribe from observable,
