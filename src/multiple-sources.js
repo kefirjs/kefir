@@ -228,12 +228,18 @@ inherit(_AbstractPool, Stream, {
   _name: 'abstractPool',
 
   _sub: function(obs) {
-    obs.onValue([this._send, this, 'value']);
+    obs.onAny([this._handleSubAny, this]);
     obs.onEnd([this._remove, this, obs]);
   },
   _unsub: function(obs) {
-    obs.offValue([this._send, this, 'value']);
+    obs.offAny([this._handleSubAny, this]);
     obs.offEnd([this._remove, this, obs]);
+  },
+
+  _handleSubAny: function(type, x, isCurrent) {
+    if (type === 'value') {
+      this._send('value', x, isCurrent);
+    }
   },
 
   _add: function(obs) {

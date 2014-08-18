@@ -29,19 +29,19 @@ describe 'Property', ->
     it 'should call `end` subscribers', ->
       s = prop()
       log = []
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
+      s.onEnd -> log.push(1)
+      s.onEnd -> log.push(2)
       expect(log).toEqual([])
       send(s, ['<end>'])
-      expect(log).toEqual([[undefined, false, 1], [undefined, false, 2]])
+      expect(log).toEqual([1, 2])
 
     it 'should call `end` subscribers on already ended property', ->
       s = prop()
       send(s, ['<end>'])
       log = []
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
-      expect(log).toEqual([[undefined, true, 1], [undefined, true, 2]])
+      s.onEnd -> log.push(1)
+      s.onEnd -> log.push(2)
+      expect(log).toEqual([1, 2])
 
     it 'should deactivate on end', ->
       s = prop()
@@ -95,3 +95,29 @@ describe 'Property', ->
     it 'should deliver values and current', ->
       s = send(prop(), [0])
       expect(s).toEmit [{current: 0}, 1, 2], -> send(s, [1, 2])
+
+    it 'onValue subscribers should be called with 1 argument', ->
+      s = send(prop(), [0])
+      count = null
+      s.onValue -> count = arguments.length
+      expect(count).toBe(1)
+      send(s, [1])
+      expect(count).toBe(1)
+
+    it 'onAny subscribers should be called with 3 arguments', ->
+      s = send(prop(), [0])
+      count = null
+      s.onAny -> count = arguments.length
+      expect(count).toBe(3)
+      send(s, [1])
+      expect(count).toBe(3)
+
+
+    it 'onEnd subscribers should be called with 0 arguments', ->
+      s = send(prop(), [0])
+      count = null
+      s.onEnd -> count = arguments.length
+      send(s, ['<end>'])
+      expect(count).toBe(0)
+      s.onEnd -> count = arguments.length
+      expect(count).toBe(0)

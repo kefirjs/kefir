@@ -150,8 +150,7 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!(type === 'end' && isCurrent)) {
-        if (type === 'end') {  x = undefined  }
-        this._subscribers.call(type, [x, !!isCurrent]);
+        this._subscribers.call(type, type === 'value' ? [x] : []);
         this._subscribers.call('any', [type, x, !!isCurrent]);
       }
       if (type === 'end') {  this._clear()  }
@@ -160,7 +159,11 @@ extend(Observable.prototype, {
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
     if (fnType === valueType) {
-      Fn.call(fn, [value, true]);
+      if (fnType === 'value') {
+        Fn.call(fn, [value]);
+      } else {
+        Fn.call(fn);
+      }
     } else if (fnType === 'any') {
       Fn.call(fn, [valueType, value, true]);
     }
@@ -241,8 +244,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        if (type === 'end') {  x = undefined  }
-        this._subscribers.call(type, [x, false]);
+        this._subscribers.call(type, type === 'value' ? [x] : []);
         this._subscribers.call('any', [type, x, false]);
       }
       if (type === 'value') {  this._current = x  }

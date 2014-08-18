@@ -507,8 +507,7 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!(type === 'end' && isCurrent)) {
-        if (type === 'end') {  x = undefined  }
-        this._subscribers.call(type, [x, !!isCurrent]);
+        this._subscribers.call(type, type === 'value' ? [x] : []);
         this._subscribers.call('any', [type, x, !!isCurrent]);
       }
       if (type === 'end') {  this._clear()  }
@@ -517,7 +516,11 @@ extend(Observable.prototype, {
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
     if (fnType === valueType) {
-      Fn.call(fn, [value, true]);
+      if (fnType === 'value') {
+        Fn.call(fn, [value]);
+      } else {
+        Fn.call(fn);
+      }
     } else if (fnType === 'any') {
       Fn.call(fn, [valueType, value, true]);
     }
@@ -598,8 +601,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        if (type === 'end') {  x = undefined  }
-        this._subscribers.call(type, [x, false]);
+        this._subscribers.call(type, type === 'value' ? [x] : []);
         this._subscribers.call('any', [type, x, false]);
       }
       if (type === 'value') {  this._current = x  }
@@ -998,12 +1000,18 @@ inherit(_AbstractPool, Stream, {
   _name: 'abstractPool',
 
   _sub: function(obs) {
-    obs.onValue([this._send, this, 'value']);
+    obs.onAny([this._handleSubAny, this]);
     obs.onEnd([this._remove, this, obs]);
   },
   _unsub: function(obs) {
-    obs.offValue([this._send, this, 'value']);
+    obs.offAny([this._handleSubAny, this]);
     obs.offEnd([this._remove, this, obs]);
+  },
+
+  _handleSubAny: function(type, x, isCurrent) {
+    if (type === 'value') {
+      this._send('value', x, isCurrent);
+    }
   },
 
   _add: function(obs) {
@@ -17709,28 +17717,28 @@ describe('Property', function() {
       var log, s;
       s = prop();
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
       expect(log).toEqual([]);
       send(s, ['<end>']);
-      return expect(log).toEqual([[void 0, false, 1], [void 0, false, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should call `end` subscribers on already ended property', function() {
       var log, s;
       s = prop();
       send(s, ['<end>']);
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
-      return expect(log).toEqual([[void 0, true, 1], [void 0, true, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should deactivate on end', function() {
       var s;
@@ -17787,7 +17795,7 @@ describe('Property', function() {
     });
   });
   return describe('subscribers', function() {
-    return it('should deliver values and current', function() {
+    it('should deliver values and current', function() {
       var s;
       s = send(prop(), [0]);
       return expect(s).toEmit([
@@ -17797,6 +17805,42 @@ describe('Property', function() {
       ], function() {
         return send(s, [1, 2]);
       });
+    });
+    it('onValue subscribers should be called with 1 argument', function() {
+      var count, s;
+      s = send(prop(), [0]);
+      count = null;
+      s.onValue(function() {
+        return count = arguments.length;
+      });
+      expect(count).toBe(1);
+      send(s, [1]);
+      return expect(count).toBe(1);
+    });
+    it('onAny subscribers should be called with 3 arguments', function() {
+      var count, s;
+      s = send(prop(), [0]);
+      count = null;
+      s.onAny(function() {
+        return count = arguments.length;
+      });
+      expect(count).toBe(3);
+      send(s, [1]);
+      return expect(count).toBe(3);
+    });
+    return it('onEnd subscribers should be called with 0 arguments', function() {
+      var count, s;
+      s = send(prop(), [0]);
+      count = null;
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      send(s, ['<end>']);
+      expect(count).toBe(0);
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      return expect(count).toBe(0);
     });
   });
 });
@@ -18421,28 +18465,28 @@ describe('Stream', function() {
       var log, s;
       s = stream();
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
       expect(log).toEqual([]);
       send(s, ['<end>']);
-      return expect(log).toEqual([[void 0, false, 1], [void 0, false, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should call `end` subscribers on already ended stream', function() {
       var log, s;
       s = stream();
       send(s, ['<end>']);
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
-      return expect(log).toEqual([[void 0, true, 1], [void 0, true, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should deactivate on end', function() {
       var s;
@@ -18499,12 +18543,46 @@ describe('Stream', function() {
     });
   });
   describe('subscribers', function() {
-    return it('should deliver values', function() {
+    it('should deliver values', function() {
       var s;
       s = stream();
       return expect(s).toEmit([1, 2], function() {
         return send(s, [1, 2]);
       });
+    });
+    it('onValue subscribers should be called with 1 argument', function() {
+      var count, s;
+      s = stream();
+      count = null;
+      s.onValue(function() {
+        return count = arguments.length;
+      });
+      send(s, [1]);
+      return expect(count).toBe(1);
+    });
+    it('onAny subscribers should be called with 3 arguments', function() {
+      var count, s;
+      s = stream();
+      count = null;
+      s.onAny(function() {
+        return count = arguments.length;
+      });
+      send(s, [1]);
+      return expect(count).toBe(3);
+    });
+    return it('onEnd subscribers should be called with 0 arguments', function() {
+      var count, s;
+      s = stream();
+      count = null;
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      send(s, ['<end>']);
+      expect(count).toBe(0);
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      return expect(count).toBe(0);
     });
   });
   return describe('listener with context and/or args', function() {
