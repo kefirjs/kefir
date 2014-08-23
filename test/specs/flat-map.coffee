@@ -68,7 +68,7 @@ describe 'flatMap', ->
       b = send(prop(), [a])
       expect(b.flatMap()).toEmit [{current: 0}]
 
-    it 'should costantly adding current value on each activation (documented bug)', ->
+    it 'should not costantly adding current value on each activation', ->
       a = send(prop(), [0])
       b = send(prop(), [a])
       map = b.flatMap()
@@ -76,6 +76,6 @@ describe 'flatMap', ->
       deactivate(map)
       activate(map)
       deactivate(map)
-      expect(map).toEmit [{current: 0}, {current: 0}, {current: 0}]
+      expect(map).toEmit [{current: 0}]
 
 

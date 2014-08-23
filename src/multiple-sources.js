@@ -148,6 +148,7 @@ inherit(SampledBy, Stream, {
   _clear: function() {
     Stream.prototype._clear.call(this);
     this._sources = null;
+    this._currents = null;
   }
 
 });
@@ -277,6 +278,7 @@ function FlatMap(source, fn) {
   this._name = source._name + '.flatMap';
   this._fn = fn ? new Fn(fn) : null;
   this._mainEnded = false;
+  this._lastValue = null;
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -292,7 +294,10 @@ inherit(FlatMap, _AbstractPool, {
 
   _handleMainSource: function(event) {
     if (event.type === 'value') {
-      this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
+      if (!event.current || this._lastValue !== event.value) {
+        this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
+      }
+      this._lastValue = event.value;
     } else {
       if (this._sources.length === 0) {
         this._send('end', null, event.current);
@@ -312,6 +317,7 @@ inherit(FlatMap, _AbstractPool, {
   _clear: function() {
     _AbstractPool.prototype._clear.call(this);
     this._source = null;
+    this._lastValue = null;
   }
 
 });
