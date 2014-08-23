@@ -104,13 +104,13 @@ describe 'Property', ->
       send(s, [1])
       expect(count).toBe(1)
 
-    it 'onAny subscribers should be called with 3 arguments', ->
+    it 'onAny subscribers should be called with 1 arguments', ->
       s = send(prop(), [0])
       count = null
       s.onAny -> count = arguments.length
-      expect(count).toBe(3)
+      expect(count).toBe(1)
       send(s, [1])
-      expect(count).toBe(3)
+      expect(count).toBe(1)
 
 
     it 'onEnd subscribers should be called with 0 arguments', ->

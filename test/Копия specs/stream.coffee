@@ -103,12 +103,12 @@ describe 'Stream', ->
       send(s, [1])
       expect(count).toBe(1)
 
-    it 'onAny subscribers should be called with 1 arguments', ->
+    it 'onAny subscribers should be called with 3 arguments', ->
       s = stream()
       count = null
       s.onAny -> count = arguments.length
       send(s, [1])
-      expect(count).toBe(1)
+      expect(count).toBe(3)
 
     it 'onEnd subscribers should be called with 0 arguments', ->
       s = stream()

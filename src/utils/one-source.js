@@ -22,10 +22,10 @@ function withOneSource(name, mixin, options) {
     _onActivationHook: function() {},
     _onDeactivationHook: function() {},
 
-    _handleAny: function(type, x, isCurrent) {
-      switch (type) {
-        case 'value': this._handleValue(x, isCurrent); break;
-        case 'end': this._handleEnd(x, isCurrent); break;
+    _handleAny: function(event) {
+      switch (event.type) {
+        case 'value': this._handleValue(event.value, event.current); break;
+        case 'end': this._handleEnd(event.value, event.current); break;
       }
     },
 

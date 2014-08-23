@@ -44,8 +44,8 @@ withOneSource('withHandler', {
     this._handler = null;
     this._bindedSend = null;
   },
-  _handleAny: function(type, x, isCurrent) {
-    Fn.call(this._handler, [this._bindedSend, type, x, isCurrent]);
+  _handleAny: function(event) {
+    Fn.call(this._handler, [this._bindedSend, event]);
   }
 });
 

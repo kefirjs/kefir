@@ -151,7 +151,7 @@ extend(Observable.prototype, {
     if (this._alive) {
       if (!(type === 'end' && isCurrent)) {
         this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [type, x, !!isCurrent]);
+        this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
       }
       if (type === 'end') {  this._clear()  }
     }
@@ -161,7 +161,7 @@ extend(Observable.prototype, {
     if (fnType === valueType) {
       Fn.call(fn, fnType === 'value' ? [value] : []);
     } else if (fnType === 'any') {
-      Fn.call(fn, [valueType, value, true]);
+      Fn.call(fn, [{type: valueType, value: value, current: true}]);
     }
   },
 
@@ -241,7 +241,7 @@ inherit(Property, Observable, {
     if (this._alive) {
       if (!isCurrent) {
         this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [type, x, false]);
+        this._subscribers.call('any', [{type: type, value: x, current: false}]);
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -271,10 +271,10 @@ inherit(Property, Observable, {
 
 // Log
 
-function logCb(name, type, x, isCurrent) {
-  var typeStr = '<' + type + (isCurrent ? ':current' : '') + '>';
-  if (type === 'value') {
-    console.log(name, typeStr, x);
+function logCb(name, event) {
+  var typeStr = '<' + event.type + (event.isCurrent ? ':current' : '') + '>';
+  if (event.type === 'value') {
+    console.log(name, typeStr, event.value);
   } else {
     console.log(name, typeStr);
   }

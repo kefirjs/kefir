@@ -6,13 +6,13 @@ helpers = require('../test-helpers.coffee')
 describe 'withHandler', ->
 
 
-  mirror = (send, type, x, isCurrent) ->
-    send(type, x, isCurrent)
+  mirror = (send, event) ->
+    send(event.type, event.value, event.current)
 
-  duplicate = (send, type, x, isCurrent) ->
-    send(type, x, isCurrent)
-    if type == 'value' && !isCurrent
-      send(type, x)
+  duplicate = (send, event) ->
+    send(event.type, event.value, event.current)
+    if event.type == 'value' && !event.current
+      send(event.type, event.value)
 
 
   describe 'stream', ->

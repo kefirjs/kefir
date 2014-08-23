@@ -3,29 +3,29 @@ sinon = require('sinon')
 
 
 
-logItem = (type, x, isCurrent) ->
-  if type == 'value'
-    if isCurrent
-      {current: x}
+logItem = (event) ->
+  if event.type == 'value'
+    if event.current
+      {current: event.value}
     else
-      x
+      event.value
   else
-    if isCurrent
+    if event.current
       '<end:current>'
     else
       '<end>'
 
 exports.watch = (obs) ->
   log = []
-  obs.onAny (type, x, isCurrent) ->
-    log.push(logItem type, x, isCurrent)
+  obs.onAny (event) ->
+    log.push(logItem event)
   log
 
 exports.watchWithTime = (obs) ->
   startTime = new Date()
   log = []
-  obs.onAny (type, x, isCurrent) ->
-    log.push([(new Date() - startTime), (logItem type, x, isCurrent)])
+  obs.onAny (event) ->
+    log.push([(new Date() - startTime), (logItem event)])
   log
 
 

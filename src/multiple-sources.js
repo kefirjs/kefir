@@ -31,13 +31,13 @@ inherit(Merge, Stream, {
     }
   },
 
-  _handleAny: function(type, x, isCurrent) {
-    if (type === 'value') {
-      this._send('value', x, isCurrent);
+  _handleAny: function(event) {
+    if (event.type === 'value') {
+      this._send('value', event.value, event.current);
     } else {
       this._aliveCount--;
       if (this._aliveCount === 0) {
-        this._send('end', null, isCurrent);
+        this._send('end', null, event.current);
       }
     }
   },
@@ -99,20 +99,20 @@ inherit(Combine, Property, {
     }
   },
 
-  _handleAny: function(i, type, x, isCurrent) {
-    if (type === 'value') {
-      this._currents[i] = x;
+  _handleAny: function(i, event) {
+    if (event.type === 'value') {
+      this._currents[i] = event.value;
       if (!contains(this._currents, NOTHING)) {
         var combined = cloneArray(this._currents);
         if (this._combinator) {
           combined = Fn.call(this._combinator, this._currents);
         }
-        this._send('value', combined, isCurrent);
+        this._send('value', combined, event.current);
       }
     } else {
       this._aliveCount--;
       if (this._aliveCount === 0) {
-        this._send('end', null, isCurrent);
+        this._send('end', null, event.current);
       }
     }
   },
@@ -174,23 +174,23 @@ inherit(SampledBy, Stream, {
     }
   },
 
-  _handleAny: function(i, type, x, isCurrent) {
-    if (type === 'value') {
-      this._currents[i] = x;
+  _handleAny: function(i, event) {
+    if (event.type === 'value') {
+      this._currents[i] = event.value;
       if (i >= this._passiveCount) {
         if (!contains(this._currents, NOTHING)) {
           var combined = cloneArray(this._currents);
           if (this._combinator) {
             combined = Fn.call(this._combinator, this._currents);
           }
-          this._send('value', combined, isCurrent);
+          this._send('value', combined, event.current);
         }
       }
     } else {
       if (i >= this._passiveCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
-          this._send('end', null, isCurrent);
+          this._send('end', null, event.current);
         }
       }
     }
@@ -236,9 +236,9 @@ inherit(_AbstractPool, Stream, {
     obs.offEnd([this._remove, this, obs]);
   },
 
-  _handleSubAny: function(type, x, isCurrent) {
-    if (type === 'value') {
-      this._send('value', x, isCurrent);
+  _handleSubAny: function(event) {
+    if (event.type === 'value') {
+      this._send('value', event.value, event.current);
     }
   },
 
@@ -324,15 +324,12 @@ inherit(FlatMap, _AbstractPool, {
     this._source.offAny([this._handleMainSource, this]);
   },
 
-  _handleMainSource: function(type, x, isCurrent) {
-    if (type === 'value') {
-      if (this._fn) {
-        x = Fn.call(this._fn, [x]);
-      }
-      this._add(x);
+  _handleMainSource: function(event) {
+    if (event.type === 'value') {
+      this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
     } else {
       if (this._sources.length === 0) {
-        this._send('end', null, isCurrent);
+        this._send('end', null, event.current);
       } else {
         this._mainEnded = true;
       }
