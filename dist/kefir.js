@@ -6,8 +6,6 @@
 
 var NOTHING = ['<nothing>'];
 
-function id(x) {return x}
-
 function get(map, key, notFound) {
   if (map && key in map) {
     return map[key];
@@ -174,7 +172,7 @@ function isUndefined(x) {
   return typeof x === 'undefined';
 }
 
-function isArray(xs) {
+var isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 }
 
@@ -206,22 +204,6 @@ function isEqualArrays(a, b) {
     }
   }
   return true;
-}
-
-function toStream(obs) {
-  if (obs instanceof Stream) {
-    return obs;
-  } else {
-    return obs.changes();
-  }
-}
-
-function toProperty(obs) {
-  if (obs instanceof Stream) {
-    return obs.toProperty();
-  } else {
-    return obs;
-  }
 }
 
 function withInterval(name, mixin) {
