@@ -4,11 +4,11 @@ Kefir = require('kefir')
 
 describe 'combine', ->
 
-  it 'should return property', ->
-    expect(Kefir.combine([])).toBeProperty()
-    expect(Kefir.combine([stream(), prop()])).toBeProperty()
-    expect(stream().combine(stream())).toBeProperty()
-    expect(prop().combine(prop())).toBeProperty()
+  it 'should return stream', ->
+    expect(Kefir.combine([])).toBeStream()
+    expect(Kefir.combine([stream(), prop()])).toBeStream()
+    expect(stream().combine(stream())).toBeStream()
+    expect(prop().combine(prop())).toBeStream()
 
   it 'should be ended if empty array provided', ->
     expect(Kefir.combine([])).toEmit ['<end:current>']

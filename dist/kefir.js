@@ -829,81 +829,6 @@ Observable.prototype.merge = function(other) {
 
 
 
-
-// .combine()
-
-function Combine(sources, combinator) {
-  Property.call(this);
-  if (sources.length === 0) {
-    this._send('end');
-  } else {
-    this._combinator = combinator ? new Fn(combinator) : null;
-    this._sources = map(sources, toProperty);
-    this._aliveCount = 0;
-    this._currents = new Array(sources.length);
-  }
-}
-
-inherit(Combine, Property, {
-
-  _name: 'combine',
-
-  _onActivation: function() {
-    var length = this._sources.length,
-        i;
-    this._aliveCount = length;
-    fillArray(this._currents, NOTHING);
-    for (i = 0; i < length; i++) {
-      this._sources[i].onAny([this._handleAny, this, i]);
-    }
-  },
-
-  _onDeactivation: function() {
-    var length = this._sources.length,
-        i;
-    for (i = 0; i < length; i++) {
-      this._sources[i].offAny([this._handleAny, this, i]);
-    }
-  },
-
-  _handleAny: function(i, event) {
-    if (event.type === 'value') {
-      this._currents[i] = event.value;
-      if (!contains(this._currents, NOTHING)) {
-        var combined = cloneArray(this._currents);
-        if (this._combinator) {
-          combined = Fn.call(this._combinator, this._currents);
-        }
-        this._send('value', combined, event.current);
-      }
-    } else {
-      this._aliveCount--;
-      if (this._aliveCount === 0) {
-        this._send('end', null, event.current);
-      }
-    }
-  },
-
-  _clear: function() {
-    Property.prototype._clear.call(this);
-    this._sources = null;
-  }
-
-});
-
-Kefir.combine = function(sources, combinator) {
-  return new Combine(sources, combinator);
-}
-
-Observable.prototype.combine = function(other, combinator) {
-  return Kefir.combine([this, other], combinator);
-}
-
-
-
-
-
-
 // .sampledBy()
 
 function SampledBy(passive, active, combinator) {
@@ -976,6 +901,23 @@ Kefir.sampledBy = function(passive, active, combinator) {
 
 Observable.prototype.sampledBy = function(other, combinator) {
   return Kefir.sampledBy([this], [other], combinator);
+}
+
+
+
+
+
+
+// .combine()
+
+Kefir.combine = function(sources, combinator) {
+  var result = new SampledBy([], sources, combinator);
+  result._name = 'combine';
+  return result;
+}
+
+Observable.prototype.combine = function(other, combinator) {
+  return Kefir.combine([this, other], combinator);
 }
 
 
