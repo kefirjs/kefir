@@ -1,5 +1,5 @@
 Kefir = require('kefir')
-{stream, prop, send} = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
 
 
 describe 'combine', ->
@@ -72,3 +72,11 @@ describe 'combine', ->
       send(b, [2])
       send(a, ['<end>'])
       send(b, [3, '<end>'])
+
+  it 'when activating second time and has 2+ properties in sources, should emit current value at most once', ->
+    a = send(prop(), [0])
+    b = send(prop(), [1])
+    cb = Kefir.combine([a, b])
+    activate(cb)
+    deactivate(cb)
+    expect(cb).toEmit [{current: [0, 1]}]

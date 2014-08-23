@@ -825,6 +825,9 @@ function SampledBy(passive, active, combinator) {
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
+    this._activating = false;
+    this._emitAfterActivation = false;
+    this._endAfterActivation = false;
   }
 }
 
@@ -836,8 +839,17 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     this._aliveCount = length - this._passiveCount;
+    this._activating = true;
     for (i = 0; i < length; i++) {
       this._sources[i].onAny([this._handleAny, this, i]);
+    }
+    this._activating = false;
+    if (this._emitAfterActivation) {
+      this._emitAfterActivation = false;
+      this._emitIfFull(true);
+    }
+    if (this._endAfterActivation) {
+      this._send('end', null, true);
     }
   },
 
@@ -849,23 +861,35 @@ inherit(SampledBy, Stream, {
     }
   },
 
+  _emitIfFull: function(isCurrent) {
+    if (!contains(this._currents, NOTHING)) {
+      var combined = cloneArray(this._currents);
+      if (this._combinator) {
+        combined = Fn.call(this._combinator, this._currents);
+      }
+      this._send('value', combined, isCurrent);
+    }
+  },
+
   _handleAny: function(i, event) {
     if (event.type === 'value') {
       this._currents[i] = event.value;
       if (i >= this._passiveCount) {
-        if (!contains(this._currents, NOTHING)) {
-          var combined = cloneArray(this._currents);
-          if (this._combinator) {
-            combined = Fn.call(this._combinator, this._currents);
-          }
-          this._send('value', combined, event.current);
+        if (this._activating) {
+          this._emitAfterActivation = true;
+        } else {
+          this._emitIfFull(event.current);
         }
       }
     } else {
       if (i >= this._passiveCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
-          this._send('end', null, event.current);
+          if (this._activating) {
+            this._endAfterActivation = true;
+          } else {
+            this._send('end', null, event.current);
+          }
         }
       }
     }
@@ -16482,12 +16506,12 @@ describe('changes', function() {
 
 
 },{"../test-helpers.coffee":55,"kefir":57}],23:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref,
+var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
 Kefir = require('kefir');
 
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send;
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate;
 
 describe('combine', function() {
   it('should return stream', function() {
@@ -16553,7 +16577,7 @@ describe('combine', function() {
       return send(b, [3, '<end>']);
     });
   });
-  return it('should accept optional combinator function', function() {
+  it('should accept optional combinator function', function() {
     var a, b, c, join;
     a = stream();
     b = send(prop(), [0]);
@@ -16579,6 +16603,19 @@ describe('combine', function() {
       send(a, ['<end>']);
       return send(b, [3, '<end>']);
     });
+  });
+  return it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+    var a, b, cb;
+    a = send(prop(), [0]);
+    b = send(prop(), [1]);
+    cb = Kefir.combine([a, b]);
+    activate(cb);
+    deactivate(cb);
+    return expect(cb).toEmit([
+      {
+        current: [0, 1]
+      }
+    ]);
   });
 });
 
@@ -17850,12 +17887,12 @@ describe('repeatedly', function() {
 
 
 },{"kefir":57}],42:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref,
+var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
 Kefir = require('kefir');
 
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send;
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate;
 
 describe('sampledBy', function() {
   it('should return stream', function() {
@@ -17928,7 +17965,7 @@ describe('sampledBy', function() {
       return send(b, [5, 6, '<end>']);
     });
   });
-  return it('should accept optional combinator function', function() {
+  it('should accept optional combinator function', function() {
     var a, b, c, d, join;
     join = function() {
       var args;
@@ -17956,6 +17993,20 @@ describe('sampledBy', function() {
       send(a, [4]);
       return send(b, [5, 6, '<end>']);
     });
+  });
+  return it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+    var a, b, c, sb;
+    a = send(prop(), [0]);
+    b = send(prop(), [1]);
+    c = send(prop(), [2]);
+    sb = Kefir.sampledBy([a], [b, c]);
+    activate(sb);
+    deactivate(sb);
+    return expect(sb).toEmit([
+      {
+        current: [0, 1, 2]
+      }
+    ]);
   });
 });
 

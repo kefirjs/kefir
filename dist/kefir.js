@@ -824,6 +824,9 @@ function SampledBy(passive, active, combinator) {
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
+    this._activating = false;
+    this._emitAfterActivation = false;
+    this._endAfterActivation = false;
   }
 }
 
@@ -835,8 +838,17 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     this._aliveCount = length - this._passiveCount;
+    this._activating = true;
     for (i = 0; i < length; i++) {
       this._sources[i].onAny([this._handleAny, this, i]);
+    }
+    this._activating = false;
+    if (this._emitAfterActivation) {
+      this._emitAfterActivation = false;
+      this._emitIfFull(true);
+    }
+    if (this._endAfterActivation) {
+      this._send('end', null, true);
     }
   },
 
@@ -848,23 +860,35 @@ inherit(SampledBy, Stream, {
     }
   },
 
+  _emitIfFull: function(isCurrent) {
+    if (!contains(this._currents, NOTHING)) {
+      var combined = cloneArray(this._currents);
+      if (this._combinator) {
+        combined = Fn.call(this._combinator, this._currents);
+      }
+      this._send('value', combined, isCurrent);
+    }
+  },
+
   _handleAny: function(i, event) {
     if (event.type === 'value') {
       this._currents[i] = event.value;
       if (i >= this._passiveCount) {
-        if (!contains(this._currents, NOTHING)) {
-          var combined = cloneArray(this._currents);
-          if (this._combinator) {
-            combined = Fn.call(this._combinator, this._currents);
-          }
-          this._send('value', combined, event.current);
+        if (this._activating) {
+          this._emitAfterActivation = true;
+        } else {
+          this._emitIfFull(event.current);
         }
       }
     } else {
       if (i >= this._passiveCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
-          this._send('end', null, event.current);
+          if (this._activating) {
+            this._endAfterActivation = true;
+          } else {
+            this._send('end', null, event.current);
+          }
         }
       }
     }
