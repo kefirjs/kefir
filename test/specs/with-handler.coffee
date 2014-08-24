@@ -7,10 +7,10 @@ describe 'withHandler', ->
 
 
   mirror = (send, event) ->
-    send(event.type, event.value, event.current)
+    send(event.type, event.value)
 
   duplicate = (send, event) ->
-    send(event.type, event.value, event.current)
+    send(event.type, event.value)
     if event.type == 'value' && !event.current
       send(event.type, event.value)
 
@@ -35,6 +35,12 @@ describe 'withHandler', ->
       expect(a.withHandler duplicate).toEmit [1, 1, 2, 2, '<end>'], ->
         send(a, [1, 2, '<end>'])
 
+    it 'should automatically preserve isCurent (end)', ->
+      a = stream()
+      expect(a.withHandler mirror).toEmit ['<end>'], ->
+        send(a, ['<end>'])
+      expect(a.withHandler mirror).toEmit ['<end:current>']
+
 
 
   describe 'property', ->
@@ -56,5 +62,25 @@ describe 'withHandler', ->
       a = send(prop(), [1])
       expect(a.withHandler duplicate).toEmit [{current: 1}, 2, 2, 3, 3, '<end>'], ->
         send(a, [2, 3, '<end>'])
+
+    it 'should automatically preserve isCurent (end)', ->
+      a = prop()
+      expect(a.withHandler mirror).toEmit ['<end>'], ->
+        send(a, ['<end>'])
+      expect(a.withHandler mirror).toEmit ['<end:current>']
+
+    it 'should automatically preserve isCurent (value)', ->
+      a = prop()
+      expect(a.withHandler mirror).toEmit [1], ->
+        send(a, [1])
+      expect(a.withHandler mirror).toEmit [{current: 1}]
+
+      savedSend = null
+      expect(
+        a.withHandler (send, event) ->
+          mirror(send, event)
+          savedSend = send
+      ).toEmit [{current: 1}, 2], ->
+        savedSend('value', 2)
 
 

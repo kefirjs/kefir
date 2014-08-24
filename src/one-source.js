@@ -38,14 +38,17 @@ withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
     this._handler = new Fn(args[0]);
-    this._bindedSend = function(type, x, isCurrent) {  _this._send(type, x, isCurrent)  }
+    this._forcedCurrent = false;
+    this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
   },
   _free: function() {
     this._handler = null;
     this._bindedSend = null;
   },
   _handleAny: function(event) {
+    this._forcedCurrent = event.current;
     Fn.call(this._handler, [this._bindedSend, event]);
+    this._forcedCurrent = false;
   }
 });
 

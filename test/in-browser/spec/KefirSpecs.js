@@ -1126,14 +1126,17 @@ withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
     this._handler = new Fn(args[0]);
-    this._bindedSend = function(type, x, isCurrent) {  _this._send(type, x, isCurrent)  }
+    this._forcedCurrent = false;
+    this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
   },
   _free: function() {
     this._handler = null;
     this._bindedSend = null;
   },
   _handleAny: function(event) {
+    this._forcedCurrent = event.current;
     Fn.call(this._handler, [this._bindedSend, event]);
+    this._forcedCurrent = false;
   }
 });
 
@@ -19144,10 +19147,10 @@ stream = helpers.stream, prop = helpers.prop, send = helpers.send;
 describe('withHandler', function() {
   var duplicate, mirror;
   mirror = function(send, event) {
-    return send(event.type, event.value, event.current);
+    return send(event.type, event.value);
   };
   duplicate = function(send, event) {
-    send(event.type, event.value, event.current);
+    send(event.type, event.value);
     if (event.type === 'value' && !event.current) {
       return send(event.type, event.value);
     }
@@ -19167,12 +19170,20 @@ describe('withHandler', function() {
     it('should be ended if source was ended (with `mirror` handler)', function() {
       return expect(send(stream(), ['<end>']).withHandler(mirror)).toEmit(['<end:current>']);
     });
-    return it('should handle events (with `duplicate` handler)', function() {
+    it('should handle events (with `duplicate` handler)', function() {
       var a;
       a = stream();
       return expect(a.withHandler(duplicate)).toEmit([1, 1, 2, 2, '<end>'], function() {
         return send(a, [1, 2, '<end>']);
       });
+    });
+    return it('should automatically preserve isCurent (end)', function() {
+      var a;
+      a = stream();
+      expect(a.withHandler(mirror)).toEmit(['<end>'], function() {
+        return send(a, ['<end>']);
+      });
+      return expect(a.withHandler(mirror)).toEmit(['<end:current>']);
     });
   });
   return describe('property', function() {
@@ -19190,7 +19201,7 @@ describe('withHandler', function() {
     it('should be ended if source was ended (with `mirror` handler)', function() {
       return expect(send(prop(), ['<end>']).withHandler(mirror)).toEmit(['<end:current>']);
     });
-    return it('should handle events and current (with `duplicate` handler)', function() {
+    it('should handle events and current (with `duplicate` handler)', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.withHandler(duplicate)).toEmit([
@@ -19199,6 +19210,37 @@ describe('withHandler', function() {
         }, 2, 2, 3, 3, '<end>'
       ], function() {
         return send(a, [2, 3, '<end>']);
+      });
+    });
+    it('should automatically preserve isCurent (end)', function() {
+      var a;
+      a = prop();
+      expect(a.withHandler(mirror)).toEmit(['<end>'], function() {
+        return send(a, ['<end>']);
+      });
+      return expect(a.withHandler(mirror)).toEmit(['<end:current>']);
+    });
+    return it('should automatically preserve isCurent (value)', function() {
+      var a, savedSend;
+      a = prop();
+      expect(a.withHandler(mirror)).toEmit([1], function() {
+        return send(a, [1]);
+      });
+      expect(a.withHandler(mirror)).toEmit([
+        {
+          current: 1
+        }
+      ]);
+      savedSend = null;
+      return expect(a.withHandler(function(send, event) {
+        mirror(send, event);
+        return savedSend = send;
+      })).toEmit([
+        {
+          current: 1
+        }, 2
+      ], function() {
+        return savedSend('value', 2);
       });
     });
   });
