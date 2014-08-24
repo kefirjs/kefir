@@ -1,13 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! kefir - 0.2.2
+/*! kefir - 0.2.3
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
   "use strict";
 
 var NOTHING = ['<nothing>'];
-
-function id(x) {return x}
 
 function get(map, key, notFound) {
   if (map && key in map) {
@@ -175,7 +173,7 @@ function isUndefined(x) {
   return typeof x === 'undefined';
 }
 
-function isArray(xs) {
+var isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 }
 
@@ -207,22 +205,6 @@ function isEqualArrays(a, b) {
     }
   }
   return true;
-}
-
-function toStream(obs) {
-  if (obs instanceof Stream) {
-    return obs;
-  } else {
-    return obs.changes();
-  }
-}
-
-function toProperty(obs) {
-  if (obs instanceof Stream) {
-    return obs.toProperty();
-  } else {
-    return obs;
-  }
 }
 
 function withInterval(name, mixin) {
@@ -292,10 +274,10 @@ function withOneSource(name, mixin, options) {
     _onActivationHook: function() {},
     _onDeactivationHook: function() {},
 
-    _handleAny: function(type, x, isCurrent) {
-      switch (type) {
-        case 'value': this._handleValue(x, isCurrent); break;
-        case 'end': this._handleEnd(x, isCurrent); break;
+    _handleAny: function(event) {
+      switch (event.type) {
+        case 'value': this._handleValue(event.value, event.current); break;
+        case 'end': this._handleEnd(event.value, event.current); break;
       }
     },
 
@@ -507,9 +489,8 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!(type === 'end' && isCurrent)) {
-        if (type === 'end') {  x = undefined  }
-        this._subscribers.call(type, [x, !!isCurrent]);
-        this._subscribers.call('any', [type, x, !!isCurrent]);
+        this._subscribers.call(type, type === 'value' ? [x] : []);
+        this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
       }
       if (type === 'end') {  this._clear()  }
     }
@@ -517,9 +498,9 @@ extend(Observable.prototype, {
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
     if (fnType === valueType) {
-      Fn.call(fn, [value, true]);
+      Fn.call(fn, fnType === 'value' ? [value] : []);
     } else if (fnType === 'any') {
-      Fn.call(fn, [valueType, value, true]);
+      Fn.call(fn, [{type: valueType, value: value, current: true}]);
     }
   },
 
@@ -598,9 +579,8 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        if (type === 'end') {  x = undefined  }
-        this._subscribers.call(type, [x, false]);
-        this._subscribers.call('any', [type, x, false]);
+        this._subscribers.call(type, type === 'value' ? [x] : []);
+        this._subscribers.call('any', [{type: type, value: x, current: false}]);
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -630,10 +610,10 @@ inherit(Property, Observable, {
 
 // Log
 
-function logCb(name, type, x, isCurrent) {
-  var typeStr = '<' + type + (isCurrent ? ':current' : '') + '>';
-  if (type === 'value') {
-    console.log(name, typeStr, x);
+function logCb(name, event) {
+  var typeStr = '<' + event.type + (event.isCurrent ? ':current' : '') + '>';
+  if (event.type === 'value') {
+    console.log(name, typeStr, event.value);
   } else {
     console.log(name, typeStr);
   }
@@ -801,13 +781,13 @@ inherit(Merge, Stream, {
     }
   },
 
-  _handleAny: function(type, x, isCurrent) {
-    if (type === 'value') {
-      this._send('value', x, isCurrent);
+  _handleAny: function(event) {
+    if (event.type === 'value') {
+      this._send('value', event.value, event.current);
     } else {
       this._aliveCount--;
       if (this._aliveCount === 0) {
-        this._send('end', null, isCurrent);
+        this._send('end', null, event.current);
       }
     }
   },
@@ -832,81 +812,6 @@ Observable.prototype.merge = function(other) {
 
 
 
-
-// .combine()
-
-function Combine(sources, combinator) {
-  Property.call(this);
-  if (sources.length === 0) {
-    this._send('end');
-  } else {
-    this._combinator = combinator ? new Fn(combinator) : null;
-    this._sources = map(sources, toProperty);
-    this._aliveCount = 0;
-    this._currents = new Array(sources.length);
-  }
-}
-
-inherit(Combine, Property, {
-
-  _name: 'combine',
-
-  _onActivation: function() {
-    var length = this._sources.length,
-        i;
-    this._aliveCount = length;
-    fillArray(this._currents, NOTHING);
-    for (i = 0; i < length; i++) {
-      this._sources[i].onAny([this._handleAny, this, i]);
-    }
-  },
-
-  _onDeactivation: function() {
-    var length = this._sources.length,
-        i;
-    for (i = 0; i < length; i++) {
-      this._sources[i].offAny([this._handleAny, this, i]);
-    }
-  },
-
-  _handleAny: function(i, type, x, isCurrent) {
-    if (type === 'value') {
-      this._currents[i] = x;
-      if (!contains(this._currents, NOTHING)) {
-        var combined = cloneArray(this._currents);
-        if (this._combinator) {
-          combined = Fn.call(this._combinator, this._currents);
-        }
-        this._send('value', combined, isCurrent);
-      }
-    } else {
-      this._aliveCount--;
-      if (this._aliveCount === 0) {
-        this._send('end', null, isCurrent);
-      }
-    }
-  },
-
-  _clear: function() {
-    Property.prototype._clear.call(this);
-    this._sources = null;
-  }
-
-});
-
-Kefir.combine = function(sources, combinator) {
-  return new Combine(sources, combinator);
-}
-
-Observable.prototype.combine = function(other, combinator) {
-  return Kefir.combine([this, other], combinator);
-}
-
-
-
-
-
-
 // .sampledBy()
 
 function SampledBy(passive, active, combinator) {
@@ -920,6 +825,9 @@ function SampledBy(passive, active, combinator) {
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
+    this._activating = false;
+    this._emitAfterActivation = false;
+    this._endAfterActivation = false;
   }
 }
 
@@ -931,8 +839,17 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     this._aliveCount = length - this._passiveCount;
+    this._activating = true;
     for (i = 0; i < length; i++) {
       this._sources[i].onAny([this._handleAny, this, i]);
+    }
+    this._activating = false;
+    if (this._emitAfterActivation) {
+      this._emitAfterActivation = false;
+      this._emitIfFull(true);
+    }
+    if (this._endAfterActivation) {
+      this._send('end', null, true);
     }
   },
 
@@ -944,23 +861,35 @@ inherit(SampledBy, Stream, {
     }
   },
 
-  _handleAny: function(i, type, x, isCurrent) {
-    if (type === 'value') {
-      this._currents[i] = x;
+  _emitIfFull: function(isCurrent) {
+    if (!contains(this._currents, NOTHING)) {
+      var combined = cloneArray(this._currents);
+      if (this._combinator) {
+        combined = Fn.call(this._combinator, this._currents);
+      }
+      this._send('value', combined, isCurrent);
+    }
+  },
+
+  _handleAny: function(i, event) {
+    if (event.type === 'value') {
+      this._currents[i] = event.value;
       if (i >= this._passiveCount) {
-        if (!contains(this._currents, NOTHING)) {
-          var combined = cloneArray(this._currents);
-          if (this._combinator) {
-            combined = Fn.call(this._combinator, this._currents);
-          }
-          this._send('value', combined, isCurrent);
+        if (this._activating) {
+          this._emitAfterActivation = true;
+        } else {
+          this._emitIfFull(event.current);
         }
       }
     } else {
       if (i >= this._passiveCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
-          this._send('end', null, isCurrent);
+          if (this._activating) {
+            this._endAfterActivation = true;
+          } else {
+            this._send('end', null, event.current);
+          }
         }
       }
     }
@@ -969,6 +898,7 @@ inherit(SampledBy, Stream, {
   _clear: function() {
     Stream.prototype._clear.call(this);
     this._sources = null;
+    this._currents = null;
   }
 
 });
@@ -979,6 +909,23 @@ Kefir.sampledBy = function(passive, active, combinator) {
 
 Observable.prototype.sampledBy = function(other, combinator) {
   return Kefir.sampledBy([this], [other], combinator);
+}
+
+
+
+
+
+
+// .combine()
+
+Kefir.combine = function(sources, combinator) {
+  var result = new SampledBy([], sources, combinator);
+  result._name = 'combine';
+  return result;
+}
+
+Observable.prototype.combine = function(other, combinator) {
+  return Kefir.combine([this, other], combinator);
 }
 
 
@@ -998,12 +945,18 @@ inherit(_AbstractPool, Stream, {
   _name: 'abstractPool',
 
   _sub: function(obs) {
-    obs.onValue([this._send, this, 'value']);
+    obs.onAny([this._handleSubAny, this]);
     obs.onEnd([this._remove, this, obs]);
   },
   _unsub: function(obs) {
-    obs.offValue([this._send, this, 'value']);
+    obs.offAny([this._handleSubAny, this]);
     obs.offEnd([this._remove, this, obs]);
+  },
+
+  _handleSubAny: function(event) {
+    if (event.type === 'value') {
+      this._send('value', event.value, event.current);
+    }
   },
 
   _add: function(obs) {
@@ -1075,6 +1028,7 @@ function FlatMap(source, fn) {
   this._name = source._name + '.flatMap';
   this._fn = fn ? new Fn(fn) : null;
   this._mainEnded = false;
+  this._lastValue = null;
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -1088,15 +1042,15 @@ inherit(FlatMap, _AbstractPool, {
     this._source.offAny([this._handleMainSource, this]);
   },
 
-  _handleMainSource: function(type, x, isCurrent) {
-    if (type === 'value') {
-      if (this._fn) {
-        x = Fn.call(this._fn, [x]);
+  _handleMainSource: function(event) {
+    if (event.type === 'value') {
+      if (!event.current || this._lastValue !== event.value) {
+        this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
       }
-      this._add(x);
+      this._lastValue = event.value;
     } else {
       if (this._sources.length === 0) {
-        this._send('end', null, isCurrent);
+        this._send('end', null, event.current);
       } else {
         this._mainEnded = true;
       }
@@ -1113,6 +1067,7 @@ inherit(FlatMap, _AbstractPool, {
   _clear: function() {
     _AbstractPool.prototype._clear.call(this);
     this._source = null;
+    this._lastValue = null;
   }
 
 });
@@ -1171,14 +1126,17 @@ withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
     this._handler = new Fn(args[0]);
-    this._bindedSend = function(type, x, isCurrent) {  _this._send(type, x, isCurrent)  }
+    this._forcedCurrent = false;
+    this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
   },
   _free: function() {
     this._handler = null;
     this._bindedSend = null;
   },
-  _handleAny: function(type, x, isCurrent) {
-    Fn.call(this._handler, [this._bindedSend, type, x, isCurrent]);
+  _handleAny: function(event) {
+    this._forcedCurrent = event.current;
+    Fn.call(this._handler, [this._bindedSend, event]);
+    this._forcedCurrent = false;
   }
 });
 
@@ -16557,19 +16515,19 @@ describe('changes', function() {
 
 
 },{"../test-helpers.coffee":55,"kefir":57}],23:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref,
+var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
 Kefir = require('kefir');
 
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send;
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate;
 
 describe('combine', function() {
-  it('should return property', function() {
-    expect(Kefir.combine([])).toBeProperty();
-    expect(Kefir.combine([stream(), prop()])).toBeProperty();
-    expect(stream().combine(stream())).toBeProperty();
-    return expect(prop().combine(prop())).toBeProperty();
+  it('should return stream', function() {
+    expect(Kefir.combine([])).toBeStream();
+    expect(Kefir.combine([stream(), prop()])).toBeStream();
+    expect(stream().combine(stream())).toBeStream();
+    return expect(prop().combine(prop())).toBeStream();
   });
   it('should be ended if empty array provided', function() {
     return expect(Kefir.combine([])).toEmit(['<end:current>']);
@@ -16628,7 +16586,7 @@ describe('combine', function() {
       return send(b, [3, '<end>']);
     });
   });
-  return it('should accept optional combinator function', function() {
+  it('should accept optional combinator function', function() {
     var a, b, c, join;
     a = stream();
     b = send(prop(), [0]);
@@ -16654,6 +16612,19 @@ describe('combine', function() {
       send(a, ['<end>']);
       return send(b, [3, '<end>']);
     });
+  });
+  return it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+    var a, b, cb;
+    a = send(prop(), [0]);
+    b = send(prop(), [1]);
+    cb = Kefir.combine([a, b]);
+    activate(cb);
+    deactivate(cb);
+    return expect(cb).toEmit([
+      {
+        current: [0, 1]
+      }
+    ]);
   });
 });
 
@@ -16994,7 +16965,7 @@ describe('flatMap', function() {
         }
       ]);
     });
-    return it('should costantly adding current value on each activation (documented bug)', function() {
+    return it('should not costantly adding current value on each activation', function() {
       var a, b, map;
       a = send(prop(), [0]);
       b = send(prop(), [a]);
@@ -17005,10 +16976,6 @@ describe('flatMap', function() {
       deactivate(map);
       return expect(map).toEmit([
         {
-          current: 0
-        }, {
-          current: 0
-        }, {
           current: 0
         }
       ]);
@@ -17709,28 +17676,28 @@ describe('Property', function() {
       var log, s;
       s = prop();
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
       expect(log).toEqual([]);
       send(s, ['<end>']);
-      return expect(log).toEqual([[void 0, false, 1], [void 0, false, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should call `end` subscribers on already ended property', function() {
       var log, s;
       s = prop();
       send(s, ['<end>']);
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
-      return expect(log).toEqual([[void 0, true, 1], [void 0, true, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should deactivate on end', function() {
       var s;
@@ -17787,7 +17754,7 @@ describe('Property', function() {
     });
   });
   return describe('subscribers', function() {
-    return it('should deliver values and current', function() {
+    it('should deliver values and current', function() {
       var s;
       s = send(prop(), [0]);
       return expect(s).toEmit([
@@ -17797,6 +17764,42 @@ describe('Property', function() {
       ], function() {
         return send(s, [1, 2]);
       });
+    });
+    it('onValue subscribers should be called with 1 argument', function() {
+      var count, s;
+      s = send(prop(), [0]);
+      count = null;
+      s.onValue(function() {
+        return count = arguments.length;
+      });
+      expect(count).toBe(1);
+      send(s, [1]);
+      return expect(count).toBe(1);
+    });
+    it('onAny subscribers should be called with 1 arguments', function() {
+      var count, s;
+      s = send(prop(), [0]);
+      count = null;
+      s.onAny(function() {
+        return count = arguments.length;
+      });
+      expect(count).toBe(1);
+      send(s, [1]);
+      return expect(count).toBe(1);
+    });
+    return it('onEnd subscribers should be called with 0 arguments', function() {
+      var count, s;
+      s = send(prop(), [0]);
+      count = null;
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      send(s, ['<end>']);
+      expect(count).toBe(0);
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      return expect(count).toBe(0);
     });
   });
 });
@@ -17889,12 +17892,12 @@ describe('repeatedly', function() {
 
 
 },{"kefir":57}],42:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref,
+var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
 Kefir = require('kefir');
 
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send;
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate;
 
 describe('sampledBy', function() {
   it('should return stream', function() {
@@ -17967,7 +17970,7 @@ describe('sampledBy', function() {
       return send(b, [5, 6, '<end>']);
     });
   });
-  return it('should accept optional combinator function', function() {
+  it('should accept optional combinator function', function() {
     var a, b, c, d, join;
     join = function() {
       var args;
@@ -17995,6 +17998,20 @@ describe('sampledBy', function() {
       send(a, [4]);
       return send(b, [5, 6, '<end>']);
     });
+  });
+  return it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+    var a, b, c, sb;
+    a = send(prop(), [0]);
+    b = send(prop(), [1]);
+    c = send(prop(), [2]);
+    sb = Kefir.sampledBy([a], [b, c]);
+    activate(sb);
+    deactivate(sb);
+    return expect(sb).toEmit([
+      {
+        current: [0, 1, 2]
+      }
+    ]);
   });
 });
 
@@ -18421,28 +18438,28 @@ describe('Stream', function() {
       var log, s;
       s = stream();
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
       expect(log).toEqual([]);
       send(s, ['<end>']);
-      return expect(log).toEqual([[void 0, false, 1], [void 0, false, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should call `end` subscribers on already ended stream', function() {
       var log, s;
       s = stream();
       send(s, ['<end>']);
       log = [];
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 1]);
+      s.onEnd(function() {
+        return log.push(1);
       });
-      s.onEnd(function(x, isCurrent) {
-        return log.push([x, isCurrent, 2]);
+      s.onEnd(function() {
+        return log.push(2);
       });
-      return expect(log).toEqual([[void 0, true, 1], [void 0, true, 2]]);
+      return expect(log).toEqual([1, 2]);
     });
     it('should deactivate on end', function() {
       var s;
@@ -18499,12 +18516,46 @@ describe('Stream', function() {
     });
   });
   describe('subscribers', function() {
-    return it('should deliver values', function() {
+    it('should deliver values', function() {
       var s;
       s = stream();
       return expect(s).toEmit([1, 2], function() {
         return send(s, [1, 2]);
       });
+    });
+    it('onValue subscribers should be called with 1 argument', function() {
+      var count, s;
+      s = stream();
+      count = null;
+      s.onValue(function() {
+        return count = arguments.length;
+      });
+      send(s, [1]);
+      return expect(count).toBe(1);
+    });
+    it('onAny subscribers should be called with 1 arguments', function() {
+      var count, s;
+      s = stream();
+      count = null;
+      s.onAny(function() {
+        return count = arguments.length;
+      });
+      send(s, [1]);
+      return expect(count).toBe(1);
+    });
+    return it('onEnd subscribers should be called with 0 arguments', function() {
+      var count, s;
+      s = stream();
+      count = null;
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      send(s, ['<end>']);
+      expect(count).toBe(0);
+      s.onEnd(function() {
+        return count = arguments.length;
+      });
+      return expect(count).toBe(0);
     });
   });
   return describe('listener with context and/or args', function() {
@@ -19095,13 +19146,13 @@ stream = helpers.stream, prop = helpers.prop, send = helpers.send;
 
 describe('withHandler', function() {
   var duplicate, mirror;
-  mirror = function(send, type, x, isCurrent) {
-    return send(type, x, isCurrent);
+  mirror = function(send, event) {
+    return send(event.type, event.value);
   };
-  duplicate = function(send, type, x, isCurrent) {
-    send(type, x, isCurrent);
-    if (type === 'value' && !isCurrent) {
-      return send(type, x);
+  duplicate = function(send, event) {
+    send(event.type, event.value);
+    if (event.type === 'value' && !event.current) {
+      return send(event.type, event.value);
     }
   };
   describe('stream', function() {
@@ -19119,12 +19170,20 @@ describe('withHandler', function() {
     it('should be ended if source was ended (with `mirror` handler)', function() {
       return expect(send(stream(), ['<end>']).withHandler(mirror)).toEmit(['<end:current>']);
     });
-    return it('should handle events (with `duplicate` handler)', function() {
+    it('should handle events (with `duplicate` handler)', function() {
       var a;
       a = stream();
       return expect(a.withHandler(duplicate)).toEmit([1, 1, 2, 2, '<end>'], function() {
         return send(a, [1, 2, '<end>']);
       });
+    });
+    return it('should automatically preserve isCurent (end)', function() {
+      var a;
+      a = stream();
+      expect(a.withHandler(mirror)).toEmit(['<end>'], function() {
+        return send(a, ['<end>']);
+      });
+      return expect(a.withHandler(mirror)).toEmit(['<end:current>']);
     });
   });
   return describe('property', function() {
@@ -19142,7 +19201,7 @@ describe('withHandler', function() {
     it('should be ended if source was ended (with `mirror` handler)', function() {
       return expect(send(prop(), ['<end>']).withHandler(mirror)).toEmit(['<end:current>']);
     });
-    return it('should handle events and current (with `duplicate` handler)', function() {
+    it('should handle events and current (with `duplicate` handler)', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.withHandler(duplicate)).toEmit([
@@ -19151,6 +19210,37 @@ describe('withHandler', function() {
         }, 2, 2, 3, 3, '<end>'
       ], function() {
         return send(a, [2, 3, '<end>']);
+      });
+    });
+    it('should automatically preserve isCurent (end)', function() {
+      var a;
+      a = prop();
+      expect(a.withHandler(mirror)).toEmit(['<end>'], function() {
+        return send(a, ['<end>']);
+      });
+      return expect(a.withHandler(mirror)).toEmit(['<end:current>']);
+    });
+    return it('should automatically preserve isCurent (value)', function() {
+      var a, savedSend;
+      a = prop();
+      expect(a.withHandler(mirror)).toEmit([1], function() {
+        return send(a, [1]);
+      });
+      expect(a.withHandler(mirror)).toEmit([
+        {
+          current: 1
+        }
+      ]);
+      savedSend = null;
+      return expect(a.withHandler(function(send, event) {
+        mirror(send, event);
+        return savedSend = send;
+      })).toEmit([
+        {
+          current: 1
+        }, 2
+      ], function() {
+        return savedSend('value', 2);
       });
     });
   });
@@ -19192,17 +19282,17 @@ Kefir = require("../dist/kefir");
 
 sinon = require('sinon');
 
-logItem = function(type, x, isCurrent) {
-  if (type === 'value') {
-    if (isCurrent) {
+logItem = function(event) {
+  if (event.type === 'value') {
+    if (event.current) {
       return {
-        current: x
+        current: event.value
       };
     } else {
-      return x;
+      return event.value;
     }
   } else {
-    if (isCurrent) {
+    if (event.current) {
       return '<end:current>';
     } else {
       return '<end>';
@@ -19213,8 +19303,8 @@ logItem = function(type, x, isCurrent) {
 exports.watch = function(obs) {
   var log;
   log = [];
-  obs.onAny(function(type, x, isCurrent) {
-    return log.push(logItem(type, x, isCurrent));
+  obs.onAny(function(event) {
+    return log.push(logItem(event));
   });
   return log;
 };
@@ -19223,8 +19313,8 @@ exports.watchWithTime = function(obs) {
   var log, startTime;
   startTime = new Date();
   log = [];
-  obs.onAny(function(type, x, isCurrent) {
-    return log.push([new Date() - startTime, logItem(type, x, isCurrent)]);
+  obs.onAny(function(event) {
+    return log.push([new Date() - startTime, logItem(event)]);
   });
   return log;
 };
@@ -19432,7 +19522,7 @@ beforeEach(function() {
 
 
 },{"../dist/kefir":1,"sinon":7}],56:[function(require,module,exports){
-/*! kefir addon - 0.2.2
+/*! kefir addon - 0.2.3
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){

@@ -1,14 +1,14 @@
 Kefir = require('kefir')
-{stream, prop, send} = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
 
 
 describe 'combine', ->
 
-  it 'should return property', ->
-    expect(Kefir.combine([])).toBeProperty()
-    expect(Kefir.combine([stream(), prop()])).toBeProperty()
-    expect(stream().combine(stream())).toBeProperty()
-    expect(prop().combine(prop())).toBeProperty()
+  it 'should return stream', ->
+    expect(Kefir.combine([])).toBeStream()
+    expect(Kefir.combine([stream(), prop()])).toBeStream()
+    expect(stream().combine(stream())).toBeStream()
+    expect(prop().combine(prop())).toBeStream()
 
   it 'should be ended if empty array provided', ->
     expect(Kefir.combine([])).toEmit ['<end:current>']
@@ -72,3 +72,11 @@ describe 'combine', ->
       send(b, [2])
       send(a, ['<end>'])
       send(b, [3, '<end>'])
+
+  it 'when activating second time and has 2+ properties in sources, should emit current value at most once', ->
+    a = send(prop(), [0])
+    b = send(prop(), [1])
+    cb = Kefir.combine([a, b])
+    activate(cb)
+    deactivate(cb)
+    expect(cb).toEmit [{current: [0, 1]}]

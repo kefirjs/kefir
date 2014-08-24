@@ -29,19 +29,19 @@ describe 'Stream', ->
     it 'should call `end` subscribers', ->
       s = stream()
       log = []
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
+      s.onEnd -> log.push(1)
+      s.onEnd -> log.push(2)
       expect(log).toEqual([])
       send(s, ['<end>'])
-      expect(log).toEqual([[undefined, false, 1], [undefined, false, 2]])
+      expect(log).toEqual([1, 2])
 
     it 'should call `end` subscribers on already ended stream', ->
       s = stream()
       send(s, ['<end>'])
       log = []
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 1])
-      s.onEnd (x, isCurrent) -> log.push([x, isCurrent, 2])
-      expect(log).toEqual([[undefined, true, 1], [undefined, true, 2]])
+      s.onEnd -> log.push(1)
+      s.onEnd -> log.push(2)
+      expect(log).toEqual([1, 2])
 
     it 'should deactivate on end', ->
       s = stream()
@@ -95,6 +95,31 @@ describe 'Stream', ->
     it 'should deliver values', ->
       s = stream()
       expect(s).toEmit [1, 2], -> send(s, [1, 2])
+
+    it 'onValue subscribers should be called with 1 argument', ->
+      s = stream()
+      count = null
+      s.onValue -> count = arguments.length
+      send(s, [1])
+      expect(count).toBe(1)
+
+    it 'onAny subscribers should be called with 1 arguments', ->
+      s = stream()
+      count = null
+      s.onAny -> count = arguments.length
+      send(s, [1])
+      expect(count).toBe(1)
+
+    it 'onEnd subscribers should be called with 0 arguments', ->
+      s = stream()
+      count = null
+      s.onEnd -> count = arguments.length
+      send(s, ['<end>'])
+      expect(count).toBe(0)
+      s.onEnd -> count = arguments.length
+      expect(count).toBe(0)
+
+
 
 
 

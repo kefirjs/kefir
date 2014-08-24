@@ -1,5 +1,5 @@
 Kefir = require('kefir')
-{stream, prop, send} = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
 
 
 describe 'sampledBy', ->
@@ -81,3 +81,12 @@ describe 'sampledBy', ->
       send(b, [3])
       send(a, [4])
       send(b, [5, 6, '<end>'])
+
+  it 'when activating second time and has 2+ properties in sources, should emit current value at most once', ->
+    a = send(prop(), [0])
+    b = send(prop(), [1])
+    c = send(prop(), [2])
+    sb = Kefir.sampledBy([a], [b, c])
+    activate(sb)
+    deactivate(sb)
+    expect(sb).toEmit [{current: [0, 1, 2]}]
