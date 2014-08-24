@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "FRP library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory consumption",
   "main": "dist/kefir.js",
   "scripts": {
