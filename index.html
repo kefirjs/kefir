@@ -39,7 +39,7 @@ have control over <b>active</b> state, you should use
 
 
 
-</p><p id="never"><a href="#never" class="header">never</a><code>Kefir.never()</code><br/>Creates a stream, that already ended will never produce any events.
+</p><p id="never"><a href="#never" class="header">never</a><code>Kefir.never()</code><br/>Creates a stream, that already ended and will never produce any events.
 </p><pre title="code">var stream = Kefir.never();
 stream.log();
 </pre><pre title="console output">=&gt; [never] &lt;end:current&gt;</pre><div></div><p id="later"><a href="#later" class="header">later</a><code>Kefir.later(wait, value)</code><br/>Creates a stream, that produces single <b>value</b>
@@ -154,7 +154,7 @@ setTimeout(function() {
 property.log();
 </pre><pre title="console output">=&gt; [constant] &lt;value:current&gt; 1
 =&gt; [constant] &lt;end:current&gt;</pre><div></div><h2 id="jquery">jQuery addon</h2><p>jQuery functionality comes as an addon for core Kefir.js library.
-In order to use it you should include addon javaScript file,
+In order to use it you should include addon JavaScript file,
 that can be found in <a href="#downloads">downloads section</a>.
 </p><p id="as-kefir-stream"><a href="#as-kefir-stream" class="header">asKefirStream</a><code>$(...).asKefirStream(eventName, [selector], [transfomEventFn])</code><br/></p><h2 id="convert">Convert observables</h2><p id="to-property"><a href="#to-property" class="header">toProperty</a><code>stream.toProperty([current])</code><br/>Converts a stream to a property.
 Accepts optional <b>current</b> argument, which becomes current value of the
