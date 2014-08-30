@@ -206,6 +206,24 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+function and() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (!arguments[i]) {
+      return arguments[i];
+    }
+  }
+  return arguments[i - 1];
+}
+
+function or() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (arguments[i]) {
+      return arguments[i];
+    }
+  }
+  return arguments[i - 1];
+}
+
 function withInterval(name, mixin) {
 
   function AnonymousStream(wait, args) {
@@ -487,10 +505,8 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      if (!(type === 'end' && isCurrent)) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
-      }
+      this._subscribers.call(type, type === 'value' ? [x] : []);
+      this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
       if (type === 'end') {  this._clear()  }
     }
   },
@@ -507,8 +523,7 @@ extend(Observable.prototype, {
     if (this._alive) {
       this._subscribers.add(type, fn);
       this._setActive(true);
-    }
-    if (!this._alive) {
+    } else {
       this._callWithCurrent(type, fn, 'end');
     }
     return this;
@@ -1541,19 +1556,158 @@ Kefir.never = function() {  return neverObj  }
 
 // Kefir.constant(x)
 
-function ConstantProperty(x) {
+function Constant(x) {
   Property.call(this);
   this._send('value', x);
   this._send('end');
 }
 
-inherit(ConstantProperty, Property, {
+inherit(Constant, Property, {
   _name: 'constant'
 })
 
 Kefir.constant = function(x) {
-  return new ConstantProperty(x);
+  return new Constant(x);
 }
+
+
+
+// Kefir.once(x)
+
+function Once(x) {
+  Stream.call(this);
+  this._value = x;
+}
+
+inherit(Once, Stream, {
+  _name: 'once',
+  _onActivation: function() {
+    this._send('value', this._value);
+    this._send('end');
+  }
+});
+
+Kefir.once = function(x) {
+  return new Once(x);
+}
+
+// .setName
+
+Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
+  this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
+  return this;
+}
+
+
+
+// .mapTo
+
+Observable.prototype.mapTo = function(value) {
+  return this.map(function() {  return value  }).setName(this, 'mapTo');
+}
+
+
+
+// .pluck
+
+Observable.prototype.pluck = function(propertyName) {
+  return this.map(function(x) {
+    return x[propertyName];
+  }).setName(this, 'pluck');
+}
+
+
+
+// .invoke
+
+Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
+  var args = rest(arguments, 1);
+  return this.map(args ?
+    function(x) {  return call(x[methodName], x, args)  } :
+    function(x) {  return x[methodName]()  }
+  ).setName(this, 'invoke');
+}
+
+
+
+// .tap
+
+Observable.prototype.tap = function(fn) {
+  fn = new Fn(fn);
+  return this.map(function(x) {
+    Fn.call(fn, [x]);
+    return x;
+  }).setName(this, 'tap');
+}
+
+
+
+// .defer
+
+Observable.prototype.defer = function() {
+  return this.delay(0).setName(this, 'defer');
+}
+
+
+
+// .and
+
+Kefir.and = function(observables) {
+  return Kefir.combine(observables, and).setName('and');
+}
+
+Observable.prototype.and = function(other) {
+  return this.combine(other, and).setName('and');
+}
+
+
+
+// .or
+
+Kefir.or = function(observables) {
+  return Kefir.combine(observables, or).setName('or');
+}
+
+Observable.prototype.or = function(other) {
+  return this.combine(other, or).setName('or');
+}
+
+
+
+// .not
+
+Observable.prototype.not = function() {
+  return this.map(function(x) {  return !x  }).setName('not');
+}
+
+
+
+// .awaiting
+
+Observable.prototype.awaiting = function(other) {
+  return Kefir.merge([
+    this.mapTo(true),
+    other.mapTo(false)
+  ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
+}
+
+
+
+// .filterBy
+
+Observable.prototype.filterBy = function(other) {
+  return other
+    .sampledBy(this)
+    .withHandler(function(send, e) {
+      if (e.type === 'end') {
+        send('end');
+      } else if (e.value[0]) {
+        send('value', e.value[1]);
+      }
+    })
+    .setName(this, 'filterBy');
+}
+
 
 
   if (typeof define === 'function' && define.amd) {

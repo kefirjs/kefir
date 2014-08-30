@@ -10,13 +10,17 @@ Benchmark.options.minSamples = 15;
 noop = ->
 
 
+getVal = ->
+  foo: 1
+  bar: -> @foo
+
 
 buildKefir = (modify) ->
   send = null
   property = Kefir.fromBinder (newSend) ->
     send = newSend
   modify(property).onValue(noop)
-  -> send('value', 1)
+  -> send('value', getVal())
 
 
 buildBacon = (modify) ->
@@ -24,14 +28,15 @@ buildBacon = (modify) ->
   stream = new Bacon.EventStream (newSink) ->
     sink = newSink
   modify(stream).onValue(noop)
-  -> sink(new Bacon.Next(-> 1))
+  -> sink(new Bacon.Next(-> getVal()))
+
 
 buildRx = (modify) ->
   observer = null
   stream = Rx.Observable.create (newObserver) ->
     observer = newObserver
   modify(stream.publish().refCount()).subscribe(noop)
-  -> observer.onNext(1)
+  -> observer.onNext(getVal())
 
 
 exports.setupTest = (title, options) ->

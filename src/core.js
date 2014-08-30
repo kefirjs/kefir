@@ -149,10 +149,8 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      if (!(type === 'end' && isCurrent)) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
-      }
+      this._subscribers.call(type, type === 'value' ? [x] : []);
+      this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
       if (type === 'end') {  this._clear()  }
     }
   },
@@ -169,8 +167,7 @@ extend(Observable.prototype, {
     if (this._alive) {
       this._subscribers.add(type, fn);
       this._setActive(true);
-    }
-    if (!this._alive) {
+    } else {
       this._callWithCurrent(type, fn, 'end');
     }
     return this;
