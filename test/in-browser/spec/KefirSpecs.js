@@ -540,8 +540,6 @@ extend(Observable.prototype, {
     return this;
   },
 
-  toString: function() {  return '[' + this._name + ']'  },
-
   onValue:  function(fn) {  this.on('value', fn)   },
   onEnd:    function(fn) {  this.on('end', fn)     },
   onAny:    function(fn) {  this.on('any', fn)     },
@@ -551,6 +549,10 @@ extend(Observable.prototype, {
   offAny:   function(fn) {  this.off('any', fn)    }
 
 });
+
+
+// extend() can't handle `toString` in IE8
+Observable.prototype.toString = function() {  return '[' + this._name + ']'  };
 
 
 

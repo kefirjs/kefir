@@ -16,5 +16,4 @@ describe 'once', ->
     a = stream()
     expect(
       a.flatMap (x) -> Kefir.once(x + 1)
-    ).toEmit [2, 3, '<end>'], ->
-      send(a, [1, 2, '<end>'])
+    ).toEmit [2, 3, '<end>'], -> send(a, [1, 2, '<end>'])
