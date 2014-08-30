@@ -85,6 +85,80 @@ function call(fn, context, args) {
   }
 }
 
+function bind(fn, c, a, length) {
+  if (c == null) {
+    if (a.length === 0) {
+      return fn;
+    }
+    switch (length) {
+      case 0:
+        switch (a.length) {
+          case 1: return function() {return fn(a[0])}
+          case 2: return function() {return fn(a[0], a[1])}
+          case 3: return function() {return fn(a[0], a[1], a[3])}
+          case 4: return function() {return fn(a[0], a[1], a[3], a[4])}
+          default: return function() {return fn.apply(null, a)}
+        }
+        break;
+      case 1:
+        switch (a.length) {
+          case 0: return function(b) {return fn(b)}
+          case 1: return function(b) {return fn(a[0], b)}
+          case 2: return function(b) {return fn(a[0], a[1], b)}
+          case 3: return function(b) {return fn(a[0], a[1], a[3], b)}
+          case 4: return function(b) {return fn(a[0], a[1], a[3], a[4], b)}
+          default: return function(b) {return fn.apply(null, concat(a, [b]))}
+        }
+        break;
+      case 2:
+        switch (a.length) {
+          case 0: return function(b, d) {return fn(b, d)}
+          case 1: return function(b, d) {return fn(a[0], b, d)}
+          case 2: return function(b, d) {return fn(a[0], a[1], b, d)}
+          case 3: return function(b, d) {return fn(a[0], a[1], a[3], b, d)}
+          case 4: return function(b, d) {return fn(a[0], a[1], a[3], a[4], b, d)}
+          default: return function(b, d) {return fn.apply(null, concat(a, [b, d]))}
+        }
+        break;
+      default: return function() {return fn.apply(null, concat(a, arguments))}
+    }
+  } else {
+    switch (length) {
+      case 0:
+        switch (a.length) {
+          case 0: return function() {return fn.call(c)}
+          case 1: return function() {return fn.call(c, a[0])}
+          case 2: return function() {return fn.call(c, a[0], a[1])}
+          case 3: return function() {return fn.call(c, a[0], a[1], a[3])}
+          case 4: return function() {return fn.call(c, a[0], a[1], a[3], a[4])}
+          default: return function() {return fn.apply(c, a)}
+        }
+        break;
+      case 1:
+        switch (a.length) {
+          case 0: return function(b) {return fn.call(c, b)}
+          case 1: return function(b) {return fn.call(c, a[0], b)}
+          case 2: return function(b) {return fn.call(c, a[0], a[1], b)}
+          case 3: return function(b) {return fn.call(c, a[0], a[1], a[3], b)}
+          case 4: return function(b) {return fn.call(c, a[0], a[1], a[3], a[4], b)}
+          default: return function(b) {return fn.apply(c, concat(a, [b]))}
+        }
+        break;
+      case 2:
+        switch (a.length) {
+          case 0: return function(b, d) {return fn.call(c, b, d)}
+          case 1: return function(b, d) {return fn.call(c, a[0], b, d)}
+          case 2: return function(b, d) {return fn.call(c, a[0], a[1], b, d)}
+          case 3: return function(b, d) {return fn.call(c, a[0], a[1], a[3], b, d)}
+          case 4: return function(b, d) {return fn.call(c, a[0], a[1], a[3], a[4], b, d)}
+          default: return function(b, d) {return fn.apply(c, concat(a, [b, d]))}
+        }
+        break;
+      default: return function() {return fn.apply(c, concat(a, arguments))}
+    }
+  }
+}
+
 function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
@@ -164,6 +238,10 @@ function isFn(fn) {
 
 function isUndefined(x) {
   return typeof x === 'undefined';
+}
+
+function isArrayLike(xs) {
+  return isArray(xs) || isArguments(xs);
 }
 
 var isArray = Array.isArray || function(xs) {

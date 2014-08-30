@@ -4,7 +4,7 @@
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
     var _this = this;
     this._bindedSend = function(type, x) {  _this._send(type, x)  }
   },
@@ -13,7 +13,7 @@ withInterval('withInterval', {
     this._bindedSend = null;
   },
   _onTick: function() {
-    Fn.call(this._fn, [this._bindedSend]);
+    this._fn.invoke(this._bindedSend);
   }
 });
 
@@ -25,13 +25,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 0);
   },
   _free: function() {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', Fn.call(this._fn));
+    this._send('value', this._fn.invoke());
   }
 });
 

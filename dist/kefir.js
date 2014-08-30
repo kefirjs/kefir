@@ -91,6 +91,80 @@ function call(fn, context, args) {
   }
 }
 
+function bind(fn, c, a, length) {
+  if (c == null) {
+    if (a.length === 0) {
+      return fn;
+    }
+    switch (length) {
+      case 0:
+        switch (a.length) {
+          case 1: return function() {return fn(a[0])}
+          case 2: return function() {return fn(a[0], a[1])}
+          case 3: return function() {return fn(a[0], a[1], a[3])}
+          case 4: return function() {return fn(a[0], a[1], a[3], a[4])}
+          default: return function() {return fn.apply(null, a)}
+        }
+        break;
+      case 1:
+        switch (a.length) {
+          case 0: return function(b) {return fn(b)}
+          case 1: return function(b) {return fn(a[0], b)}
+          case 2: return function(b) {return fn(a[0], a[1], b)}
+          case 3: return function(b) {return fn(a[0], a[1], a[3], b)}
+          case 4: return function(b) {return fn(a[0], a[1], a[3], a[4], b)}
+          default: return function(b) {return fn.apply(null, concat(a, [b]))}
+        }
+        break;
+      case 2:
+        switch (a.length) {
+          case 0: return function(b, d) {return fn(b, d)}
+          case 1: return function(b, d) {return fn(a[0], b, d)}
+          case 2: return function(b, d) {return fn(a[0], a[1], b, d)}
+          case 3: return function(b, d) {return fn(a[0], a[1], a[3], b, d)}
+          case 4: return function(b, d) {return fn(a[0], a[1], a[3], a[4], b, d)}
+          default: return function(b, d) {return fn.apply(null, concat(a, [b, d]))}
+        }
+        break;
+      default: return function() {return fn.apply(null, concat(a, arguments))}
+    }
+  } else {
+    switch (length) {
+      case 0:
+        switch (a.length) {
+          case 0: return function() {return fn.call(c)}
+          case 1: return function() {return fn.call(c, a[0])}
+          case 2: return function() {return fn.call(c, a[0], a[1])}
+          case 3: return function() {return fn.call(c, a[0], a[1], a[3])}
+          case 4: return function() {return fn.call(c, a[0], a[1], a[3], a[4])}
+          default: return function() {return fn.apply(c, a)}
+        }
+        break;
+      case 1:
+        switch (a.length) {
+          case 0: return function(b) {return fn.call(c, b)}
+          case 1: return function(b) {return fn.call(c, a[0], b)}
+          case 2: return function(b) {return fn.call(c, a[0], a[1], b)}
+          case 3: return function(b) {return fn.call(c, a[0], a[1], a[3], b)}
+          case 4: return function(b) {return fn.call(c, a[0], a[1], a[3], a[4], b)}
+          default: return function(b) {return fn.apply(c, concat(a, [b]))}
+        }
+        break;
+      case 2:
+        switch (a.length) {
+          case 0: return function(b, d) {return fn.call(c, b, d)}
+          case 1: return function(b, d) {return fn.call(c, a[0], b, d)}
+          case 2: return function(b, d) {return fn.call(c, a[0], a[1], b, d)}
+          case 3: return function(b, d) {return fn.call(c, a[0], a[1], a[3], b, d)}
+          case 4: return function(b, d) {return fn.call(c, a[0], a[1], a[3], a[4], b, d)}
+          default: return function(b, d) {return fn.apply(c, concat(a, [b, d]))}
+        }
+        break;
+      default: return function() {return fn.apply(c, concat(a, arguments))}
+    }
+  }
+}
+
 function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
@@ -170,6 +244,10 @@ function isFn(fn) {
 
 function isUndefined(x) {
   return typeof x === 'undefined';
+}
+
+function isArrayLike(xs) {
+  return isArray(xs) || isArguments(xs);
 }
 
 var isArray = Array.isArray || function(xs) {
@@ -361,44 +439,38 @@ var Kefir = {};
 
 
 
-
 // Fn
 
-function Fn(fnMeta) {
-  if (isFn(fnMeta) || (fnMeta instanceof Fn)) {
+function _Fn(fnMeta, length) {
+  var fn = getFn(fnMeta[0], fnMeta[1]);
+  var context = fnMeta[1];
+  var args = rest(fnMeta, 2, []);
+  this.fn = fn;
+  this.context = context;
+  this.args = args;
+  this.invoke = bind(fn, context, args, length);
+}
+
+_Fn.prototype.apply = function(args) {
+  return call(this.invoke, null, args);
+}
+
+function Fn(fnMeta, length) {
+  if (fnMeta instanceof _Fn) {
     return fnMeta;
-  }
-  if (fnMeta && fnMeta.length) {
-    if (fnMeta.length === 1) {
-      if (isFn(fnMeta[0])) {
-        return fnMeta[0];
+  } else {
+    if (length == null) {
+      length = 100;
+    }
+    if (isFn(fnMeta)) {
+      return new _Fn([fnMeta], length);
+    } else {
+      if (isArrayLike(fnMeta)) {
+        return new _Fn(fnMeta, length);
       } else {
         throw new Error('can\'t convert to Fn ' + fnMeta);
       }
     }
-    this.fn = getFn(fnMeta[0], fnMeta[1]);
-    this.context = fnMeta[1];
-    this.args = rest(fnMeta, 2, null);
-  } else {
-    throw new Error('can\'t convert to Fn ' + fnMeta);
-  }
-}
-Kefir.Fn = Fn;
-
-Fn.call = function(fn, args) {
-  if (isFn(fn)) {
-    return call(fn, null, args);
-  } else if (fn instanceof Fn) {
-    if (fn.args) {
-      if (args) {
-        args = concat(fn.args, args);
-      } else {
-        args = fn.args;
-      }
-    }
-    return call(fn.fn, fn.context, args);
-  } else {
-    return Fn.call(new Fn(fn), args);
   }
 }
 
@@ -406,15 +478,15 @@ Fn.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
-  a = new Fn(a);
-  b = new Fn(b);
-  if (isFn(a) || isFn(b)) {
-    return a === b;
-  }
+  a = Fn(a, null, true);
+  b = Fn(b, null, true);
   return a.fn === b.fn &&
     a.context === b.context &&
     isEqualArrays(a.args, b.args);
 }
+
+Kefir.Fn = Fn;
+
 
 
 
@@ -430,14 +502,15 @@ function Subscribers() {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    this[type].push(new Fn(fn));
+    var length = (type === 'end' ? 0 : 1);
+    this[type].push(Fn(fn, length, true));
     this.total++;
   },
   remove: function(type, fn) {
     var subs = this[type]
       , length = subs.length
       , i;
-    fn = new Fn(fn);
+    fn = Fn(fn);
     for (i = 0; i < length; i++) {
       if (Fn.isEqual(subs[i], fn)) {
         subs.splice(i, 1);
@@ -446,17 +519,25 @@ extend(Subscribers.prototype, {
       }
     }
   },
-  call: function(type, args) {
+  call: function(type, x) {
     var subs = this[type]
       , length = subs.length
       , i;
     if (length !== 0) {
       if (length === 1) {
-        Fn.call(subs[0], args);
+        if (type === 'end') {
+          subs[0].invoke();
+        } else {
+          subs[0].invoke(x);
+        }
       } else {
         subs = cloneArray(subs);
         for (i = 0; i < length; i++) {
-          Fn.call(subs[i], args);
+          if (type === 'end') {
+            subs[i].invoke();
+          } else {
+            subs[i].invoke(x);
+          }
         }
       }
     }
@@ -505,17 +586,22 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._subscribers.call(type, type === 'value' ? [x] : []);
-      this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
+      this._subscribers.call(type, x);
+      this._subscribers.call('any', {type: type, value: x, current: !!isCurrent});
       if (type === 'end') {  this._clear()  }
     }
   },
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
+    fn = Fn(fn);
     if (fnType === valueType) {
-      Fn.call(fn, fnType === 'value' ? [value] : []);
+      if (fnType === 'value') {
+        fn.invoke(value);
+      } else {
+        fn.invoke();
+      }
     } else if (fnType === 'any') {
-      Fn.call(fn, [{type: valueType, value: value, current: true}]);
+      fn.invoke({type: valueType, value: value, current: true});
     }
   },
 
@@ -595,8 +681,8 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: false}]);
+        this._subscribers.call(type, x);
+        this._subscribers.call('any', {type: type, value: x, current: false});
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -651,7 +737,7 @@ Observable.prototype.offLog = function(name) {
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
     var _this = this;
     this._bindedSend = function(type, x) {  _this._send(type, x)  }
   },
@@ -660,7 +746,7 @@ withInterval('withInterval', {
     this._bindedSend = null;
   },
   _onTick: function() {
-    Fn.call(this._fn, [this._bindedSend]);
+    this._fn.invoke(this._bindedSend);
   }
 });
 
@@ -672,13 +758,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 0);
   },
   _free: function() {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', Fn.call(this._fn));
+    this._send('value', this._fn.invoke());
   }
 });
 
@@ -836,7 +922,7 @@ function SampledBy(passive, active, combinator) {
     this._send('end');
   } else {
     this._passiveCount = passive.length;
-    this._combinator = combinator ? new Fn(combinator) : null;
+    this._combinator = combinator ? Fn(combinator) : null;
     this._sources = concat(passive, active);
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
@@ -881,7 +967,7 @@ inherit(SampledBy, Stream, {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
       if (this._combinator) {
-        combined = Fn.call(this._combinator, this._currents);
+        combined = this._combinator.apply(this._currents);
       }
       this._send('value', combined, isCurrent);
     }
@@ -1042,7 +1128,7 @@ function FlatMap(source, fn) {
   _AbstractPool.call(this);
   this._source = source;
   this._name = source._name + '.flatMap';
-  this._fn = fn ? new Fn(fn) : null;
+  this._fn = fn ? Fn(fn, 1) : null;
   this._mainEnded = false;
   this._lastValue = null;
 }
@@ -1061,7 +1147,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastValue !== event.value) {
-        this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
+        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
       }
       this._lastValue = event.value;
     } else {
@@ -1141,7 +1227,7 @@ withOneSource('changes', {
 withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
-    this._handler = new Fn(args[0]);
+    this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
     this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
   },
@@ -1151,7 +1237,7 @@ withOneSource('withHandler', {
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    Fn.call(this._handler, [this._bindedSend, event]);
+    this._handler.invoke(this._bindedSend, event);
     this._forcedCurrent = false;
   }
 });
@@ -1164,13 +1250,13 @@ withOneSource('withHandler', {
 
 withOneSource('map', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [x]), isCurrent);
+    this._send('value', this._fn.invoke(x), isCurrent);
   }
 });
 
@@ -1182,13 +1268,13 @@ withOneSource('map', {
 
 withOneSource('filter', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (Fn.call(this._fn, [x])) {
+    if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     }
   }
@@ -1202,13 +1288,13 @@ withOneSource('filter', {
 
 withOneSource('takeWhile', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (Fn.call(this._fn, [x])) {
+    if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     } else {
       this._send('end', null, isCurrent);
@@ -1267,9 +1353,9 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   _init: function(args) {
     if (args.length > 0) {
-      this._fn = new Fn(args[0]);
+      this._fn = Fn(args[0], 2);
     } else {
-      this._fn = strictlyEqual;
+      this._fn = Fn(strictlyEqual);
     }
     this._prev = NOTHING;
   },
@@ -1278,7 +1364,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !Fn.call(this._fn, [this._prev, x])) {
+    if (this._prev === NOTHING || !this._fn.invoke(this._prev, x)) {
       this._send('value', x, isCurrent);
     }
     this._prev = x;
@@ -1293,7 +1379,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
     this._skip = true;
   },
   _free: function() {
@@ -1304,7 +1390,7 @@ withOneSource('skipWhile', {
       this._send('value', x, isCurrent);
       return;
     }
-    if (!Fn.call(this._fn, [x])) {
+    if (!this._fn.invoke(x)) {
       this._skip = false;
       this._fn = null;
       this._send('value', x, isCurrent);
@@ -1321,14 +1407,14 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [this._prev, x]), isCurrent);
+    this._send('value', this._fn.invoke(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -1342,13 +1428,13 @@ withOneSource('diff', {
 withOneSource('scan', {
   _init: function(args) {
     this._send('value', args[0], true);
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [this._current, x]), isCurrent);
+    this._send('value', this._fn.invoke(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1361,14 +1447,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   _init: function(args) {
     this._result = args[0];
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function(){
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = Fn.call(this._fn, [this._result, x]);
+    this._result = this._fn.invoke(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
     this._send('value', this._result, isCurrent);
@@ -1484,7 +1570,7 @@ withOneSource('delay', {
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = new Fn(fn);
+  this._fn = Fn(fn, 1);
   this._unsubscribe = null;
 }
 
@@ -1495,9 +1581,7 @@ inherit(FromBinder, Stream, {
   _onActivation: function() {
     var _this = this;
     var isCurrent = true;
-    this._unsubscribe = Fn.call(this._fn, [
-      function(type, x) {  _this._send(type, x, isCurrent)  }
-    ]);
+    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -1635,9 +1719,9 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = new Fn(fn);
+  fn = Fn(fn, 1);
   return this.map(function(x) {
-    Fn.call(fn, [x]);
+    fn.invoke(x);
     return x;
   }).setName(this, 'tap');
 }

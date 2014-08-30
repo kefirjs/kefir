@@ -98,7 +98,7 @@ module.exports = (grunt) ->
     jshint:
       options:
         jshintrc: true
-      main: ['src/*.js']
+      main: ['src/**']
 
     jade:
       docs:

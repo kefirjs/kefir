@@ -40,9 +40,9 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = new Fn(fn);
+  fn = Fn(fn, 1);
   return this.map(function(x) {
-    Fn.call(fn, [x]);
+    fn.invoke(x);
     return x;
   }).setName(this, 'tap');
 }

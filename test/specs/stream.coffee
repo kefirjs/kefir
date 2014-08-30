@@ -96,6 +96,22 @@ describe 'Stream', ->
       s = stream()
       expect(s).toEmit [1, 2], -> send(s, [1, 2])
 
+    it 'should not deliver values to unsubscribed subscribers', ->
+      log = []
+      a = (x) -> log.push('a' + x)
+      b = (x) -> log.push('b' + x)
+      s = stream()
+      s.onValue(a)
+      s.onValue(b)
+      send(s, [1])
+      s.offValue(->)
+      send(s, [2])
+      s.offValue(a)
+      send(s, [3])
+      s.offValue(b)
+      send(s, [4])
+      expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
+
     it 'onValue subscribers should be called with 1 argument', ->
       s = stream()
       count = null
