@@ -108,7 +108,6 @@ function bind(fn, c, a, length) {
         break;
       case 1:
         switch (a.length) {
-          case 0: return function(b) {return fn(b)}
           case 1: return function(b) {return fn(a[0], b)}
           case 2: return function(b) {return fn(a[0], a[1], b)}
           case 3: return function(b) {return fn(a[0], a[1], a[3], b)}
@@ -118,7 +117,6 @@ function bind(fn, c, a, length) {
         break;
       case 2:
         switch (a.length) {
-          case 0: return function(b, d) {return fn(b, d)}
           case 1: return function(b, d) {return fn(a[0], b, d)}
           case 2: return function(b, d) {return fn(a[0], a[1], b, d)}
           case 3: return function(b, d) {return fn(a[0], a[1], a[3], b, d)}
