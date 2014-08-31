@@ -112,18 +112,14 @@ pre {
   background: white;
   position: relative;
 }
-  pre[title]:before {
+  pre[title]:after {
     content: attr(title);
     position: absolute;
+    top: 0;
     right: 0;
-    top: -2px;
-    padding: 0 .5em 0 .6em;
-    font-size: .9em;
-    color: #A2A2A2;
-    background: rgba(0, 0, 0, 0.09);
-    font-weight: bold;
-    font-family: sans-serif;
-    border-bottom-left-radius: 10px;
+    padding: 0 .5em;
+    font-size: .8em;
+    color: #8b8b8b;
   }
   pre + pre {
     margin-top: -10px;
