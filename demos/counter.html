@@ -26,6 +26,8 @@
       <p>
         This is the most basic Kefir.js example.
         Click «+» or «-» buttons to change value in between them.
+      </p>
+      <p>
         This example also uses <a href="../#jquery">jQuery addon</a> for Kefir.js,
         so make sure to include addon JavaScript file if you will use this code.
       </p>
@@ -56,16 +58,21 @@
 
 &lt;script type="text/javascript"&gt;
 
-  var plusClicks = $('#plus-btn').asKefirStream('click', function(){  return 1  });
-  var minusClicks = $('#minus-btn').asKefirStream('click', function(){  return -1  });
+  var plusClicks = $('#plus-btn').asKefirStream('click');
+  var minusClicks = $('#minus-btn').asKefirStream('click');
 
-  var result = Kefir.merge(plusClicks, minusClicks).scan(0, function(cur, add) {
-    return cur + add;
-  });
+  var counterChanges = Kefir.merge(
+    plusClicks.mapTo(1),
+    minusClicks.mapTo(-1)
+  )
 
-  result.onValue(function(x) {
-    $('#result').text(x);
-  });
+  function sum(a, b) {
+    return a + b;
+  }
+
+  var counterValue = counterChanges.scan(0, sum);
+
+  counterValue.onValue(['text', $('#result')]);
 
 &lt;/script&gt;
 
@@ -76,16 +83,21 @@
 
       <script type="text/javascript">
 
-        var plusClicks = $('#plus-btn').asKefirStream('click', function(){  return 1  });
-        var minusClicks = $('#minus-btn').asKefirStream('click', function(){  return -1  });
+        var plusClicks = $('#plus-btn').asKefirStream('click');
+        var minusClicks = $('#minus-btn').asKefirStream('click');
 
-        var result = Kefir.merge(plusClicks, minusClicks).scan(0, function(cur, add) {
-          return cur + add;
-        });
+        var counterChanges = Kefir.merge(
+          plusClicks.mapTo(1),
+          minusClicks.mapTo(-1)
+        )
 
-        result.onValue(function(x) {
-          $('#result').text(x);
-        });
+        function sum(a, b) {
+          return a + b;
+        }
+
+        var counterValue = counterChanges.scan(0, sum);
+
+        counterValue.onValue(['text', $('#result')]);
 
       </script>
 
