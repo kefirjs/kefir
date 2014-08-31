@@ -70,7 +70,7 @@ function SampledBy(passive, active, combinator) {
     this._send('end');
   } else {
     this._passiveCount = passive.length;
-    this._combinator = combinator ? new Fn(combinator) : null;
+    this._combinator = combinator ? Fn(combinator) : null;
     this._sources = concat(passive, active);
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
@@ -115,7 +115,7 @@ inherit(SampledBy, Stream, {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
       if (this._combinator) {
-        combined = Fn.call(this._combinator, this._currents);
+        combined = this._combinator.apply(this._currents);
       }
       this._send('value', combined, isCurrent);
     }
@@ -276,7 +276,7 @@ function FlatMap(source, fn) {
   _AbstractPool.call(this);
   this._source = source;
   this._name = source._name + '.flatMap';
-  this._fn = fn ? new Fn(fn) : null;
+  this._fn = fn ? Fn(fn, 1) : null;
   this._mainEnded = false;
   this._lastValue = null;
 }
@@ -295,7 +295,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastValue !== event.value) {
-        this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
+        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
       }
       this._lastValue = event.value;
     } else {

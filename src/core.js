@@ -5,44 +5,38 @@ var Kefir = {};
 
 
 
-
 // Fn
 
-function Fn(fnMeta) {
-  if (isFn(fnMeta) || (fnMeta instanceof Fn)) {
+function _Fn(fnMeta, length) {
+  var fn = getFn(fnMeta[0], fnMeta[1]);
+  var context = fnMeta[1];
+  var args = rest(fnMeta, 2, []);
+  this.fn = fn;
+  this.context = context;
+  this.args = args;
+  this.invoke = bind(fn, context, args, length);
+}
+
+_Fn.prototype.apply = function(args) {
+  return call(this.invoke, null, args);
+}
+
+function Fn(fnMeta, length) {
+  if (fnMeta instanceof _Fn) {
     return fnMeta;
-  }
-  if (fnMeta && fnMeta.length) {
-    if (fnMeta.length === 1) {
-      if (isFn(fnMeta[0])) {
-        return fnMeta[0];
+  } else {
+    if (length == null) {
+      length = 100;
+    }
+    if (isFn(fnMeta)) {
+      return new _Fn([fnMeta], length);
+    } else {
+      if (isArrayLike(fnMeta)) {
+        return new _Fn(fnMeta, length);
       } else {
         throw new Error('can\'t convert to Fn ' + fnMeta);
       }
     }
-    this.fn = getFn(fnMeta[0], fnMeta[1]);
-    this.context = fnMeta[1];
-    this.args = rest(fnMeta, 2, null);
-  } else {
-    throw new Error('can\'t convert to Fn ' + fnMeta);
-  }
-}
-Kefir.Fn = Fn;
-
-Fn.call = function(fn, args) {
-  if (isFn(fn)) {
-    return call(fn, null, args);
-  } else if (fn instanceof Fn) {
-    if (fn.args) {
-      if (args) {
-        args = concat(fn.args, args);
-      } else {
-        args = fn.args;
-      }
-    }
-    return call(fn.fn, fn.context, args);
-  } else {
-    return Fn.call(new Fn(fn), args);
   }
 }
 
@@ -50,15 +44,15 @@ Fn.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
-  a = new Fn(a);
-  b = new Fn(b);
-  if (isFn(a) || isFn(b)) {
-    return a === b;
-  }
+  a = Fn(a, null, true);
+  b = Fn(b, null, true);
   return a.fn === b.fn &&
     a.context === b.context &&
     isEqualArrays(a.args, b.args);
 }
+
+Kefir.Fn = Fn;
+
 
 
 
@@ -74,14 +68,15 @@ function Subscribers() {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    this[type].push(new Fn(fn));
+    var length = (type === 'end' ? 0 : 1);
+    this[type].push(Fn(fn, length, true));
     this.total++;
   },
   remove: function(type, fn) {
     var subs = this[type]
       , length = subs.length
       , i;
-    fn = new Fn(fn);
+    fn = Fn(fn);
     for (i = 0; i < length; i++) {
       if (Fn.isEqual(subs[i], fn)) {
         subs.splice(i, 1);
@@ -90,17 +85,25 @@ extend(Subscribers.prototype, {
       }
     }
   },
-  call: function(type, args) {
+  call: function(type, x) {
     var subs = this[type]
       , length = subs.length
       , i;
     if (length !== 0) {
       if (length === 1) {
-        Fn.call(subs[0], args);
+        if (type === 'end') {
+          subs[0].invoke();
+        } else {
+          subs[0].invoke(x);
+        }
       } else {
         subs = cloneArray(subs);
         for (i = 0; i < length; i++) {
-          Fn.call(subs[i], args);
+          if (type === 'end') {
+            subs[i].invoke();
+          } else {
+            subs[i].invoke(x);
+          }
         }
       }
     }
@@ -149,19 +152,22 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      if (!(type === 'end' && isCurrent)) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
-      }
+      this._subscribers.call(type, x);
+      this._subscribers.call('any', {type: type, value: x, current: !!isCurrent});
       if (type === 'end') {  this._clear()  }
     }
   },
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
+    fn = Fn(fn);
     if (fnType === valueType) {
-      Fn.call(fn, fnType === 'value' ? [value] : []);
+      if (fnType === 'value') {
+        fn.invoke(value);
+      } else {
+        fn.invoke();
+      }
     } else if (fnType === 'any') {
-      Fn.call(fn, [{type: valueType, value: value, current: true}]);
+      fn.invoke({type: valueType, value: value, current: true});
     }
   },
 
@@ -169,8 +175,7 @@ extend(Observable.prototype, {
     if (this._alive) {
       this._subscribers.add(type, fn);
       this._setActive(true);
-    }
-    if (!this._alive) {
+    } else {
       this._callWithCurrent(type, fn, 'end');
     }
     return this;
@@ -186,8 +191,6 @@ extend(Observable.prototype, {
     return this;
   },
 
-  toString: function() {  return '[' + this._name + ']'  },
-
   onValue:  function(fn) {  this.on('value', fn)   },
   onEnd:    function(fn) {  this.on('end', fn)     },
   onAny:    function(fn) {  this.on('any', fn)     },
@@ -197,6 +200,10 @@ extend(Observable.prototype, {
   offAny:   function(fn) {  this.off('any', fn)    }
 
 });
+
+
+// extend() can't handle `toString` in IE8
+Observable.prototype.toString = function() {  return '[' + this._name + ']'  };
 
 
 
@@ -240,8 +247,8 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: false}]);
+        this._subscribers.call(type, x);
+        this._subscribers.call('any', {type: type, value: x, current: false});
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }

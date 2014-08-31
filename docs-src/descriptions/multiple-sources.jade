@@ -2,19 +2,32 @@ h2#combine-observables Combine observables
 
 
 
-+descr-method('combine', 'combine', 'Kefir.combine(observables, [fn])').
++descr-method('combine', 'combine', 'Kefir.combine(observables, [fn]), observable.combine(other, [fn])').
 
 
-+descr-method('sampled-by', 'sampledBy', 'Kefir.sampledBy(passiveObservables, activeObservables, [fn])').
++descr-method('and', 'and', 'Kefir.and(observables), observable.and(other)').
 
 
-+descr-method('merge', 'merge', 'Kefir.merge(observables)').
++descr-method('or', 'or', 'Kefir.or(observables), observable.or(other)').
+
+
++descr-method('sampled-by', 'sampledBy', 'Kefir.sampledBy(passiveObservables, activeObservables, [fn]), observable.sampledBy(other, [fn])').
+
+
++descr-method('merge', 'merge', 'Kefir.merge(observables), observable.merge(other)').
 
 
 +descr-method('pool', 'pool', 'Kefir.pool()').
 
 
 +descr-method('flat-map', 'flatMap', 'property.flatMap(fn)').
+
+
++descr-method('awating', 'awating', 'observable.awating(other)').
+
+
++descr-method('filter-by', 'filterBy', 'observable.filterBy(other)').
+
 
 
 //- +descr-method('flat-map-latest', 'flatMapLatest', 'property.flatMapLatest(fn)').

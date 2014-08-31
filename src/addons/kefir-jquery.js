@@ -12,10 +12,10 @@
         transformer = selector;
         selector = null;
       }
-      transformer = transformer && new Kefir.Fn(transformer);
+      transformer = transformer && Kefir.Fn(transformer);
       return Kefir.fromBinder(function(send) {
         function onEvent(e) {
-          send('value', transformer ? Kefir.Fn.call(transformer, arguments) : e);
+          send('value', transformer ? transformer.apply(arguments) : e);
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }

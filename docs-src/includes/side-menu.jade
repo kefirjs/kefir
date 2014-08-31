@@ -15,6 +15,7 @@ ul.toc-section
   +method('#from-poll', 'fromPoll')
   +method('#with-interval', 'withInterval')
   +method('#from-binder', 'fromBinder')
+  +method('#once', 'once')
 
 a.toc-title(href='#create-property') Create a property
 ul.toc-section
@@ -35,11 +36,18 @@ ul.toc-section
   +method('#off-value', 'offValue')
   +method('#on-end', 'onEnd')
   +method('#off-end', 'offEnd')
+  +method('#on-any', 'onAny')
+  +method('#off-any', 'offAny')
   +method('#log', 'log')
+  +method('#off-log', 'offLog')
 
 a.toc-title(href='#modify') Modify an observable
 ul.toc-section
   +method('#map', 'map')
+  +method('#map-to', 'mapTo')
+  +method('#pluck', 'pluck')
+  +method('#invoke', 'invoke')
+  +method('#tap', 'tap')
   +method('#filter', 'filter')
   +method('#take', 'take')
   +method('#take-while', 'takeWhile')
@@ -51,15 +59,21 @@ ul.toc-section
   +method('#reduce', 'reduce')
   +method('#with-handler', 'withHandler')
   +method('#delay', 'delay')
+  +method('#defer', 'defer')
   +method('#throttle', 'throttle')
+  +method('#not', 'not')
 
 a.toc-title(href='#combine-observables') Combine observables
 ul.toc-section
   +method('#combine', 'combine')
+  +method('#and', 'and')
+  +method('#or', 'or')
   +method('#sampled-by', 'sampledBy')
   +method('#merge', 'merge')
   +method('#pool', 'pool')
   +method('#flat-map', 'flatMap')
+  +method('#awating', 'awating')
+  +method('#filter-by', 'filterBy')
   //- +method('#flat-map-latest', 'flatMapLatest')
 
 a.toc-title(href='#active-state') Active state

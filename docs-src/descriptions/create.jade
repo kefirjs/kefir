@@ -15,9 +15,9 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [emitter] <value> 1
-    => [emitter] <value> 2
-    => [emitter] <end>
+    > [emitter] <value> 1
+    > [emitter] <value> 2
+    > [emitter] <end>
 
 p.
   <img data-emoji="point_up"> <b>emitter</b> is the easiest way
@@ -40,7 +40,7 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [never] <end:current>
+    > [never] <end:current>
 div
 
 
@@ -56,8 +56,8 @@ pre(title='code').
 
 pre(title='console output (after 1 second)')
   :escapehtml
-    => [later] <value> 1
-    => [later] <end>
+    > [later] <value> 1
+    > [later] <end>
 div
 
 
@@ -72,9 +72,9 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [interval] <value> 1
-    => [interval] <value> 1
-    => [interval] <value> 1
+    > [interval] <value> 1
+    > [interval] <value> 1
+    > [interval] <value> 1
     ...
 div
 
@@ -90,10 +90,10 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [sequentially] <value> 1
-    => [sequentially] <value> 2
-    => [sequentially] <value> 3
-    => [sequentially] <end>
+    > [sequentially] <value> 1
+    > [sequentially] <value> 2
+    > [sequentially] <value> 3
+    > [sequentially] <end>
 div
 
 
@@ -109,13 +109,13 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [repeatedly] <value> 1
-    => [repeatedly] <value> 2
-    => [repeatedly] <value> 3
-    => [repeatedly] <value> 1
-    => [repeatedly] <value> 2
-    => [repeatedly] <value> 3
-    => [repeatedly] <value> 1
+    > [repeatedly] <value> 1
+    > [repeatedly] <value> 2
+    > [repeatedly] <value> 3
+    > [repeatedly] <value> 1
+    > [repeatedly] <value> 2
+    > [repeatedly] <value> 3
+    > [repeatedly] <value> 1
     ...
 div
 
@@ -133,12 +133,12 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [fromPoll] <value> 1001
-    => [fromPoll] <value> 2002
-    => [fromPoll] <value> 3004
-    => [fromPoll] <value> 4006
-    => [fromPoll] <value> 5007
-    => [fromPoll] <value> 6007
+    > [fromPoll] <value> 1001
+    > [fromPoll] <value> 2002
+    > [fromPoll] <value> 3004
+    > [fromPoll] <value> 4006
+    > [fromPoll] <value> 5007
+    > [fromPoll] <value> 6007
     ...
 div
 
@@ -165,10 +165,10 @@ pre(title='code')
 
 pre(title='console output')
   :escapehtml
-    => [withInterval] <value> 1002
-    => [withInterval] <value> 2003
-    => [withInterval] <value> 3005
-    => [withInterval] <end>
+    > [withInterval] <value> 1002
+    > [withInterval] <value> 2003
+    > [withInterval] <value> 3005
+    > [withInterval] <end>
     ...
 div
 
@@ -218,12 +218,16 @@ pre(title='code')
 
 pre(title='console output')
   :escapehtml
-    => !activation
-    => [fromBinder] <value> 1
-    => [fromBinder] <value> 2
-    => [fromBinder] <value> 3
-    => !deactivation
+    > !activation
+    > [fromBinder] <value> 1
+    > [fromBinder] <value> 2
+    > [fromBinder] <value> 3
+    > !deactivation
 div
+
+
+
++descr-method('once', 'once', 'Kefir.once(value)').
 
 
 
@@ -244,7 +248,7 @@ pre(title='code').
 
 pre(title='console output')
   :escapehtml
-    => [constant] <value:current> 1
-    => [constant] <end:current>
+    > [constant] <value:current> 1
+    > [constant] <end:current>
 div
 

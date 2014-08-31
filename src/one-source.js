@@ -37,7 +37,7 @@ withOneSource('changes', {
 withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
-    this._handler = new Fn(args[0]);
+    this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
     this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
   },
@@ -47,7 +47,7 @@ withOneSource('withHandler', {
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    Fn.call(this._handler, [this._bindedSend, event]);
+    this._handler.invoke(this._bindedSend, event);
     this._forcedCurrent = false;
   }
 });
@@ -60,13 +60,13 @@ withOneSource('withHandler', {
 
 withOneSource('map', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [x]), isCurrent);
+    this._send('value', this._fn.invoke(x), isCurrent);
   }
 });
 
@@ -78,13 +78,13 @@ withOneSource('map', {
 
 withOneSource('filter', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (Fn.call(this._fn, [x])) {
+    if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     }
   }
@@ -98,13 +98,13 @@ withOneSource('filter', {
 
 withOneSource('takeWhile', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (Fn.call(this._fn, [x])) {
+    if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     } else {
       this._send('end', null, isCurrent);
@@ -163,9 +163,9 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   _init: function(args) {
     if (args.length > 0) {
-      this._fn = new Fn(args[0]);
+      this._fn = Fn(args[0], 2);
     } else {
-      this._fn = strictlyEqual;
+      this._fn = Fn(strictlyEqual);
     }
     this._prev = NOTHING;
   },
@@ -174,7 +174,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !Fn.call(this._fn, [this._prev, x])) {
+    if (this._prev === NOTHING || !this._fn.invoke(this._prev, x)) {
       this._send('value', x, isCurrent);
     }
     this._prev = x;
@@ -189,7 +189,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
     this._skip = true;
   },
   _free: function() {
@@ -200,7 +200,7 @@ withOneSource('skipWhile', {
       this._send('value', x, isCurrent);
       return;
     }
-    if (!Fn.call(this._fn, [x])) {
+    if (!this._fn.invoke(x)) {
       this._skip = false;
       this._fn = null;
       this._send('value', x, isCurrent);
@@ -217,14 +217,14 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [this._prev, x]), isCurrent);
+    this._send('value', this._fn.invoke(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -238,13 +238,13 @@ withOneSource('diff', {
 withOneSource('scan', {
   _init: function(args) {
     this._send('value', args[0], true);
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [this._current, x]), isCurrent);
+    this._send('value', this._fn.invoke(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -257,14 +257,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   _init: function(args) {
     this._result = args[0];
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function(){
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = Fn.call(this._fn, [this._result, x]);
+    this._result = this._fn.invoke(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
     this._send('value', this._result, isCurrent);

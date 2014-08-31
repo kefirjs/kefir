@@ -2,7 +2,7 @@
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = new Fn(fn);
+  this._fn = Fn(fn, 1);
   this._unsubscribe = null;
 }
 
@@ -13,9 +13,7 @@ inherit(FromBinder, Stream, {
   _onActivation: function() {
     var _this = this;
     var isCurrent = true;
-    this._unsubscribe = Fn.call(this._fn, [
-      function(type, x) {  _this._send(type, x, isCurrent)  }
-    ]);
+    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -76,16 +74,37 @@ Kefir.never = function() {  return neverObj  }
 
 // Kefir.constant(x)
 
-function ConstantProperty(x) {
+function Constant(x) {
   Property.call(this);
   this._send('value', x);
   this._send('end');
 }
 
-inherit(ConstantProperty, Property, {
+inherit(Constant, Property, {
   _name: 'constant'
 })
 
 Kefir.constant = function(x) {
-  return new ConstantProperty(x);
+  return new Constant(x);
+}
+
+
+
+// Kefir.once(x)
+
+function Once(x) {
+  Stream.call(this);
+  this._value = x;
+}
+
+inherit(Once, Stream, {
+  _name: 'once',
+  _onActivation: function() {
+    this._send('value', this._value);
+    this._send('end');
+  }
+});
+
+Kefir.once = function(x) {
+  return new Once(x);
 }

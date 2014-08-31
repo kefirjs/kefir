@@ -7,53 +7,18 @@
         <script src="../bower-packages/jquery/jquery.js"></script>
         <script src="../dist/kefir.min.js"></script>
         <script src="../dist/addons/kefir-jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="../docs-src/includes/stylesheet.css">
         <style type="text/css">
           body {
-            font-size: 14px;
-            line-height: 22px;
-            background: #f4f4f4;
-            color: #000;
-            font-family: Helvetica, Arial, sans-serif;
+            padding:  0 1em 1em;
             max-width: 700px;
           }
-          a {
-            color: #476cff;
-            text-decoration: none;
-          }
-            a:hover {
-              text-decoration: underline;
-            }
-
-          pre {
-            font-family: Monaco, Consolas, "Lucida Console", monospace;
-            font-size: 12px;
-            line-height: 18px;
-            font-style: normal;
-            padding: 2px 0 2px 15px;
-            border-left: 5px solid #bbb;
-            margin: 0 0 30px;
-            overflow: auto;
-            background: white;
-            position: relative;
-          }
-            pre[title]:after {
-              content: attr(title);
-              position: absolute;
-              top: 0;
-              right: 0;
-              padding: 0 .5em;
-              font-size: .8em;
-              color: #8b8b8b;
-            }
-            pre + pre {
-              margin-top: -10px;
-            }
         </style>
     </head>
     <body>
 
       <p>
-        <a href="http://pozadi.github.io/kefir/">↩ back to Kefir.js documentation</a>
+        <a href="../">↩ back to Kefir.js documentation</a>
       </p>
 
       <h1>Kefir.js counter demo</h1>
@@ -61,6 +26,8 @@
       <p>
         This is the most basic Kefir.js example.
         Click «+» or «-» buttons to change value in between them.
+      </p>
+      <p>
         This example also uses <a href="../#jquery">jQuery addon</a> for Kefir.js,
         so make sure to include addon JavaScript file if you will use this code.
       </p>
@@ -91,16 +58,21 @@
 
 &lt;script type="text/javascript"&gt;
 
-  var plusClicks = $('#plus-btn').asKefirStream('click', function(){  return 1  });
-  var minusClicks = $('#minus-btn').asKefirStream('click', function(){  return -1  });
+  var plusClicks = $('#plus-btn').asKefirStream('click');
+  var minusClicks = $('#minus-btn').asKefirStream('click');
 
-  var result = Kefir.merge(plusClicks, minusClicks).scan(0, function(cur, add) {
-    return cur + add;
-  });
+  var counterChanges = Kefir.merge(
+    plusClicks.mapTo(1),
+    minusClicks.mapTo(-1)
+  )
 
-  result.onValue(function(x) {
-    $('#result').text(x);
-  });
+  function sum(a, b) {
+    return a + b;
+  }
+
+  var counterValue = counterChanges.scan(0, sum);
+
+  counterValue.onValue(['text', $('#result')]);
 
 &lt;/script&gt;
 
@@ -111,16 +83,21 @@
 
       <script type="text/javascript">
 
-        var plusClicks = $('#plus-btn').asKefirStream('click', function(){  return 1  });
-        var minusClicks = $('#minus-btn').asKefirStream('click', function(){  return -1  });
+        var plusClicks = $('#plus-btn').asKefirStream('click');
+        var minusClicks = $('#minus-btn').asKefirStream('click');
 
-        var result = Kefir.merge(plusClicks, minusClicks).scan(0, function(cur, add) {
-          return cur + add;
-        });
+        var counterChanges = Kefir.merge(
+          plusClicks.mapTo(1),
+          minusClicks.mapTo(-1)
+        )
 
-        result.onValue(function(x) {
-          $('#result').text(x);
-        });
+        function sum(a, b) {
+          return a + b;
+        }
+
+        var counterValue = counterChanges.scan(0, sum);
+
+        counterValue.onValue(['text', $('#result')]);
 
       </script>
 

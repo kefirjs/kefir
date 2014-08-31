@@ -1,5 +1,5 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! kefir - 0.2.3
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*! kefir - 0.2.4
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -92,6 +92,80 @@ function call(fn, context, args) {
   }
 }
 
+function bind(fn, c, a, length) {
+  if (c == null) {
+    if (a.length === 0) {
+      return fn;
+    }
+    switch (length) {
+      case 0:
+        switch (a.length) {
+          case 1: return function() {return fn(a[0])}
+          case 2: return function() {return fn(a[0], a[1])}
+          case 3: return function() {return fn(a[0], a[1], a[3])}
+          case 4: return function() {return fn(a[0], a[1], a[3], a[4])}
+          default: return function() {return fn.apply(null, a)}
+        }
+        break;
+      case 1:
+        switch (a.length) {
+          case 0: return function(b) {return fn(b)}
+          case 1: return function(b) {return fn(a[0], b)}
+          case 2: return function(b) {return fn(a[0], a[1], b)}
+          case 3: return function(b) {return fn(a[0], a[1], a[3], b)}
+          case 4: return function(b) {return fn(a[0], a[1], a[3], a[4], b)}
+          default: return function(b) {return fn.apply(null, concat(a, [b]))}
+        }
+        break;
+      case 2:
+        switch (a.length) {
+          case 0: return function(b, d) {return fn(b, d)}
+          case 1: return function(b, d) {return fn(a[0], b, d)}
+          case 2: return function(b, d) {return fn(a[0], a[1], b, d)}
+          case 3: return function(b, d) {return fn(a[0], a[1], a[3], b, d)}
+          case 4: return function(b, d) {return fn(a[0], a[1], a[3], a[4], b, d)}
+          default: return function(b, d) {return fn.apply(null, concat(a, [b, d]))}
+        }
+        break;
+      default: return function() {return fn.apply(null, concat(a, arguments))}
+    }
+  } else {
+    switch (length) {
+      case 0:
+        switch (a.length) {
+          case 0: return function() {return fn.call(c)}
+          case 1: return function() {return fn.call(c, a[0])}
+          case 2: return function() {return fn.call(c, a[0], a[1])}
+          case 3: return function() {return fn.call(c, a[0], a[1], a[3])}
+          case 4: return function() {return fn.call(c, a[0], a[1], a[3], a[4])}
+          default: return function() {return fn.apply(c, a)}
+        }
+        break;
+      case 1:
+        switch (a.length) {
+          case 0: return function(b) {return fn.call(c, b)}
+          case 1: return function(b) {return fn.call(c, a[0], b)}
+          case 2: return function(b) {return fn.call(c, a[0], a[1], b)}
+          case 3: return function(b) {return fn.call(c, a[0], a[1], a[3], b)}
+          case 4: return function(b) {return fn.call(c, a[0], a[1], a[3], a[4], b)}
+          default: return function(b) {return fn.apply(c, concat(a, [b]))}
+        }
+        break;
+      case 2:
+        switch (a.length) {
+          case 0: return function(b, d) {return fn.call(c, b, d)}
+          case 1: return function(b, d) {return fn.call(c, a[0], b, d)}
+          case 2: return function(b, d) {return fn.call(c, a[0], a[1], b, d)}
+          case 3: return function(b, d) {return fn.call(c, a[0], a[1], a[3], b, d)}
+          case 4: return function(b, d) {return fn.call(c, a[0], a[1], a[3], a[4], b, d)}
+          default: return function(b, d) {return fn.apply(c, concat(a, [b, d]))}
+        }
+        break;
+      default: return function() {return fn.apply(c, concat(a, arguments))}
+    }
+  }
+}
+
 function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
@@ -173,6 +247,10 @@ function isUndefined(x) {
   return typeof x === 'undefined';
 }
 
+function isArrayLike(xs) {
+  return isArray(xs) || isArguments(xs);
+}
+
 var isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 }
@@ -205,6 +283,24 @@ function isEqualArrays(a, b) {
     }
   }
   return true;
+}
+
+function and() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (!arguments[i]) {
+      return arguments[i];
+    }
+  }
+  return arguments[i - 1];
+}
+
+function or() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (arguments[i]) {
+      return arguments[i];
+    }
+  }
+  return arguments[i - 1];
 }
 
 function withInterval(name, mixin) {
@@ -344,44 +440,38 @@ var Kefir = {};
 
 
 
-
 // Fn
 
-function Fn(fnMeta) {
-  if (isFn(fnMeta) || (fnMeta instanceof Fn)) {
+function _Fn(fnMeta, length) {
+  var fn = getFn(fnMeta[0], fnMeta[1]);
+  var context = fnMeta[1];
+  var args = rest(fnMeta, 2, []);
+  this.fn = fn;
+  this.context = context;
+  this.args = args;
+  this.invoke = bind(fn, context, args, length);
+}
+
+_Fn.prototype.apply = function(args) {
+  return call(this.invoke, null, args);
+}
+
+function Fn(fnMeta, length) {
+  if (fnMeta instanceof _Fn) {
     return fnMeta;
-  }
-  if (fnMeta && fnMeta.length) {
-    if (fnMeta.length === 1) {
-      if (isFn(fnMeta[0])) {
-        return fnMeta[0];
+  } else {
+    if (length == null) {
+      length = 100;
+    }
+    if (isFn(fnMeta)) {
+      return new _Fn([fnMeta], length);
+    } else {
+      if (isArrayLike(fnMeta)) {
+        return new _Fn(fnMeta, length);
       } else {
         throw new Error('can\'t convert to Fn ' + fnMeta);
       }
     }
-    this.fn = getFn(fnMeta[0], fnMeta[1]);
-    this.context = fnMeta[1];
-    this.args = rest(fnMeta, 2, null);
-  } else {
-    throw new Error('can\'t convert to Fn ' + fnMeta);
-  }
-}
-Kefir.Fn = Fn;
-
-Fn.call = function(fn, args) {
-  if (isFn(fn)) {
-    return call(fn, null, args);
-  } else if (fn instanceof Fn) {
-    if (fn.args) {
-      if (args) {
-        args = concat(fn.args, args);
-      } else {
-        args = fn.args;
-      }
-    }
-    return call(fn.fn, fn.context, args);
-  } else {
-    return Fn.call(new Fn(fn), args);
   }
 }
 
@@ -389,15 +479,15 @@ Fn.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
-  a = new Fn(a);
-  b = new Fn(b);
-  if (isFn(a) || isFn(b)) {
-    return a === b;
-  }
+  a = Fn(a, null, true);
+  b = Fn(b, null, true);
   return a.fn === b.fn &&
     a.context === b.context &&
     isEqualArrays(a.args, b.args);
 }
+
+Kefir.Fn = Fn;
+
 
 
 
@@ -413,14 +503,15 @@ function Subscribers() {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    this[type].push(new Fn(fn));
+    var length = (type === 'end' ? 0 : 1);
+    this[type].push(Fn(fn, length, true));
     this.total++;
   },
   remove: function(type, fn) {
     var subs = this[type]
       , length = subs.length
       , i;
-    fn = new Fn(fn);
+    fn = Fn(fn);
     for (i = 0; i < length; i++) {
       if (Fn.isEqual(subs[i], fn)) {
         subs.splice(i, 1);
@@ -429,17 +520,25 @@ extend(Subscribers.prototype, {
       }
     }
   },
-  call: function(type, args) {
+  call: function(type, x) {
     var subs = this[type]
       , length = subs.length
       , i;
     if (length !== 0) {
       if (length === 1) {
-        Fn.call(subs[0], args);
+        if (type === 'end') {
+          subs[0].invoke();
+        } else {
+          subs[0].invoke(x);
+        }
       } else {
         subs = cloneArray(subs);
         for (i = 0; i < length; i++) {
-          Fn.call(subs[i], args);
+          if (type === 'end') {
+            subs[i].invoke();
+          } else {
+            subs[i].invoke(x);
+          }
         }
       }
     }
@@ -488,19 +587,22 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      if (!(type === 'end' && isCurrent)) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: !!isCurrent}]);
-      }
+      this._subscribers.call(type, x);
+      this._subscribers.call('any', {type: type, value: x, current: !!isCurrent});
       if (type === 'end') {  this._clear()  }
     }
   },
 
   _callWithCurrent: function(fnType, fn, valueType, value) {
+    fn = Fn(fn);
     if (fnType === valueType) {
-      Fn.call(fn, fnType === 'value' ? [value] : []);
+      if (fnType === 'value') {
+        fn.invoke(value);
+      } else {
+        fn.invoke();
+      }
     } else if (fnType === 'any') {
-      Fn.call(fn, [{type: valueType, value: value, current: true}]);
+      fn.invoke({type: valueType, value: value, current: true});
     }
   },
 
@@ -508,8 +610,7 @@ extend(Observable.prototype, {
     if (this._alive) {
       this._subscribers.add(type, fn);
       this._setActive(true);
-    }
-    if (!this._alive) {
+    } else {
       this._callWithCurrent(type, fn, 'end');
     }
     return this;
@@ -525,8 +626,6 @@ extend(Observable.prototype, {
     return this;
   },
 
-  toString: function() {  return '[' + this._name + ']'  },
-
   onValue:  function(fn) {  this.on('value', fn)   },
   onEnd:    function(fn) {  this.on('end', fn)     },
   onAny:    function(fn) {  this.on('any', fn)     },
@@ -536,6 +635,10 @@ extend(Observable.prototype, {
   offAny:   function(fn) {  this.off('any', fn)    }
 
 });
+
+
+// extend() can't handle `toString` in IE8
+Observable.prototype.toString = function() {  return '[' + this._name + ']'  };
 
 
 
@@ -579,8 +682,8 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.call(type, type === 'value' ? [x] : []);
-        this._subscribers.call('any', [{type: type, value: x, current: false}]);
+        this._subscribers.call(type, x);
+        this._subscribers.call('any', {type: type, value: x, current: false});
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -635,7 +738,7 @@ Observable.prototype.offLog = function(name) {
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
     var _this = this;
     this._bindedSend = function(type, x) {  _this._send(type, x)  }
   },
@@ -644,7 +747,7 @@ withInterval('withInterval', {
     this._bindedSend = null;
   },
   _onTick: function() {
-    Fn.call(this._fn, [this._bindedSend]);
+    this._fn.invoke(this._bindedSend);
   }
 });
 
@@ -656,13 +759,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 0);
   },
   _free: function() {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', Fn.call(this._fn));
+    this._send('value', this._fn.invoke());
   }
 });
 
@@ -820,7 +923,7 @@ function SampledBy(passive, active, combinator) {
     this._send('end');
   } else {
     this._passiveCount = passive.length;
-    this._combinator = combinator ? new Fn(combinator) : null;
+    this._combinator = combinator ? Fn(combinator) : null;
     this._sources = concat(passive, active);
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
@@ -865,7 +968,7 @@ inherit(SampledBy, Stream, {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
       if (this._combinator) {
-        combined = Fn.call(this._combinator, this._currents);
+        combined = this._combinator.apply(this._currents);
       }
       this._send('value', combined, isCurrent);
     }
@@ -1026,7 +1129,7 @@ function FlatMap(source, fn) {
   _AbstractPool.call(this);
   this._source = source;
   this._name = source._name + '.flatMap';
-  this._fn = fn ? new Fn(fn) : null;
+  this._fn = fn ? Fn(fn, 1) : null;
   this._mainEnded = false;
   this._lastValue = null;
 }
@@ -1045,7 +1148,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastValue !== event.value) {
-        this._add(this._fn ? Fn.call(this._fn, [event.value]) : event.value);
+        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
       }
       this._lastValue = event.value;
     } else {
@@ -1125,7 +1228,7 @@ withOneSource('changes', {
 withOneSource('withHandler', {
   _init: function(args) {
     var _this = this;
-    this._handler = new Fn(args[0]);
+    this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
     this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
   },
@@ -1135,7 +1238,7 @@ withOneSource('withHandler', {
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    Fn.call(this._handler, [this._bindedSend, event]);
+    this._handler.invoke(this._bindedSend, event);
     this._forcedCurrent = false;
   }
 });
@@ -1148,13 +1251,13 @@ withOneSource('withHandler', {
 
 withOneSource('map', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [x]), isCurrent);
+    this._send('value', this._fn.invoke(x), isCurrent);
   }
 });
 
@@ -1166,13 +1269,13 @@ withOneSource('map', {
 
 withOneSource('filter', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (Fn.call(this._fn, [x])) {
+    if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     }
   }
@@ -1186,13 +1289,13 @@ withOneSource('filter', {
 
 withOneSource('takeWhile', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (Fn.call(this._fn, [x])) {
+    if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     } else {
       this._send('end', null, isCurrent);
@@ -1251,9 +1354,9 @@ function strictlyEqual(a, b) {  return a === b  }
 withOneSource('skipDuplicates', {
   _init: function(args) {
     if (args.length > 0) {
-      this._fn = new Fn(args[0]);
+      this._fn = Fn(args[0], 2);
     } else {
-      this._fn = strictlyEqual;
+      this._fn = Fn(strictlyEqual);
     }
     this._prev = NOTHING;
   },
@@ -1262,7 +1365,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !Fn.call(this._fn, [this._prev, x])) {
+    if (this._prev === NOTHING || !this._fn.invoke(this._prev, x)) {
       this._send('value', x, isCurrent);
     }
     this._prev = x;
@@ -1277,7 +1380,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = new Fn(args[0]);
+    this._fn = Fn(args[0], 1);
     this._skip = true;
   },
   _free: function() {
@@ -1288,7 +1391,7 @@ withOneSource('skipWhile', {
       this._send('value', x, isCurrent);
       return;
     }
-    if (!Fn.call(this._fn, [x])) {
+    if (!this._fn.invoke(x)) {
       this._skip = false;
       this._fn = null;
       this._send('value', x, isCurrent);
@@ -1305,14 +1408,14 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [this._prev, x]), isCurrent);
+    this._send('value', this._fn.invoke(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -1326,13 +1429,13 @@ withOneSource('diff', {
 withOneSource('scan', {
   _init: function(args) {
     this._send('value', args[0], true);
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', Fn.call(this._fn, [this._current, x]), isCurrent);
+    this._send('value', this._fn.invoke(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1345,14 +1448,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   _init: function(args) {
     this._result = args[0];
-    this._fn = new Fn(rest(args, 1));
+    this._fn = Fn(args[1], 2);
   },
   _free: function(){
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = Fn.call(this._fn, [this._result, x]);
+    this._result = this._fn.invoke(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
     this._send('value', this._result, isCurrent);
@@ -1468,7 +1571,7 @@ withOneSource('delay', {
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = new Fn(fn);
+  this._fn = Fn(fn, 1);
   this._unsubscribe = null;
 }
 
@@ -1479,9 +1582,7 @@ inherit(FromBinder, Stream, {
   _onActivation: function() {
     var _this = this;
     var isCurrent = true;
-    this._unsubscribe = Fn.call(this._fn, [
-      function(type, x) {  _this._send(type, x, isCurrent)  }
-    ]);
+    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -1542,19 +1643,158 @@ Kefir.never = function() {  return neverObj  }
 
 // Kefir.constant(x)
 
-function ConstantProperty(x) {
+function Constant(x) {
   Property.call(this);
   this._send('value', x);
   this._send('end');
 }
 
-inherit(ConstantProperty, Property, {
+inherit(Constant, Property, {
   _name: 'constant'
 })
 
 Kefir.constant = function(x) {
-  return new ConstantProperty(x);
+  return new Constant(x);
 }
+
+
+
+// Kefir.once(x)
+
+function Once(x) {
+  Stream.call(this);
+  this._value = x;
+}
+
+inherit(Once, Stream, {
+  _name: 'once',
+  _onActivation: function() {
+    this._send('value', this._value);
+    this._send('end');
+  }
+});
+
+Kefir.once = function(x) {
+  return new Once(x);
+}
+
+// .setName
+
+Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
+  this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
+  return this;
+}
+
+
+
+// .mapTo
+
+Observable.prototype.mapTo = function(value) {
+  return this.map(function() {  return value  }).setName(this, 'mapTo');
+}
+
+
+
+// .pluck
+
+Observable.prototype.pluck = function(propertyName) {
+  return this.map(function(x) {
+    return x[propertyName];
+  }).setName(this, 'pluck');
+}
+
+
+
+// .invoke
+
+Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
+  var args = rest(arguments, 1);
+  return this.map(args ?
+    function(x) {  return call(x[methodName], x, args)  } :
+    function(x) {  return x[methodName]()  }
+  ).setName(this, 'invoke');
+}
+
+
+
+// .tap
+
+Observable.prototype.tap = function(fn) {
+  fn = Fn(fn, 1);
+  return this.map(function(x) {
+    fn.invoke(x);
+    return x;
+  }).setName(this, 'tap');
+}
+
+
+
+// .defer
+
+Observable.prototype.defer = function() {
+  return this.delay(0).setName(this, 'defer');
+}
+
+
+
+// .and
+
+Kefir.and = function(observables) {
+  return Kefir.combine(observables, and).setName('and');
+}
+
+Observable.prototype.and = function(other) {
+  return this.combine(other, and).setName('and');
+}
+
+
+
+// .or
+
+Kefir.or = function(observables) {
+  return Kefir.combine(observables, or).setName('or');
+}
+
+Observable.prototype.or = function(other) {
+  return this.combine(other, or).setName('or');
+}
+
+
+
+// .not
+
+Observable.prototype.not = function() {
+  return this.map(function(x) {  return !x  }).setName('not');
+}
+
+
+
+// .awaiting
+
+Observable.prototype.awaiting = function(other) {
+  return Kefir.merge([
+    this.mapTo(true),
+    other.mapTo(false)
+  ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
+}
+
+
+
+// .filterBy
+
+Observable.prototype.filterBy = function(other) {
+  return other
+    .sampledBy(this)
+    .withHandler(function(send, e) {
+      if (e.type === 'end') {
+        send('end');
+      } else if (e.value[0]) {
+        send('value', e.value[1]);
+      }
+    })
+    .setName(this, 'filterBy');
+}
+
 
 
   if (typeof define === 'function' && define.amd) {
@@ -2256,8 +2496,8 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-}).call(this,require("JkpR2F"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":4,"JkpR2F":3,"inherits":2}],6:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":4,"_process":3,"inherits":2}],6:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v1.11.1
  * http://jquery.com/
@@ -13154,7 +13394,7 @@ var sinon = (function (formatio) {
     }
 }(typeof sinon == "object" && sinon || null, typeof window != "undefined" ? window : (typeof self != "undefined") ? self : global));
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../sinon":7}],9:[function(require,module,exports){
 (function (process){
 /**
@@ -13492,8 +13732,8 @@ var sinon = (function (formatio) {
     }
 }(typeof sinon == "object" && sinon || null));
 
-}).call(this,require("JkpR2F"))
-},{"../sinon":7,"JkpR2F":3}],10:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"../sinon":7,"_process":3}],10:[function(require,module,exports){
 /**
   * @depend ../sinon.js
   * @depend match.js
@@ -15885,7 +16125,7 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = sinon;
 }
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],20:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
@@ -16088,7 +16328,7 @@ if (typeof module !== 'undefined' && module.exports) {
     return Formatio.prototype;
 });
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"samsam":21}],21:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
@@ -16514,7 +16754,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],23:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],23:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -16630,7 +16870,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],24:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],24:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -16650,7 +16890,7 @@ describe('constant', function() {
 
 
 
-},{"kefir":57}],25:[function(require,module,exports){
+},{"kefir":59}],25:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -16718,7 +16958,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],26:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],26:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -16780,7 +17020,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],27:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],27:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -16806,7 +17046,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":57}],28:[function(require,module,exports){
+},{"kefir":59}],28:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -16875,7 +17115,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],29:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],29:[function(require,module,exports){
 var Kefir, activate, deactivate, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -16985,7 +17225,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],30:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],30:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 Kefir = require('kefir');
@@ -17067,7 +17307,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],31:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],31:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17087,7 +17327,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":57}],32:[function(require,module,exports){
+},{"kefir":59}],32:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17103,7 +17343,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":57}],33:[function(require,module,exports){
+},{"kefir":59}],33:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 Kefir = require('kefir');
@@ -17341,7 +17581,7 @@ if (inBrowser) {
 
 
 
-},{"../test-helpers.coffee":55,"addons/kefir-jquery":56,"jquery":6,"kefir":57}],34:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"addons/kefir-jquery":58,"jquery":6,"kefir":59}],34:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17357,7 +17597,7 @@ describe('later', function() {
 
 
 
-},{"kefir":57}],35:[function(require,module,exports){
+},{"kefir":59}],35:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17419,7 +17659,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 Kefir = require('kefir');
@@ -17535,7 +17775,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],37:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17551,7 +17791,37 @@ describe('never', function() {
 
 
 
-},{"kefir":57}],38:[function(require,module,exports){
+},{"kefir":59}],38:[function(require,module,exports){
+var Kefir, prop, send, stream, _ref;
+
+Kefir = require('kefir');
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send;
+
+describe('once', function() {
+  it('should return stream', function() {
+    return expect(Kefir.once(1)).toBeStream();
+  });
+  it('should emit value to first subscriber', function() {
+    var a;
+    a = Kefir.once(1);
+    expect(a).toEmit([1, '<end>']);
+    return expect(a).toEmit(['<end:current>']);
+  });
+  return it('should work fine with flatMap', function() {
+    var a;
+    a = stream();
+    return expect(a.flatMap(function(x) {
+      return Kefir.once(x + 1);
+    })).toEmit([2, 3, '<end>'], function() {
+      return send(a, [1, 2, '<end>']);
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":57,"kefir":59}],39:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 Kefir = require('kefir');
@@ -17642,7 +17912,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],40:[function(require,module,exports){
 var Kefir, activate, helpers, prop, send;
 
 Kefir = require('kefir');
@@ -17806,7 +18076,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],41:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17872,7 +18142,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],42:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17891,7 +18161,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":57}],42:[function(require,module,exports){
+},{"kefir":59}],43:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -18017,7 +18287,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],44:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18091,7 +18361,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],45:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18110,7 +18380,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":57}],45:[function(require,module,exports){
+},{"kefir":59}],46:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18190,7 +18460,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],47:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18300,7 +18570,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],48:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18404,7 +18674,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],49:[function(require,module,exports){
 var Kefir, activate, helpers, send, stream;
 
 Kefir = require('kefir');
@@ -18523,6 +18793,27 @@ describe('Stream', function() {
         return send(s, [1, 2]);
       });
     });
+    it('should not deliver values to unsubscribed subscribers', function() {
+      var a, b, log, s;
+      log = [];
+      a = function(x) {
+        return log.push('a' + x);
+      };
+      b = function(x) {
+        return log.push('b' + x);
+      };
+      s = stream();
+      s.onValue(a);
+      s.onValue(b);
+      send(s, [1]);
+      s.offValue(function() {});
+      send(s, [2]);
+      s.offValue(a);
+      send(s, [3]);
+      s.offValue(b);
+      send(s, [4]);
+      return expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3']);
+    });
     it('onValue subscribers should be called with 1 argument', function() {
       var count, s;
       s = stream();
@@ -18606,7 +18897,307 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],50:[function(require,module,exports){
+var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
+
+Kefir = require('kefir');
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send;
+
+expectToBehaveAsMap = function(gen, mapFn, toObj) {
+  var mapEv;
+  if (toObj == null) {
+    toObj = function(x) {
+      return x;
+    };
+  }
+  mapEv = function(events, mapFn) {
+    var event, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = events.length; _i < _len; _i++) {
+      event = events[_i];
+      if (event === '<end>') {
+        _results.push('<end>');
+      } else if ((event != null ? event.current : void 0) != null) {
+        _results.push({
+          current: mapFn(event.current)
+        });
+      } else {
+        _results.push(mapFn(event));
+      }
+    }
+    return _results;
+  };
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(gen(stream())).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(gen(a)).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(gen(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    return it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(gen(a)).toEmit(mapEv(mapEv([1, 2, '<end>'], toObj), mapFn), function() {
+        return send(a, mapEv([1, 2, '<end>'], toObj));
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(gen(prop())).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(gen(a)).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(gen(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [toObj(1)]);
+      return expect(gen(a)).toEmit(mapEv(mapEv([
+        {
+          current: 1
+        }, 2, 3, '<end>'
+      ], toObj), mapFn), function() {
+        return send(a, mapEv([2, 3, '<end>'], toObj));
+      });
+    });
+  });
+};
+
+describe('mapTo', function() {
+  return expectToBehaveAsMap(function(s) {
+    return s.mapTo(1);
+  }, function() {
+    return 1;
+  });
+});
+
+describe('not', function() {
+  return expectToBehaveAsMap(function(s) {
+    return s.not();
+  }, function(x) {
+    return !x;
+  });
+});
+
+describe('pluck', function() {
+  return expectToBehaveAsMap(function(s) {
+    return s.pluck('foo');
+  }, function(x) {
+    return x.foo;
+  }, function(x) {
+    return {
+      foo: x
+    };
+  });
+});
+
+describe('invoke w/o args', function() {
+  return expectToBehaveAsMap(function(s) {
+    return s.invoke('bar');
+  }, function(x) {
+    return x.bar();
+  }, function(x) {
+    return {
+      foo: x,
+      bar: function() {
+        return this.foo;
+      }
+    };
+  });
+});
+
+describe('invoke w/ args', function() {
+  return expectToBehaveAsMap(function(s) {
+    return s.invoke('bar', 1, 2);
+  }, function(x) {
+    return x.bar(1, 2);
+  }, function(x) {
+    return {
+      foo: x,
+      bar: function(a, b) {
+        return this.foo + a + b;
+      }
+    };
+  });
+});
+
+describe('tap', function() {
+  return expectToBehaveAsMap(function(s) {
+    return s.tap(function(x) {
+      return x.foo += 1;
+    });
+  }, function(x) {
+    x.foo += 1;
+    return x;
+  }, function(x) {
+    return {
+      foo: x
+    };
+  });
+});
+
+describe('setName', function() {
+  it('should return same observable', function() {
+    var a;
+    a = stream();
+    expect(a.setName('foo')).toBe(a);
+    return expect(a.setName(stream(), 'foo')).toBe(a);
+  });
+  return it('should update observable name', function() {
+    var a;
+    a = stream();
+    expect(a.toString()).toBe('[stream]');
+    a.setName('foo');
+    expect(a.toString()).toBe('[foo]');
+    a.setName(stream().setName('foo'), 'bar');
+    return expect(a.toString()).toBe('[foo.bar]');
+  });
+});
+
+describe('defer', function() {
+  it('should not emit synchronously', function() {
+    var a;
+    a = stream();
+    return expect(a.defer()).toEmit([], function() {
+      return send(a, [1, 2, '<end>']);
+    });
+  });
+  return it('should emit asynchronously without timeout', function() {
+    var a;
+    a = stream();
+    return expect(a.defer()).toEmitInTime([[0, 1], [0, 2], [0, '<end>']], function() {
+      return send(a, [1, 2, '<end>']);
+    });
+  });
+});
+
+describe('and', function() {
+  return it('should work as expected', function() {
+    var a, b, c;
+    a = stream();
+    b = prop();
+    c = send(prop(), [1]);
+    return expect(Kefir.and([a, b, c])).toEmit([false, false, 10, 11, 0], function() {
+      send(a, [true]);
+      send(b, [false]);
+      send(c, [10]);
+      send(b, [1]);
+      send(c, [11]);
+      return send(a, [0]);
+    });
+  });
+});
+
+describe('or', function() {
+  return it('should work as expected', function() {
+    var a, b, c;
+    a = stream();
+    b = prop();
+    c = send(prop(), [1]);
+    return expect(Kefir.or([a, b, c])).toEmit([true, 1, 2, 1, 11], function() {
+      send(a, [true]);
+      send(b, [false]);
+      send(a, [0]);
+      send(b, [2, false]);
+      return send(c, [11]);
+    });
+  });
+});
+
+describe('awaiting', function() {
+  it('stream and stream', function() {
+    var a, b;
+    a = stream();
+    b = stream();
+    return expect(a.awaiting(b)).toEmit([
+      {
+        current: false
+      }, true, false, true
+    ], function() {
+      send(a, [1]);
+      send(b, [1]);
+      send(b, [1]);
+      send(a, [1]);
+      return send(a, [1]);
+    });
+  });
+  it('property and stream', function() {
+    var a, b;
+    a = send(prop(), [1]);
+    b = stream();
+    return expect(a.awaiting(b)).toEmit([
+      {
+        current: true
+      }, false, true
+    ], function() {
+      send(a, [1]);
+      send(b, [1]);
+      send(b, [1]);
+      send(a, [1]);
+      return send(a, [1]);
+    });
+  });
+  return it('property and property', function() {
+    var a, b;
+    a = send(prop(), [1]);
+    b = send(prop(), [1]);
+    return expect(a.awaiting(b)).toEmit([
+      {
+        current: false
+      }, true, false, true
+    ], function() {
+      send(a, [1]);
+      send(b, [1]);
+      send(b, [1]);
+      send(a, [1]);
+      return send(a, [1]);
+    });
+  });
+});
+
+describe('filterBy', function() {
+  it('should work as expected', function() {
+    var a, b;
+    a = stream();
+    b = stream();
+    return expect(a.filterBy(b)).toEmit([3, 4, 7, 8, '<end>'], function() {
+      send(a, [1, 2]);
+      send(b, [true]);
+      send(a, [3, 4]);
+      send(b, [0]);
+      send(a, [5, 6]);
+      send(b, [1]);
+      send(a, [7, 8]);
+      send(b, [false]);
+      return send(a, [9, '<end>']);
+    });
+  });
+  return it('should preserve current', function() {
+    var a, b;
+    a = send(prop(), [1]);
+    b = send(prop(), [2]);
+    return expect(a.filterBy(b)).toEmit([
+      {
+        current: 1
+      }
+    ]);
+  });
+});
+
+
+
+},{"../test-helpers.coffee":57,"kefir":59}],51:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18725,7 +19316,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],52:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18807,7 +19398,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],53:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19085,7 +19676,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],54:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19135,7 +19726,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],55:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19248,7 +19839,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":55,"kefir":57}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":57,"kefir":59}],56:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -19274,7 +19865,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":57}],55:[function(require,module,exports){
+},{"kefir":59}],57:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -19521,8 +20112,8 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],56:[function(require,module,exports){
-/*! kefir addon - 0.2.3
+},{"../dist/kefir":1,"sinon":7}],58:[function(require,module,exports){
+/*! kefir addon - 0.2.4
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -19539,10 +20130,10 @@ beforeEach(function() {
         transformer = selector;
         selector = null;
       }
-      transformer = transformer && new Kefir.Fn(transformer);
+      transformer = transformer && Kefir.Fn(transformer);
       return Kefir.fromBinder(function(send) {
         function onEvent(e) {
-          send('value', transformer ? Kefir.Fn.call(transformer, arguments) : e);
+          send('value', transformer ? transformer.apply(arguments) : e);
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }
@@ -19571,6 +20162,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":57}],57:[function(require,module,exports){
+},{"jquery":6,"kefir":59}],59:[function(require,module,exports){
 module.exports=require(1)
-},{}]},{},[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56]);

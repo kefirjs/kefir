@@ -9,28 +9,18 @@
         <script src="../dist/kefir.js"></script>
         <script src="../bower-packages/coffeescript/coffee-script.js"></script>
         <script src="../bower-packages/stats.js/stats.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="../docs-src/includes/stylesheet.css">
         <style type="text/css">
           body {
-            font-size: 14px;
-            line-height: 22px;
-            background: #f4f4f4;
-            color: #000;
-            font-family: Helvetica, Arial, sans-serif;
+            padding:  0 1em 1em;
             max-width: 700px;
           }
-          a {
-            color: #476cff;
-            text-decoration: none;
-          }
-            a:hover {
-              text-decoration: underline;
-            }
         </style>
     </head>
     <body>
 
       <p>
-        <a href="http://pozadi.github.io/kefir/">↩ back to Kefir.js documentation</a>
+        <a href="../">↩ back to Kefir.js documentation</a>
       </p>
 
       <h1>Kefir.js / Bacon.js tree demo</h1>
@@ -76,6 +66,11 @@
         </select>
       </label>
       <br>
+      <label>
+        <input type="checkbox" id="partial-render"> Do not render all branches, just calculate
+      </label>
+
+      <br>
       Total branches: <strong id="total"></strong>
       <br>
 
@@ -107,12 +102,19 @@
 
 
 
+
+
           # Setup selects
 
           $('#lib').val(getParam('lib', DEFAULT_LIB)).change ->
             location.search = "?lib=#{ $(this).val() }&depth=#{ getParam('depth', DEFAULT_DEPTH) }"
           $('#depth').val(getParam('depth', DEFAULT_DEPTH)).change ->
             location.search = "?lib=#{ getParam('lib', DEFAULT_LIB) }&depth=#{ $(this).val() }"
+
+          PARTIAL_RENDER = false
+
+          $('#partial-render').change ->
+            PARTIAL_RENDER = $(this).prop('checked');
 
 
 
@@ -135,11 +137,12 @@
             stats.end()
             ctx.clearRect(0, 0, 500, 300)
             for line in lines
-              ctx.beginPath()
-              ctx.moveTo(line.x1, line.y1)
-              ctx.lineTo(line.x2, line.y2)
-              ctx.lineWidth = line.width;
-              ctx.stroke()
+              if !PARTIAL_RENDER || line.width >= 1
+                ctx.beginPath()
+                ctx.moveTo(line.x1, line.y1)
+                ctx.lineTo(line.x2, line.y2)
+                ctx.lineWidth = line.width;
+                ctx.stroke()
             requestAnimationFrame(renderLoop)
           renderLoop()
 
@@ -159,8 +162,6 @@
               add = Math.PI / 25 * frequency
               ticks.map ->
                 cur += add
-                if cur >= max
-                  cur = min
                 Math.sin(cur)
 
 
