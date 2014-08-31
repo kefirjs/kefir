@@ -26,9 +26,9 @@ emitter.log(); // log events to console (see <a href="#log">log</a>)
 emitter.emit(1);
 emitter.emit(2);
 emitter.end();
-</pre><pre title="console output">=&gt; [emitter] &lt;value&gt; 1
-=&gt; [emitter] &lt;value&gt; 2
-=&gt; [emitter] &lt;end&gt;
+</pre><pre title="console output">&gt; [emitter] &lt;value&gt; 1
+&gt; [emitter] &lt;value&gt; 2
+&gt; [emitter] &lt;end&gt;
 </pre><p><img data-emoji="point_up"> <b>emitter</b> is the easiest way
 to create general purpose stream,
 but it doesn't give control over <b>active</b> state of stream
@@ -42,39 +42,39 @@ have control over <b>active</b> state, you should use
 </p><p id="never"><a href="#never" class="header">never</a><code>Kefir.never()</code><br/>Creates a stream, that already ended and will never produce any events.
 </p><pre title="code">var stream = Kefir.never();
 stream.log();
-</pre><pre title="console output">=&gt; [never] &lt;end:current&gt;</pre><div></div><p id="later"><a href="#later" class="header">later</a><code>Kefir.later(wait, value)</code><br/>Creates a stream, that produces single <b>value</b>
+</pre><pre title="console output">&gt; [never] &lt;end:current&gt;</pre><div></div><p id="later"><a href="#later" class="header">later</a><code>Kefir.later(wait, value)</code><br/>Creates a stream, that produces single <b>value</b>
 after <b>wait</b> milliseconds then ends.
 </p><pre title="code">var stream = Kefir.later(1000, 1);
 stream.log();
-</pre><pre title="console output (after 1 second)">=&gt; [later] &lt;value&gt; 1
-=&gt; [later] &lt;end&gt;</pre><div></div><p id="interval"><a href="#interval" class="header">interval</a><code>Kefir.interval(interval, value)</code><br/>Creates a stream, that produces same <b>value</b>
+</pre><pre title="console output (after 1 second)">&gt; [later] &lt;value&gt; 1
+&gt; [later] &lt;end&gt;</pre><div></div><p id="interval"><a href="#interval" class="header">interval</a><code>Kefir.interval(interval, value)</code><br/>Creates a stream, that produces same <b>value</b>
 each <b>interval</b> milliseconds. Never ends.
 </p><pre title="code">var stream = Kefir.interval(1000, 1);
 stream.log();
-</pre><pre title="console output">=&gt; [interval] &lt;value&gt; 1
-=&gt; [interval] &lt;value&gt; 1
-=&gt; [interval] &lt;value&gt; 1
+</pre><pre title="console output">&gt; [interval] &lt;value&gt; 1
+&gt; [interval] &lt;value&gt; 1
+&gt; [interval] &lt;value&gt; 1
 ...</pre><div></div><p id="sequentially"><a href="#sequentially" class="header">sequentially</a><code>Kefir.sequentially(interval, values)</code><br/>Creates a stream containing given <b>values</b> (array),
 delivered with given <b>interval</b> in milliseconds.
 Ends after all <b>values</b> delivered.
 </p><pre title="code">var stream = Kefir.sequentially(1000, [1, 2, 3]);
 stream.log();
-</pre><pre title="console output">=&gt; [sequentially] &lt;value&gt; 1
-=&gt; [sequentially] &lt;value&gt; 2
-=&gt; [sequentially] &lt;value&gt; 3
-=&gt; [sequentially] &lt;end&gt;</pre><div></div><p id="repeatedly"><a href="#repeatedly" class="header">repeatedly</a><code>Kefir.repeatedly(interval, values)</code><br/>Creates a stream, that produces given <b>values</b> (array),
+</pre><pre title="console output">&gt; [sequentially] &lt;value&gt; 1
+&gt; [sequentially] &lt;value&gt; 2
+&gt; [sequentially] &lt;value&gt; 3
+&gt; [sequentially] &lt;end&gt;</pre><div></div><p id="repeatedly"><a href="#repeatedly" class="header">repeatedly</a><code>Kefir.repeatedly(interval, values)</code><br/>Creates a stream, that produces given <b>values</b> (array),
 with given <b>interval</b> in milliseconds.
 When all values emitted, it begins to produce them again from start.
 Never ends.
 </p><pre title="code">var stream = Kefir.repeatedly(1000, [1, 2, 3]);
 stream.log();
-</pre><pre title="console output">=&gt; [repeatedly] &lt;value&gt; 1
-=&gt; [repeatedly] &lt;value&gt; 2
-=&gt; [repeatedly] &lt;value&gt; 3
-=&gt; [repeatedly] &lt;value&gt; 1
-=&gt; [repeatedly] &lt;value&gt; 2
-=&gt; [repeatedly] &lt;value&gt; 3
-=&gt; [repeatedly] &lt;value&gt; 1
+</pre><pre title="console output">&gt; [repeatedly] &lt;value&gt; 1
+&gt; [repeatedly] &lt;value&gt; 2
+&gt; [repeatedly] &lt;value&gt; 3
+&gt; [repeatedly] &lt;value&gt; 1
+&gt; [repeatedly] &lt;value&gt; 2
+&gt; [repeatedly] &lt;value&gt; 3
+&gt; [repeatedly] &lt;value&gt; 1
 ...</pre><div></div><p id="from-poll"><a href="#from-poll" class="header">fromPoll</a><code>Kefir.fromPoll(interval, fn)</code><br/>Creates a stream, that polls given <b>fn</b> function,
 with given <b>interval</b> in milliseconds,
 and emits values returned by <b>fn</b>.
@@ -82,12 +82,12 @@ Never ends.
 </p><pre title="code">var start = new Date();
 var stream = Kefir.fromPoll(1000, function(){ return new Date() - start });
 stream.log();
-</pre><pre title="console output">=&gt; [fromPoll] &lt;value&gt; 1001
-=&gt; [fromPoll] &lt;value&gt; 2002
-=&gt; [fromPoll] &lt;value&gt; 3004
-=&gt; [fromPoll] &lt;value&gt; 4006
-=&gt; [fromPoll] &lt;value&gt; 5007
-=&gt; [fromPoll] &lt;value&gt; 6007
+</pre><pre title="console output">&gt; [fromPoll] &lt;value&gt; 1001
+&gt; [fromPoll] &lt;value&gt; 2002
+&gt; [fromPoll] &lt;value&gt; 3004
+&gt; [fromPoll] &lt;value&gt; 4006
+&gt; [fromPoll] &lt;value&gt; 5007
+&gt; [fromPoll] &lt;value&gt; 6007
 ...</pre><div></div><p id="with-interval"><a href="#with-interval" class="header">withInterval</a><code>Kefir.withInterval(interval, handler)</code><br/>General method to create an interval based stream.
 Creates a stream, that call given <b>handler</b> function,
 with given <b>interval</b> in milliseconds.
@@ -103,10 +103,10 @@ var stream = Kefir.withInterval(1000, function(send) {
   }
 });
 stream.log();
-</pre><pre title="console output">=&gt; [withInterval] &lt;value&gt; 1002
-=&gt; [withInterval] &lt;value&gt; 2003
-=&gt; [withInterval] &lt;value&gt; 3005
-=&gt; [withInterval] &lt;end&gt;
+</pre><pre title="console output">&gt; [withInterval] &lt;value&gt; 1002
+&gt; [withInterval] &lt;value&gt; 2003
+&gt; [withInterval] &lt;value&gt; 3005
+&gt; [withInterval] &lt;end&gt;
 ...</pre><div></div><p><b>Send</b> function accepts two arguments —
 event <b>type</b> (<tt>'value'</tt> or <tt>'end'</tt>),
 and <b>value</b> (ignored if <b>type</b> is <tt>'end'</tt>).
@@ -142,18 +142,18 @@ stream.log();
 setTimeout(function() {
   stream.offLog(); // turn off logging to deactivate stream
 }, 3500);
-</pre><pre title="console output">=&gt; !activation
-=&gt; [fromBinder] &lt;value&gt; 1
-=&gt; [fromBinder] &lt;value&gt; 2
-=&gt; [fromBinder] &lt;value&gt; 3
-=&gt; !deactivation</pre><div></div><p id="once"><a href="#once" class="header">once</a><code>Kefir.once(value)</code><br/></p><h2 id="create-property">Create a property</h2><p>For now there is only one method that creates a property directly —
+</pre><pre title="console output">&gt; !activation
+&gt; [fromBinder] &lt;value&gt; 1
+&gt; [fromBinder] &lt;value&gt; 2
+&gt; [fromBinder] &lt;value&gt; 3
+&gt; !deactivation</pre><div></div><p id="once"><a href="#once" class="header">once</a><code>Kefir.once(value)</code><br/></p><h2 id="create-property">Create a property</h2><p>For now there is only one method that creates a property directly —
 <tt>constant()</tt>. But you can always convert any stream to a property using
 <a href="#to-property">toProperty</a> method.
 </p><p id="constant"><a href="#constant" class="header">constant</a><code>Kefir.constant(value)</code><br/>Creates ended property, with specified <b>current value</b>.
 </p><pre title="code">property = Kefir.constant(1);
 property.log();
-</pre><pre title="console output">=&gt; [constant] &lt;value:current&gt; 1
-=&gt; [constant] &lt;end:current&gt;</pre><div></div><h2 id="jquery">jQuery addon</h2><p>jQuery functionality comes as an addon for core Kefir.js library.
+</pre><pre title="console output">&gt; [constant] &lt;value:current&gt; 1
+&gt; [constant] &lt;end:current&gt;</pre><div></div><h2 id="jquery">jQuery addon</h2><p>jQuery functionality comes as an addon for core Kefir.js library.
 In order to use it you should include addon JavaScript file,
 that can be found in <a href="#downloads">downloads section</a>.
 </p><p id="as-kefir-stream"><a href="#as-kefir-stream" class="header">asKefirStream</a><code>$(...).asKefirStream(eventName, [selector], [transfomEventFn])</code><br/></p><h2 id="convert">Convert observables</h2><p id="to-property"><a href="#to-property" class="header">toProperty</a><code>stream.toProperty([current])</code><br/>Converts a stream to a property.
@@ -165,10 +165,10 @@ property.log();
 emitter.emit(1);
 emitter.emit(2);
 emitter.end();
-</pre><pre title="console output">=&gt; [emitter.toProperty] &lt;value:current&gt; 0
-=&gt; [emitter.toProperty] &lt;value&gt; 1
-=&gt; [emitter.toProperty] &lt;value&gt; 2
-=&gt; [emitter.toProperty] &lt;end&gt;</pre><div></div><p id="changes"><a href="#changes" class="header">changes</a><code>property.changes()</code><br/>Converts a property to a stream.
+</pre><pre title="console output">&gt; [emitter.toProperty] &lt;value:current&gt; 0
+&gt; [emitter.toProperty] &lt;value&gt; 1
+&gt; [emitter.toProperty] &lt;value&gt; 2
+&gt; [emitter.toProperty] &lt;end&gt;</pre><div></div><p id="changes"><a href="#changes" class="header">changes</a><code>property.changes()</code><br/>Converts a property to a stream.
 If property has current value, it will be ignored
 (stream's subscribers won't get it).
 </p><pre title="code">var emitter = Kefir.emitter();
@@ -178,9 +178,9 @@ changesStream.log();
 emitter.emit(1);
 emitter.emit(2);
 emitter.end();
-</pre><pre title="console output">=&gt; [emitter.toProperty.changes] &lt;value&gt; 1
-=&gt; [emitter.toProperty.changes] &lt;value&gt; 2
-=&gt; [emitter.toProperty.changes] &lt;end&gt;</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>observable.onValue(fn)</code><br/></p><p id="off-value"><a href="#off-value" class="header">offValue</a><code>observable.offValue(fn)</code><br/></p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>observable.onEnd(fn)</code><br/></p><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>observable.offEnd(fn)</code><br/></p><p id="on-any"><a href="#on-any" class="header">onAny</a><code>observable.onAny(fn)</code><br/></p><p id="off-any"><a href="#off-any" class="header">offAny</a><code>observable.offAny(fn)</code><br/></p><p id="log"><a href="#log" class="header">log</a><code>observable.log([name])</code><br/></p><p id="off-log"><a href="#off-log" class="header">offLog</a><code>observable.offLog([name])</code><br/></p><h2 id="modify">Modify an observable</h2><p id="map"><a href="#map" class="header">map</a><code>observable.map(fn)</code><br/></p><p id="map-to"><a href="#map-to" class="header">mapTo</a><code>observable.mapTo(value)</code><br/></p><p id="pluck"><a href="#pluck" class="header">pluck</a><code>observable.pluck(propertyName)</code><br/></p><p id="invoke"><a href="#invoke" class="header">invoke</a><code>observable.invoke(methodName)</code><br/></p><p id="tap"><a href="#tap" class="header">tap</a><code>observable.tap(fn)</code><br/></p><p id="filter"><a href="#filter" class="header">filter</a><code>observable.filter(fn)</code><br/></p><p id="take"><a href="#take" class="header">take</a><code>observable.take(n)</code><br/></p><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>observable.takeWhile(fn)</code><br/></p><p id="skip"><a href="#skip" class="header">skip</a><code>observable.skip(n)</code><br/></p><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>observable.skipWhile(fn)</code><br/></p><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>observable.skipDuplicates([fn])</code><br/></p><p id="diff"><a href="#diff" class="header">diff</a><code>observable.diff(seed, fn)</code><br/></p><p id="scan"><a href="#scan" class="header">scan</a><code>observable.scan(seed, fn)</code><br/></p><p id="reduce"><a href="#reduce" class="header">reduce</a><code>observable.reduce(seed, fn)</code><br/></p><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>observable.withHandler(fn)</code><br/></p><p id="delay"><a href="#delay" class="header">delay</a><code>observable.delay(wait)</code><br/></p><p id="defer"><a href="#defer" class="header">defer</a><code>observable.defer()</code><br/></p><p id="throttle"><a href="#throttle" class="header">throttle</a><code>observable.throttle(wait, [options])</code><br/></p><p id="not"><a href="#not" class="header">not</a><code>observable.not()</code><br/></p><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(observables, [fn]), observable.combine(other, [fn])</code><br/></p><p id="and"><a href="#and" class="header">and</a><code>Kefir.and(observables), observable.and(other)</code><br/></p><p id="or"><a href="#or" class="header">or</a><code>Kefir.or(observables), observable.or(other)</code><br/></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObservables, activeObservables, [fn]), observable.sampledBy(other, [fn])</code><br/></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(observables), observable.merge(other)</code><br/></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>property.flatMap(fn)</code><br/></p><p id="awating"><a href="#awating" class="header">awating</a><code>observable.awating(other)</code><br/></p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>observable.filterBy(other)</code><br/></p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
+</pre><pre title="console output">&gt; [emitter.toProperty.changes] &lt;value&gt; 1
+&gt; [emitter.toProperty.changes] &lt;value&gt; 2
+&gt; [emitter.toProperty.changes] &lt;end&gt;</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>observable.onValue(fn)</code><br/></p><p id="off-value"><a href="#off-value" class="header">offValue</a><code>observable.offValue(fn)</code><br/></p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>observable.onEnd(fn)</code><br/></p><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>observable.offEnd(fn)</code><br/></p><p id="on-any"><a href="#on-any" class="header">onAny</a><code>observable.onAny(fn)</code><br/></p><p id="off-any"><a href="#off-any" class="header">offAny</a><code>observable.offAny(fn)</code><br/></p><p id="log"><a href="#log" class="header">log</a><code>observable.log([name])</code><br/></p><p id="off-log"><a href="#off-log" class="header">offLog</a><code>observable.offLog([name])</code><br/></p><h2 id="modify">Modify an observable</h2><p id="map"><a href="#map" class="header">map</a><code>observable.map(fn)</code><br/></p><p id="map-to"><a href="#map-to" class="header">mapTo</a><code>observable.mapTo(value)</code><br/></p><p id="pluck"><a href="#pluck" class="header">pluck</a><code>observable.pluck(propertyName)</code><br/></p><p id="invoke"><a href="#invoke" class="header">invoke</a><code>observable.invoke(methodName)</code><br/></p><p id="tap"><a href="#tap" class="header">tap</a><code>observable.tap(fn)</code><br/></p><p id="filter"><a href="#filter" class="header">filter</a><code>observable.filter(fn)</code><br/></p><p id="take"><a href="#take" class="header">take</a><code>observable.take(n)</code><br/></p><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>observable.takeWhile(fn)</code><br/></p><p id="skip"><a href="#skip" class="header">skip</a><code>observable.skip(n)</code><br/></p><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>observable.skipWhile(fn)</code><br/></p><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>observable.skipDuplicates([fn])</code><br/></p><p id="diff"><a href="#diff" class="header">diff</a><code>observable.diff(seed, fn)</code><br/></p><p id="scan"><a href="#scan" class="header">scan</a><code>observable.scan(seed, fn)</code><br/></p><p id="reduce"><a href="#reduce" class="header">reduce</a><code>observable.reduce(seed, fn)</code><br/></p><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>observable.withHandler(fn)</code><br/></p><p id="delay"><a href="#delay" class="header">delay</a><code>observable.delay(wait)</code><br/></p><p id="defer"><a href="#defer" class="header">defer</a><code>observable.defer()</code><br/></p><p id="throttle"><a href="#throttle" class="header">throttle</a><code>observable.throttle(wait, [options])</code><br/></p><p id="not"><a href="#not" class="header">not</a><code>observable.not()</code><br/></p><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(observables, [fn]), observable.combine(other, [fn])</code><br/></p><p id="and"><a href="#and" class="header">and</a><code>Kefir.and(observables), observable.and(other)</code><br/></p><p id="or"><a href="#or" class="header">or</a><code>Kefir.or(observables), observable.or(other)</code><br/></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObservables, activeObservables, [fn]), observable.sampledBy(other, [fn])</code><br/></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(observables), observable.merge(other)</code><br/></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>property.flatMap(fn)</code><br/></p><p id="awating"><a href="#awating" class="header">awating</a><code>observable.awating(other)</code><br/></p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>observable.filterBy(other)</code><br/></p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
 active or inactive. When observable in inactive state it not emits any
 events, and not subscribes to it's original source.
 Observables automatically became active when first listener added,
