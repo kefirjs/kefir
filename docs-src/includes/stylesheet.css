@@ -21,7 +21,7 @@ figure{margin:1em 40px}
 hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
 pre{overflow:auto}
 code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}
-button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}
+/*button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}*/
 button{overflow:visible}
 button,select{text-transform:none}
 button,html input[type=button],input[type=reset],input[type=submit]{
@@ -105,21 +105,25 @@ code {
 }
 pre {
   font-size: 12px;
-  padding: 2px 0 2px 15px;
-  border-left: 5px solid #bbb;
+  padding: 2px 2px 2px 12px;
+  border-left: 2px solid #DFDFDF;
   margin: 0 0 30px;
   overflow: auto;
   background: white;
   position: relative;
 }
-  pre[title]:after {
+  pre[title]:before {
     content: attr(title);
     position: absolute;
-    top: 0;
     right: 0;
-    padding: 0 .5em;
-    font-size: .8em;
-    color: #8b8b8b;
+    top: -2px;
+    padding: 0 .5em 0 .6em;
+    font-size: .9em;
+    color: #A2A2A2;
+    background: rgba(0, 0, 0, 0.09);
+    font-weight: bold;
+    font-family: sans-serif;
+    border-bottom-left-radius: 10px;
   }
   pre + pre {
     margin-top: -10px;
