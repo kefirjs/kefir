@@ -69,6 +69,10 @@ h2 {
   h2 small, h2 sup, h2 sub {
     font-weight: normal;
   }
+h1 small {
+  color: #b1b1b1;
+  line-height: 2;
+}
 table, tr, td {
   margin: 0; padding: 0;
 }
