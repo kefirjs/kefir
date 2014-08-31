@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Kefir.js position demo</title>
+        <script src="../bower-packages/jquery/jquery.js"></script>
+        <script src="../dist/kefir.min.js"></script>
+        <script src="../dist/addons/kefir-jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="../docs-src/includes/stylesheet.css">
+        <style type="text/css">
+          body {
+            padding:  0 1em 1em;
+            max-width: 700px;
+          }
+
+          .pos-wrap {
+            width: 300px;
+            height: 300px;
+            background: #666;
+            position: relative;
+            margin-bottom: 10px;
+          }
+            .pos-marker {
+              background: white;
+              position: absolute;
+              width: 20px;
+              height: 20px;
+              margin-top: -10px;
+              margin-left: -10px;
+              top: 150px;
+              left: 150px;
+              border-radius: 10px;
+            }
+          [type=range] {
+            width: 300px;
+          }
+        </style>
+    </head>
+    <body>
+
+      <p>
+        <a href="../">↩ back to Kefir.js documentation</a>
+      </p>
+
+      <h1>Kefir.js position demo</h1>
+
+      <p>
+        In this demo you control position of a circle using slider inputs below.
+        From source code you can learn
+        how to create a property representing current value of some input,
+        how to transform property value using <tt>map</tt>,
+        and how to combine two properties to single property using <tt>combine</tt>.
+      </p>
+
+      <p>
+        This example also uses <a href="../#jquery">jQuery addon</a> for Kefir.js,
+        so make sure to include addon JavaScript file if you will use this code.
+      </p>
+
+      <h3>Result</h3>
+
+      <div class="pos-wrap">
+        <div class="pos-marker" id="pos-marker"></div>
+      </div>
+      <input type="range" min="0" max="1" step="0.01" value="0.5" id="x-input"><br>
+      <input type="range" min="0" max="1" step="0.01" value="0.5" id="y-input">
+
+      <h3>Source code</h3>
+
+      <pre>
+
+&lt;!-- HTML --&gt;
+
+&lt;div class="pos-wrap"&gt;
+  &lt;div class="pos-marker" id="pos-marker"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;input type="range" min="0" max="1" step="0.01" value="0.5" id="x-input"&gt;&lt;br&gt;
+&lt;input type="range" min="0" max="1" step="0.01" value="0.5" id="y-input"&gt;
+
+
+&lt;!-- JavaScript --&gt;
+
+&lt;script src="...jquery.js"&gt;&lt;/script&gt;
+&lt;script src="...dist/kefir.min.js"&gt;&lt;/script&gt;
+&lt;script src="...dist/addons/kefir-jquery.min.js"&gt;&lt;/script&gt;
+
+&lt;script type="text/javascript"&gt;
+
+  function inputPropety($input) {
+    function getValue() {
+      return $input.val();
+    }
+    return $input.asKefirStream('change mousemove', getValue).toProperty(getValue());
+  }
+
+  function normalize300(x) {
+    return x * 300;
+  }
+
+  var xPos = inputPropety($('#x-input')).map(normalize300);
+  var yPos = inputPropety($('#y-input')).map(normalize300);
+
+  var pos = Kefir.combine([xPos, yPos], function(x, y) {
+    return {
+      top: y + 'px',
+      left: x + 'px'
+    };
+  });
+
+  pos.onValue(['css', $('#pos-marker')]);
+
+&lt;/script&gt;
+
+</pre>
+
+      <br>
+      <br>
+
+      <script type="text/javascript">
+
+        function inputPropety($input) {
+          function getValue() {
+            return $input.val();
+          }
+          return $input.asKefirStream('change mousemove', getValue).toProperty(getValue());
+        }
+
+        function normalize300(x) {
+          return x * 300;
+        }
+
+        var xPos = inputPropety($('#x-input')).map(normalize300);
+        var yPos = inputPropety($('#y-input')).map(normalize300);
+
+        var pos = Kefir.combine([xPos, yPos], function(x, y) {
+          return {
+            top: y + 'px',
+            left: x + 'px'
+          };
+        });
+
+        pos.onValue(['css', $('#pos-marker')]);
+
+      </script>
+
+    </body>
+</html>
