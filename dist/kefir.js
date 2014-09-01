@@ -386,39 +386,28 @@ function withOneSource(name, mixin, options) {
 
 
 
-  function AnonymousStream(source, args) {
-    Stream.call(this);
-    this._source = source;
-    this._name = source._name + '.' + name;
-    this._init(args);
+  function buildClass(BaseClass) {
+    function AnonymousObservable(source, args) {
+      BaseClass.call(this);
+      this._source = source;
+      this._name = source._name + '.' + name;
+      this._init(args);
+    }
+
+    inherit(AnonymousObservable, BaseClass, {
+      _clear: function() {
+        BaseClass.prototype._clear.call(this);
+        this._source = null;
+        this._free();
+      }
+    }, mixin);
+
+    return AnonymousObservable;
   }
 
-  inherit(AnonymousStream, Stream, {
-    _clear: function() {
-      Stream.prototype._clear.call(this);
-      this._source = null;
-      this._free();
-    }
-  }, mixin);
 
-
-
-  function AnonymousProperty(source, args) {
-    Property.call(this);
-    this._source = source;
-    this._name = source._name + '.' + name;
-    this._init(args);
-  }
-
-  inherit(AnonymousProperty, Property, {
-    _clear: function() {
-      Property.prototype._clear.call(this);
-      this._source = null;
-      this._free();
-    }
-  }, mixin);
-
-
+  var AnonymousStream = buildClass(Stream);
+  var AnonymousProperty = buildClass(Property);
 
   if (options.streamMethod) {
     Stream.prototype[name] = options.streamMethod(AnonymousStream, AnonymousProperty);
