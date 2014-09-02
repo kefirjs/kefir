@@ -17546,12 +17546,34 @@ if (inBrowser) {
           });
         });
       });
-      return it('should pass data to transformer', function() {
+      it('should pass data to transformer', function() {
         return withDOM(function(tmpDom) {
           return expect($(tmpDom).asKefirStream('click', function(e, data) {
             return data;
           })).toEmit([1, 2], function() {
             return $(tmpDom).trigger('click', 1).trigger('click', 2);
+          });
+        });
+      });
+      it('should call transformer with correct this context', function() {
+        return withDOM(function(tmpDom) {
+          return expect($(tmpDom).asKefirStream('click', function(e) {
+            return e.currentTarget === this;
+          })).toEmit([true, true], function() {
+            return $(tmpDom).trigger('click').trigger('click');
+          });
+        });
+      });
+      return it('should call transformer with correct this context (binded)', function() {
+        return withDOM(function(tmpDom) {
+          var obj;
+          obj = {};
+          return expect($(tmpDom).asKefirStream('click', [
+            (function() {
+              return this === obj;
+            }), obj
+          ])).toEmit([true, true], function() {
+            return $(tmpDom).trigger('click').trigger('click');
           });
         });
       });
@@ -20113,11 +20135,11 @@ beforeEach(function() {
       transformer = transformer && Kefir.Fn(transformer);
       return Kefir.fromBinder(function(send) {
         function onEvent(e) {
-          send('value', transformer ? transformer.apply(arguments) : e);
+          send('value', transformer ? transformer.invoke.apply(this, arguments) : e);
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }
-      });
+      }).setName('jQuery:asKefirStream');
     }
 
 

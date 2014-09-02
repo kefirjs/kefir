@@ -15,11 +15,11 @@
       transformer = transformer && Kefir.Fn(transformer);
       return Kefir.fromBinder(function(send) {
         function onEvent(e) {
-          send('value', transformer ? transformer.apply(arguments) : e);
+          send('value', transformer ? transformer.invoke.apply(this, arguments) : e);
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }
-      });
+      }).setName('jQuery:asKefirStream');
     }
 
 

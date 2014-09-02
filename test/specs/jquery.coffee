@@ -221,4 +221,18 @@ if inBrowser
           ).toEmit [1, 2], ->
             $(tmpDom).trigger('click', 1).trigger('click', 2)
 
+      it 'should call transformer with correct this context', ->
+        withDOM (tmpDom) ->
+          expect(
+            $(tmpDom).asKefirStream 'click', (e) -> e.currentTarget == this
+          ).toEmit [true, true], ->
+            $(tmpDom).trigger('click').trigger('click')
+
+      it 'should call transformer with correct this context (binded)', ->
+        withDOM (tmpDom) ->
+          obj = {}
+          expect(
+            $(tmpDom).asKefirStream 'click', [(-> this == obj), obj]
+          ).toEmit [true, true], ->
+            $(tmpDom).trigger('click').trigger('click')
 
