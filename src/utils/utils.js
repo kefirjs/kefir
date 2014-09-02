@@ -18,24 +18,18 @@ function createObj(proto) {
   return new F();
 }
 
-function extend(/*target, mixin1, mixin2...*/) {
+function extend(target /*, mixin1, mixin2...*/) {
   var length = arguments.length
-    , result, i, prop;
-  if (length === 1) {
-    return arguments[0];
-  }
-  result = arguments[0];
+    , i, prop;
   for (i = 1; i < length; i++) {
     for (prop in arguments[i]) {
-      if(own(arguments[i], prop)) {
-        result[prop] = arguments[i][prop];
-      }
+      target[prop] = arguments[i][prop];
     }
   }
-  return result;
+  return target;
 }
 
-function inherit(Child, Parent/*[, mixin1, mixin2, ...]*/) {
+function inherit(Child, Parent /*, mixin1, mixin2...*/) {
   var length = arguments.length
     , i;
   Child.prototype = createObj(Parent.prototype);
@@ -65,94 +59,98 @@ function getFn(fn, context) {
   }
 }
 
-function call(fn, context, args) {
-  if (context != null) {
-    if (!args || args.length === 0) {
-      return fn.call(context);
-    } else {
-      return fn.apply(context, args);
+function call(fn, c, a) {
+  var aLength = a ? a.length : 0;
+  if (c == null) {
+    switch (aLength) {
+      case 0:  return fn();
+      case 1:  return fn(a[0]);
+      case 2:  return fn(a[0], a[1]);
+      case 3:  return fn(a[0], a[1], a[2]);
+      case 4:  return fn(a[0], a[1], a[2], a[3]);
+      default: return fn.apply(null, a);
     }
   } else {
-    if (!args || args.length === 0) {
-      return fn();
+    switch (aLength) {
+      case 0:  return fn.call(c);
+      default: return fn.apply(c, a);
     }
-    switch (args.length) {
-      case 1: return fn(args[0]);
-      case 2: return fn(args[0], args[1]);
-      case 3: return fn(args[0], args[1], args[2]);
-    }
-    return fn.apply(null, args);
   }
 }
 
 function bind(fn, c, a, length) {
+  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
   if (c == null) {
-    if (a.length === 0) {
-      return fn;
-    }
     switch (length) {
       case 0:
         switch (a.length) {
-          case 1: return function() {return fn(a[0])}
-          case 2: return function() {return fn(a[0], a[1])}
-          case 3: return function() {return fn(a[0], a[1], a[3])}
-          case 4: return function() {return fn(a[0], a[1], a[3], a[4])}
+          case 0:  return fn;
+          case 1:  return function() {return fn(a0)}
+          case 2:  return function() {return fn(a0, a1)}
+          case 3:  return function() {return fn(a0, a1, a2)}
+          case 4:  return function() {return fn(a0, a1, a2, a3)}
           default: return function() {return fn.apply(null, a)}
         }
         break;
       case 1:
         switch (a.length) {
-          case 1: return function(b) {return fn(a[0], b)}
-          case 2: return function(b) {return fn(a[0], a[1], b)}
-          case 3: return function(b) {return fn(a[0], a[1], a[3], b)}
-          case 4: return function(b) {return fn(a[0], a[1], a[3], a[4], b)}
-          default: return function(b) {return fn.apply(null, concat(a, [b]))}
+          case 0:  return fn;
+          case 1:  return function(b0) {return fn(a0, b0)}
+          case 2:  return function(b0) {return fn(a0, a1, b0)}
+          case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
+          case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
+          default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
         }
         break;
       case 2:
         switch (a.length) {
-          case 1: return function(b, d) {return fn(a[0], b, d)}
-          case 2: return function(b, d) {return fn(a[0], a[1], b, d)}
-          case 3: return function(b, d) {return fn(a[0], a[1], a[3], b, d)}
-          case 4: return function(b, d) {return fn(a[0], a[1], a[3], a[4], b, d)}
-          default: return function(b, d) {return fn.apply(null, concat(a, [b, d]))}
+          case 0:  return fn;
+          case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
+          case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
+          case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
+          case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
+          default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
         }
         break;
-      default: return function() {return fn.apply(null, concat(a, arguments))}
+      default:
+        switch (a.length) {
+          case 0:  return fn;
+          default: return function() {return fn.apply(null, concat(a, arguments))}
+        }
     }
   } else {
     switch (length) {
       case 0:
         switch (a.length) {
-          case 0: return function() {return fn.call(c)}
-          case 1: return function() {return fn.call(c, a[0])}
-          case 2: return function() {return fn.call(c, a[0], a[1])}
-          case 3: return function() {return fn.call(c, a[0], a[1], a[3])}
-          case 4: return function() {return fn.call(c, a[0], a[1], a[3], a[4])}
+          case 0:  return function() {return fn.call(c)}
           default: return function() {return fn.apply(c, a)}
         }
         break;
       case 1:
         switch (a.length) {
-          case 0: return function(b) {return fn.call(c, b)}
-          case 1: return function(b) {return fn.call(c, a[0], b)}
-          case 2: return function(b) {return fn.call(c, a[0], a[1], b)}
-          case 3: return function(b) {return fn.call(c, a[0], a[1], a[3], b)}
-          case 4: return function(b) {return fn.call(c, a[0], a[1], a[3], a[4], b)}
-          default: return function(b) {return fn.apply(c, concat(a, [b]))}
+          case 0:  return function(b0) {return fn.call(c, b0)}
+          case 1:  return function(b0) {return fn.call(c, a0, b0)}
+          case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
+          case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
+          case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
+          default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
         }
         break;
       case 2:
         switch (a.length) {
-          case 0: return function(b, d) {return fn.call(c, b, d)}
-          case 1: return function(b, d) {return fn.call(c, a[0], b, d)}
-          case 2: return function(b, d) {return fn.call(c, a[0], a[1], b, d)}
-          case 3: return function(b, d) {return fn.call(c, a[0], a[1], a[3], b, d)}
-          case 4: return function(b, d) {return fn.call(c, a[0], a[1], a[3], a[4], b, d)}
-          default: return function(b, d) {return fn.apply(c, concat(a, [b, d]))}
+          case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
+          case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
+          case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
+          case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
+          case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
+          default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
         }
         break;
-      default: return function() {return fn.apply(c, concat(a, arguments))}
+      default:
+        switch (a.length) {
+          case 0: return function() {return fn.apply(c, arguments)}
+          default: return function() {return fn.apply(c, concat(a, arguments))}
+        }
     }
   }
 }
