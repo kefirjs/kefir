@@ -5,15 +5,15 @@
 withInterval('withInterval', {
   _init: function(args) {
     this._fn = Fn(args[0], 1);
-    var _this = this;
-    this._bindedSend = function(type, x) {  _this._send(type, x)  }
+    var $ = this;
+    this._$send = function(type, x) {  $._send(type, x)  }
   },
   _free: function() {
     this._fn = null;
-    this._bindedSend = null;
+    this._$send = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._bindedSend);
+    this._fn.invoke(this._$send);
   }
 });
 

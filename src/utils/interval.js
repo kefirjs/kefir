@@ -4,8 +4,8 @@ function withInterval(name, mixin) {
     Stream.call(this);
     this._wait = wait;
     this._intervalId = null;
-    var _this = this;
-    this._bindedOnTick = function() {  _this._onTick()  }
+    var $ = this;
+    this._$onTick = function() {  $._onTick()  }
     this._init(args);
   }
 
@@ -19,7 +19,7 @@ function withInterval(name, mixin) {
     _onTick: function() {},
 
     _onActivation: function() {
-      this._intervalId = setInterval(this._bindedOnTick, this._wait);
+      this._intervalId = setInterval(this._$onTick, this._wait);
     },
     _onDeactivation: function() {
       if (this._intervalId !== null) {
@@ -30,7 +30,7 @@ function withInterval(name, mixin) {
 
     _clear: function() {
       Stream.prototype._clear.call(this);
-      this._bindedOnTick = null;
+      this._$onTick = null;
       this._free();
     }
 

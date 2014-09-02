@@ -306,8 +306,8 @@ function withInterval(name, mixin) {
     Stream.call(this);
     this._wait = wait;
     this._intervalId = null;
-    var _this = this;
-    this._bindedOnTick = function() {  _this._onTick()  }
+    var $ = this;
+    this._$onTick = function() {  $._onTick()  }
     this._init(args);
   }
 
@@ -321,7 +321,7 @@ function withInterval(name, mixin) {
     _onTick: function() {},
 
     _onActivation: function() {
-      this._intervalId = setInterval(this._bindedOnTick, this._wait);
+      this._intervalId = setInterval(this._$onTick, this._wait);
     },
     _onDeactivation: function() {
       if (this._intervalId !== null) {
@@ -332,7 +332,7 @@ function withInterval(name, mixin) {
 
     _clear: function() {
       Stream.prototype._clear.call(this);
-      this._bindedOnTick = null;
+      this._$onTick = null;
       this._free();
     }
 
@@ -725,15 +725,15 @@ Observable.prototype.offLog = function(name) {
 withInterval('withInterval', {
   _init: function(args) {
     this._fn = Fn(args[0], 1);
-    var _this = this;
-    this._bindedSend = function(type, x) {  _this._send(type, x)  }
+    var $ = this;
+    this._$send = function(type, x) {  $._send(type, x)  }
   },
   _free: function() {
     this._fn = null;
-    this._bindedSend = null;
+    this._$send = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._bindedSend);
+    this._fn.invoke(this._$send);
   }
 });
 
@@ -1213,18 +1213,18 @@ withOneSource('changes', {
 
 withOneSource('withHandler', {
   _init: function(args) {
-    var _this = this;
     this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
-    this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
+    var $ = this;
+    this._$send = function(type, x) {  $._send(type, x, $._forcedCurrent)  }
   },
   _free: function() {
     this._handler = null;
-    this._bindedSend = null;
+    this._$send = null;
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._bindedSend, event);
+    this._handler.invoke(this._$send, event);
     this._forcedCurrent = false;
   }
 });
@@ -1448,40 +1448,40 @@ withOneSource('throttle', {
     this._trailingCallTimeoutId = null;
     this._endAfterTrailingCall = false;
     this._lastCallTime = 0;
-    var _this = this;
-    this._makeTrailingCallBinded = function() {  _this._makeTrailingCall()  };
+    var $ = this;
+    this._$makeTrailingCall = function() {  $._makeTrailingCall()  };
   },
   _free: function() {
     this._trailingCallValue = null;
-    this._makeTrailingCallBinded = null;
+    this._$makeTrailingCall = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
-    }
-    var curTime = now();
-    if (this._lastCallTime === 0 && !this._leading) {
-      this._lastCallTime = curTime;
-    }
-    var remaining = this._wait - (curTime - this._lastCallTime);
-    if (remaining <= 0) {
-      this._cancelTralingCall();
-      this._lastCallTime = curTime;
-      this._send('value', x);
-    } else if (this._trailing) {
-      this._scheduleTralingCall(x, remaining);
+    } else {
+      var curTime = now();
+      if (this._lastCallTime === 0 && !this._leading) {
+        this._lastCallTime = curTime;
+      }
+      var remaining = this._wait - (curTime - this._lastCallTime);
+      if (remaining <= 0) {
+        this._cancelTralingCall();
+        this._lastCallTime = curTime;
+        this._send('value', x);
+      } else if (this._trailing) {
+        this._scheduleTralingCall(x, remaining);
+      }
     }
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
-    }
-    if (this._trailingCallTimeoutId) {
-      this._endAfterTrailingCall = true;
     } else {
-      this._send('end');
+      if (this._trailingCallTimeoutId) {
+        this._endAfterTrailingCall = true;
+      } else {
+        this._send('end');
+      }
     }
   },
   _scheduleTralingCall: function(value, wait) {
@@ -1489,7 +1489,7 @@ withOneSource('throttle', {
       this._cancelTralingCall();
     }
     this._trailingCallValue = value;
-    this._trailingCallTimeoutId = setTimeout(this._makeTrailingCallBinded, wait);
+    this._trailingCallTimeoutId = setTimeout(this._$makeTrailingCall, wait);
   },
   _cancelTralingCall: function() {
     if (this._trailingCallTimeoutId !== null) {
@@ -1519,10 +1519,14 @@ withOneSource('delay', {
   _init: function(args) {
     this._wait = args[0];
     this._buff = [];
-    var _this = this;
+    var $ = this;
     this._shiftBuff = function() {
-      _this._send('value', _this._buff.shift());
+      $._send('value', $._buff.shift());
     }
+  },
+  _free: function() {
+    this._buff = null;
+    this._shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
@@ -1535,10 +1539,10 @@ withOneSource('delay', {
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
+    } else {
+      var $ = this;
+      setTimeout(function() {  $._send('end')  }, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('end')  }, this._wait);
   }
 });
 
@@ -1555,9 +1559,9 @@ inherit(FromBinder, Stream, {
   _name: 'fromBinder',
 
   _onActivation: function() {
-    var _this = this;
-    var isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
+    var $ = this
+      , isCurrent = true;
+    this._unsubscribe = this._fn.invoke(function(type, x) {  $._send(type, x, isCurrent)  });
     isCurrent = false;
   },
   _onDeactivation: function() {

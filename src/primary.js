@@ -11,9 +11,9 @@ inherit(FromBinder, Stream, {
   _name: 'fromBinder',
 
   _onActivation: function() {
-    var _this = this;
-    var isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
+    var $ = this
+      , isCurrent = true;
+    this._unsubscribe = this._fn.invoke(function(type, x) {  $._send(type, x, isCurrent)  });
     isCurrent = false;
   },
   _onDeactivation: function() {
