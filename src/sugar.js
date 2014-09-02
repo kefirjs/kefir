@@ -30,7 +30,7 @@ Observable.prototype.pluck = function(propertyName) {
 Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
   var args = rest(arguments, 1);
   return this.map(args ?
-    function(x) {  return call(x[methodName], x, args)  } :
+    function(x) {  return apply(x[methodName], x, args)  } :
     function(x) {  return x[methodName]()  }
   ).setName(this, 'invoke');
 }

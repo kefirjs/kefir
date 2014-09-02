@@ -44,7 +44,7 @@ function agrsToArray(args) {
   if (args.length === 1 && isArray(args[0])) {
     return args[0];
   }
-  return toArray(args);
+  return cloneArray(args);
 }
 
 function getFn(fn, context) {
@@ -59,7 +59,7 @@ function getFn(fn, context) {
   }
 }
 
-function call(fn, c, a) {
+function apply(fn, c, a) {
   var aLength = a ? a.length : 0;
   if (c == null) {
     switch (aLength) {
@@ -115,7 +115,7 @@ function bind(fn, c, a, length) {
       default:
         switch (a.length) {
           case 0:  return fn;
-          default: return function() {return fn.apply(null, concat(a, arguments))}
+          default: return function() {return apply(fn, null, concat(a, arguments))}
         }
     }
   } else {
@@ -214,14 +214,6 @@ function rest(arr, start, onEmpty) {
     return Array.prototype.slice.call(arr, start);
   }
   return onEmpty;
-}
-
-function toArray(arrayLike) {
-  if (isArray(arrayLike)) {
-    return arrayLike;
-  } else {
-    return cloneArray(arrayLike);
-  }
 }
 
 var now = Date.now ?

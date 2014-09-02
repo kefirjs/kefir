@@ -51,7 +51,7 @@ function agrsToArray(args) {
   if (args.length === 1 && isArray(args[0])) {
     return args[0];
   }
-  return toArray(args);
+  return cloneArray(args);
 }
 
 function getFn(fn, context) {
@@ -66,7 +66,7 @@ function getFn(fn, context) {
   }
 }
 
-function call(fn, c, a) {
+function apply(fn, c, a) {
   var aLength = a ? a.length : 0;
   if (c == null) {
     switch (aLength) {
@@ -122,7 +122,7 @@ function bind(fn, c, a, length) {
       default:
         switch (a.length) {
           case 0:  return fn;
-          default: return function() {return fn.apply(null, concat(a, arguments))}
+          default: return function() {return apply(fn, null, concat(a, arguments))}
         }
     }
   } else {
@@ -221,14 +221,6 @@ function rest(arr, start, onEmpty) {
     return Array.prototype.slice.call(arr, start);
   }
   return onEmpty;
-}
-
-function toArray(arrayLike) {
-  if (isArray(arrayLike)) {
-    return arrayLike;
-  } else {
-    return cloneArray(arrayLike);
-  }
 }
 
 var now = Date.now ?
@@ -435,15 +427,15 @@ function _Fn(fnMeta, length) {
 }
 
 _Fn.prototype.apply = function(args) {
-  return call(this.invoke, null, args);
+  return apply(this.invoke, null, args);
 }
 
 _Fn.prototype.applyWithContext = function(context, args) {
   if (this.context === null) {
     if (this.args.length === 0) {
-      return call(this.fn, context, args);
+      return apply(this.fn, context, args);
     } else {
-      return call(this.fn, context, concat(this.args, args));
+      return apply(this.fn, context, concat(this.args, args));
     }
   } else {
     return this.apply(args);
@@ -1697,7 +1689,7 @@ Observable.prototype.pluck = function(propertyName) {
 Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
   var args = rest(arguments, 1);
   return this.map(args ?
-    function(x) {  return call(x[methodName], x, args)  } :
+    function(x) {  return apply(x[methodName], x, args)  } :
     function(x) {  return x[methodName]()  }
   ).setName(this, 'invoke');
 }

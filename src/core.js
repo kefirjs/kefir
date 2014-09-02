@@ -15,15 +15,15 @@ function _Fn(fnMeta, length) {
 }
 
 _Fn.prototype.apply = function(args) {
-  return call(this.invoke, null, args);
+  return apply(this.invoke, null, args);
 }
 
 _Fn.prototype.applyWithContext = function(context, args) {
   if (this.context === null) {
     if (this.args.length === 0) {
-      return call(this.fn, context, args);
+      return apply(this.fn, context, args);
     } else {
-      return call(this.fn, context, concat(this.args, args));
+      return apply(this.fn, context, concat(this.args, args));
     }
   } else {
     return this.apply(args);
