@@ -341,21 +341,30 @@ withOneSource('throttle', {
 withOneSource('delay', {
   _init: function(args) {
     this._wait = args[0];
+    this._buff = [];
+    var _this = this;
+    this._shiftBuff = function() {
+      _this._send('value', _this._buff.shift());
+    }
+  },
+  _free: function() {
+    this._buff = null;
+    this._shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
+    } else {
+      this._buff.push(x);
+      setTimeout(this._shiftBuff, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('value', x)  }, this._wait);
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
+    } else {
+      var _this = this;
+      setTimeout(function() {  _this._send('end')  }, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('end')  }, this._wait);
   }
 });

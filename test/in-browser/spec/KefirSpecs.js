@@ -1519,14 +1519,19 @@ withOneSource('throttle', {
 withOneSource('delay', {
   _init: function(args) {
     this._wait = args[0];
+    this._buff = [];
+    var _this = this;
+    this._shiftBuff = function() {
+      _this._send('value', _this._buff.shift());
+    }
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
+    } else {
+      this._buff.push(x);
+      setTimeout(this._shiftBuff, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('value', x)  }, this._wait);
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
