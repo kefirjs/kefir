@@ -147,7 +147,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? Fn(args[0], 2) : null;
+    this._fn = args[0] && Fn(args[0], 2);
     this._prev = NOTHING;
   },
   _free: function() {
