@@ -1232,20 +1232,19 @@ withOneSource('withHandler', {
 
 
 
+var withFnArgMixin = {
+  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _free: function() {  this._fn = null  }
+};
+
 
 // .map(fn)
 
-withOneSource('map', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
     this._send('value', this._fn.invoke(x), isCurrent);
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -1253,19 +1252,13 @@ withOneSource('map', {
 
 // .filter(fn)
 
-withOneSource('filter', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     }
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -1273,13 +1266,7 @@ withOneSource('filter', {
 
 // .takeWhile(fn)
 
-withOneSource('takeWhile', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
@@ -1287,7 +1274,7 @@ withOneSource('takeWhile', {
       this._send('end', null, isCurrent);
     }
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -1335,26 +1322,23 @@ withOneSource('skip', {
 
 // .skipDuplicates([fn])
 
-function strictlyEqual(a, b) {  return a === b  }
-
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    if (args.length > 0) {
-      this._fn = Fn(args[0], 2);
-    } else {
-      this._fn = Fn(strictlyEqual);
-    }
+    this._fn = args[0] ? Fn(args[0], 2) : null;
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
+  _isEqual: function(a, b) {
+    return this._fn ? this._fn.invoke(a, b) : a === b;
+  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._fn.invoke(this._prev, x)) {
+    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
       this._send('value', x, isCurrent);
+      this._prev = x;
     }
-    this._prev = x;
   }
 });
 
