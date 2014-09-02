@@ -428,17 +428,26 @@ var Kefir = {};
 // Fn
 
 function _Fn(fnMeta, length) {
-  var fn = getFn(fnMeta[0], fnMeta[1]);
-  var context = fnMeta[1];
-  var args = rest(fnMeta, 2, []);
-  this.fn = fn;
-  this.context = context;
-  this.args = args;
-  this.invoke = bind(fn, context, args, length);
+  this.context = (fnMeta[1] == null) ? null : fnMeta[1];
+  this.fn = getFn(fnMeta[0], this.context);
+  this.args = rest(fnMeta, 2, []);
+  this.invoke = bind(this.fn, this.context, this.args, length);
 }
 
 _Fn.prototype.apply = function(args) {
   return call(this.invoke, null, args);
+}
+
+_Fn.prototype.applyWithContext = function(context, args) {
+  if (this.context === null) {
+    if (this.args.length === 0) {
+      return call(this.fn, context, args);
+    } else {
+      return call(this.fn, context, concat(this.args, args));
+    }
+  } else {
+    return this.apply(args);
+  }
 }
 
 function Fn(fnMeta, length) {
@@ -17562,7 +17571,7 @@ if (inBrowser) {
           });
         });
       });
-      return it('should call transformer with correct this context (binded)', function() {
+      it('should call transformer with correct this context (binded)', function() {
         return withDOM(function(tmpDom) {
           var obj;
           obj = {};
@@ -17570,6 +17579,19 @@ if (inBrowser) {
             (function() {
               return this === obj;
             }), obj
+          ])).toEmit([true, true], function() {
+            return $(tmpDom).trigger('click').trigger('click');
+          });
+        });
+      });
+      return it('should call transformer with correct this context (binded, with only args)', function() {
+        return withDOM(function(tmpDom) {
+          var obj;
+          obj = {};
+          return expect($(tmpDom).asKefirStream('click', [
+            (function(n, e) {
+              return n === 1 && e.currentTarget === this;
+            }), null, 1
           ])).toEmit([true, true], function() {
             return $(tmpDom).trigger('click').trigger('click');
           });
@@ -20133,7 +20155,7 @@ beforeEach(function() {
       transformer = transformer && Kefir.Fn(transformer);
       return Kefir.fromBinder(function(send) {
         function onEvent(e) {
-          send('value', transformer ? transformer.invoke.apply(this, arguments) : e);
+          send('value', transformer ? transformer.applyWithContext(this, arguments) : e);
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }

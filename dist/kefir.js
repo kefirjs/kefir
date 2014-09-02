@@ -427,17 +427,26 @@ var Kefir = {};
 // Fn
 
 function _Fn(fnMeta, length) {
-  var fn = getFn(fnMeta[0], fnMeta[1]);
-  var context = fnMeta[1];
-  var args = rest(fnMeta, 2, []);
-  this.fn = fn;
-  this.context = context;
-  this.args = args;
-  this.invoke = bind(fn, context, args, length);
+  this.context = (fnMeta[1] == null) ? null : fnMeta[1];
+  this.fn = getFn(fnMeta[0], this.context);
+  this.args = rest(fnMeta, 2, []);
+  this.invoke = bind(this.fn, this.context, this.args, length);
 }
 
 _Fn.prototype.apply = function(args) {
   return call(this.invoke, null, args);
+}
+
+_Fn.prototype.applyWithContext = function(context, args) {
+  if (this.context === null) {
+    if (this.args.length === 0) {
+      return call(this.fn, context, args);
+    } else {
+      return call(this.fn, context, concat(this.args, args));
+    }
+  } else {
+    return this.apply(args);
+  }
 }
 
 function Fn(fnMeta, length) {

@@ -236,3 +236,11 @@ if inBrowser
           ).toEmit [true, true], ->
             $(tmpDom).trigger('click').trigger('click')
 
+      it 'should call transformer with correct this context (binded, with only args)', ->
+        withDOM (tmpDom) ->
+          obj = {}
+          expect(
+            $(tmpDom).asKefirStream 'click', [((n, e) -> n == 1 && e.currentTarget == this), null, 1]
+          ).toEmit [true, true], ->
+            $(tmpDom).trigger('click').trigger('click')
+
