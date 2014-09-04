@@ -19,6 +19,7 @@ buildKefir = (modify) ->
   emitter = null
   property = Kefir.fromBinder (newEmitter) ->
     emitter = newEmitter
+    null
   modify(property).onValue(noop)
   -> emitter.emit(getVal())
 
