@@ -51,10 +51,9 @@ fakeSource =
 
 
 baseKefir = ->
-  Kefir.fromBinder (send) ->
-    sendValue = (x) -> send('value', x)
-    fakeSource.subscribe sendValue
-    -> fakeSource.unsubscribe sendValue
+  Kefir.fromBinder (emitter) ->
+    fakeSource.subscribe emitter.emit
+    -> fakeSource.unsubscribe emitter.emit
 
 baseRx = ->
   (
