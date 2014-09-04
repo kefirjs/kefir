@@ -39,15 +39,18 @@ withOneSource('withHandler', {
     this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
     var $ = this;
-    this._$send = function(type, x) {  $._send(type, x, $._forcedCurrent)  }
+    this._emitter = {
+      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
+      end: function() {  $._send('end', null, $._forcedCurrent)  }
+    }
   },
   _free: function() {
     this._handler = null;
-    this._$send = null;
+    this._emitter = null;
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._$send, event);
+    this._handler.invoke(this._emitter, event);
     this._forcedCurrent = false;
   }
 });

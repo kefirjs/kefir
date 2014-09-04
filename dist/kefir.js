@@ -725,14 +725,17 @@ withInterval('withInterval', {
   _init: function(args) {
     this._fn = Fn(args[0], 1);
     var $ = this;
-    this._$send = function(type, x) {  $._send(type, x)  }
+    this._emitter = {
+      emit: function(x) {  $._send('value', x)  },
+      end: function() {  $._send('end')  }
+    }
   },
   _free: function() {
     this._fn = null;
-    this._$send = null;
+    this._emitter = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._$send);
+    this._fn.invoke(this._emitter);
   }
 });
 
@@ -1215,15 +1218,18 @@ withOneSource('withHandler', {
     this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
     var $ = this;
-    this._$send = function(type, x) {  $._send(type, x, $._forcedCurrent)  }
+    this._emitter = {
+      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
+      end: function() {  $._send('end', null, $._forcedCurrent)  }
+    }
   },
   _free: function() {
     this._handler = null;
-    this._$send = null;
+    this._emitter = null;
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._$send, event);
+    this._handler.invoke(this._emitter, event);
     this._forcedCurrent = false;
   }
 });
@@ -1559,8 +1565,12 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var $ = this
-      , isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  $._send(type, x, isCurrent)  });
+      , isCurrent = true
+      , emitter = {
+        emit: function(x) {  $._send('value', x, isCurrent)  },
+        end: function() {  $._send('end', null, isCurrent)  }
+      };
+    this._unsubscribe = this._fn.invoke(emitter); // TODO: use Fn
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -1763,11 +1773,11 @@ Observable.prototype.awaiting = function(other) {
 Observable.prototype.filterBy = function(other) {
   return other
     .sampledBy(this)
-    .withHandler(function(send, e) {
+    .withHandler(function(emitter, e) {
       if (e.type === 'end') {
-        send('end');
+        emitter.end();
       } else if (e.value[0]) {
-        send('value', e.value[1]);
+        emitter.emit(e.value[1]);
       }
     })
     .setName(this, 'filterBy');

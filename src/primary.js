@@ -12,8 +12,12 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var $ = this
-      , isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  $._send(type, x, isCurrent)  });
+      , isCurrent = true
+      , emitter = {
+        emit: function(x) {  $._send('value', x, isCurrent)  },
+        end: function() {  $._send('end', null, isCurrent)  }
+      };
+    this._unsubscribe = this._fn.invoke(emitter); // TODO: use Fn
     isCurrent = false;
   },
   _onDeactivation: function() {

@@ -6,14 +6,19 @@ helpers = require('../test-helpers.coffee')
 describe 'withHandler', ->
 
 
-  mirror = (send, event) ->
-    send(event.type, event.value)
+  mirror = (emitter, event) ->
+    if event.type == 'value'
+      emitter.emit(event.value)
+    else
+      emitter.end()
 
-  duplicate = (send, event) ->
-    send(event.type, event.value)
-    if event.type == 'value' && !event.current
-      send(event.type, event.value)
-
+  duplicate = (emitter, event) ->
+    if event.type == 'value'
+      emitter.emit(event.value)
+      if !event.current
+        emitter.emit(event.value)
+    else
+      emitter.end()
 
   describe 'stream', ->
 
@@ -75,12 +80,12 @@ describe 'withHandler', ->
         send(a, [1])
       expect(a.withHandler mirror).toEmit [{current: 1}]
 
-      savedSend = null
+      savedEmitter = null
       expect(
-        a.withHandler (send, event) ->
-          mirror(send, event)
-          savedSend = send
+        a.withHandler (emitter, event) ->
+          mirror(emitter, event)
+          savedEmitter = emitter
       ).toEmit [{current: 1}, 2], ->
-        savedSend('value', 2)
+        savedEmitter.emit(2)
 
 

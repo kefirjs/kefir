@@ -726,14 +726,17 @@ withInterval('withInterval', {
   _init: function(args) {
     this._fn = Fn(args[0], 1);
     var $ = this;
-    this._$send = function(type, x) {  $._send(type, x)  }
+    this._emitter = {
+      emit: function(x) {  $._send('value', x)  },
+      end: function() {  $._send('end')  }
+    }
   },
   _free: function() {
     this._fn = null;
-    this._$send = null;
+    this._emitter = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._$send);
+    this._fn.invoke(this._emitter);
   }
 });
 
@@ -1216,15 +1219,18 @@ withOneSource('withHandler', {
     this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
     var $ = this;
-    this._$send = function(type, x) {  $._send(type, x, $._forcedCurrent)  }
+    this._emitter = {
+      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
+      end: function() {  $._send('end', null, $._forcedCurrent)  }
+    }
   },
   _free: function() {
     this._handler = null;
-    this._$send = null;
+    this._emitter = null;
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._$send, event);
+    this._handler.invoke(this._emitter, event);
     this._forcedCurrent = false;
   }
 });
@@ -1560,8 +1566,12 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var $ = this
-      , isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  $._send(type, x, isCurrent)  });
+      , isCurrent = true
+      , emitter = {
+        emit: function(x) {  $._send('value', x, isCurrent)  },
+        end: function() {  $._send('end', null, isCurrent)  }
+      };
+    this._unsubscribe = this._fn.invoke(emitter); // TODO: use Fn
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -1764,11 +1774,11 @@ Observable.prototype.awaiting = function(other) {
 Observable.prototype.filterBy = function(other) {
   return other
     .sampledBy(this)
-    .withHandler(function(send, e) {
+    .withHandler(function(emitter, e) {
       if (e.type === 'end') {
-        send('end');
+        emitter.end();
       } else if (e.value[0]) {
-        send('value', e.value[1]);
+        emitter.emit(e.value[1]);
       }
     })
     .setName(this, 'filterBy');
@@ -17219,17 +17229,17 @@ describe('fromBinder', function() {
     return expect(Kefir.fromBinder(function() {})).toEmit([]);
   });
   it('should emit values and end', function() {
-    var a, send;
-    send = null;
-    a = Kefir.fromBinder(function(s) {
-      send = s;
+    var a, emitter;
+    emitter = null;
+    a = Kefir.fromBinder(function(em) {
+      emitter = em;
       return null;
     });
     return expect(a).toEmit([1, 2, 3, '<end>'], function() {
-      send('value', 1);
-      send('value', 2);
-      send('value', 3);
-      return send('end');
+      emitter.emit(1);
+      emitter.emit(2);
+      emitter.emit(3);
+      return emitter.end();
     });
   });
   it('should call `subscribe` / `unsubscribe` on activation / deactivation', function() {
@@ -17260,15 +17270,15 @@ describe('fromBinder', function() {
     return expect(unsubCount).toBe(2);
   });
   return it('should automatically controll isCurent argument in `send`', function() {
-    expect(Kefir.fromBinder(function(send) {
-      return send('end');
+    expect(Kefir.fromBinder(function(emitter) {
+      return emitter.end();
     })).toEmit(['<end:current>']);
-    return expect(Kefir.fromBinder(function(send) {
-      send('value', 1);
-      send('value', 2);
+    return expect(Kefir.fromBinder(function(emitter) {
+      emitter.emit(1);
+      emitter.emit(2);
       return setTimeout(function() {
-        send('value', 2);
-        return send('end');
+        emitter.emit(2);
+        return emitter.end();
       }, 1000);
     })).toEmitInTime([
       [
@@ -19751,13 +19761,21 @@ stream = helpers.stream, prop = helpers.prop, send = helpers.send;
 
 describe('withHandler', function() {
   var duplicate, mirror;
-  mirror = function(send, event) {
-    return send(event.type, event.value);
+  mirror = function(emitter, event) {
+    if (event.type === 'value') {
+      return emitter.emit(event.value);
+    } else {
+      return emitter.end();
+    }
   };
-  duplicate = function(send, event) {
-    send(event.type, event.value);
-    if (event.type === 'value' && !event.current) {
-      return send(event.type, event.value);
+  duplicate = function(emitter, event) {
+    if (event.type === 'value') {
+      emitter.emit(event.value);
+      if (!event.current) {
+        return emitter.emit(event.value);
+      }
+    } else {
+      return emitter.end();
     }
   };
   describe('stream', function() {
@@ -19826,7 +19844,7 @@ describe('withHandler', function() {
       return expect(a.withHandler(mirror)).toEmit(['<end:current>']);
     });
     return it('should automatically preserve isCurent (value)', function() {
-      var a, savedSend;
+      var a, savedEmitter;
       a = prop();
       expect(a.withHandler(mirror)).toEmit([1], function() {
         return send(a, [1]);
@@ -19836,16 +19854,16 @@ describe('withHandler', function() {
           current: 1
         }
       ]);
-      savedSend = null;
-      return expect(a.withHandler(function(send, event) {
-        mirror(send, event);
-        return savedSend = send;
+      savedEmitter = null;
+      return expect(a.withHandler(function(emitter, event) {
+        mirror(emitter, event);
+        return savedEmitter = emitter;
       })).toEmit([
         {
           current: 1
         }, 2
       ], function() {
-        return savedSend('value', 2);
+        return savedEmitter.emit(2);
       });
     });
   });
@@ -19865,12 +19883,12 @@ describe('withInterval', function() {
   return it('should work as expected', function() {
     var fn, i;
     i = 0;
-    fn = function(send) {
+    fn = function(emitter) {
       i++;
-      send('value', i);
-      send('value', i * 2);
+      emitter.emit(i);
+      emitter.emit(i * 2);
       if (i === 3) {
-        return send('end');
+        return emitter.end();
       }
     };
     return expect(Kefir.withInterval(100, fn)).toEmitInTime([[100, 1], [100, 2], [200, 2], [200, 4], [300, 3], [300, 6], [300, '<end>']]);
@@ -20022,7 +20040,7 @@ beforeEach(function() {
     toEmitInTime: function(expectedLog, cb, timeLimit) {
       var log;
       if (timeLimit == null) {
-        timeLimit = 100000000000;
+        timeLimit = 10000;
       }
       log = null;
       exports.withFakeTime((function(_this) {
@@ -20145,9 +20163,14 @@ beforeEach(function() {
         selector = null;
       }
       transformer = transformer && Kefir.Fn(transformer);
-      return Kefir.fromBinder(function(send) {
-        function onEvent(e) {
-          send('value', transformer ? transformer.applyWithContext(this, arguments) : e);
+      return Kefir.fromBinder(function(emitter) {
+        var onEvent;
+        if (transformer) {
+          onEvent = function() {
+            emitter.emit(transformer.applyWithContext(this, arguments));
+          };
+        } else {
+          onEvent = emitter.emit;
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }

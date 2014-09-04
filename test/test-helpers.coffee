@@ -101,7 +101,7 @@ beforeEach ->
       @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
       @env.equals_(expectedLog, log)
 
-    toEmitInTime: (expectedLog, cb, timeLimit = 100000000000) ->
+    toEmitInTime: (expectedLog, cb, timeLimit = 10000) ->
       log = null
       exports.withFakeTime (tick) =>
         log = exports.watchWithTime(@actual)

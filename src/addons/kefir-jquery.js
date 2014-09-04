@@ -13,9 +13,14 @@
         selector = null;
       }
       transformer = transformer && Kefir.Fn(transformer);
-      return Kefir.fromBinder(function(send) {
-        function onEvent(e) {
-          send('value', transformer ? transformer.applyWithContext(this, arguments) : e);
+      return Kefir.fromBinder(function(emitter) {
+        var onEvent;
+        if (transformer) {
+          onEvent = function() {
+            emitter.emit(transformer.applyWithContext(this, arguments));
+          };
+        } else {
+          onEvent = emitter.emit;
         }
         $el.on(event, selector, onEvent);
         return function() {  $el.off(event, selector, onEvent)  }

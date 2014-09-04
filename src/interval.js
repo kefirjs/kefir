@@ -6,14 +6,17 @@ withInterval('withInterval', {
   _init: function(args) {
     this._fn = Fn(args[0], 1);
     var $ = this;
-    this._$send = function(type, x) {  $._send(type, x)  }
+    this._emitter = {
+      emit: function(x) {  $._send('value', x)  },
+      end: function() {  $._send('end')  }
+    }
   },
   _free: function() {
     this._fn = null;
-    this._$send = null;
+    this._emitter = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._$send);
+    this._fn.invoke(this._emitter);
   }
 });
 
