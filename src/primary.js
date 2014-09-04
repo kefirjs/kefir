@@ -12,19 +12,23 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var $ = this
+      , unsub
       , isCurrent = true
       , emitter = {
         emit: function(x) {  $._send('value', x, isCurrent)  },
         end: function() {  $._send('end', null, isCurrent)  }
       };
-    this._unsubscribe = this._fn.invoke(emitter); // TODO: use Fn
+    unsub = this._fn.invoke(emitter);
     isCurrent = false;
+    if (unsub) {
+      this._unsubscribe = Fn(unsub, 0);
+    }
   },
   _onDeactivation: function() {
-    if (isFn(this._unsubscribe)) {
-      this._unsubscribe();
+    if (this._unsubscribe !== null) {
+      this._unsubscribe.invoke();
+      this._unsubscribe = null;
     }
-    this._unsubscribe = null;
   },
 
   _clear: function() {

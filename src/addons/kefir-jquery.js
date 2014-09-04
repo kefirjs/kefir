@@ -6,7 +6,7 @@
 
 
 
-    $.fn.asKefirStream = function(event, selector, transformer) {
+    $.fn.asKefirStream = function(eventName, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
@@ -22,8 +22,8 @@
         } else {
           onEvent = emitter.emit;
         }
-        $el.on(event, selector, onEvent);
-        return function() {  $el.off(event, selector, onEvent)  }
+        $el.on(eventName, selector, onEvent);
+        return ['off', $el, eventName, selector, onEvent];
       }).setName('jQuery:asKefirStream');
     }
 

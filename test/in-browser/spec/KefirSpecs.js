@@ -1566,19 +1566,23 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var $ = this
+      , unsub
       , isCurrent = true
       , emitter = {
         emit: function(x) {  $._send('value', x, isCurrent)  },
         end: function() {  $._send('end', null, isCurrent)  }
       };
-    this._unsubscribe = this._fn.invoke(emitter); // TODO: use Fn
+    unsub = this._fn.invoke(emitter);
     isCurrent = false;
+    if (unsub) {
+      this._unsubscribe = Fn(unsub, 0);
+    }
   },
   _onDeactivation: function() {
-    if (isFn(this._unsubscribe)) {
-      this._unsubscribe();
+    if (this._unsubscribe !== null) {
+      this._unsubscribe.invoke();
+      this._unsubscribe = null;
     }
-    this._unsubscribe = null;
   },
 
   _clear: function() {
@@ -17271,15 +17275,17 @@ describe('fromBinder', function() {
   });
   return it('should automatically controll isCurent argument in `send`', function() {
     expect(Kefir.fromBinder(function(emitter) {
-      return emitter.end();
+      emitter.end();
+      return null;
     })).toEmit(['<end:current>']);
     return expect(Kefir.fromBinder(function(emitter) {
       emitter.emit(1);
       emitter.emit(2);
-      return setTimeout(function() {
+      setTimeout(function() {
         emitter.emit(2);
         return emitter.end();
       }, 1000);
+      return null;
     })).toEmitInTime([
       [
         0, {
@@ -20156,7 +20162,7 @@ beforeEach(function() {
 
 
 
-    $.fn.asKefirStream = function(event, selector, transformer) {
+    $.fn.asKefirStream = function(eventName, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
@@ -20172,8 +20178,8 @@ beforeEach(function() {
         } else {
           onEvent = emitter.emit;
         }
-        $el.on(event, selector, onEvent);
-        return function() {  $el.off(event, selector, onEvent)  }
+        $el.on(eventName, selector, onEvent);
+        return ['off', $el, eventName, selector, onEvent];
       }).setName('jQuery:asKefirStream');
     }
 

@@ -50,6 +50,7 @@ describe 'fromBinder', ->
     expect(
       Kefir.fromBinder (emitter) ->
         emitter.end()
+        null
     ).toEmit ['<end:current>']
 
     expect(
@@ -60,6 +61,7 @@ describe 'fromBinder', ->
           emitter.emit(2)
           emitter.end()
         , 1000
+        null
     ).toEmitInTime [[0, {current: 1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
 
 
