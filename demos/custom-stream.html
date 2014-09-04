@@ -86,13 +86,10 @@
 &lt;script type="text/javascript"&gt;
 
   function getClicks($element) {
-    return Kefir.fromBinder(function(send) {
-      function sendValue(x) {
-        send('value', x);
-      }
-      $element.on('click', sendValue);
+    return Kefir.fromBinder(function(emitter) {
+      $element.on('click', emitter.emit);
       return function() {
-        $element.off('click', sendValue);
+        $element.off('click', emitter.emit);
       }
     });
   }
@@ -122,13 +119,10 @@
       <script type="text/javascript">
 
         function getClicks($element) {
-          return Kefir.fromBinder(function(send) {
-            function sendValue(x) {
-              send('value', x);
-            }
-            $element.on('click', sendValue);
+          return Kefir.fromBinder(function(emitter) {
+            $element.on('click', emitter.emit);
             return function() {
-              $element.off('click', sendValue);
+              $element.off('click', emitter.emit);
             }
           });
         }
