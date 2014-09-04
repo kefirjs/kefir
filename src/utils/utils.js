@@ -78,80 +78,89 @@ function apply(fn, c, a) {
   }
 }
 
-function bind(fn, c, a, length) {
+function bindWithoutContext(fn, a, length) {
   var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
-  if (c == null) {
-    switch (length) {
-      case 0:
-        switch (a.length) {
-          case 0:  return fn;
-          case 1:  return function() {return fn(a0)}
-          case 2:  return function() {return fn(a0, a1)}
-          case 3:  return function() {return fn(a0, a1, a2)}
-          case 4:  return function() {return fn(a0, a1, a2, a3)}
-          default: return function() {return fn.apply(null, a)}
-        }
-        break;
-      case 1:
-        switch (a.length) {
-          case 0:  return fn;
-          case 1:  return function(b0) {return fn(a0, b0)}
-          case 2:  return function(b0) {return fn(a0, a1, b0)}
-          case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
-          case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
-          default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
-        }
-        break;
-      case 2:
-        switch (a.length) {
-          case 0:  return fn;
-          case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
-          case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
-          case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
-          case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
-          default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
-        }
-        break;
-      default:
-        switch (a.length) {
-          case 0:  return fn;
-          default: return function() {return apply(fn, null, concat(a, arguments))}
-        }
-    }
+  switch (length) {
+    case 0:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function() {return fn(a0)}
+        case 2:  return function() {return fn(a0, a1)}
+        case 3:  return function() {return fn(a0, a1, a2)}
+        case 4:  return function() {return fn(a0, a1, a2, a3)}
+        default: return function() {return fn.apply(null, a)}
+      }
+      break;
+    case 1:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function(b0) {return fn(a0, b0)}
+        case 2:  return function(b0) {return fn(a0, a1, b0)}
+        case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
+        case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
+        default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
+      }
+      break;
+    case 2:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
+        case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
+        case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
+        case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
+        default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
+      }
+      break;
+    default:
+      switch (a.length) {
+        case 0:  return fn;
+        default: return function() {return apply(fn, null, concat(a, arguments))}
+      }
+  }
+}
+
+function bindWithContext(fn, c, a, length) {
+  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+  switch (length) {
+    case 0:
+      switch (a.length) {
+        case 0:  return function() {return fn.call(c)}
+        default: return function() {return fn.apply(c, a)}
+      }
+      break;
+    case 1:
+      switch (a.length) {
+        case 0:  return function(b0) {return fn.call(c, b0)}
+        case 1:  return function(b0) {return fn.call(c, a0, b0)}
+        case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
+        case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
+        case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
+        default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
+      }
+      break;
+    case 2:
+      switch (a.length) {
+        case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
+        case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
+        case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
+        case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
+        case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
+        default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
+      }
+      break;
+    default:
+      switch (a.length) {
+        case 0: return function() {return fn.apply(c, arguments)}
+        default: return function() {return fn.apply(c, concat(a, arguments))}
+      }
+  }
+}
+
+function bind(fn, context, args, boundFunctionLength) {
+  if (context == null) {
+    return bindWithoutContext(fn, args, boundFunctionLength);
   } else {
-    switch (length) {
-      case 0:
-        switch (a.length) {
-          case 0:  return function() {return fn.call(c)}
-          default: return function() {return fn.apply(c, a)}
-        }
-        break;
-      case 1:
-        switch (a.length) {
-          case 0:  return function(b0) {return fn.call(c, b0)}
-          case 1:  return function(b0) {return fn.call(c, a0, b0)}
-          case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
-          case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
-          case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
-          default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
-        }
-        break;
-      case 2:
-        switch (a.length) {
-          case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
-          case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
-          case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
-          case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
-          case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
-          default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
-        }
-        break;
-      default:
-        switch (a.length) {
-          case 0: return function() {return fn.apply(c, arguments)}
-          default: return function() {return fn.apply(c, concat(a, arguments))}
-        }
-    }
+    return bindWithContext(fn, context, args, boundFunctionLength);
   }
 }
 
