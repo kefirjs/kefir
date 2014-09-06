@@ -20189,7 +20189,7 @@ beforeEach(function() {
         }
         $el.on(eventName, selector, onEvent);
         return ['off', $el, eventName, selector, onEvent];
-      }).setName('jQuery:asKefirStream');
+      }).setName('asKefirStream');
     }
 
 
