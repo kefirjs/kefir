@@ -1,18 +1,93 @@
-h2#main-methods Main observable methods
+h2#main-methods Main observable* methods
+
+p.
+  <b>*</b> stream or property
 
 
 +descr-method('on-value', 'onValue', 'observable.onValue(fn)').
+  Subscribes <b>fn</b> functions to values on an observable.
+  If <b>onValue</b> called on a property, and property has
+  current value, <b>fn</b> will be called
+  immediately with property current value as argument.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.onValue(function(x) {  console.log('value:', x)  });
+  emitter.emit(1);
+  emitter.emit(2);
+
+pre(title='console output')
+  :escapehtml
+    > value: 1
+    > value: 2
 
 +descr-method('off-value', 'offValue', 'observable.offValue(fn)').
+  Unsubscribes <b>fn</b> from values on an observable.
 
 +descr-method('on-end', 'onEnd', 'observable.onEnd(fn)').
+  Subscribes <b>fn</b> functions to ending off an observable.
+  If observable already ended, <b>fn</b> will be called immediately.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.onEnd(function(x) {  console.log('stream ended')  });
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > stream ended
 
 +descr-method('off-end', 'offEnd', 'observable.offEnd(fn)').
+  Unsubscribes <b>fn</b> from ending off an observable.
 
 +descr-method('on-any', 'onAny', 'observable.onAny(fn)').
+  Subscribes <b>fn</b> functions to both ending and values on an observable.
+  Callback is called with <b>event object</b> as argument. Each event object
+  contains three attributes — <b>type</b>, <b>value</b>, and <b>current</b>.
+
+ul
+  li
+    | <b>type</b> is a <tt>'value'</tt> or <tt>'end'</tt> string
+  li
+    | <b>value</b> is a value that was emitted,
+    | or <tt>undefined</tt> if <b>type</b> was <tt>'end'</tt>
+  li
+    | <b>current</b> is a boolean, that equals <tt>true</tt> if callback was
+    | called with current value of a property, or on end of already ended observable
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.onAny(function(event) {  console.log('event:', event)  });
+  emitter.emit(1);
+  emitter.emit(2);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > event: Object {type: "value", value: 1, current: false}
+    > event: Object {type: "value", value: 2, current: false}
+    > event: Object {type: "end", value: undefined, current: false}
 
 +descr-method('off-any', 'offAny', 'observable.offAny(fn)').
+  Unsubscribes an <b>onAny</b> subscriber.
 
 +descr-method('log', 'log', 'observable.log([name])').
+  Turns on logging of any events on an observable to browser console.
+  Accepts optional <b>name</b> argument that will be shown in log if provided.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.log('myEmitter');
+  emitter.emit(1);
+  emitter.emit(2);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > myEmitter <value> 1
+    > myEmitter <value> 2
+    > myEmitter <end>
 
 +descr-method('off-log', 'offLog', 'observable.offLog([name])').
+  Turns off logging. If <b>.log</b> was called with <b>name</b> argument,
+  <b>offLog</b> must be called with same <b>name</b> argument.
