@@ -1,4 +1,4 @@
-/*! kefir addon - 0.2.4
+/*! kefir addon - 0.2.5
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -9,20 +9,25 @@
 
 
 
-    $.fn.asKefirStream = function(event, selector, transformer) {
+    $.fn.asKefirStream = function(eventName, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
         selector = null;
       }
       transformer = transformer && Kefir.Fn(transformer);
-      return Kefir.fromBinder(function(send) {
-        function onEvent(e) {
-          send('value', transformer ? transformer.apply(arguments) : e);
+      return Kefir.fromBinder(function(emitter) {
+        var onEvent;
+        if (transformer) {
+          onEvent = function() {
+            emitter.emit(transformer.applyWithContext(this, arguments));
+          };
+        } else {
+          onEvent = emitter.emit;
         }
-        $el.on(event, selector, onEvent);
-        return function() {  $el.off(event, selector, onEvent)  }
-      });
+        $el.on(eventName, selector, onEvent);
+        return ['off', $el, eventName, selector, onEvent];
+      }).setName('asKefirStream');
     }
 
 

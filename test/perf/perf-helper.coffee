@@ -16,11 +16,12 @@ getVal = ->
 
 
 buildKefir = (modify) ->
-  send = null
-  property = Kefir.fromBinder (newSend) ->
-    send = newSend
+  emitter = null
+  property = Kefir.fromBinder (newEmitter) ->
+    emitter = newEmitter
+    null
   modify(property).onValue(noop)
-  -> send('value', getVal())
+  -> emitter.emit(getVal())
 
 
 buildBacon = (modify) ->

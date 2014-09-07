@@ -36,39 +36,41 @@ withOneSource('changes', {
 
 withOneSource('withHandler', {
   _init: function(args) {
-    var _this = this;
     this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
-    this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
+    var $ = this;
+    this._emitter = {
+      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
+      end: function() {  $._send('end', null, $._forcedCurrent)  }
+    }
   },
   _free: function() {
     this._handler = null;
-    this._bindedSend = null;
+    this._emitter = null;
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._bindedSend, event);
+    this._handler.invoke(this._emitter, event);
     this._forcedCurrent = false;
   }
 });
 
 
 
+
+var withFnArgMixin = {
+  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _free: function() {  this._fn = null  }
+};
 
 
 // .map(fn)
 
-withOneSource('map', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
     this._send('value', this._fn.invoke(x), isCurrent);
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -76,19 +78,13 @@ withOneSource('map', {
 
 // .filter(fn)
 
-withOneSource('filter', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     }
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -96,13 +92,7 @@ withOneSource('filter', {
 
 // .takeWhile(fn)
 
-withOneSource('takeWhile', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
@@ -110,7 +100,7 @@ withOneSource('takeWhile', {
       this._send('end', null, isCurrent);
     }
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -158,26 +148,23 @@ withOneSource('skip', {
 
 // .skipDuplicates([fn])
 
-function strictlyEqual(a, b) {  return a === b  }
-
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    if (args.length > 0) {
-      this._fn = Fn(args[0], 2);
-    } else {
-      this._fn = Fn(strictlyEqual);
-    }
+    this._fn = args[0] && Fn(args[0], 2);
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
+  _isEqual: function(a, b) {
+    return this._fn ? this._fn.invoke(a, b) : a === b;
+  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._fn.invoke(this._prev, x)) {
+    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
       this._send('value', x, isCurrent);
+      this._prev = x;
     }
-    this._prev = x;
   }
 });
 
@@ -287,40 +274,40 @@ withOneSource('throttle', {
     this._trailingCallTimeoutId = null;
     this._endAfterTrailingCall = false;
     this._lastCallTime = 0;
-    var _this = this;
-    this._makeTrailingCallBinded = function() {  _this._makeTrailingCall()  };
+    var $ = this;
+    this._$makeTrailingCall = function() {  $._makeTrailingCall()  };
   },
   _free: function() {
     this._trailingCallValue = null;
-    this._makeTrailingCallBinded = null;
+    this._$makeTrailingCall = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
-    }
-    var curTime = now();
-    if (this._lastCallTime === 0 && !this._leading) {
-      this._lastCallTime = curTime;
-    }
-    var remaining = this._wait - (curTime - this._lastCallTime);
-    if (remaining <= 0) {
-      this._cancelTralingCall();
-      this._lastCallTime = curTime;
-      this._send('value', x);
-    } else if (this._trailing) {
-      this._scheduleTralingCall(x, remaining);
+    } else {
+      var curTime = now();
+      if (this._lastCallTime === 0 && !this._leading) {
+        this._lastCallTime = curTime;
+      }
+      var remaining = this._wait - (curTime - this._lastCallTime);
+      if (remaining <= 0) {
+        this._cancelTralingCall();
+        this._lastCallTime = curTime;
+        this._send('value', x);
+      } else if (this._trailing) {
+        this._scheduleTralingCall(x, remaining);
+      }
     }
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
-    }
-    if (this._trailingCallTimeoutId) {
-      this._endAfterTrailingCall = true;
     } else {
-      this._send('end');
+      if (this._trailingCallTimeoutId) {
+        this._endAfterTrailingCall = true;
+      } else {
+        this._send('end');
+      }
     }
   },
   _scheduleTralingCall: function(value, wait) {
@@ -328,7 +315,7 @@ withOneSource('throttle', {
       this._cancelTralingCall();
     }
     this._trailingCallValue = value;
-    this._trailingCallTimeoutId = setTimeout(this._makeTrailingCallBinded, wait);
+    this._trailingCallTimeoutId = setTimeout(this._$makeTrailingCall, wait);
   },
   _cancelTralingCall: function() {
     if (this._trailingCallTimeoutId !== null) {
@@ -357,21 +344,30 @@ withOneSource('throttle', {
 withOneSource('delay', {
   _init: function(args) {
     this._wait = args[0];
+    this._buff = [];
+    var $ = this;
+    this._shiftBuff = function() {
+      $._send('value', $._buff.shift());
+    }
+  },
+  _free: function() {
+    this._buff = null;
+    this._shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
+    } else {
+      this._buff.push(x);
+      setTimeout(this._shiftBuff, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('value', x)  }, this._wait);
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
+    } else {
+      var $ = this;
+      setTimeout(function() {  $._send('end')  }, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('end')  }, this._wait);
   }
 });

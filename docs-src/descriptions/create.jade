@@ -147,18 +147,20 @@ div
   General method to create an interval based stream.
   Creates a stream, that call given <b>handler</b> function,
   with given <b>interval</b> in milliseconds.
-  <b>Handler</b> beings called with one argument — <b>send</b> function,
-  which you can call to emit value or end the stream (see example).
+  <b>Handler</b> is called with one argument — <b>emitter object</b>
+  (it's similar to <a href="#emitter">emitter stream</a>
+  but not actualy a stream, you cant read more about emitter object
+  <a href="#emitter-object">here</a>).
 
 pre(title='code')
   :escapehtml
     var start = new Date();
-    var stream = Kefir.withInterval(1000, function(send) {
+    var stream = Kefir.withInterval(1000, function(emitter) {
       var time = new Date() - start;
       if (time < 4000) {
-        send('value', time);   // emit value
+        emitter.emit(time);   // emit a value
       } else {
-        send('end');           // end the stream
+        emitter.end();        // end the stream
       }
     });
     stream.log();
@@ -173,10 +175,7 @@ pre(title='console output')
 div
 
 p.
-  <b>Send</b> function accepts two arguments —
-  event <b>type</b> (<tt>'value'</tt> or <tt>'end'</tt>),
-  and <b>value</b> (ignored if <b>type</b> is <tt>'end'</tt>).
-  You may call <b>send</b> several times on each interval tick,
+  You may call <b>emitter.emit</b> several times on each interval tick,
   or not call it at all.
 
 
@@ -190,9 +189,9 @@ p.
 
 p.
   Creates stream which call <b>subscribe</b> function on each <b>activation</b>,
-  passing to it an <b>send</b> function
-  (just like in <a href="#with-interval">withInterval</a>).
-  Then you can call <b>send</b> at any time to emit value or end the stream.
+  passing to it an <a href="#emitter-object">emitter object</a>.
+  Then you can call <b>emiter.emit</b> or <b>emitter.end</b> at any time
+  to emit value or end the stream.
   <b>Subscribe</b> function can also return an <b>unsubscribe</b> function,
   that will be called on <b>deactivation</b> of the stream.
   Read about <a href="#active-state">active state</a> to understand what
@@ -200,11 +199,11 @@ p.
 
 pre(title='code')
   :escapehtml
-    var stream = Kefir.fromBinder(function(send) {
+    var stream = Kefir.fromBinder(function(emitter) {
       console.log('!activation');
       var i = 0;
       var intervalId = setInterval(function() {
-        send('value', ++i);
+        emitter.emit(++i);
       }, 1000);
       return function() {
         console.log('!deactivation');
@@ -223,12 +222,31 @@ pre(title='console output')
     > [fromBinder] <value> 2
     > [fromBinder] <value> 3
     > !deactivation
-div
+
+p.
+  See also <a href="demos/custom-stream.html">Custom stream demo</a>
+  as another <b>fromBinder</b> usage example.
 
 
 
 +descr-method('once', 'once', 'Kefir.once(value)').
+  Creates a stream that emits given <b>value</b>
+  to first subscriber then immediately ends.
 
+pre(title='code').
+  var once = Kefir.once(1);
+  once.log();
+
+pre(title='console output')
+  :escapehtml
+    > [once] <value> 1
+    > [once] <end>
+
+p.
+  <img data-emoji="point_up"> If the first subscriber will be an <b>onEnd</b> subscriber,
+  given <b>value</b> still will be emitted on moment of subscription,
+  but, because there will be no <b>value</b> listeners at the moment,
+  nobody will get the <b>value</b> and it will be lost forever.
 
 
 
@@ -243,7 +261,7 @@ p.
   Creates ended property, with specified <b>current value</b>.
 
 pre(title='code').
-  property = Kefir.constant(1);
+  var property = Kefir.constant(1);
   property.log();
 
 pre(title='console output')

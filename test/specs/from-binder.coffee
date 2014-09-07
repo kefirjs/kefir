@@ -11,15 +11,15 @@ describe 'fromBinder', ->
     expect(Kefir.fromBinder(->)).toEmit []
 
   it 'should emit values and end', ->
-    send = null
-    a = Kefir.fromBinder (s) ->
-      send = s
+    emitter = null
+    a = Kefir.fromBinder (em) ->
+      emitter = em
       null
     expect(a).toEmit [1, 2, 3, '<end>'], ->
-      send('value', 1)
-      send('value', 2)
-      send('value', 3)
-      send('end')
+      emitter.emit(1)
+      emitter.emit(2)
+      emitter.emit(3)
+      emitter.end()
 
   it 'should call `subscribe` / `unsubscribe` on activation / deactivation', ->
     subCount = 0
@@ -48,18 +48,20 @@ describe 'fromBinder', ->
   it 'should automatically controll isCurent argument in `send`', ->
 
     expect(
-      Kefir.fromBinder (send) ->
-        send('end')
+      Kefir.fromBinder (emitter) ->
+        emitter.end()
+        null
     ).toEmit ['<end:current>']
 
     expect(
-      Kefir.fromBinder  (send) ->
-        send('value', 1)
-        send('value', 2)
+      Kefir.fromBinder  (emitter) ->
+        emitter.emit(1)
+        emitter.emit(2)
         setTimeout ->
-          send('value', 2)
-          send('end')
+          emitter.emit(2)
+          emitter.end()
         , 1000
+        null
     ).toEmitInTime [[0, {current: 1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
 
 

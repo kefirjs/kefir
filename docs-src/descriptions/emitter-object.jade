@@ -1,0 +1,37 @@
+h2#emitter-object Emitter object
+
+p.
+  Emitter object is an object, that has two methods <b>emit</b> and <b>end</b>.
+  It is used in several places in Kefir as a proxy to emit events to some stream.
+
+p.
+  <b>emiter.emit</b> accepts one argument (any value).<br>
+  <b>emiter.end</b> accepts no arguments.<br>
+
+pre
+  :escapehtml
+    emitter.emit(123)
+    emitter.end()
+div
+
+p.
+  Do not confuse <b>emitter object</b> with <a href="#emitter">emitter stream</a>.
+  They both have <b>emit</b> and <b>end</b> methods,
+  but <b>emitter object</b> isn't actually a stream,
+  it has no stream methods or functionality.
+  Emitter object has only two methods <b>emit</b> and <b>end</b>, that's it.
+
+p.
+  All <b>emitter object</b> methods are bound to its context,
+  and can be passed safely as callbacks without binding (see example).
+
+pre
+  :escapehtml
+    // instead of this
+    $('.foo').on('click', emitter.emit.bind(emitter))
+
+    // you can do just this
+    $('.foo').on('click', emitter.emit)
+div
+
+

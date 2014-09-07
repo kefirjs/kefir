@@ -11,16 +11,24 @@ inherit(FromBinder, Stream, {
   _name: 'fromBinder',
 
   _onActivation: function() {
-    var _this = this;
-    var isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
+    var $ = this
+      , unsub
+      , isCurrent = true
+      , emitter = {
+        emit: function(x) {  $._send('value', x, isCurrent)  },
+        end: function() {  $._send('end', null, isCurrent)  }
+      };
+    unsub = this._fn.invoke(emitter);
     isCurrent = false;
+    if (unsub) {
+      this._unsubscribe = Fn(unsub, 0);
+    }
   },
   _onDeactivation: function() {
-    if (isFn(this._unsubscribe)) {
-      this._unsubscribe();
+    if (this._unsubscribe !== null) {
+      this._unsubscribe.invoke();
+      this._unsubscribe = null;
     }
-    this._unsubscribe = null;
   },
 
   _clear: function() {

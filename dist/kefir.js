@@ -1,4 +1,4 @@
-/*! kefir - 0.2.4
+/*! kefir - 0.2.5
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -24,24 +24,18 @@ function createObj(proto) {
   return new F();
 }
 
-function extend(/*target, mixin1, mixin2...*/) {
+function extend(target /*, mixin1, mixin2...*/) {
   var length = arguments.length
-    , result, i, prop;
-  if (length === 1) {
-    return arguments[0];
-  }
-  result = arguments[0];
+    , i, prop;
   for (i = 1; i < length; i++) {
     for (prop in arguments[i]) {
-      if(own(arguments[i], prop)) {
-        result[prop] = arguments[i][prop];
-      }
+      target[prop] = arguments[i][prop];
     }
   }
-  return result;
+  return target;
 }
 
-function inherit(Child, Parent/*[, mixin1, mixin2, ...]*/) {
+function inherit(Child, Parent /*, mixin1, mixin2...*/) {
   var length = arguments.length
     , i;
   Child.prototype = createObj(Parent.prototype);
@@ -56,7 +50,7 @@ function agrsToArray(args) {
   if (args.length === 1 && isArray(args[0])) {
     return args[0];
   }
-  return toArray(args);
+  return cloneArray(args);
 }
 
 function getFn(fn, context) {
@@ -71,97 +65,108 @@ function getFn(fn, context) {
   }
 }
 
-function call(fn, context, args) {
-  if (context != null) {
-    if (!args || args.length === 0) {
-      return fn.call(context);
-    } else {
-      return fn.apply(context, args);
+function apply(fn, c, a) {
+  var aLength = a ? a.length : 0;
+  if (c == null) {
+    switch (aLength) {
+      case 0:  return fn();
+      case 1:  return fn(a[0]);
+      case 2:  return fn(a[0], a[1]);
+      case 3:  return fn(a[0], a[1], a[2]);
+      case 4:  return fn(a[0], a[1], a[2], a[3]);
+      default: return fn.apply(null, a);
     }
   } else {
-    if (!args || args.length === 0) {
-      return fn();
+    switch (aLength) {
+      case 0:  return fn.call(c);
+      default: return fn.apply(c, a);
     }
-    switch (args.length) {
-      case 1: return fn(args[0]);
-      case 2: return fn(args[0], args[1]);
-      case 3: return fn(args[0], args[1], args[2]);
-    }
-    return fn.apply(null, args);
   }
 }
 
-function bind(fn, c, a, length) {
-  if (c == null) {
-    if (a.length === 0) {
-      return fn;
-    }
-    switch (length) {
-      case 0:
-        switch (a.length) {
-          case 1: return function() {return fn(a[0])}
-          case 2: return function() {return fn(a[0], a[1])}
-          case 3: return function() {return fn(a[0], a[1], a[3])}
-          case 4: return function() {return fn(a[0], a[1], a[3], a[4])}
-          default: return function() {return fn.apply(null, a)}
-        }
-        break;
-      case 1:
-        switch (a.length) {
-          case 0: return function(b) {return fn(b)}
-          case 1: return function(b) {return fn(a[0], b)}
-          case 2: return function(b) {return fn(a[0], a[1], b)}
-          case 3: return function(b) {return fn(a[0], a[1], a[3], b)}
-          case 4: return function(b) {return fn(a[0], a[1], a[3], a[4], b)}
-          default: return function(b) {return fn.apply(null, concat(a, [b]))}
-        }
-        break;
-      case 2:
-        switch (a.length) {
-          case 0: return function(b, d) {return fn(b, d)}
-          case 1: return function(b, d) {return fn(a[0], b, d)}
-          case 2: return function(b, d) {return fn(a[0], a[1], b, d)}
-          case 3: return function(b, d) {return fn(a[0], a[1], a[3], b, d)}
-          case 4: return function(b, d) {return fn(a[0], a[1], a[3], a[4], b, d)}
-          default: return function(b, d) {return fn.apply(null, concat(a, [b, d]))}
-        }
-        break;
-      default: return function() {return fn.apply(null, concat(a, arguments))}
-    }
+function bindWithoutContext(fn, a, length) {
+  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+  switch (length) {
+    case 0:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function() {return fn(a0)}
+        case 2:  return function() {return fn(a0, a1)}
+        case 3:  return function() {return fn(a0, a1, a2)}
+        case 4:  return function() {return fn(a0, a1, a2, a3)}
+        default: return function() {return fn.apply(null, a)}
+      }
+      break;
+    case 1:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function(b0) {return fn(a0, b0)}
+        case 2:  return function(b0) {return fn(a0, a1, b0)}
+        case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
+        case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
+        default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
+      }
+      break;
+    case 2:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
+        case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
+        case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
+        case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
+        default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
+      }
+      break;
+    default:
+      switch (a.length) {
+        case 0:  return fn;
+        default: return function() {return apply(fn, null, concat(a, arguments))}
+      }
+  }
+}
+
+function bindWithContext(fn, c, a, length) {
+  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+  switch (length) {
+    case 0:
+      switch (a.length) {
+        case 0:  return function() {return fn.call(c)}
+        default: return function() {return fn.apply(c, a)}
+      }
+      break;
+    case 1:
+      switch (a.length) {
+        case 0:  return function(b0) {return fn.call(c, b0)}
+        case 1:  return function(b0) {return fn.call(c, a0, b0)}
+        case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
+        case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
+        case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
+        default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
+      }
+      break;
+    case 2:
+      switch (a.length) {
+        case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
+        case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
+        case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
+        case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
+        case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
+        default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
+      }
+      break;
+    default:
+      switch (a.length) {
+        case 0: return function() {return fn.apply(c, arguments)}
+        default: return function() {return fn.apply(c, concat(a, arguments))}
+      }
+  }
+}
+
+function bind(fn, context, args, boundFunctionLength) {
+  if (context == null) {
+    return bindWithoutContext(fn, args, boundFunctionLength);
   } else {
-    switch (length) {
-      case 0:
-        switch (a.length) {
-          case 0: return function() {return fn.call(c)}
-          case 1: return function() {return fn.call(c, a[0])}
-          case 2: return function() {return fn.call(c, a[0], a[1])}
-          case 3: return function() {return fn.call(c, a[0], a[1], a[3])}
-          case 4: return function() {return fn.call(c, a[0], a[1], a[3], a[4])}
-          default: return function() {return fn.apply(c, a)}
-        }
-        break;
-      case 1:
-        switch (a.length) {
-          case 0: return function(b) {return fn.call(c, b)}
-          case 1: return function(b) {return fn.call(c, a[0], b)}
-          case 2: return function(b) {return fn.call(c, a[0], a[1], b)}
-          case 3: return function(b) {return fn.call(c, a[0], a[1], a[3], b)}
-          case 4: return function(b) {return fn.call(c, a[0], a[1], a[3], a[4], b)}
-          default: return function(b) {return fn.apply(c, concat(a, [b]))}
-        }
-        break;
-      case 2:
-        switch (a.length) {
-          case 0: return function(b, d) {return fn.call(c, b, d)}
-          case 1: return function(b, d) {return fn.call(c, a[0], b, d)}
-          case 2: return function(b, d) {return fn.call(c, a[0], a[1], b, d)}
-          case 3: return function(b, d) {return fn.call(c, a[0], a[1], a[3], b, d)}
-          case 4: return function(b, d) {return fn.call(c, a[0], a[1], a[3], a[4], b, d)}
-          default: return function(b, d) {return fn.apply(c, concat(a, [b, d]))}
-        }
-        break;
-      default: return function() {return fn.apply(c, concat(a, arguments))}
-    }
+    return bindWithContext(fn, context, args, boundFunctionLength);
   }
 }
 
@@ -224,14 +229,6 @@ function rest(arr, start, onEmpty) {
     return Array.prototype.slice.call(arr, start);
   }
   return onEmpty;
-}
-
-function toArray(arrayLike) {
-  if (isArray(arrayLike)) {
-    return arrayLike;
-  } else {
-    return cloneArray(arrayLike);
-  }
 }
 
 var now = Date.now ?
@@ -308,8 +305,8 @@ function withInterval(name, mixin) {
     Stream.call(this);
     this._wait = wait;
     this._intervalId = null;
-    var _this = this;
-    this._bindedOnTick = function() {  _this._onTick()  }
+    var $ = this;
+    this._$onTick = function() {  $._onTick()  }
     this._init(args);
   }
 
@@ -323,7 +320,7 @@ function withInterval(name, mixin) {
     _onTick: function() {},
 
     _onActivation: function() {
-      this._intervalId = setInterval(this._bindedOnTick, this._wait);
+      this._intervalId = setInterval(this._$onTick, this._wait);
     },
     _onDeactivation: function() {
       if (this._intervalId !== null) {
@@ -334,7 +331,7 @@ function withInterval(name, mixin) {
 
     _clear: function() {
       Stream.prototype._clear.call(this);
-      this._bindedOnTick = null;
+      this._$onTick = null;
       this._free();
     }
 
@@ -388,39 +385,28 @@ function withOneSource(name, mixin, options) {
 
 
 
-  function AnonymousStream(source, args) {
-    Stream.call(this);
-    this._source = source;
-    this._name = source._name + '.' + name;
-    this._init(args);
+  function buildClass(BaseClass) {
+    function AnonymousObservable(source, args) {
+      BaseClass.call(this);
+      this._source = source;
+      this._name = source._name + '.' + name;
+      this._init(args);
+    }
+
+    inherit(AnonymousObservable, BaseClass, {
+      _clear: function() {
+        BaseClass.prototype._clear.call(this);
+        this._source = null;
+        this._free();
+      }
+    }, mixin);
+
+    return AnonymousObservable;
   }
 
-  inherit(AnonymousStream, Stream, {
-    _clear: function() {
-      Stream.prototype._clear.call(this);
-      this._source = null;
-      this._free();
-    }
-  }, mixin);
 
-
-
-  function AnonymousProperty(source, args) {
-    Property.call(this);
-    this._source = source;
-    this._name = source._name + '.' + name;
-    this._init(args);
-  }
-
-  inherit(AnonymousProperty, Property, {
-    _clear: function() {
-      Property.prototype._clear.call(this);
-      this._source = null;
-      this._free();
-    }
-  }, mixin);
-
-
+  var AnonymousStream = buildClass(Stream);
+  var AnonymousProperty = buildClass(Property);
 
   if (options.streamMethod) {
     Stream.prototype[name] = options.streamMethod(AnonymousStream, AnonymousProperty);
@@ -442,17 +428,26 @@ var Kefir = {};
 // Fn
 
 function _Fn(fnMeta, length) {
-  var fn = getFn(fnMeta[0], fnMeta[1]);
-  var context = fnMeta[1];
-  var args = rest(fnMeta, 2, []);
-  this.fn = fn;
-  this.context = context;
-  this.args = args;
-  this.invoke = bind(fn, context, args, length);
+  this.context = (fnMeta[1] == null) ? null : fnMeta[1];
+  this.fn = getFn(fnMeta[0], this.context);
+  this.args = rest(fnMeta, 2, []);
+  this.invoke = bind(this.fn, this.context, this.args, length);
 }
 
 _Fn.prototype.apply = function(args) {
-  return call(this.invoke, null, args);
+  return apply(this.invoke, null, args);
+}
+
+_Fn.prototype.applyWithContext = function(context, args) {
+  if (this.context === null) {
+    if (this.args.length === 0) {
+      return apply(this.fn, context, args);
+    } else {
+      return apply(this.fn, context, concat(this.args, args));
+    }
+  } else {
+    return this.apply(args);
+  }
 }
 
 function Fn(fnMeta, length) {
@@ -713,7 +708,7 @@ inherit(Property, Observable, {
 // Log
 
 function logCb(name, event) {
-  var typeStr = '<' + event.type + (event.isCurrent ? ':current' : '') + '>';
+  var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
   if (event.type === 'value') {
     console.log(name, typeStr, event.value);
   } else {
@@ -738,15 +733,18 @@ Observable.prototype.offLog = function(name) {
 withInterval('withInterval', {
   _init: function(args) {
     this._fn = Fn(args[0], 1);
-    var _this = this;
-    this._bindedSend = function(type, x) {  _this._send(type, x)  }
+    var $ = this;
+    this._emitter = {
+      emit: function(x) {  $._send('value', x)  },
+      end: function() {  $._send('end')  }
+    }
   },
   _free: function() {
     this._fn = null;
-    this._bindedSend = null;
+    this._emitter = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._bindedSend);
+    this._fn.invoke(this._emitter);
   }
 });
 
@@ -1226,39 +1224,41 @@ withOneSource('changes', {
 
 withOneSource('withHandler', {
   _init: function(args) {
-    var _this = this;
     this._handler = Fn(args[0], 2);
     this._forcedCurrent = false;
-    this._bindedSend = function(type, x) {  _this._send(type, x, _this._forcedCurrent)  }
+    var $ = this;
+    this._emitter = {
+      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
+      end: function() {  $._send('end', null, $._forcedCurrent)  }
+    }
   },
   _free: function() {
     this._handler = null;
-    this._bindedSend = null;
+    this._emitter = null;
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._bindedSend, event);
+    this._handler.invoke(this._emitter, event);
     this._forcedCurrent = false;
   }
 });
 
 
 
+
+var withFnArgMixin = {
+  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _free: function() {  this._fn = null  }
+};
 
 
 // .map(fn)
 
-withOneSource('map', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
     this._send('value', this._fn.invoke(x), isCurrent);
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -1266,19 +1266,13 @@ withOneSource('map', {
 
 // .filter(fn)
 
-withOneSource('filter', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
     }
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -1286,13 +1280,7 @@ withOneSource('filter', {
 
 // .takeWhile(fn)
 
-withOneSource('takeWhile', {
-  _init: function(args) {
-    this._fn = Fn(args[0], 1);
-  },
-  _free: function() {
-    this._fn = null;
-  },
+withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn.invoke(x)) {
       this._send('value', x, isCurrent);
@@ -1300,7 +1288,7 @@ withOneSource('takeWhile', {
       this._send('end', null, isCurrent);
     }
   }
-});
+}, withFnArgMixin));
 
 
 
@@ -1348,26 +1336,23 @@ withOneSource('skip', {
 
 // .skipDuplicates([fn])
 
-function strictlyEqual(a, b) {  return a === b  }
-
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    if (args.length > 0) {
-      this._fn = Fn(args[0], 2);
-    } else {
-      this._fn = Fn(strictlyEqual);
-    }
+    this._fn = args[0] && Fn(args[0], 2);
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
+  _isEqual: function(a, b) {
+    return this._fn ? this._fn.invoke(a, b) : a === b;
+  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._fn.invoke(this._prev, x)) {
+    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
       this._send('value', x, isCurrent);
+      this._prev = x;
     }
-    this._prev = x;
   }
 });
 
@@ -1477,40 +1462,40 @@ withOneSource('throttle', {
     this._trailingCallTimeoutId = null;
     this._endAfterTrailingCall = false;
     this._lastCallTime = 0;
-    var _this = this;
-    this._makeTrailingCallBinded = function() {  _this._makeTrailingCall()  };
+    var $ = this;
+    this._$makeTrailingCall = function() {  $._makeTrailingCall()  };
   },
   _free: function() {
     this._trailingCallValue = null;
-    this._makeTrailingCallBinded = null;
+    this._$makeTrailingCall = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
-    }
-    var curTime = now();
-    if (this._lastCallTime === 0 && !this._leading) {
-      this._lastCallTime = curTime;
-    }
-    var remaining = this._wait - (curTime - this._lastCallTime);
-    if (remaining <= 0) {
-      this._cancelTralingCall();
-      this._lastCallTime = curTime;
-      this._send('value', x);
-    } else if (this._trailing) {
-      this._scheduleTralingCall(x, remaining);
+    } else {
+      var curTime = now();
+      if (this._lastCallTime === 0 && !this._leading) {
+        this._lastCallTime = curTime;
+      }
+      var remaining = this._wait - (curTime - this._lastCallTime);
+      if (remaining <= 0) {
+        this._cancelTralingCall();
+        this._lastCallTime = curTime;
+        this._send('value', x);
+      } else if (this._trailing) {
+        this._scheduleTralingCall(x, remaining);
+      }
     }
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
-    }
-    if (this._trailingCallTimeoutId) {
-      this._endAfterTrailingCall = true;
     } else {
-      this._send('end');
+      if (this._trailingCallTimeoutId) {
+        this._endAfterTrailingCall = true;
+      } else {
+        this._send('end');
+      }
     }
   },
   _scheduleTralingCall: function(value, wait) {
@@ -1518,7 +1503,7 @@ withOneSource('throttle', {
       this._cancelTralingCall();
     }
     this._trailingCallValue = value;
-    this._trailingCallTimeoutId = setTimeout(this._makeTrailingCallBinded, wait);
+    this._trailingCallTimeoutId = setTimeout(this._$makeTrailingCall, wait);
   },
   _cancelTralingCall: function() {
     if (this._trailingCallTimeoutId !== null) {
@@ -1547,22 +1532,31 @@ withOneSource('throttle', {
 withOneSource('delay', {
   _init: function(args) {
     this._wait = args[0];
+    this._buff = [];
+    var $ = this;
+    this._shiftBuff = function() {
+      $._send('value', $._buff.shift());
+    }
+  },
+  _free: function() {
+    this._buff = null;
+    this._shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
-      return;
+    } else {
+      this._buff.push(x);
+      setTimeout(this._shiftBuff, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('value', x)  }, this._wait);
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
       this._send('end', null, isCurrent);
-      return;
+    } else {
+      var $ = this;
+      setTimeout(function() {  $._send('end')  }, this._wait);
     }
-    var _this = this;
-    setTimeout(function() {  _this._send('end')  }, this._wait);
   }
 });
 
@@ -1579,16 +1573,24 @@ inherit(FromBinder, Stream, {
   _name: 'fromBinder',
 
   _onActivation: function() {
-    var _this = this;
-    var isCurrent = true;
-    this._unsubscribe = this._fn.invoke(function(type, x) {  _this._send(type, x, isCurrent)  });
+    var $ = this
+      , unsub
+      , isCurrent = true
+      , emitter = {
+        emit: function(x) {  $._send('value', x, isCurrent)  },
+        end: function() {  $._send('end', null, isCurrent)  }
+      };
+    unsub = this._fn.invoke(emitter);
     isCurrent = false;
+    if (unsub) {
+      this._unsubscribe = Fn(unsub, 0);
+    }
   },
   _onDeactivation: function() {
-    if (isFn(this._unsubscribe)) {
-      this._unsubscribe();
+    if (this._unsubscribe !== null) {
+      this._unsubscribe.invoke();
+      this._unsubscribe = null;
     }
-    this._unsubscribe = null;
   },
 
   _clear: function() {
@@ -1709,7 +1711,7 @@ Observable.prototype.pluck = function(propertyName) {
 Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
   var args = rest(arguments, 1);
   return this.map(args ?
-    function(x) {  return call(x[methodName], x, args)  } :
+    function(x) {  return apply(x[methodName], x, args)  } :
     function(x) {  return x[methodName]()  }
   ).setName(this, 'invoke');
 }
@@ -1763,7 +1765,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName('not');
+  return this.map(function(x) {  return !x  }).setName(this, 'not');
 }
 
 
@@ -1784,11 +1786,11 @@ Observable.prototype.awaiting = function(other) {
 Observable.prototype.filterBy = function(other) {
   return other
     .sampledBy(this)
-    .withHandler(function(send, e) {
+    .withHandler(function(emitter, e) {
       if (e.type === 'end') {
-        send('end');
+        emitter.end();
       } else if (e.value[0]) {
-        send('value', e.value[1]);
+        emitter.emit(e.value[1]);
       }
     })
     .setName(this, 'filterBy');

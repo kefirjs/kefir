@@ -5,4 +5,42 @@ p.
   In order to use it you should include addon JavaScript file,
   that can be found in <a href="#downloads">downloads section</a>.
 
-+descr-method('as-kefir-stream', 'asKefirStream', '$(...).asKefirStream(eventName, [selector], [transfomEventFn])').
++descr-method('as-kefir-stream', 'asKefirStream', '$(...).asKefirStream(eventName, [selector], [eventTransformer])').
+  Creates a stream from events on a jQuery object. This methods mimics
+  <a href="http://api.jquery.com/on/" target="_balnk">jQuery .on method</a> with
+  two exceptions: it not accepts <b>data</b> argument, and instead of
+  <b>handler</b> function it accepts optional <b>eventTransformer</b> function,
+  which, if provided, will be called on each event with same arguments and
+  context as jQuery <b>handler</b> callback, and value returned by
+  <b>eventTransformer</b> will be emitted to Kefir stream.
+  If no <b>eventTransformer</b> provided, jQuery event object
+  will be emited in stream.
+
+pre(title='code').
+  var clicks = $('body').asKefirStream('click');
+  clicks.log();
+
+pre(title='console output')
+  :escapehtml
+    > [asKefirStream] <value> jQuery.Event {originalEvent: MouseEvent...}
+    > [asKefirStream] <value> jQuery.Event {originalEvent: MouseEvent...}
+    > [asKefirStream] <value> jQuery.Event {originalEvent: MouseEvent...}
+
+p.
+  Example with optional arguments:
+
+pre(title='code').
+  var clicksOnContainer = $('body').asKefirStream('click', '.container');
+  clicksOnContainer.log('[clicks on .container]');
+
+  var clicksPageX = $('body').asKefirStream('click', function(e) {return e.pageX});
+  clicksPageX.log('[e.pageX]');
+
+pre(title='console output')
+  :escapehtml
+    > [clicks on .container] <value> jQuery.Event {originalEvent: MouseEvent...}
+    > [e.pageX] <value> 643
+    > [e.pageX] <value> 15
+    > [clicks on .container] <value> jQuery.Event {originalEvent: MouseEvent...}
+    > [e.pageX] <value> 721
+div

@@ -30,7 +30,7 @@ Observable.prototype.pluck = function(propertyName) {
 Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
   var args = rest(arguments, 1);
   return this.map(args ?
-    function(x) {  return call(x[methodName], x, args)  } :
+    function(x) {  return apply(x[methodName], x, args)  } :
     function(x) {  return x[methodName]()  }
   ).setName(this, 'invoke');
 }
@@ -84,7 +84,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName('not');
+  return this.map(function(x) {  return !x  }).setName(this, 'not');
 }
 
 
@@ -105,11 +105,11 @@ Observable.prototype.awaiting = function(other) {
 Observable.prototype.filterBy = function(other) {
   return other
     .sampledBy(this)
-    .withHandler(function(send, e) {
+    .withHandler(function(emitter, e) {
       if (e.type === 'end') {
-        send('end');
+        emitter.end();
       } else if (e.value[0]) {
-        send('value', e.value[1]);
+        emitter.emit(e.value[1]);
       }
     })
     .setName(this, 'filterBy');
