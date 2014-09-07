@@ -99,7 +99,7 @@ code, pre, tt {
 }
   tt {
     padding: 0px 3px;
-    background: #fff;
+    background: #fbfbfb;
     border: 1px solid #ddd;
     zoom: 1;
     font-size: .8em;
@@ -113,7 +113,7 @@ pre {
   border-left: 2px solid #DFDFDF;
   margin: 0 0 30px;
   overflow: auto;
-  background: white;
+  background: #fbfbfb;
   position: relative;
 }
   pre[title]:after {
