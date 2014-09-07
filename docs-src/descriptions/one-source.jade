@@ -1,60 +1,406 @@
 h2#modify Modify an observable
 
+p.
+  All methods in this section create new observable of same kind* from an original one.
+  New observable applies some transformation to each event from original
+  and emits result of transformation.
+  In most cases a transformation is applied only to <b>value events</b>,
+  but <b>end event</b> just passes through (i.e. new observable ends when original ends).
+
+p.
+  <b>*</b> For example if original observable was a stream,
+  then new one also will be a stream. Same for properties.
+  This rule has one exception for <a href="#scan">scan method</a>,
+  that always returns a property.
+
 
 +descr-method('map', 'map', 'observable.map(fn)').
+  Applies given <b>fn</b> function to each value from original observable
+  and emits value returned by <b>fn</b>.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.map(function(x) {  return x + 1;  }).log();
+  emitter.emit(1);
+  emitter.emit(2);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.map] <value> 2
+    > [emitter.map] <value> 3
+    > [emitter.map] <end>
+div
 
 
 +descr-method('map-to', 'mapTo', 'observable.mapTo(value)').
+  On each value from original observable emits given <b>value</b>.<br>
+  Shorthand for <tt>observable.map(function() {return value})</tt>.
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.mapTo(5).log();
+  emitter.emit(1);
+  emitter.emit(2);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.mapTo] <value> 5
+    > [emitter.mapTo] <value> 5
+    > [emitter.mapTo] <end>
+div
 
 
 +descr-method('pluck', 'pluck', 'observable.pluck(propertyName)').
+  On each value from original observable emits <tt>value[propertyName]</tt>.<br>
+  Shorthand for <tt>observable.map(function(x) {return x.foo})</tt>
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.pluck('num').log();
+  emitter.emit({num: 1});
+  emitter.emit({num: 2});
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.pluck] <value> 1
+    > [emitter.pluck] <value> 2
+    > [emitter.pluck] <end>
+div
 
 
 +descr-method('invoke', 'invoke', 'observable.invoke(methodName)').
+  Just like <b>.pluck</b>, but instead of emitting <tt>value[propertyName]</tt>
+  it emits <tt>value[methodName]()</tt>,
+  i.e. calls method <b>methodName</b> of each value object
+  and emits whatever it returns.<br>
+  Shorthand for <tt>observable.map(function(x) {return x.foo()})</tt>
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.invoke('getNum').log();
+  emitter.emit({num: 1, getNum: function() {return this.num}});
+  emitter.emit({num: 2, getNum: function() {return this.num}});
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.invoke] <value> 1
+    > [emitter.invoke] <value> 2
+    > [emitter.invoke] <end>
+div
+
+
++descr-method('not', 'not', 'observable.not()').
+  Inverts every value from original observable using <tt>!</tt> operator.<br>
+  Shorthand for <tt>observable.map(function(x) {return !x})</tt>
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.not().log();
+  emitter.emit(true);
+  emitter.emit(false);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.not] <value> false
+    > [emitter.not] <value> true
+    > [emitter.not] <end>
+div
 
 
 +descr-method('tap', 'tap', 'observable.tap(fn)').
+  Just like <b>.map</b> applies given <b>fn</b>
+  function to each value from original observable, but emits original value
+  (not what <b>fn</b> returns).
+
+pre(title='code').
+  var emitter = Kefir.emitter();
+  emitter.tap(function(x) {
+    console.log('from tap fn:', x);
+    return 5; // will be ignored
+  }).log();
+  emitter.emit(1);
+  emitter.emit(2);
+  emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > from tap fn: 1
+    > [emitter.tap] <value> 1
+    > from tap fn: 2
+    > [emitter.tap] <value> 2
+    > [emitter.tap] <end>
+div
 
 
-+descr-method('filter', 'filter', 'observable.filter(fn)').
++descr-method('filter', 'filter', 'observable.filter(predicate)').
+  Filters values from original observable
+  using given <b>predicate</b> function.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.filter(function(x) {  return x > 1;  }).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.filter] <value> 2
+    > [emitter.filter] <end>
+div
 
 
 +descr-method('take', 'take', 'observable.take(n)').
+  Emits first <b>n</b> values from original observable, then ends.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.take(2).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.emit(4);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.take] <value> 1
+    > [emitter.take] <value> 2
+    > [emitter.take] <end>
+div
 
 
-+descr-method('take-while', 'takeWhile', 'observable.takeWhile(fn)').
++descr-method('take-while', 'takeWhile', 'observable.takeWhile(predicate)').
+  Emits values from original observable until given <b>predicate</b>
+  function applied to a value returns false.
+  Ends when <b>predicate</b> returns false.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.takeWhile(function(x) {return x < 3}).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.emit(1);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.takeWhile] <value> 1
+    > [emitter.takeWhile] <value> 2
+    > [emitter.takeWhile] <end>
+div
 
 
 +descr-method('skip', 'skip', 'observable.skip(n)').
+  Skips first <b>n</b> values from original observable, then emits all rest.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.skip(2).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.emit(4);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.skip] <value> 3
+    > [emitter.skip] <value> 4
+    > [emitter.skip] <end>
+div
 
 
-+descr-method('skip-while', 'skipWhile', 'observable.skipWhile(fn)').
++descr-method('skip-while', 'skipWhile', 'observable.skipWhile(predicate)').
+  Skips values from original observable until given <b>predicate</b>
+  function applied to a value returns false,
+  then stops applying <b>predicate</b> to values and emits all of them.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.skipWhile(function(x) {return x < 3}).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.emit(1);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.skipWhile] <value> 3
+    > [emitter.skipWhile] <value> 1
+    > [emitter.skipWhile] <end>
+div
 
 
-+descr-method('skip-duplicates', 'skipDuplicates', 'observable.skipDuplicates([fn])').
++descr-method('skip-duplicates', 'skipDuplicates', 'observable.skipDuplicates([comparator])').
+  Skips duplicate values using <tt>===</tt> for comparison by default.
+  Accepts optional <b>comparator</b> function,
+  that, if provided, is used for comparison instead of <tt>===</tt>.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.skipDuplicates().log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.skipDuplicates] <value> 1
+    > [emitter.skipDuplicates] <value> 2
+    > [emitter.skipDuplicates] <value> 3
+    > [emitter.skipDuplicates] <end>
+
+p With custom <b>comparator</b> function:
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.skipDuplicates(function(a, b) {
+      return Math.round(a) === Math.round(b);
+    }).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(2.1);
+    emitter.emit(3);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.skipDuplicates] <value> 1
+    > [emitter.skipDuplicates] <value> 2
+    > [emitter.skipDuplicates] <value> 3
+    > [emitter.skipDuplicates] <end>
+div
 
 
 +descr-method('diff', 'diff', 'observable.diff(seed, fn)').
+  On each value from original observable calls <b>fn</b>
+  function with previous and current value as arguments.
+  At first time calls <b>fn</b> with <b>seed</b> and current value.
+  Emits whatever <b>fn</b> returns.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.diff(0, function(prev, next) {
+      return next - prev;
+    }).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.diff] <value> 1
+    > [emitter.diff] <value> 1
+    > [emitter.diff] <value> 0
+    > [emitter.diff] <value> 1
+    > [emitter.diff] <end>
+div
 
 
 +descr-method('scan', 'scan', 'observable.scan(seed, fn)').
+  On each value from original
+  observable calls <b>fn</b> function with
+  previous result returned by <b>fn</b> and
+  current value emitted by original observable.
+  At first time calls <b>fn</b> with <b>seed</b> and current value.
+  Emits whatever <b>fn</b> returns. Always creates a property.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.scan(0, function(prev, next) {
+      return next + prev;
+    }).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.scan] <value:current> 0
+    > [emitter.scan] <value> 1
+    > [emitter.scan] <value> 3
+    > [emitter.scan] <value> 5
+    > [emitter.scan] <value> 8
+    > [emitter.scan] <end>
+div
 
 
 +descr-method('reduce', 'reduce', 'observable.reduce(seed, fn)').
+  Similar to <b>.scan</b>, but emits only last result just before end.
 
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.reduce(0, function(prev, next) {
+      return next + prev;
+    }).log();
+    emitter.emit(1);
+    emitter.emit(2);
+    emitter.emit(2);
+    emitter.emit(3);
+    emitter.end();
 
-+descr-method('with-handler', 'withHandler', 'observable.withHandler(fn)').
+pre(title='console output')
+  :escapehtml
+    > [emitter.reduce] <value> 8
+    > [emitter.reduce] <end>
+div
 
 
 +descr-method('delay', 'delay', 'observable.delay(wait)').
+  Delays all events by <b>wait</b> milliseconds,
+  with exception for current value of property,
+  or current end for already ended observable.
+
+pre(title='code')
+  :escapehtml
+    var emitter = Kefir.emitter();
+    emitter.delay(100).map(function(originalEmitTime){
+      return new Date() - originalEmitTime;
+    }).log();
+    emitter.emit(new Date());
+    emitter.emit(new Date());
+    emitter.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.delay.map] <value> 100
+    > [emitter.delay.map] <value> 100
+    > [emitter.delay.map] <end>
+div
 
 
 +descr-method('defer', 'defer', 'observable.defer()').
 
 
+
 +descr-method('throttle', 'throttle', 'observable.throttle(wait, [options])').
 
 
-+descr-method('not', 'not', 'observable.not()').
+
++descr-method('with-handler', 'withHandler', 'observable.withHandler(fn)').
 
 
