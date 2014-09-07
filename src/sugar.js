@@ -84,7 +84,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName('not');
+  return this.map(function(x) {  return !x  }).setName(this, 'not');
 }
 
 

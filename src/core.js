@@ -288,7 +288,7 @@ inherit(Property, Observable, {
 // Log
 
 function logCb(name, event) {
-  var typeStr = '<' + event.type + (event.isCurrent ? ':current' : '') + '>';
+  var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
   if (event.type === 'value') {
     console.log(name, typeStr, event.value);
   } else {
