@@ -627,13 +627,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  this.on('value', fn)   },
-  onEnd:    function(fn) {  this.on('end', fn)     },
-  onAny:    function(fn) {  this.on('any', fn)     },
+  onValue:  function(fn) {  return this.on('value', fn)   },
+  onEnd:    function(fn) {  return this.on('end', fn)     },
+  onAny:    function(fn) {  return this.on('any', fn)     },
 
-  offValue: function(fn) {  this.off('value', fn)  },
-  offEnd:   function(fn) {  this.off('end', fn)    },
-  offAny:   function(fn) {  this.off('any', fn)    }
+  offValue: function(fn) {  return this.off('value', fn)  },
+  offEnd:   function(fn) {  return this.off('end', fn)    },
+  offAny:   function(fn) {  return this.off('any', fn)    }
 
 });
 
@@ -17307,6 +17307,8 @@ describe('flatMap', function() {
       a = send(prop(), [[0, 1]]);
       return expect(a.flatMap()).toEmit([
         {
+          current: 0
+        }, {
           current: 1
         }, 2, 3, 4, 5, '<end>'
       ], function() {
