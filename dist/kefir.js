@@ -1038,6 +1038,7 @@ Observable.prototype.combine = function(other, combinator) {
 function _AbstractPool() {
   Stream.call(this);
   this._sources = [];
+  this._activating = false;
 }
 
 inherit(_AbstractPool, Stream, {
@@ -1055,7 +1056,7 @@ inherit(_AbstractPool, Stream, {
 
   _handleSubAny: function(event) {
     if (event.type === 'value') {
-      this._send('value', event.value, event.current);
+      this._send('value', event.value, event.current && this._activating);
     }
   },
 
@@ -1078,10 +1079,12 @@ inherit(_AbstractPool, Stream, {
   },
 
   _onActivation: function() {
+    this._activating = true;
     var sources = cloneArray(this._sources);
     for (var i = 0; i < sources.length; i++) {
       this._sub(sources[i]);
     }
+    this._activating = false;
   },
   _onDeactivation: function() {
     for (var i = 0; i < this._sources.length; i++) {
@@ -1128,14 +1131,16 @@ function FlatMap(source, fn) {
   this._name = source._name + '.flatMap';
   this._fn = fn ? Fn(fn, 1) : null;
   this._mainEnded = false;
-  this._lastValue = null;
+  this._lastCurrent = null;
 }
 
 inherit(FlatMap, _AbstractPool, {
 
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
+    this._activating = true;
     this._source.onAny([this._handleMainSource, this]);
+    this._activating = false;
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
@@ -1144,10 +1149,10 @@ inherit(FlatMap, _AbstractPool, {
 
   _handleMainSource: function(event) {
     if (event.type === 'value') {
-      if (!event.current || this._lastValue !== event.value) {
+      if (!event.current || this._lastCurrent !== event.value) {
         this._add(this._fn ? this._fn.invoke(event.value) : event.value);
       }
-      this._lastValue = event.value;
+      this._lastCurrent = event.value;
     } else {
       if (this._sources.length === 0) {
         this._send('end', null, event.current);
@@ -1167,8 +1172,9 @@ inherit(FlatMap, _AbstractPool, {
   _clear: function() {
     _AbstractPool.prototype._clear.call(this);
     this._source = null;
-    this._lastValue = null;
+    this._lastCurrent = null;
   }
+
 
 });
 

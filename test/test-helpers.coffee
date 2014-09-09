@@ -2,6 +2,8 @@ Kefir = require("../dist/kefir")
 sinon = require('sinon')
 
 
+exports.Kefir = Kefir
+
 
 logItem = (event) ->
   if event.type == 'value'

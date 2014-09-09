@@ -1,5 +1,4 @@
-Kefir = require('kefir')
-{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers.coffee')
 
 
 describe 'pool', ->
@@ -59,3 +58,11 @@ describe 'pool', ->
       send(a, ['<end>'])
       send(b, [4, '<end>'])
       send(c, [5, 6, '<end>'])
+
+  it 'should correctly handle current values of new sub sources', ->
+      pool = Kefir.pool()
+      b = send(prop(), [1])
+      c = send(prop(), [2])
+      expect(pool).toEmit [1, 2], ->
+        pool.add(b)
+        pool.add(c)
