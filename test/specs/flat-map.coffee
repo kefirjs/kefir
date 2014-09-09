@@ -74,6 +74,11 @@ describe 'flatMap', ->
       ).toEmit [3, 4, 5], ->
         send(a, [1, 2, 3, 4, 5])
 
+    it 'should support arrays', ->
+      a = stream()
+      expect(a.flatMap()).toEmit [1,2,3,4,5,'<end>'], ->
+        send(a, [[1,2,3], [], [4], Kefir.constant(5), '<end>'])
+
 
 
   describe 'property', ->
@@ -133,6 +138,11 @@ describe 'flatMap', ->
       c = send(prop(), [2])
       expect(a.flatMap()).toEmit [1, 2], ->
         send(a, [b, c])
+
+    it 'should support arrays', ->
+      a = send(prop(), [[0,1]])
+      expect(a.flatMap()).toEmit [{current:0},{current:1},2,3,4,5,'<end>'], ->
+        send(a, [[2,3], [], [4], Kefir.constant(5), '<end>'])
 
 
 

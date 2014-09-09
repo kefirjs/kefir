@@ -1156,7 +1156,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+        this._handleNewObject(this._fn ? this._fn.invoke(event.value) : event.value);
       }
       this._lastCurrent = event.value;
     } else {
@@ -1165,6 +1165,16 @@ inherit(FlatMap, _AbstractPool, {
       } else {
         this._mainEnded = true;
       }
+    }
+  },
+
+  _handleNewObject: function(arrayOrObs) {
+    if (isArray(arrayOrObs)) {
+      for (var i = 0; i < arrayOrObs.length; i++) {
+        this._send('value', arrayOrObs[i], this._activating);
+      }
+    } else {
+      this._add(arrayOrObs);
     }
   },
 
@@ -17193,7 +17203,7 @@ describe('flatMap', function() {
         return send(a, [b, c]);
       });
     });
-    return it('should work nicely with Kefir.constant and Kefir.never', function() {
+    it('should work nicely with Kefir.constant and Kefir.never', function() {
       var a;
       a = stream();
       return expect(a.flatMap(function(x) {
@@ -17204,6 +17214,13 @@ describe('flatMap', function() {
         }
       })).toEmit([3, 4, 5], function() {
         return send(a, [1, 2, 3, 4, 5]);
+      });
+    });
+    return it('should support arrays', function() {
+      var a;
+      a = stream();
+      return expect(a.flatMap()).toEmit([1, 2, 3, 4, 5, '<end>'], function() {
+        return send(a, [[1, 2, 3], [], [4], Kefir.constant(5), '<end>']);
       });
     });
   });
@@ -17276,13 +17293,24 @@ describe('flatMap', function() {
         }
       ]);
     });
-    return it('should correctly handle current values of new sub sources', function() {
+    it('should correctly handle current values of new sub sources', function() {
       var a, b, c;
       a = prop();
       b = send(prop(), [1]);
       c = send(prop(), [2]);
       return expect(a.flatMap()).toEmit([1, 2], function() {
         return send(a, [b, c]);
+      });
+    });
+    return it('should support arrays', function() {
+      var a;
+      a = send(prop(), [[0, 1]]);
+      return expect(a.flatMap()).toEmit([
+        {
+          current: 1
+        }, 2, 3, 4, 5, '<end>'
+      ], function() {
+        return send(a, [[2, 3], [], [4], Kefir.constant(5), '<end>']);
       });
     });
   });

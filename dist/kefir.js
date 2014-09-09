@@ -1155,7 +1155,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+        this._handleNewObject(this._fn ? this._fn.invoke(event.value) : event.value);
       }
       this._lastCurrent = event.value;
     } else {
@@ -1164,6 +1164,16 @@ inherit(FlatMap, _AbstractPool, {
       } else {
         this._mainEnded = true;
       }
+    }
+  },
+
+  _handleNewObject: function(arrayOrObs) {
+    if (isArray(arrayOrObs)) {
+      for (var i = 0; i < arrayOrObs.length; i++) {
+        this._send('value', arrayOrObs[i], this._activating);
+      }
+    } else {
+      this._add(arrayOrObs);
     }
   },
 
