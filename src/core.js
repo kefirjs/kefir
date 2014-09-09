@@ -69,58 +69,78 @@ Kefir.Fn = Fn;
 // Subscribers
 
 function Subscribers() {
-  this.value = [];
-  this.end = [];
-  this.any = [];
-  this.total = 0;
+  this._fns = [];
 }
 
-extend(Subscribers.prototype, {
-  add: function(type, fn) {
-    var length = (type === 'end' ? 0 : 1);
-    this[type].push(Fn(fn, length, true));
-    this.total++;
+extend(Subscribers, {
+  prepare: function(type, fn) {
+    fn = Fn(fn, type === 'end' ? 0 : 1);
+    fn.type = type;
+    return fn;
   },
-  remove: function(type, fn) {
-    var subs = this[type]
-      , length = subs.length
-      , i;
-    fn = Fn(fn);
-    for (i = 0; i < length; i++) {
-      if (Fn.isEqual(subs[i], fn)) {
-        subs.splice(i, 1);
-        this.total--;
-        return;
+  callOne: function(fn, event) {
+    if (fn.type === 'any') {
+      fn.invoke(event);
+    } else if (fn.type === event.type) {
+      if (fn.type === 'value') {
+        fn.invoke(event.value);
+      } else {
+        fn.invoke();
       }
     }
   },
-  call: function(type, x) {
-    var subs = this[type]
-      , length = subs.length
-      , i;
-    if (length !== 0) {
-      if (length === 1) {
-        if (type === 'end') {
-          subs[0].invoke();
-        } else {
-          subs[0].invoke(x);
-        }
-      } else {
-        subs = cloneArray(subs);
-        for (i = 0; i < length; i++) {
-          if (type === 'end') {
-            subs[i].invoke();
-          } else {
-            subs[i].invoke(x);
-          }
-        }
+  callOnce: function(type, fn, event) {
+    this.callOne(this.prepare(type, fn), event);
+  }
+});
+
+extend(Subscribers.prototype, {
+  _find: function(type, fn) {
+    fn = Fn(fn);
+    for (var i = 0; i < this._fns.length; i++) {
+      var curFn = this._fns[i];
+      if (curFn.type === type && Fn.isEqual(curFn, fn)) {
+        return i;
       }
+    }
+    return -1;
+  },
+  add: function(type, fn) {
+    this._fns.push(Subscribers.prepare(type, fn));
+  },
+  remove: function(type, fn) {
+    var i = this._find(type, fn);
+    if (i !== -1) {
+      this._fns.splice(i, 1);
+    }
+  },
+  callAll: function(event) {
+    switch (this._fns.length) {
+      case 0: return;
+      case 1: Subscribers.callOne(this._fns[0], event); return;
+      default:
+        var fns = cloneArray(this._fns);
+        for (var i = 0; i < fns.length; i++) {
+          Subscribers.callOne(fns[i], event);
+        }
     }
   },
   isEmpty: function() {
-    return this.total === 0;
+    return this._fns.length === 0;
   }
 });
+
+
+
+
+
+// Events
+
+function Event(type, value, current) {
+  return {type: type, value: value, current: !!current};
+}
+
+var CURRENT_END = Event('end', undefined, true);
 
 
 
@@ -161,22 +181,8 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._subscribers.call(type, x);
-      this._subscribers.call('any', {type: type, value: x, current: !!isCurrent});
+      this._subscribers.callAll(Event(type, x, isCurrent));
       if (type === 'end') {  this._clear()  }
-    }
-  },
-
-  _callWithCurrent: function(fnType, fn, valueType, value) {
-    fn = Fn(fn);
-    if (fnType === valueType) {
-      if (fnType === 'value') {
-        fn.invoke(value);
-      } else {
-        fn.invoke();
-      }
-    } else if (fnType === 'any') {
-      fn.invoke({type: valueType, value: value, current: true});
     }
   },
 
@@ -185,7 +191,7 @@ extend(Observable.prototype, {
       this._subscribers.add(type, fn);
       this._setActive(true);
     } else {
-      this._callWithCurrent(type, fn, 'end');
+      Subscribers.callOnce(type, fn, CURRENT_END);
     }
     return this;
   },
@@ -256,8 +262,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.call(type, x);
-        this._subscribers.call('any', {type: type, value: x, current: false});
+        this._subscribers.callAll(Event(type, x));
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -270,10 +275,10 @@ inherit(Property, Observable, {
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      this._callWithCurrent(type, fn, 'value', this._current);
+      Subscribers.callOnce(type, fn, Event('value', this._current, true));
     }
     if (!this._alive) {
-      this._callWithCurrent(type, fn, 'end');
+      Subscribers.callOnce(type, fn, CURRENT_END);
     }
     return this;
   }
