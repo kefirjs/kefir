@@ -1839,6 +1839,24 @@ Observable.prototype.filterBy = function(other) {
 
 
 
+
+// .fromCallback
+
+Kefir.fromCallback = function(callbackConsumer) {
+  callbackConsumer = Fn(callbackConsumer, 1);
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      callbackConsumer.invoke(function(x) {
+        emitter.emit(x);
+        emitter.end();
+      });
+      called = true;
+    }
+  }).setName('fromCallback');
+}
+
+
   if (typeof define === 'function' && define.amd) {
     define([], function() {
       return Kefir;
