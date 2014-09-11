@@ -31,6 +31,11 @@ function normFnMeta(fnMeta) {
   }
 }
 
+function applyFnMeta(fnMeta, args) {
+  fnMeta = normFnMeta(fnMeta);
+  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
+}
+
 function _Fn(fnMeta, length) {
   this.context = fnMeta.context;
   this.fn = fnMeta.fn;
@@ -94,7 +99,6 @@ extend(Subscribers, {
     }
   },
   callOnce: function(type, fnMeta, event) {
-    fnMeta = normFnMeta(fnMeta);
     if (type === 'any') {
       applyFnMeta(fnMeta, [event]);
     } else if (type === event.type) {

@@ -84,10 +84,6 @@ function apply(fn, c, a) {
   }
 }
 
-function applyFnMeta(fnMeta, args) {
-  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
-}
-
 function bindWithoutContext(fn, a, length) {
   var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
   switch (length) {
@@ -491,6 +487,11 @@ function normFnMeta(fnMeta) {
   }
 }
 
+function applyFnMeta(fnMeta, args) {
+  fnMeta = normFnMeta(fnMeta);
+  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
+}
+
 function _Fn(fnMeta, length) {
   this.context = fnMeta.context;
   this.fn = fnMeta.fn;
@@ -554,7 +555,6 @@ extend(Subscribers, {
     }
   },
   callOnce: function(type, fnMeta, event) {
-    fnMeta = normFnMeta(fnMeta);
     if (type === 'any') {
       applyFnMeta(fnMeta, [event]);
     } else if (type === event.type) {

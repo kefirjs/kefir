@@ -78,10 +78,6 @@ function apply(fn, c, a) {
   }
 }
 
-function applyFnMeta(fnMeta, args) {
-  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
-}
-
 function bindWithoutContext(fn, a, length) {
   var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
   switch (length) {
