@@ -59,7 +59,7 @@ function getFn(fn, context) {
     return fn;
   } else {
     if (context == null || !isFn(context[fn])) {
-      throw new Error('not a function: ' + fn + ' in ' + context);
+      throw new Error('Not a function: ' + fn + ' in context: ' + context);
     } else {
       return context[fn];
     }
@@ -83,6 +83,10 @@ function apply(fn, c, a) {
       default: return fn.apply(c, a);
     }
   }
+}
+
+function applyFnMeta(fnMeta, args) {
+  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
 }
 
 function bindWithoutContext(fn, a, length) {
@@ -175,6 +179,8 @@ function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
     , length, i;
+  if (a.length === 0) {  return b  }
+  if (b.length === 0) {  return a  }
   length = a.length;
   for (i = 0; i < length; i++, j++) {
     result[j] = a[i];
@@ -186,6 +192,15 @@ function concat(a, b) {
   return result;
 }
 
+function findByPred(input, pred) {
+  for (var i = 0; i < input.length; i++) {
+    if (pred(input[i])) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 function cloneArray(input) {
   var length = input.length
     , result = new Array(length)
@@ -194,6 +209,31 @@ function cloneArray(input) {
     result[i] = input[i];
   }
   return result;
+}
+
+function remove(input, index) {
+  var length = input.length
+    , result, i, j;
+  if (index >= 0 && index < length) {
+    if (length === 1) {
+      return [];
+    } else {
+      result = new Array(length - 1);
+      for (i = 0, j = 0; i < length; i++) {
+        if (i !== index) {
+          result[j] = input[i];
+          j++;
+        }
+      }
+      return result;
+    }
+  } else {
+    return input;
+  }
+}
+
+function removeByPred(input, pred) {
+  return remove(input, findByPred(input, pred));
 }
 
 function map(input, fn) {
@@ -428,10 +468,34 @@ var Kefir = {};
 
 // Fn
 
+function normFnMeta(fnMeta) {
+  if (fnMeta instanceof _Fn) {
+    return fnMeta;
+  } else {
+    if (isFn(fnMeta)) {
+      return {
+        fn: fnMeta,
+        context: null,
+        args: []
+      };
+    } else {
+      if (isArrayLike(fnMeta)) {
+        return {
+          fn: getFn(fnMeta[0], fnMeta[1]),
+          context: (fnMeta[1] == null ? null : fnMeta[1]),
+          args: rest(fnMeta, 2, [])
+        };
+      } else {
+        throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+      }
+    }
+  }
+}
+
 function _Fn(fnMeta, length) {
-  this.context = (fnMeta[1] == null) ? null : fnMeta[1];
-  this.fn = getFn(fnMeta[0], this.context);
-  this.args = rest(fnMeta, 2, []);
+  this.context = fnMeta.context;
+  this.fn = fnMeta.fn;
+  this.args = fnMeta.args;
   this.invoke = bind(this.fn, this.context, this.args, length);
 }
 
@@ -441,11 +505,7 @@ _Fn.prototype.apply = function(args) {
 
 _Fn.prototype.applyWithContext = function(context, args) {
   if (this.context === null) {
-    if (this.args.length === 0) {
-      return apply(this.fn, context, args);
-    } else {
-      return apply(this.fn, context, concat(this.args, args));
-    }
+    return apply(this.fn, context, concat(this.args, args));
   } else {
     return this.apply(args);
   }
@@ -455,18 +515,7 @@ function Fn(fnMeta, length) {
   if (fnMeta instanceof _Fn) {
     return fnMeta;
   } else {
-    if (length == null) {
-      length = 100;
-    }
-    if (isFn(fnMeta)) {
-      return new _Fn([fnMeta], length);
-    } else {
-      if (isArrayLike(fnMeta)) {
-        return new _Fn(fnMeta, length);
-      } else {
-        throw new Error('can\'t convert to Fn ' + fnMeta);
-      }
-    }
+    return new _Fn(normFnMeta(fnMeta), length == null ? 100 : length);
   }
 }
 
@@ -494,11 +543,6 @@ function Subscribers() {
 }
 
 extend(Subscribers, {
-  prepare: function(type, fn) {
-    fn = Fn(fn, type === 'end' ? 0 : 1);
-    fn.type = type;
-    return fn;
-  },
   callOne: function(fn, event) {
     if (fn.type === 'any') {
       fn.invoke(event);
@@ -510,40 +554,36 @@ extend(Subscribers, {
       }
     }
   },
-  callOnce: function(type, fn, event) {
-    this.callOne(this.prepare(type, fn), event);
+  callOnce: function(type, fnMeta, event) {
+    fnMeta = normFnMeta(fnMeta);
+    if (type === 'any') {
+      applyFnMeta(fnMeta, [event]);
+    } else if (type === event.type) {
+      if (type === 'value') {
+        applyFnMeta(fnMeta, [event.value]);
+      } else {
+        applyFnMeta(fnMeta, []);
+      }
+    }
   }
 });
 
 extend(Subscribers.prototype, {
-  _find: function(type, fn) {
-    fn = Fn(fn);
-    for (var i = 0; i < this._fns.length; i++) {
-      var curFn = this._fns[i];
-      if (curFn.type === type && Fn.isEqual(curFn, fn)) {
-        return i;
-      }
-    }
-    return -1;
-  },
   add: function(type, fn) {
-    this._fns.push(Subscribers.prepare(type, fn));
+    fn = Fn(fn, type === 'end' ? 0 : 1);
+    fn.type = type;
+    this._fns = concat(this._fns, [fn]);
   },
   remove: function(type, fn) {
-    var i = this._find(type, fn);
-    if (i !== -1) {
-      this._fns.splice(i, 1);
-    }
+    fn = Fn(fn);
+    this._fns = removeByPred(this._fns, function(x) {
+      return x.type === type && Fn.isEqual(x, fn);
+    });
   },
   callAll: function(event) {
-    switch (this._fns.length) {
-      case 0: return;
-      case 1: Subscribers.callOne(this._fns[0], event); return;
-      default:
-        var fns = cloneArray(this._fns);
-        for (var i = 0; i < fns.length; i++) {
-          Subscribers.callOne(fns[i], event);
-        }
+    var fns = this._fns;
+    for (var i = 0; i < fns.length; i++) {
+      Subscribers.callOne(fns[i], event);
     }
   },
   isEmpty: function() {
@@ -18944,7 +18984,7 @@ describe('Stream', function() {
       send(s, [1]);
       return expect(count).toBe(1);
     });
-    return it('onEnd subscribers should be called with 0 arguments', function() {
+    it('onEnd subscribers should be called with 0 arguments', function() {
       var count, s;
       s = stream();
       count = null;
@@ -18957,6 +18997,22 @@ describe('Stream', function() {
         return count = arguments.length;
       });
       return expect(count).toBe(0);
+    });
+    return it('should correctly handle unsubscribe during call loop', function() {
+      var a, b, log, s;
+      s = stream();
+      log = [];
+      a = function(x) {
+        log.push('a' + x);
+        return s.offValue(b);
+      };
+      b = function(x) {
+        return log.push('b' + x);
+      };
+      s.onValue(a);
+      s.onValue(b);
+      send(s, [1, 2]);
+      return expect(log).toEqual(['a1', 'b1', 'a2']);
     });
   });
   return describe('listener with context and/or args', function() {
