@@ -1,6 +1,0 @@
-.fromCallback(fn)
-.fromNodeCallback(fn)
-
-.debounce(wait, immediate)
-
-streamOfFunctions.apply(seed)
