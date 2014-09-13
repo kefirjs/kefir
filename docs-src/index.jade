@@ -27,6 +27,11 @@ html(lang="en")
       include descriptions/about-callbacks
       include descriptions/emitter-object
 
+    .help-note
+      strong Spot a typo / grammar error, or know how to improve this docs?
+      | Please <a href="https://github.com/pozadi/kefir/issues/new">file an issue</a>,
+      | or send a pull request.
+
     script(src='bower-packages/jquery/jquery.js')
     script(src='dist/kefir.min.js')
     script(src='dist/addons/kefir-jquery.min.js')
@@ -37,8 +42,6 @@ html(lang="en")
           var name = $(this).data('emoji');
           $(this).attr({
             src: emojis[name],
-            width: 20,
-            height: 20,
             title: ':' + name + ':',
             alt: ':' + name + ':'
           });

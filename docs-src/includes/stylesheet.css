@@ -143,7 +143,7 @@ pre {
   box-shadow: 0 0 20px #ccc;
   font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
 }
-@media (max-width: 1050px) {
+@media (max-width: 1200px) {
   .sidebar {
     width: 140px;
   }
@@ -180,7 +180,7 @@ pre {
   margin: 40px 10px 50px 330px;
   font-family: Helvetica, Arial, sans-serif;
 }
-@media (max-width: 1050px) {
+@media (max-width: 1200px) {
   .container {
     margin-left: 230px;
   }
@@ -219,3 +219,44 @@ h2[id] + p[id]{
   vertical-align: bottom;
   margin-bottom: -4px;
 }
+
+[data-emoji] {
+  width: 20px;
+  height: 20px;
+  visibility: hidden;
+}
+[data-emoji][src] {
+  visibility: visible;
+}
+
+
+.help-note {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  width: 150px;
+  border: solid 1px #c5c162;
+  padding: 10px;
+  font-size: .9em;
+  line-height: 1.2;
+  background: #FAF8C8;
+  opacity: .5;
+  overflow: hidden;
+  height: 47px;
+  cursor: default;
+  border-radius: 3px;
+  color: #4E4E3D;
+  -webkit-transition: all .3s;
+          transition: all .3s;
+}
+  .help-note:hover {
+    height: 90px;
+    opacity: 1;
+  }
+  .help-note strong {
+    display: block;
+    margin-bottom: 1em;
+  }
