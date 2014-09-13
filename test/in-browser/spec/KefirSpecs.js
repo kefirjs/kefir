@@ -1256,6 +1256,7 @@ function produceProperty(StreamClass, PropertyClass) {
 }
 
 
+
 // .toProperty()
 
 withOneSource('toProperty', {
@@ -1513,23 +1514,88 @@ withOneSource('reduce', {
 
 
 
+// .debounce(wait, {immediate})
+
+withOneSource('debounce', {
+  _init: function(args) {
+    this._wait = Math.max(0, args[0]);
+    this._immediate = get(args[1], 'immediate', false);
+    this._lastAttempt = 0;
+    this._timeoutId = null;
+    this._laterValue = null;
+    this._endLater = false;
+    var $ = this;
+    this._$later = function() {  $._later()  };
+  },
+  _free: function() {
+    this._laterValue = null;
+    this._$later = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
+    } else {
+      this._lastAttempt = now();
+      if (this._immediate && !this._timeoutId) {
+        this._send('value', x);
+      }
+      if (!this._timeoutId) {
+        this._timeoutId = setTimeout(this._$later, this._wait);
+      }
+      if (!this._immediate) {
+        this._laterValue = x;
+      }
+    }
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+    } else {
+      if (this._timeoutId && !this._immediate) {
+        this._endLater = true;
+      } else {
+        this._send('end');
+      }
+    }
+  },
+  _later: function() {
+    var last = now() - this._lastAttempt;
+    if (last < this._wait && last >= 0) {
+      this._timeoutId = setTimeout(this._$later, this._wait - last);
+    } else {
+      this._timeoutId = null;
+      if (!this._immediate) {
+        this._send('value', this._laterValue);
+        this._laterValue = null;
+      }
+      if (this._endLater) {
+        this._send('end');
+      }
+    }
+  }
+});
+
+
+
+
+
 // .throttle(wait, {leading, trailing})
 
 withOneSource('throttle', {
   _init: function(args) {
-    this._wait = args[0];
+    this._wait = Math.max(0, args[0]);
     this._leading = get(args[1], 'leading', true);
     this._trailing = get(args[1], 'trailing', true);
-    this._trailingCallValue = null;
-    this._trailingCallTimeoutId = null;
-    this._endAfterTrailingCall = false;
+    this._trailingValue = null;
+    this._timeoutId = null;
+    this._endLater = false;
     this._lastCallTime = 0;
     var $ = this;
-    this._$makeTrailingCall = function() {  $._makeTrailingCall()  };
+    this._$trailingCall = function() {  $._trailingCall()  };
   },
   _free: function() {
-    this._trailingCallValue = null;
-    this._$makeTrailingCall = null;
+    this._trailingValue = null;
+    this._$trailingCall = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
@@ -1541,11 +1607,13 @@ withOneSource('throttle', {
       }
       var remaining = this._wait - (curTime - this._lastCallTime);
       if (remaining <= 0) {
-        this._cancelTralingCall();
+        this._cancelTraling();
         this._lastCallTime = curTime;
         this._send('value', x);
       } else if (this._trailing) {
-        this._scheduleTralingCall(x, remaining);
+        this._cancelTraling();
+        this._trailingValue = x;
+        this._timeoutId = setTimeout(this._$trailingCall, remaining);
       }
     }
   },
@@ -1553,32 +1621,25 @@ withOneSource('throttle', {
     if (isCurrent) {
       this._send('end', null, isCurrent);
     } else {
-      if (this._trailingCallTimeoutId) {
-        this._endAfterTrailingCall = true;
+      if (this._timeoutId) {
+        this._endLater = true;
       } else {
         this._send('end');
       }
     }
   },
-  _scheduleTralingCall: function(value, wait) {
-    if (this._trailingCallTimeoutId) {
-      this._cancelTralingCall();
-    }
-    this._trailingCallValue = value;
-    this._trailingCallTimeoutId = setTimeout(this._$makeTrailingCall, wait);
-  },
-  _cancelTralingCall: function() {
-    if (this._trailingCallTimeoutId !== null) {
-      clearTimeout(this._trailingCallTimeoutId);
-      this._trailingCallTimeoutId = null;
+  _cancelTraling: function() {
+    if (this._timeoutId !== null) {
+      clearTimeout(this._timeoutId);
+      this._timeoutId = null;
     }
   },
-  _makeTrailingCall: function() {
-    this._send('value', this._trailingCallValue);
-    this._trailingCallTimeoutId = null;
-    this._trailingCallValue = null;
+  _trailingCall: function() {
+    this._send('value', this._trailingValue);
+    this._timeoutId = null;
+    this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
-    if (this._endAfterTrailingCall) {
+    if (this._endLater) {
       this._send('end');
     }
   }
@@ -1588,28 +1649,25 @@ withOneSource('throttle', {
 
 
 
-
 // .delay()
 
 withOneSource('delay', {
   _init: function(args) {
-    this._wait = args[0];
+    this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._shiftBuff = function() {
-      $._send('value', $._buff.shift());
-    }
+    this._$shiftBuff = function() {  $._send('value', $._buff.shift())  }
   },
   _free: function() {
     this._buff = null;
-    this._shiftBuff = null;
+    this._$shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
     } else {
       this._buff.push(x);
-      setTimeout(this._shiftBuff, this._wait);
+      setTimeout(this._$shiftBuff, this._wait);
     }
   },
   _handleEnd: function(__, isCurrent) {
@@ -16815,7 +16873,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],23:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],23:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -16931,7 +16989,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],24:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],24:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -16951,7 +17009,198 @@ describe('constant', function() {
 
 
 
-},{"kefir":59}],25:[function(require,module,exports){
+},{"kefir":60}],25:[function(require,module,exports){
+var Kefir, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+describe('debounce', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().debounce(100)).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.debounce(100)).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).debounce(100)).toEmit(['<end:current>']);
+    });
+    it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.debounce(100)).toEmitInTime([[160, 3], [360, 4], [710, 8], [710, '<end>']], function(tick) {
+        send(a, [1]);
+        tick(30);
+        send(a, [2]);
+        tick(30);
+        send(a, [3]);
+        tick(200);
+        send(a, [4]);
+        tick(200);
+        send(a, [5]);
+        tick(90);
+        send(a, [6]);
+        tick(30);
+        send(a, [7]);
+        tick(30);
+        return send(a, [8, '<end>']);
+      });
+    });
+    it('should end immediately if no value to emit later', function() {
+      var a;
+      a = stream();
+      return expect(a.debounce(100)).toEmitInTime([[100, 1], [200, '<end>']], function(tick) {
+        send(a, [1]);
+        tick(200);
+        return send(a, ['<end>']);
+      });
+    });
+    it('should handle events (immediate)', function() {
+      var a;
+      a = stream();
+      return expect(a.debounce(100, {
+        immediate: true
+      })).toEmitInTime([[0, 1], [260, 4], [460, 5], [610, '<end>']], function(tick) {
+        send(a, [1]);
+        tick(30);
+        send(a, [2]);
+        tick(30);
+        send(a, [3]);
+        tick(200);
+        send(a, [4]);
+        tick(200);
+        send(a, [5]);
+        tick(90);
+        send(a, [6]);
+        tick(30);
+        send(a, [7]);
+        tick(30);
+        return send(a, [8, '<end>']);
+      });
+    });
+    return it('should end immediately if no value to emit later (immediate)', function() {
+      var a;
+      a = stream();
+      return expect(a.debounce(100, {
+        immediate: true
+      })).toEmitInTime([[0, 1], [0, '<end>']], function(tick) {
+        return send(a, [1, '<end>']);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().debounce(100)).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.debounce(100)).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(prop(), ['<end>']).debounce(100)).toEmit(['<end:current>']);
+    });
+    it('should be ended if source was ended (with current)', function() {
+      return expect(send(prop(), [1, '<end>']).debounce(100)).toEmit([
+        {
+          current: 1
+        }, '<end:current>'
+      ]);
+    });
+    it('should handle events', function() {
+      var a;
+      a = send(prop(), [0]);
+      return expect(a.debounce(100)).toEmitInTime([
+        [
+          0, {
+            current: 0
+          }
+        ], [160, 3], [360, 4], [710, 8], [710, '<end>']
+      ], function(tick) {
+        send(a, [1]);
+        tick(30);
+        send(a, [2]);
+        tick(30);
+        send(a, [3]);
+        tick(200);
+        send(a, [4]);
+        tick(200);
+        send(a, [5]);
+        tick(90);
+        send(a, [6]);
+        tick(30);
+        send(a, [7]);
+        tick(30);
+        return send(a, [8, '<end>']);
+      });
+    });
+    it('should end immediately if no value to emit later', function() {
+      var a;
+      a = send(prop(), [0]);
+      return expect(a.debounce(100)).toEmitInTime([
+        [
+          0, {
+            current: 0
+          }
+        ], [100, 1], [200, '<end>']
+      ], function(tick) {
+        send(a, [1]);
+        tick(200);
+        return send(a, ['<end>']);
+      });
+    });
+    it('should handle events (immediate)', function() {
+      var a;
+      a = send(prop(), [0]);
+      return expect(a.debounce(100, {
+        immediate: true
+      })).toEmitInTime([
+        [
+          0, {
+            current: 0
+          }
+        ], [0, 1], [260, 4], [460, 5], [610, '<end>']
+      ], function(tick) {
+        send(a, [1]);
+        tick(30);
+        send(a, [2]);
+        tick(30);
+        send(a, [3]);
+        tick(200);
+        send(a, [4]);
+        tick(200);
+        send(a, [5]);
+        tick(90);
+        send(a, [6]);
+        tick(30);
+        send(a, [7]);
+        tick(30);
+        return send(a, [8, '<end>']);
+      });
+    });
+    return it('should end immediately if no value to emit later (immediate)', function() {
+      var a;
+      a = send(prop(), [0]);
+      return expect(a.debounce(100, {
+        immediate: true
+      })).toEmitInTime([
+        [
+          0, {
+            current: 0
+          }
+        ], [0, 1], [0, '<end>']
+      ], function(tick) {
+        return send(a, [1, '<end>']);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":58}],26:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17019,7 +17268,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],26:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],27:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17081,7 +17330,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],27:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],28:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17107,7 +17356,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":59}],28:[function(require,module,exports){
+},{"kefir":60}],29:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17176,7 +17425,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],29:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],30:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -17378,7 +17627,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":57}],30:[function(require,module,exports){
+},{"../test-helpers.coffee":58}],31:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 Kefir = require('kefir');
@@ -17462,7 +17711,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],31:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],32:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -17539,7 +17788,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":57}],32:[function(require,module,exports){
+},{"../test-helpers.coffee":58}],33:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17559,7 +17808,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":59}],33:[function(require,module,exports){
+},{"kefir":60}],34:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17575,7 +17824,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":59}],34:[function(require,module,exports){
+},{"kefir":60}],35:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 Kefir = require('kefir');
@@ -17848,7 +18097,7 @@ if (inBrowser) {
 
 
 
-},{"../test-helpers.coffee":57,"addons/kefir-jquery":58,"jquery":6,"kefir":59}],35:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"addons/kefir-jquery":59,"jquery":6,"kefir":60}],36:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17864,7 +18113,7 @@ describe('later', function() {
 
 
 
-},{"kefir":59}],36:[function(require,module,exports){
+},{"kefir":60}],37:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17926,7 +18175,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],38:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 Kefir = require('kefir');
@@ -18042,7 +18291,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],39:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18058,7 +18307,7 @@ describe('never', function() {
 
 
 
-},{"kefir":59}],39:[function(require,module,exports){
+},{"kefir":60}],40:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -18157,7 +18406,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":57}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":58}],41:[function(require,module,exports){
 var Kefir, activate, helpers, prop, send;
 
 Kefir = require('kefir');
@@ -18321,7 +18570,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],42:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18387,7 +18636,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],43:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18406,7 +18655,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":59}],43:[function(require,module,exports){
+},{"kefir":60}],44:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -18532,7 +18781,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],45:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18606,7 +18855,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],46:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18625,7 +18874,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":59}],46:[function(require,module,exports){
+},{"kefir":60}],47:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18705,7 +18954,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],48:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18815,7 +19064,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],49:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18919,7 +19168,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],50:[function(require,module,exports){
 var Kefir, activate, helpers, send, stream;
 
 Kefir = require('kefir');
@@ -19158,7 +19407,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],51:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 Kefir = require('kefir');
@@ -19458,7 +19707,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],52:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19577,7 +19826,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],53:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19659,7 +19908,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],54:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19937,7 +20186,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],55:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19987,7 +20236,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],56:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -20108,7 +20357,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":57,"kefir":59}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"kefir":60}],57:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -20134,7 +20383,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":59}],57:[function(require,module,exports){
+},{"kefir":60}],58:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -20383,7 +20632,7 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],58:[function(require,module,exports){
+},{"../dist/kefir":1,"sinon":7}],59:[function(require,module,exports){
 /*! kefir addon - 0.2.5
  *  https://github.com/pozadi/kefir
  */
@@ -20438,6 +20687,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":59}],59:[function(require,module,exports){
+},{"jquery":6,"kefir":60}],60:[function(require,module,exports){
 module.exports=require(1)
-},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57]);
