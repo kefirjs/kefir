@@ -1238,15 +1238,6 @@ Observable.prototype.flatMap = function(fn) {
 }
 
 
-
-
-
-
-
-// .flatMapLatest()
-// TODO
-
-
 function produceStream(StreamClass, PropertyClass) {
   return function() {  return new StreamClass(this, arguments)  }
 }

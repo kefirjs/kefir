@@ -342,12 +342,3 @@ Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn);
 }
 
-
-
-
-
-
-
-// .flatMapLatest()
-// TODO
-

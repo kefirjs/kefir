@@ -1,10 +1,13 @@
-Kefir = require('kefir')
-{withDOM, inBrowser} = require('../test-helpers.coffee')
+{withDOM, inBrowser, Kefir} = require('../test-helpers.coffee')
 
 
 
 
-if inBrowser
+if !inBrowser
+
+  console.log('Skipping jQuery specs in not browser enviroment ...')
+
+else
 
   $ = require('jquery')
   require('addons/kefir-jquery')
@@ -243,4 +246,45 @@ if inBrowser
             $(tmpDom).asKefirStream 'click', [((n, e) -> n == 1 && e.currentTarget == this), null, 1]
           ).toEmit [true, true], ->
             $(tmpDom).trigger('click').trigger('click')
+
+
+    describe '$.fn.asKefirProperty()', ->
+      it 'should return property', ->
+        withDOM (tmpDom) ->
+          expect($(tmpDom).asKefirProperty('click', ->)).toBeProperty()
+
+      it 'should throw if no getter provided', ->
+        withDOM (tmpDom) ->
+          expect(  -> $(tmpDom).asKefirProperty('click')  ).toThrow()
+          expect(  -> $(tmpDom).asKefirProperty('click', '.foo')  ).toThrow()
+
+      it 'should call getter immediately after creation (without event)', ->
+        withDOM (tmpDom) ->
+          count = 0
+          $(tmpDom).asKefirProperty 'click', (event) ->
+            if event == undefined
+              count++
+          expect(count).toBe(1)
+
+      it 'should has current value returned by getter', ->
+        withDOM (tmpDom) ->
+          expect($(tmpDom).asKefirProperty 'click', -> 0).toEmit [{current: 0}]
+
+      it 'should handle events', ->
+        withDOM (tmpDom) ->
+          i = 0
+          expect(
+            $(tmpDom).asKefirProperty 'click', (event, data) ->
+              if !event
+                0
+              else
+                if event.type == 'click' && event.currentTarget == this
+                  data
+                else
+                  -1
+          ).toEmit [{current: 0}, 1, 2], ->
+            $(tmpDom).trigger('click', 1).trigger('click', 2)
+
+
+
 

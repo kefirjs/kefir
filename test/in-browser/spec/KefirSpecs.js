@@ -1239,15 +1239,6 @@ Observable.prototype.flatMap = function(fn) {
 }
 
 
-
-
-
-
-
-// .flatMapLatest()
-// TODO
-
-
 function produceStream(StreamClass, PropertyClass) {
   return function() {  return new StreamClass(this, arguments)  }
 }
@@ -17827,11 +17818,11 @@ describe('interval', function() {
 },{"kefir":60}],35:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
-Kefir = require('kefir');
+_ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser, Kefir = _ref.Kefir;
 
-_ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser;
-
-if (inBrowser) {
+if (!inBrowser) {
+  console.log('Skipping jQuery specs in not browser enviroment ...');
+} else {
   $ = require('jquery');
   require('addons/kefir-jquery');
   countListentrs = function($el, event, selector) {
@@ -17970,7 +17961,7 @@ if (inBrowser) {
         });
       });
     });
-    return describe('$.fn.asKefirStream()', function() {
+    describe('$.fn.asKefirStream()', function() {
       it('should return stream', function() {
         return withDOM(function(tmpDom) {
           return expect($(tmpDom).asKefirStream('click')).toBeStream();
@@ -18092,12 +18083,75 @@ if (inBrowser) {
         });
       });
     });
+    return describe('$.fn.asKefirProperty()', function() {
+      it('should return property', function() {
+        return withDOM(function(tmpDom) {
+          return expect($(tmpDom).asKefirProperty('click', function() {})).toBeProperty();
+        });
+      });
+      it('should throw if no getter provided', function() {
+        return withDOM(function(tmpDom) {
+          expect(function() {
+            return $(tmpDom).asKefirProperty('click');
+          }).toThrow();
+          return expect(function() {
+            return $(tmpDom).asKefirProperty('click', '.foo');
+          }).toThrow();
+        });
+      });
+      it('should call getter immediately after creation (without event)', function() {
+        return withDOM(function(tmpDom) {
+          var count;
+          count = 0;
+          $(tmpDom).asKefirProperty('click', function(event) {
+            if (event === void 0) {
+              return count++;
+            }
+          });
+          return expect(count).toBe(1);
+        });
+      });
+      it('should has current value returned by getter', function() {
+        return withDOM(function(tmpDom) {
+          return expect($(tmpDom).asKefirProperty('click', function() {
+            return 0;
+          })).toEmit([
+            {
+              current: 0
+            }
+          ]);
+        });
+      });
+      return it('should handle events', function() {
+        return withDOM(function(tmpDom) {
+          var i;
+          i = 0;
+          return expect($(tmpDom).asKefirProperty('click', function(event, data) {
+            if (!event) {
+              return 0;
+            } else {
+              if (event.type === 'click' && event.currentTarget === this) {
+                return data;
+              } else {
+                return -1;
+              }
+            }
+          })).toEmit([
+            {
+              current: 0
+            }, 1, 2
+          ], function() {
+            return $(tmpDom).trigger('click', 1).trigger('click', 2);
+          });
+        });
+      });
+    });
   });
 }
 
 
 
-},{"../test-helpers.coffee":58,"addons/kefir-jquery":59,"jquery":6,"kefir":60}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":58,"addons/kefir-jquery":59,"jquery":6}],36:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -20668,7 +20722,16 @@ beforeEach(function() {
 
 
 
-    // $.fn.asKefirProperty = function(event, selector, getter) { ... }
+    $.fn.asKefirProperty = function(eventName, selector, getter) {
+      if (getter == null) {
+        getter = selector;
+        selector = null;
+      }
+      getter = Kefir.Fn(getter);
+      return this.asKefirStream(eventName, selector, getter)
+        .toProperty(getter.invoke())
+        .setName('asKefirProperty');
+    }
 
 
 

@@ -33,7 +33,16 @@
 
 
 
-    // $.fn.asKefirProperty = function(event, selector, getter) { ... }
+    $.fn.asKefirProperty = function(eventName, selector, getter) {
+      if (getter == null) {
+        getter = selector;
+        selector = null;
+      }
+      getter = Kefir.Fn(getter);
+      return this.asKefirStream(eventName, selector, getter)
+        .toProperty(getter.invoke())
+        .setName('asKefirProperty');
+    }
 
 
 
