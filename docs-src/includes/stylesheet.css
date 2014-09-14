@@ -85,7 +85,7 @@ table, tr, td {
     margin: 5px 0;
   }
 ul {
-  list-style-type: circle;
+  list-style-type: square;
   padding: 0 0 0 20px;
 }
   li {
