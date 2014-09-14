@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! kefir - 0.2.5
+/*! Kefir.js v0.2.5
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -188,11 +188,20 @@ function concat(a, b) {
   return result;
 }
 
-function findByPred(input, pred) {
-  for (var i = 0; i < input.length; i++) {
-    if (pred(input[i])) {
-      return i;
-    }
+function find(arr, value) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (arr[i] === value) {  return i  }
+  }
+  return -1;
+}
+
+function findByPred(arr, pred) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (pred(arr[i])) {  return i  }
   }
   return -1;
 }
@@ -242,6 +251,12 @@ function map(input, fn) {
   return result;
 }
 
+function forEach(arr, fn) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {  fn(arr[i])  }
+}
+
 function fillArray(arr, value) {
   var length = arr.length
     , i;
@@ -251,14 +266,7 @@ function fillArray(arr, value) {
 }
 
 function contains(arr, value) {
-  var length = arr.length
-    , i;
-  for (i = 0; i < length; i++) {
-    if (arr[i] === value) {
-      return true;
-    }
-  }
-  return false;
+  return find(arr, value) !== -1;
 }
 
 function rest(arr, start, onEmpty) {
@@ -894,56 +902,141 @@ withInterval('later', {
   }
 });
 
-// .merge()
-
-function Merge(sources) {
+function _AbstractPool(options) {
   Stream.call(this);
-  if (sources.length === 0) {
-    this._send('end');
-  } else {
-    this._sources = sources;
-    this._aliveCount = 0;
+
+  this._queueLim = get(options, 'queueLim', 0); // -1...∞
+  this._concurLim = get(options, 'concurLim', -1); // -1, 1...∞
+  this._drop = get(options, 'drop', 'new'); // old, new
+  if (this._concurLim === 0) {
+    throw new Error('options.concurLim can\'t be 0');
   }
+
+  this._queue = [];
+  this._curSources = [];
+  this._activating = false;
+
 }
 
-inherit(Merge, Stream, {
+inherit(_AbstractPool, Stream, {
 
-  _name: 'merge',
+  _name: 'abstractPool',
 
-  _onActivation: function() {
-    var length = this._sources.length,
-        i;
-    this._aliveCount = length;
-    for (i = 0; i < length; i++) {
-      this._sources[i].onAny([this._handleAny, this]);
-    }
-  },
-
-  _onDeactivation: function() {
-    var length = this._sources.length,
-        i;
-    for (i = 0; i < length; i++) {
-      this._sources[i].offAny([this._handleAny, this]);
-    }
-  },
-
-  _handleAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current);
+  _add: function(obs) {
+    if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
+      this._addToCur(obs);
     } else {
-      this._aliveCount--;
-      if (this._aliveCount === 0) {
-        this._send('end', null, event.current);
+      if (this._queueLim === -1 || this._queue.length < this._queueLim) {
+        this._addToQueue(obs);
+      } else if (this._drop === 'old') {
+        this._removeOldest();
+        this._add(obs);
       }
     }
   },
+  _addAll: function(obss) {
+    var $ = this;
+    forEach(obss, function(obs) {  $._add(obs)  });
+  },
+  _remove: function(obs) {
+    if (this._removeCur(obs) === -1) {
+      this._removeQueue(obs);
+    }
+  },
+
+  _addToQueue: function(obs) {
+    this._queue = concat(this._queue, [obs]);
+  },
+  _addToCur: function(obs) {
+    this._curSources = concat(this._curSources, [obs]);
+    if (this._active) {  this._sub(obs)  }
+  },
+  _sub: function(obs) {
+    obs.onAny([this._handleSubAny, this]);
+    obs.onEnd([this._removeCur, this, obs]);
+  },
+  _unsub: function(obs) {
+    obs.offAny([this._handleSubAny, this]);
+    obs.offEnd([this._removeCur, this, obs]);
+  },
+  _handleSubAny: function(event) {
+    if (event.type === 'value') {
+      this._send('value', event.value, event.current && this._activating);
+    }
+  },
+
+  _removeQueue: function(obs) {
+    var index = find(this._queue, obs);
+    this._queue = remove(this._queue, index);
+    return index;
+  },
+  _removeCur: function(obs) {
+    if (this._active) {  this._unsub(obs)  }
+    var index = find(this._curSources, obs);
+    this._curSources = remove(this._curSources, index);
+    if (index !== -1) {
+      if (this._queue.length !== 0) {
+        this._pullQueue();
+      } else if (this._curSources.length === 0) {
+        this._onEmpty();
+      }
+    }
+    return index;
+  },
+  _removeOldest: function() {
+    this._removeCur(this._curSources[0]);
+  },
+
+  _pullQueue: function() {
+    if (this._queue.length !== 0) {
+      this._queue = cloneArray(this._queue);
+      this._addToCur(this._queue.shift());
+    }
+  },
+
+  _onActivation: function() {
+    var sources = this._curSources
+      , i;
+    this._activating = true;
+    for (i = 0; i < sources.length; i++) {  this._sub(sources[i])  }
+    this._activating = false;
+  },
+  _onDeactivation: function() {
+    var sources = this._curSources
+      , i;
+    for (i = 0; i < sources.length; i++) {  this._unsub(sources[i])  }
+  },
+
+  _isEmpty: function() {  return this._curSources.length === 0  },
+  _onEmpty: function() {},
 
   _clear: function() {
     Stream.prototype._clear.call(this);
-    this._sources = null;
+    this._queue = null;
+    this._curSources = null;
   }
 
 });
+
+
+
+
+
+// .merge()
+
+var MergeLike = {
+  _onEmpty: function() {
+    if (this._initialised) {  this._send('end', null, this._activating)  }
+  }
+};
+
+function Merge(sources) {
+  _AbstractPool.call(this);
+  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  this._initialised = true;
+}
+
+inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 Kefir.merge = function() {
   return new Merge(agrsToArray(arguments));
@@ -953,6 +1046,115 @@ Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
 }
 
+
+
+
+// .concat()
+
+function Concat(sources) {
+  _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
+  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  this._initialised = true;
+}
+
+inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
+
+Kefir.concat = function() {
+  return new Concat(agrsToArray(arguments));
+}
+
+Observable.prototype.concat = function(other) {
+  return Kefir.concat([this, other]);
+}
+
+
+
+
+
+
+// .pool()
+
+function Pool() {
+  _AbstractPool.call(this);
+}
+
+inherit(Pool, _AbstractPool, {
+
+  _name: 'pool',
+
+  add: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  remove: function(obs) {
+    this._remove(obs);
+    return this;
+  }
+
+});
+
+Kefir.pool = function() {
+  return new Pool();
+}
+
+
+
+
+
+// .flatMap()
+
+function FlatMap(source, fn, options) {
+  _AbstractPool.call(this, options);
+  this._source = source;
+  this._fn = fn ? Fn(fn, 1) : null;
+  this._mainEnded = false;
+  this._lastCurrent = null;
+  this.setName(source, 'flatMap');
+}
+
+inherit(FlatMap, _AbstractPool, {
+
+  _onActivation: function() {
+    _AbstractPool.prototype._onActivation.call(this);
+    this._activating = true;
+    this._source.onAny([this._handleMainSource, this]);
+    this._activating = false;
+  },
+  _onDeactivation: function() {
+    _AbstractPool.prototype._onDeactivation.call(this);
+    this._source.offAny([this._handleMainSource, this]);
+  },
+
+  _handleMainSource: function(event) {
+    if (event.type === 'value') {
+      if (!event.current || this._lastCurrent !== event.value) {
+        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+      }
+      this._lastCurrent = event.value;
+    } else {
+      if (this._isEmpty()) {
+        this._send('end', null, event.current);
+      } else {
+        this._mainEnded = true;
+      }
+    }
+  },
+
+  _onEmpty: function() {
+    if (this._mainEnded) {  this._send('end')  }
+  },
+
+  _clear: function() {
+    _AbstractPool.prototype._clear.call(this);
+    this._source = null;
+    this._lastCurrent = null;
+  }
+
+});
+
+Observable.prototype.flatMap = function(fn) {
+  return new FlatMap(this, fn);
+}
 
 
 
@@ -1060,8 +1262,6 @@ Observable.prototype.sampledBy = function(other, combinator) {
 
 
 
-
-
 // .combine()
 
 Kefir.combine = function(sources, combinator) {
@@ -1073,171 +1273,6 @@ Kefir.combine = function(sources, combinator) {
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
 }
-
-
-
-
-
-
-// .pool()
-
-function _AbstractPool() {
-  Stream.call(this);
-  this._sources = [];
-  this._activating = false;
-}
-
-inherit(_AbstractPool, Stream, {
-
-  _name: 'abstractPool',
-
-  _sub: function(obs) {
-    obs.onAny([this._handleSubAny, this]);
-    obs.onEnd([this._remove, this, obs]);
-  },
-  _unsub: function(obs) {
-    obs.offAny([this._handleSubAny, this]);
-    obs.offEnd([this._remove, this, obs]);
-  },
-
-  _handleSubAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current && this._activating);
-    }
-  },
-
-  _add: function(obs) {
-    this._sources.push(obs);
-    if (this._active) {
-      this._sub(obs);
-    }
-  },
-  _remove: function(obs) {
-    if (this._active) {
-      this._unsub(obs);
-    }
-    for (var i = 0; i < this._sources.length; i++) {
-      if (this._sources[i] === obs) {
-        this._sources.splice(i, 1);
-        return;
-      }
-    }
-  },
-
-  _onActivation: function() {
-    this._activating = true;
-    var sources = cloneArray(this._sources);
-    for (var i = 0; i < sources.length; i++) {
-      this._sub(sources[i]);
-    }
-    this._activating = false;
-  },
-  _onDeactivation: function() {
-    for (var i = 0; i < this._sources.length; i++) {
-      this._unsub(this._sources[i]);
-    }
-  }
-
-});
-
-
-
-function Pool() {
-  _AbstractPool.call(this);
-}
-
-inherit(Pool, _AbstractPool, {
-
-  _name: 'pool',
-
-  add: function(obs) {
-    this._add(obs);
-    return this;
-  },
-  remove: function(obs) {
-    this._remove(obs);
-    return this;
-  }
-
-});
-
-Kefir.pool = function() {
-  return new Pool();
-}
-
-
-
-
-
-// .flatMap()
-
-function FlatMap(source, fn) {
-  _AbstractPool.call(this);
-  this._source = source;
-  this._name = source._name + '.flatMap';
-  this._fn = fn ? Fn(fn, 1) : null;
-  this._mainEnded = false;
-  this._lastCurrent = null;
-}
-
-inherit(FlatMap, _AbstractPool, {
-
-  _onActivation: function() {
-    _AbstractPool.prototype._onActivation.call(this);
-    this._activating = true;
-    this._source.onAny([this._handleMainSource, this]);
-    this._activating = false;
-  },
-  _onDeactivation: function() {
-    _AbstractPool.prototype._onDeactivation.call(this);
-    this._source.offAny([this._handleMainSource, this]);
-  },
-
-  _handleMainSource: function(event) {
-    if (event.type === 'value') {
-      if (!event.current || this._lastCurrent !== event.value) {
-        this._handleNewObject(this._fn ? this._fn.invoke(event.value) : event.value);
-      }
-      this._lastCurrent = event.value;
-    } else {
-      if (this._sources.length === 0) {
-        this._send('end', null, event.current);
-      } else {
-        this._mainEnded = true;
-      }
-    }
-  },
-
-  _handleNewObject: function(arrayOrObs) {
-    if (isArray(arrayOrObs)) {
-      for (var i = 0; i < arrayOrObs.length; i++) {
-        this._send('value', arrayOrObs[i], this._activating);
-      }
-    } else {
-      this._add(arrayOrObs);
-    }
-  },
-
-  _remove: function(obs) {
-    _AbstractPool.prototype._remove.call(this, obs);
-    if (this._mainEnded && this._sources.length === 0) {
-      this._send('end');
-    }
-  },
-
-  _clear: function() {
-    _AbstractPool.prototype._clear.call(this);
-    this._source = null;
-    this._lastCurrent = null;
-  }
-
-
-});
-
-Observable.prototype.flatMap = function(fn) {
-  return new FlatMap(this, fn);
-}
-
 
 function produceStream(StreamClass, PropertyClass) {
   return function() {  return new StreamClass(this, arguments)  }
@@ -16864,7 +16899,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],23:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],23:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -16980,7 +17015,135 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],24:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],24:[function(require,module,exports){
+var Kefir, activate, deactivate, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
+
+describe('concat', function() {
+  it('should return stream', function() {
+    expect(Kefir.concat([])).toBeStream();
+    expect(Kefir.concat([stream(), prop()])).toBeStream();
+    expect(stream().concat(stream())).toBeStream();
+    return expect(prop().concat(prop())).toBeStream();
+  });
+  it('should be ended if empty array provided', function() {
+    return expect(Kefir.concat([])).toEmit(['<end:current>']);
+  });
+  it('should be ended if array of ended observables provided', function() {
+    var a, b, c;
+    a = send(stream(), ['<end>']);
+    b = send(prop(), ['<end>']);
+    c = send(stream(), ['<end>']);
+    expect(Kefir.concat([a, b, c])).toEmit(['<end:current>']);
+    return expect(a.concat(b)).toEmit(['<end:current>']);
+  });
+  it('should activate only current source', function() {
+    var a, b, c;
+    a = stream();
+    b = prop();
+    c = stream();
+    expect(Kefir.concat([a, b, c])).toActivate(a);
+    expect(Kefir.concat([a, b, c])).not.toActivate(b, c);
+    expect(a.concat(b)).toActivate(a);
+    expect(a.concat(b)).not.toActivate(b);
+    send(a, ['<end>']);
+    expect(Kefir.concat([a, b, c])).toActivate(b);
+    expect(Kefir.concat([a, b, c])).not.toActivate(a, c);
+    expect(a.concat(b)).toActivate(b);
+    return expect(a.concat(b)).not.toActivate(a);
+  });
+  it('should deliver events from observables, then end when all of them end', function() {
+    var a, b, c;
+    a = send(prop(), [0]);
+    b = prop();
+    c = stream();
+    expect(Kefir.concat([a, b, c])).toEmit([
+      {
+        current: 0
+      }, 1, 4, 2, 5, 7, 8, '<end>'
+    ], function() {
+      send(a, [1]);
+      send(b, [2]);
+      send(c, [3]);
+      send(a, [4, '<end>']);
+      send(b, [5]);
+      send(c, [6]);
+      send(b, ['<end>']);
+      return send(c, [7, 8, '<end>']);
+    });
+    a = send(prop(), [0]);
+    b = stream();
+    return expect(a.concat(b)).toEmit([
+      {
+        current: 0
+      }, 1, 3, 4, '<end>'
+    ], function() {
+      send(a, [1]);
+      send(b, [2]);
+      send(a, ['<end>']);
+      return send(b, [3, 4, '<end>']);
+    });
+  });
+  it('should deliver current from current source, but only to first subscriber on each activation', function() {
+    var a, b, c, concat;
+    a = send(prop(), [0]);
+    b = send(prop(), [1]);
+    c = stream();
+    concat = Kefir.concat([a, b, c]);
+    expect(concat).toEmit([
+      {
+        current: 0
+      }
+    ]);
+    concat = Kefir.concat([a, b, c]);
+    activate(concat);
+    expect(concat).toEmit([]);
+    concat = Kefir.concat([a, b, c]);
+    activate(concat);
+    deactivate(concat);
+    return expect(concat).toEmit([
+      {
+        current: 0
+      }
+    ]);
+  });
+  it('if made of ended properties, should emit all currents then end', function() {
+    return expect(Kefir.concat(send(prop(), [0, '<end>']), send(prop(), [1, '<end>']), send(prop(), [2, '<end>']))).toEmit([
+      {
+        current: 0
+      }, {
+        current: 1
+      }, {
+        current: 2
+      }, '<end:current>'
+    ]);
+  });
+  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
+    var a, b, c;
+    a = send(prop(), [0]);
+    b = prop();
+    c = stream();
+    return expect(Kefir.concat(a, b, c)).toEmit([
+      {
+        current: 0
+      }, 1, 4, 2, 5, 7, 8, '<end>'
+    ], function() {
+      send(a, [1]);
+      send(b, [2]);
+      send(c, [3]);
+      send(a, [4, '<end>']);
+      send(b, [5]);
+      send(c, [6]);
+      send(b, ['<end>']);
+      return send(c, [7, 8, '<end>']);
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":59}],25:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17000,7 +17163,7 @@ describe('constant', function() {
 
 
 
-},{"kefir":60}],25:[function(require,module,exports){
+},{"kefir":61}],26:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -17191,7 +17354,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":58}],26:[function(require,module,exports){
+},{"../test-helpers.coffee":59}],27:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17259,7 +17422,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],27:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],28:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17321,7 +17484,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],28:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],29:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17347,7 +17510,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":60}],29:[function(require,module,exports){
+},{"kefir":61}],30:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -17416,7 +17579,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],30:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],31:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -17501,7 +17664,7 @@ describe('flatMap', function() {
         return send(a, [b, c]);
       });
     });
-    it('should work nicely with Kefir.constant and Kefir.never', function() {
+    return it('should work nicely with Kefir.constant and Kefir.never', function() {
       var a;
       a = stream();
       return expect(a.flatMap(function(x) {
@@ -17512,13 +17675,6 @@ describe('flatMap', function() {
         }
       })).toEmit([3, 4, 5], function() {
         return send(a, [1, 2, 3, 4, 5]);
-      });
-    });
-    return it('should support arrays', function() {
-      var a;
-      a = stream();
-      return expect(a.flatMap()).toEmit([1, 2, 3, 4, 5, '<end>'], function() {
-        return send(a, [[1, 2, 3], [], [4], Kefir.constant(5), '<end>']);
       });
     });
   });
@@ -17591,7 +17747,7 @@ describe('flatMap', function() {
         }
       ]);
     });
-    it('should correctly handle current values of new sub sources', function() {
+    return it('should correctly handle current values of new sub sources', function() {
       var a, b, c;
       a = prop();
       b = send(prop(), [1]);
@@ -17600,25 +17756,12 @@ describe('flatMap', function() {
         return send(a, [b, c]);
       });
     });
-    return it('should support arrays', function() {
-      var a;
-      a = send(prop(), [[0, 1]]);
-      return expect(a.flatMap()).toEmit([
-        {
-          current: 0
-        }, {
-          current: 1
-        }, 2, 3, 4, 5, '<end>'
-      ], function() {
-        return send(a, [[2, 3], [], [4], Kefir.constant(5), '<end>']);
-      });
-    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":58}],31:[function(require,module,exports){
+},{"../test-helpers.coffee":59}],32:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 Kefir = require('kefir');
@@ -17702,7 +17845,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],32:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],33:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -17779,7 +17922,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":58}],33:[function(require,module,exports){
+},{"../test-helpers.coffee":59}],34:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17799,7 +17942,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":60}],34:[function(require,module,exports){
+},{"kefir":61}],35:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -17815,7 +17958,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":60}],35:[function(require,module,exports){
+},{"kefir":61}],36:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 _ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser, Kefir = _ref.Kefir;
@@ -18151,7 +18294,7 @@ if (!inBrowser) {
 
 
 
-},{"../test-helpers.coffee":58,"addons/kefir-jquery":59,"jquery":6}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"addons/kefir-jquery":60,"jquery":6}],37:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18167,7 +18310,7 @@ describe('later', function() {
 
 
 
-},{"kefir":60}],37:[function(require,module,exports){
+},{"kefir":61}],38:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18229,12 +18372,10 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],39:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
-Kefir = require('kefir');
-
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate;
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
 
 describe('merge', function() {
   it('should return stream', function() {
@@ -18345,7 +18486,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":59}],40:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18361,7 +18502,7 @@ describe('never', function() {
 
 
 
-},{"kefir":60}],40:[function(require,module,exports){
+},{"kefir":61}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -18460,7 +18601,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":58}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":59}],42:[function(require,module,exports){
 var Kefir, activate, helpers, prop, send;
 
 Kefir = require('kefir');
@@ -18624,7 +18765,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],43:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18690,7 +18831,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],44:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18709,7 +18850,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":60}],44:[function(require,module,exports){
+},{"kefir":61}],45:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -18835,7 +18976,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],46:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -18909,7 +19050,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],47:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -18928,7 +19069,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":60}],47:[function(require,module,exports){
+},{"kefir":61}],48:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19008,7 +19149,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],49:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19118,7 +19259,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],50:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19222,7 +19363,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],51:[function(require,module,exports){
 var Kefir, activate, helpers, send, stream;
 
 Kefir = require('kefir');
@@ -19461,7 +19602,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],52:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 Kefir = require('kefir');
@@ -19761,7 +19902,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],53:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19880,7 +20021,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],54:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -19962,7 +20103,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],55:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -20240,7 +20381,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],56:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -20290,7 +20431,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],57:[function(require,module,exports){
 var Kefir, helpers, prop, send, stream;
 
 Kefir = require('kefir');
@@ -20411,7 +20552,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":58,"kefir":60}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":59,"kefir":61}],58:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -20437,7 +20578,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":60}],58:[function(require,module,exports){
+},{"kefir":61}],59:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -20686,8 +20827,8 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],59:[function(require,module,exports){
-/*! kefir addon - 0.2.5
+},{"../dist/kefir":1,"sinon":7}],60:[function(require,module,exports){
+/*! An addon for Kefir.js v0.2.5
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -20750,6 +20891,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":60}],60:[function(require,module,exports){
+},{"jquery":6,"kefir":61}],61:[function(require,module,exports){
 module.exports=require(1)
-},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58]);

@@ -181,11 +181,20 @@ function concat(a, b) {
   return result;
 }
 
-function findByPred(input, pred) {
-  for (var i = 0; i < input.length; i++) {
-    if (pred(input[i])) {
-      return i;
-    }
+function find(arr, value) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (arr[i] === value) {  return i  }
+  }
+  return -1;
+}
+
+function findByPred(arr, pred) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (pred(arr[i])) {  return i  }
   }
   return -1;
 }
@@ -235,6 +244,12 @@ function map(input, fn) {
   return result;
 }
 
+function forEach(arr, fn) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {  fn(arr[i])  }
+}
+
 function fillArray(arr, value) {
   var length = arr.length
     , i;
@@ -244,14 +259,7 @@ function fillArray(arr, value) {
 }
 
 function contains(arr, value) {
-  var length = arr.length
-    , i;
-  for (i = 0; i < length; i++) {
-    if (arr[i] === value) {
-      return true;
-    }
-  }
-  return false;
+  return find(arr, value) !== -1;
 }
 
 function rest(arr, start, onEmpty) {
