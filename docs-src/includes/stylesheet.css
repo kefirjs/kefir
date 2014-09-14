@@ -185,11 +185,6 @@ pre {
     margin-left: 230px;
   }
 }
-  .warning {
-    margin-top: 15px;
-    font: bold 11px Arial;
-    color: #770000;
-  }
   .header {
     font-size: 16px;
     line-height: 30px;
@@ -197,9 +192,17 @@ pre {
     color: inherit;
   }
   .alias {
-    font-size: 14px;
+    display: block;
+    margin-left: 1em;
+    margin-bottom: .4em;
+  }
+  .alias:before {
+    content: 'Alias:';
+    font-family: Helvetica, Arial, sans-serif;
     font-style: italic;
-    margin-left: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-right: .5em;
   }
 
 p[id] {
