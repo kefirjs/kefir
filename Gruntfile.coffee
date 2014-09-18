@@ -3,14 +3,14 @@ module.exports = (grunt) ->
   pkg = grunt.file.readJSON('package.json')
 
   banner = """
-    /*! #{pkg.name} - #{pkg.version}
+    /*! Kefir.js v#{pkg.version}
      *  #{pkg.homepage}
      */
 
   """
 
   addonBanner = """
-    /*! #{pkg.name} addon - #{pkg.version}
+    /*! An addon for Kefir.js v#{pkg.version}
      *  #{pkg.homepage}
      */
 

@@ -7,10 +7,39 @@ var Kefir = {};
 
 // Fn
 
+function normFnMeta(fnMeta) {
+  if (fnMeta instanceof _Fn) {
+    return fnMeta;
+  } else {
+    if (isFn(fnMeta)) {
+      return {
+        fn: fnMeta,
+        context: null,
+        args: []
+      };
+    } else {
+      if (isArrayLike(fnMeta)) {
+        return {
+          fn: getFn(fnMeta[0], fnMeta[1]),
+          context: (fnMeta[1] == null ? null : fnMeta[1]),
+          args: rest(fnMeta, 2, [])
+        };
+      } else {
+        throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+      }
+    }
+  }
+}
+
+function applyFnMeta(fnMeta, args) {
+  fnMeta = normFnMeta(fnMeta);
+  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
+}
+
 function _Fn(fnMeta, length) {
-  this.context = (fnMeta[1] == null) ? null : fnMeta[1];
-  this.fn = getFn(fnMeta[0], this.context);
-  this.args = rest(fnMeta, 2, []);
+  this.context = fnMeta.context;
+  this.fn = fnMeta.fn;
+  this.args = fnMeta.args;
   this.invoke = bind(this.fn, this.context, this.args, length);
 }
 
@@ -20,11 +49,7 @@ _Fn.prototype.apply = function(args) {
 
 _Fn.prototype.applyWithContext = function(context, args) {
   if (this.context === null) {
-    if (this.args.length === 0) {
-      return apply(this.fn, context, args);
-    } else {
-      return apply(this.fn, context, concat(this.args, args));
-    }
+    return apply(this.fn, context, concat(this.args, args));
   } else {
     return this.apply(args);
   }
@@ -34,18 +59,7 @@ function Fn(fnMeta, length) {
   if (fnMeta instanceof _Fn) {
     return fnMeta;
   } else {
-    if (length == null) {
-      length = 100;
-    }
-    if (isFn(fnMeta)) {
-      return new _Fn([fnMeta], length);
-    } else {
-      if (isArrayLike(fnMeta)) {
-        return new _Fn(fnMeta, length);
-      } else {
-        throw new Error('can\'t convert to Fn ' + fnMeta);
-      }
-    }
+    return new _Fn(normFnMeta(fnMeta), length == null ? 100 : length);
   }
 }
 
@@ -69,58 +83,68 @@ Kefir.Fn = Fn;
 // Subscribers
 
 function Subscribers() {
-  this.value = [];
-  this.end = [];
-  this.any = [];
-  this.total = 0;
+  this._fns = [];
 }
+
+extend(Subscribers, {
+  callOne: function(fn, event) {
+    if (fn.type === 'any') {
+      fn.invoke(event);
+    } else if (fn.type === event.type) {
+      if (fn.type === 'value') {
+        fn.invoke(event.value);
+      } else {
+        fn.invoke();
+      }
+    }
+  },
+  callOnce: function(type, fnMeta, event) {
+    if (type === 'any') {
+      applyFnMeta(fnMeta, [event]);
+    } else if (type === event.type) {
+      if (type === 'value') {
+        applyFnMeta(fnMeta, [event.value]);
+      } else {
+        applyFnMeta(fnMeta, []);
+      }
+    }
+  }
+});
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    var length = (type === 'end' ? 0 : 1);
-    this[type].push(Fn(fn, length, true));
-    this.total++;
+    fn = Fn(fn, type === 'end' ? 0 : 1);
+    fn.type = type;
+    this._fns = concat(this._fns, [fn]);
   },
   remove: function(type, fn) {
-    var subs = this[type]
-      , length = subs.length
-      , i;
     fn = Fn(fn);
-    for (i = 0; i < length; i++) {
-      if (Fn.isEqual(subs[i], fn)) {
-        subs.splice(i, 1);
-        this.total--;
-        return;
-      }
-    }
+    this._fns = removeByPred(this._fns, function(x) {
+      return x.type === type && Fn.isEqual(x, fn);
+    });
   },
-  call: function(type, x) {
-    var subs = this[type]
-      , length = subs.length
-      , i;
-    if (length !== 0) {
-      if (length === 1) {
-        if (type === 'end') {
-          subs[0].invoke();
-        } else {
-          subs[0].invoke(x);
-        }
-      } else {
-        subs = cloneArray(subs);
-        for (i = 0; i < length; i++) {
-          if (type === 'end') {
-            subs[i].invoke();
-          } else {
-            subs[i].invoke(x);
-          }
-        }
-      }
+  callAll: function(event) {
+    var fns = this._fns;
+    for (var i = 0; i < fns.length; i++) {
+      Subscribers.callOne(fns[i], event);
     }
   },
   isEmpty: function() {
-    return this.total === 0;
+    return this._fns.length === 0;
   }
 });
+
+
+
+
+
+// Events
+
+function Event(type, value, current) {
+  return {type: type, value: value, current: !!current};
+}
+
+var CURRENT_END = Event('end', undefined, true);
 
 
 
@@ -161,22 +185,8 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._subscribers.call(type, x);
-      this._subscribers.call('any', {type: type, value: x, current: !!isCurrent});
+      this._subscribers.callAll(Event(type, x, isCurrent));
       if (type === 'end') {  this._clear()  }
-    }
-  },
-
-  _callWithCurrent: function(fnType, fn, valueType, value) {
-    fn = Fn(fn);
-    if (fnType === valueType) {
-      if (fnType === 'value') {
-        fn.invoke(value);
-      } else {
-        fn.invoke();
-      }
-    } else if (fnType === 'any') {
-      fn.invoke({type: valueType, value: value, current: true});
     }
   },
 
@@ -185,7 +195,7 @@ extend(Observable.prototype, {
       this._subscribers.add(type, fn);
       this._setActive(true);
     } else {
-      this._callWithCurrent(type, fn, 'end');
+      Subscribers.callOnce(type, fn, CURRENT_END);
     }
     return this;
   },
@@ -200,13 +210,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  this.on('value', fn)   },
-  onEnd:    function(fn) {  this.on('end', fn)     },
-  onAny:    function(fn) {  this.on('any', fn)     },
+  onValue:  function(fn) {  return this.on('value', fn)   },
+  onEnd:    function(fn) {  return this.on('end', fn)     },
+  onAny:    function(fn) {  return this.on('any', fn)     },
 
-  offValue: function(fn) {  this.off('value', fn)  },
-  offEnd:   function(fn) {  this.off('end', fn)    },
-  offAny:   function(fn) {  this.off('any', fn)    }
+  offValue: function(fn) {  return this.off('value', fn)  },
+  offEnd:   function(fn) {  return this.off('end', fn)    },
+  offAny:   function(fn) {  return this.off('any', fn)    }
 
 });
 
@@ -256,8 +266,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.call(type, x);
-        this._subscribers.call('any', {type: type, value: x, current: false});
+        this._subscribers.callAll(Event(type, x));
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -270,10 +279,10 @@ inherit(Property, Observable, {
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      this._callWithCurrent(type, fn, 'value', this._current);
+      Subscribers.callOnce(type, fn, Event('value', this._current, true));
     }
     if (!this._alive) {
-      this._callWithCurrent(type, fn, 'end');
+      Subscribers.callOnce(type, fn, CURRENT_END);
     }
     return this;
   }

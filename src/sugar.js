@@ -49,14 +49,6 @@ Observable.prototype.tap = function(fn) {
 
 
 
-// .defer
-
-Observable.prototype.defer = function() {
-  return this.delay(0).setName(this, 'defer');
-}
-
-
-
 // .and
 
 Kefir.and = function(observables) {
@@ -115,3 +107,21 @@ Observable.prototype.filterBy = function(other) {
     .setName(this, 'filterBy');
 }
 
+
+
+
+// .fromCallback
+
+Kefir.fromCallback = function(callbackConsumer) {
+  callbackConsumer = Fn(callbackConsumer, 1);
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      callbackConsumer.invoke(function(x) {
+        emitter.emit(x);
+        emitter.end();
+      });
+      called = true;
+    }
+  }).setName('fromCallback');
+}

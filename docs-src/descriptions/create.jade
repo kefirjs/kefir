@@ -20,7 +20,7 @@ pre(title='console output')
     > [emitter] <end>
 
 p.
-  <img data-emoji="point_up"> <b>emitter</b> is the easiest way
+  <img data-emoji="point_up"> <b>Emitter</b> is the easiest way
   to create general purpose stream,
   but it doesn't give control over <b>active</b> state of stream
   (see <a href="#active-state">active state</a>).
@@ -180,6 +180,9 @@ p.
 
 
 
++descr-method('from-callback', 'fromCallback', 'Kefir.fromCallback(callbackConsumer)').
+
+
 
 +descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
   Another method for creation general purpose stream,
@@ -227,26 +230,6 @@ p.
   See also <a href="demos/custom-stream.html">Custom stream demo</a>
   as another <b>fromBinder</b> usage example.
 
-
-
-+descr-method('once', 'once', 'Kefir.once(value)').
-  Creates a stream that emits given <b>value</b>
-  to first subscriber then immediately ends.
-
-pre(title='code').
-  var once = Kefir.once(1);
-  once.log();
-
-pre(title='console output')
-  :escapehtml
-    > [once] <value> 1
-    > [once] <end>
-
-p.
-  <img data-emoji="point_up"> If the first subscriber will be an <b>onEnd</b> subscriber,
-  given <b>value</b> still will be emitted on moment of subscription,
-  but, because there will be no <b>value</b> listeners at the moment,
-  nobody will get the <b>value</b> and it will be lost forever.
 
 
 

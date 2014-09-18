@@ -1,7 +1,5 @@
-Kefir = require('kefir')
-helpers = require('../test-helpers.coffee')
+{stream, send, activate, Kefir} = require('../test-helpers.coffee')
 
-{stream, send, activate} = helpers
 
 
 describe 'Stream', ->
@@ -135,6 +133,17 @@ describe 'Stream', ->
       s.onEnd -> count = arguments.length
       expect(count).toBe(0)
 
+    it 'should correctly handle unsubscribe during call loop', ->
+      s = stream()
+      log = []
+      a = (x) ->
+        log.push('a' + x)
+        s.offValue(b)
+      b = (x) -> log.push('b' + x)
+      s.onValue(a)
+      s.onValue(b)
+      send(s, [1, 2])
+      expect(log).toEqual(['a1', 'b1', 'a2'])
 
 
 

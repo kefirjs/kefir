@@ -96,23 +96,3 @@ Kefir.constant = function(x) {
   return new Constant(x);
 }
 
-
-
-// Kefir.once(x)
-
-function Once(x) {
-  Stream.call(this);
-  this._value = x;
-}
-
-inherit(Once, Stream, {
-  _name: 'once',
-  _onActivation: function() {
-    this._send('value', this._value);
-    this._send('end');
-  }
-});
-
-Kefir.once = function(x) {
-  return new Once(x);
-}

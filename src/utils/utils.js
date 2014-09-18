@@ -52,7 +52,7 @@ function getFn(fn, context) {
     return fn;
   } else {
     if (context == null || !isFn(context[fn])) {
-      throw new Error('not a function: ' + fn + ' in ' + context);
+      throw new Error('Not a function: ' + fn + ' in context: ' + context);
     } else {
       return context[fn];
     }
@@ -168,6 +168,8 @@ function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
     , length, i;
+  if (a.length === 0) {  return b  }
+  if (b.length === 0) {  return a  }
   length = a.length;
   for (i = 0; i < length; i++, j++) {
     result[j] = a[i];
@@ -177,6 +179,24 @@ function concat(a, b) {
     result[j] = b[i];
   }
   return result;
+}
+
+function find(arr, value) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (arr[i] === value) {  return i  }
+  }
+  return -1;
+}
+
+function findByPred(arr, pred) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (pred(arr[i])) {  return i  }
+  }
+  return -1;
 }
 
 function cloneArray(input) {
@@ -189,6 +209,31 @@ function cloneArray(input) {
   return result;
 }
 
+function remove(input, index) {
+  var length = input.length
+    , result, i, j;
+  if (index >= 0 && index < length) {
+    if (length === 1) {
+      return [];
+    } else {
+      result = new Array(length - 1);
+      for (i = 0, j = 0; i < length; i++) {
+        if (i !== index) {
+          result[j] = input[i];
+          j++;
+        }
+      }
+      return result;
+    }
+  } else {
+    return input;
+  }
+}
+
+function removeByPred(input, pred) {
+  return remove(input, findByPred(input, pred));
+}
+
 function map(input, fn) {
   var length = input.length
     , result = new Array(length)
@@ -197,6 +242,12 @@ function map(input, fn) {
     result[i] = fn(input[i]);
   }
   return result;
+}
+
+function forEach(arr, fn) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {  fn(arr[i])  }
 }
 
 function fillArray(arr, value) {
@@ -208,14 +259,7 @@ function fillArray(arr, value) {
 }
 
 function contains(arr, value) {
-  var length = arr.length
-    , i;
-  for (i = 0; i < length; i++) {
-    if (arr[i] === value) {
-      return true;
-    }
-  }
-  return false;
+  return find(arr, value) !== -1;
 }
 
 function rest(arr, start, onEmpty) {

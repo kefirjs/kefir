@@ -1,5 +1,4 @@
-Kefir = require('kefir')
-{stream, prop, send} = require('../test-helpers.coffee')
+{stream, prop, send, Kefir} = require('../test-helpers.coffee')
 
 
 
@@ -106,21 +105,6 @@ describe 'setName', ->
     a.setName(stream().setName('foo'), 'bar')
     expect(a.toString()).toBe('[foo.bar]')
 
-
-
-
-
-describe 'defer', ->
-
-  it 'should not emit synchronously', ->
-    a = stream()
-    expect(a.defer()).toEmit [], ->
-      send(a, [1, 2, '<end>'])
-
-  it 'should emit asynchronously without timeout', ->
-    a = stream()
-    expect(a.defer()).toEmitInTime [[0, 1], [0, 2], [0, '<end>']], ->
-      send(a, [1, 2, '<end>'])
 
 
 

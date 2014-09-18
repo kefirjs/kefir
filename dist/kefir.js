@@ -1,4 +1,4 @@
-/*! kefir - 0.2.5
+/*! Kefir.js v0.2.6
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -58,7 +58,7 @@ function getFn(fn, context) {
     return fn;
   } else {
     if (context == null || !isFn(context[fn])) {
-      throw new Error('not a function: ' + fn + ' in ' + context);
+      throw new Error('Not a function: ' + fn + ' in context: ' + context);
     } else {
       return context[fn];
     }
@@ -174,6 +174,8 @@ function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
     , length, i;
+  if (a.length === 0) {  return b  }
+  if (b.length === 0) {  return a  }
   length = a.length;
   for (i = 0; i < length; i++, j++) {
     result[j] = a[i];
@@ -183,6 +185,24 @@ function concat(a, b) {
     result[j] = b[i];
   }
   return result;
+}
+
+function find(arr, value) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (arr[i] === value) {  return i  }
+  }
+  return -1;
+}
+
+function findByPred(arr, pred) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {
+    if (pred(arr[i])) {  return i  }
+  }
+  return -1;
 }
 
 function cloneArray(input) {
@@ -195,6 +215,31 @@ function cloneArray(input) {
   return result;
 }
 
+function remove(input, index) {
+  var length = input.length
+    , result, i, j;
+  if (index >= 0 && index < length) {
+    if (length === 1) {
+      return [];
+    } else {
+      result = new Array(length - 1);
+      for (i = 0, j = 0; i < length; i++) {
+        if (i !== index) {
+          result[j] = input[i];
+          j++;
+        }
+      }
+      return result;
+    }
+  } else {
+    return input;
+  }
+}
+
+function removeByPred(input, pred) {
+  return remove(input, findByPred(input, pred));
+}
+
 function map(input, fn) {
   var length = input.length
     , result = new Array(length)
@@ -203,6 +248,12 @@ function map(input, fn) {
     result[i] = fn(input[i]);
   }
   return result;
+}
+
+function forEach(arr, fn) {
+  var length = arr.length
+    , i;
+  for (i = 0; i < length; i++) {  fn(arr[i])  }
 }
 
 function fillArray(arr, value) {
@@ -214,14 +265,7 @@ function fillArray(arr, value) {
 }
 
 function contains(arr, value) {
-  var length = arr.length
-    , i;
-  for (i = 0; i < length; i++) {
-    if (arr[i] === value) {
-      return true;
-    }
-  }
-  return false;
+  return find(arr, value) !== -1;
 }
 
 function rest(arr, start, onEmpty) {
@@ -427,10 +471,39 @@ var Kefir = {};
 
 // Fn
 
+function normFnMeta(fnMeta) {
+  if (fnMeta instanceof _Fn) {
+    return fnMeta;
+  } else {
+    if (isFn(fnMeta)) {
+      return {
+        fn: fnMeta,
+        context: null,
+        args: []
+      };
+    } else {
+      if (isArrayLike(fnMeta)) {
+        return {
+          fn: getFn(fnMeta[0], fnMeta[1]),
+          context: (fnMeta[1] == null ? null : fnMeta[1]),
+          args: rest(fnMeta, 2, [])
+        };
+      } else {
+        throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+      }
+    }
+  }
+}
+
+function applyFnMeta(fnMeta, args) {
+  fnMeta = normFnMeta(fnMeta);
+  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
+}
+
 function _Fn(fnMeta, length) {
-  this.context = (fnMeta[1] == null) ? null : fnMeta[1];
-  this.fn = getFn(fnMeta[0], this.context);
-  this.args = rest(fnMeta, 2, []);
+  this.context = fnMeta.context;
+  this.fn = fnMeta.fn;
+  this.args = fnMeta.args;
   this.invoke = bind(this.fn, this.context, this.args, length);
 }
 
@@ -440,11 +513,7 @@ _Fn.prototype.apply = function(args) {
 
 _Fn.prototype.applyWithContext = function(context, args) {
   if (this.context === null) {
-    if (this.args.length === 0) {
-      return apply(this.fn, context, args);
-    } else {
-      return apply(this.fn, context, concat(this.args, args));
-    }
+    return apply(this.fn, context, concat(this.args, args));
   } else {
     return this.apply(args);
   }
@@ -454,18 +523,7 @@ function Fn(fnMeta, length) {
   if (fnMeta instanceof _Fn) {
     return fnMeta;
   } else {
-    if (length == null) {
-      length = 100;
-    }
-    if (isFn(fnMeta)) {
-      return new _Fn([fnMeta], length);
-    } else {
-      if (isArrayLike(fnMeta)) {
-        return new _Fn(fnMeta, length);
-      } else {
-        throw new Error('can\'t convert to Fn ' + fnMeta);
-      }
-    }
+    return new _Fn(normFnMeta(fnMeta), length == null ? 100 : length);
   }
 }
 
@@ -489,58 +547,68 @@ Kefir.Fn = Fn;
 // Subscribers
 
 function Subscribers() {
-  this.value = [];
-  this.end = [];
-  this.any = [];
-  this.total = 0;
+  this._fns = [];
 }
+
+extend(Subscribers, {
+  callOne: function(fn, event) {
+    if (fn.type === 'any') {
+      fn.invoke(event);
+    } else if (fn.type === event.type) {
+      if (fn.type === 'value') {
+        fn.invoke(event.value);
+      } else {
+        fn.invoke();
+      }
+    }
+  },
+  callOnce: function(type, fnMeta, event) {
+    if (type === 'any') {
+      applyFnMeta(fnMeta, [event]);
+    } else if (type === event.type) {
+      if (type === 'value') {
+        applyFnMeta(fnMeta, [event.value]);
+      } else {
+        applyFnMeta(fnMeta, []);
+      }
+    }
+  }
+});
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    var length = (type === 'end' ? 0 : 1);
-    this[type].push(Fn(fn, length, true));
-    this.total++;
+    fn = Fn(fn, type === 'end' ? 0 : 1);
+    fn.type = type;
+    this._fns = concat(this._fns, [fn]);
   },
   remove: function(type, fn) {
-    var subs = this[type]
-      , length = subs.length
-      , i;
     fn = Fn(fn);
-    for (i = 0; i < length; i++) {
-      if (Fn.isEqual(subs[i], fn)) {
-        subs.splice(i, 1);
-        this.total--;
-        return;
-      }
-    }
+    this._fns = removeByPred(this._fns, function(x) {
+      return x.type === type && Fn.isEqual(x, fn);
+    });
   },
-  call: function(type, x) {
-    var subs = this[type]
-      , length = subs.length
-      , i;
-    if (length !== 0) {
-      if (length === 1) {
-        if (type === 'end') {
-          subs[0].invoke();
-        } else {
-          subs[0].invoke(x);
-        }
-      } else {
-        subs = cloneArray(subs);
-        for (i = 0; i < length; i++) {
-          if (type === 'end') {
-            subs[i].invoke();
-          } else {
-            subs[i].invoke(x);
-          }
-        }
-      }
+  callAll: function(event) {
+    var fns = this._fns;
+    for (var i = 0; i < fns.length; i++) {
+      Subscribers.callOne(fns[i], event);
     }
   },
   isEmpty: function() {
-    return this.total === 0;
+    return this._fns.length === 0;
   }
 });
+
+
+
+
+
+// Events
+
+function Event(type, value, current) {
+  return {type: type, value: value, current: !!current};
+}
+
+var CURRENT_END = Event('end', undefined, true);
 
 
 
@@ -581,22 +649,8 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._subscribers.call(type, x);
-      this._subscribers.call('any', {type: type, value: x, current: !!isCurrent});
+      this._subscribers.callAll(Event(type, x, isCurrent));
       if (type === 'end') {  this._clear()  }
-    }
-  },
-
-  _callWithCurrent: function(fnType, fn, valueType, value) {
-    fn = Fn(fn);
-    if (fnType === valueType) {
-      if (fnType === 'value') {
-        fn.invoke(value);
-      } else {
-        fn.invoke();
-      }
-    } else if (fnType === 'any') {
-      fn.invoke({type: valueType, value: value, current: true});
     }
   },
 
@@ -605,7 +659,7 @@ extend(Observable.prototype, {
       this._subscribers.add(type, fn);
       this._setActive(true);
     } else {
-      this._callWithCurrent(type, fn, 'end');
+      Subscribers.callOnce(type, fn, CURRENT_END);
     }
     return this;
   },
@@ -620,13 +674,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  this.on('value', fn)   },
-  onEnd:    function(fn) {  this.on('end', fn)     },
-  onAny:    function(fn) {  this.on('any', fn)     },
+  onValue:  function(fn) {  return this.on('value', fn)   },
+  onEnd:    function(fn) {  return this.on('end', fn)     },
+  onAny:    function(fn) {  return this.on('any', fn)     },
 
-  offValue: function(fn) {  this.off('value', fn)  },
-  offEnd:   function(fn) {  this.off('end', fn)    },
-  offAny:   function(fn) {  this.off('any', fn)    }
+  offValue: function(fn) {  return this.off('value', fn)  },
+  offEnd:   function(fn) {  return this.off('end', fn)    },
+  offAny:   function(fn) {  return this.off('any', fn)    }
 
 });
 
@@ -676,8 +730,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.call(type, x);
-        this._subscribers.call('any', {type: type, value: x, current: false});
+        this._subscribers.callAll(Event(type, x));
       }
       if (type === 'value') {  this._current = x  }
       if (type === 'end') {  this._clear()  }
@@ -690,10 +743,10 @@ inherit(Property, Observable, {
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      this._callWithCurrent(type, fn, 'value', this._current);
+      Subscribers.callOnce(type, fn, Event('value', this._current, true));
     }
     if (!this._alive) {
-      this._callWithCurrent(type, fn, 'end');
+      Subscribers.callOnce(type, fn, CURRENT_END);
     }
     return this;
   }
@@ -848,56 +901,140 @@ withInterval('later', {
   }
 });
 
-// .merge()
-
-function Merge(sources) {
+function _AbstractPool(options) {
   Stream.call(this);
-  if (sources.length === 0) {
-    this._send('end');
-  } else {
-    this._sources = sources;
-    this._aliveCount = 0;
+
+  this._queueLim = get(options, 'queueLim', 0);    // -1...∞
+  this._concurLim = get(options, 'concurLim', -1); // -1, 1...∞
+  this._drop = get(options, 'drop', 'new');        // old, new
+  if (this._concurLim === 0) {
+    throw new Error('options.concurLim can\'t be 0');
   }
+
+  this._queue = [];
+  this._curSources = [];
+  this._activating = false;
 }
 
-inherit(Merge, Stream, {
+inherit(_AbstractPool, Stream, {
 
-  _name: 'merge',
+  _name: 'abstractPool',
 
-  _onActivation: function() {
-    var length = this._sources.length,
-        i;
-    this._aliveCount = length;
-    for (i = 0; i < length; i++) {
-      this._sources[i].onAny([this._handleAny, this]);
-    }
-  },
-
-  _onDeactivation: function() {
-    var length = this._sources.length,
-        i;
-    for (i = 0; i < length; i++) {
-      this._sources[i].offAny([this._handleAny, this]);
-    }
-  },
-
-  _handleAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current);
+  _add: function(obs) {
+    if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
+      this._addToCur(obs);
     } else {
-      this._aliveCount--;
-      if (this._aliveCount === 0) {
-        this._send('end', null, event.current);
+      if (this._queueLim === -1 || this._queue.length < this._queueLim) {
+        this._addToQueue(obs);
+      } else if (this._drop === 'old') {
+        this._removeOldest();
+        this._add(obs);
       }
     }
   },
+  _addAll: function(obss) {
+    var $ = this;
+    forEach(obss, function(obs) {  $._add(obs)  });
+  },
+  _remove: function(obs) {
+    if (this._removeCur(obs) === -1) {
+      this._removeQueue(obs);
+    }
+  },
+
+  _addToQueue: function(obs) {
+    this._queue = concat(this._queue, [obs]);
+  },
+  _addToCur: function(obs) {
+    this._curSources = concat(this._curSources, [obs]);
+    if (this._active) {  this._sub(obs)  }
+  },
+  _sub: function(obs) {
+    obs.onAny([this._handleSubAny, this]);
+    obs.onEnd([this._removeCur, this, obs]);
+  },
+  _unsub: function(obs) {
+    obs.offAny([this._handleSubAny, this]);
+    obs.offEnd([this._removeCur, this, obs]);
+  },
+  _handleSubAny: function(event) {
+    if (event.type === 'value') {
+      this._send('value', event.value, event.current && this._activating);
+    }
+  },
+
+  _removeQueue: function(obs) {
+    var index = find(this._queue, obs);
+    this._queue = remove(this._queue, index);
+    return index;
+  },
+  _removeCur: function(obs) {
+    if (this._active) {  this._unsub(obs)  }
+    var index = find(this._curSources, obs);
+    this._curSources = remove(this._curSources, index);
+    if (index !== -1) {
+      if (this._queue.length !== 0) {
+        this._pullQueue();
+      } else if (this._curSources.length === 0) {
+        this._onEmpty();
+      }
+    }
+    return index;
+  },
+  _removeOldest: function() {
+    this._removeCur(this._curSources[0]);
+  },
+
+  _pullQueue: function() {
+    if (this._queue.length !== 0) {
+      this._queue = cloneArray(this._queue);
+      this._addToCur(this._queue.shift());
+    }
+  },
+
+  _onActivation: function() {
+    var sources = this._curSources
+      , i;
+    this._activating = true;
+    for (i = 0; i < sources.length; i++) {  this._sub(sources[i])  }
+    this._activating = false;
+  },
+  _onDeactivation: function() {
+    var sources = this._curSources
+      , i;
+    for (i = 0; i < sources.length; i++) {  this._unsub(sources[i])  }
+  },
+
+  _isEmpty: function() {  return this._curSources.length === 0  },
+  _onEmpty: function() {},
 
   _clear: function() {
     Stream.prototype._clear.call(this);
-    this._sources = null;
+    this._queue = null;
+    this._curSources = null;
   }
 
 });
+
+
+
+
+
+// .merge()
+
+var MergeLike = {
+  _onEmpty: function() {
+    if (this._initialised) {  this._send('end', null, this._activating)  }
+  }
+};
+
+function Merge(sources) {
+  _AbstractPool.call(this);
+  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  this._initialised = true;
+}
+
+inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 Kefir.merge = function() {
   return new Merge(agrsToArray(arguments));
@@ -907,6 +1044,141 @@ Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
 }
 
+
+
+
+// .concat()
+
+function Concat(sources) {
+  _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
+  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  this._initialised = true;
+}
+
+inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
+
+Kefir.concat = function() {
+  return new Concat(agrsToArray(arguments));
+}
+
+Observable.prototype.concat = function(other) {
+  return Kefir.concat([this, other]);
+}
+
+
+
+
+
+
+// .pool()
+
+function Pool() {
+  _AbstractPool.call(this);
+}
+
+inherit(Pool, _AbstractPool, {
+
+  _name: 'pool',
+
+  add: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  remove: function(obs) {
+    this._remove(obs);
+    return this;
+  }
+
+});
+
+Kefir.pool = function() {
+  return new Pool();
+}
+
+
+
+
+
+// .flatMap()
+
+function FlatMap(source, fn, options) {
+  _AbstractPool.call(this, options);
+  this._source = source;
+  this._fn = fn ? Fn(fn, 1) : null;
+  this._mainEnded = false;
+  this._lastCurrent = null;
+}
+
+inherit(FlatMap, _AbstractPool, {
+
+  _onActivation: function() {
+    _AbstractPool.prototype._onActivation.call(this);
+    this._activating = true;
+    this._source.onAny([this._handleMainSource, this]);
+    this._activating = false;
+  },
+  _onDeactivation: function() {
+    _AbstractPool.prototype._onDeactivation.call(this);
+    this._source.offAny([this._handleMainSource, this]);
+  },
+
+  _handleMainSource: function(event) {
+    if (event.type === 'value') {
+      if (!event.current || this._lastCurrent !== event.value) {
+        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+      }
+      this._lastCurrent = event.value;
+    } else {
+      if (this._isEmpty()) {
+        this._send('end', null, event.current);
+      } else {
+        this._mainEnded = true;
+      }
+    }
+  },
+
+  _onEmpty: function() {
+    if (this._mainEnded) {  this._send('end')  }
+  },
+
+  _clear: function() {
+    _AbstractPool.prototype._clear.call(this);
+    this._source = null;
+    this._lastCurrent = null;
+  }
+
+});
+
+Observable.prototype.flatMap = function(fn) {
+  return new FlatMap(this, fn)
+    .setName(this, 'flatMap');
+}
+
+Observable.prototype.flatMapLatest = function(fn) {
+  return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
+    .setName(this, 'flatMapLatest');
+}
+
+Observable.prototype.flatMapFirst = function(fn) {
+  return new FlatMap(this, fn, {concurLim: 1})
+    .setName(this, 'flatMapFirst');
+}
+
+Observable.prototype.flatMapConcat = function(fn) {
+  return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
+    .setName(this, 'flatMapConcat');
+}
+
+Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
+  var result;
+  if (limit === 0) {
+    result = Kefir.never();
+  } else {
+    if (limit < 0) {  limit = -1  }
+    result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
+  }
+  return result.setName(this, 'flatMapWithConcurrencyLimit');
+}
 
 
 
@@ -1014,8 +1286,6 @@ Observable.prototype.sampledBy = function(other, combinator) {
 
 
 
-
-
 // .combine()
 
 Kefir.combine = function(sources, combinator) {
@@ -1028,170 +1298,13 @@ Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
 }
 
-
-
-
-
-
-// .pool()
-
-function _AbstractPool() {
-  Stream.call(this);
-  this._sources = [];
-}
-
-inherit(_AbstractPool, Stream, {
-
-  _name: 'abstractPool',
-
-  _sub: function(obs) {
-    obs.onAny([this._handleSubAny, this]);
-    obs.onEnd([this._remove, this, obs]);
-  },
-  _unsub: function(obs) {
-    obs.offAny([this._handleSubAny, this]);
-    obs.offEnd([this._remove, this, obs]);
-  },
-
-  _handleSubAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current);
-    }
-  },
-
-  _add: function(obs) {
-    this._sources.push(obs);
-    if (this._active) {
-      this._sub(obs);
-    }
-  },
-  _remove: function(obs) {
-    if (this._active) {
-      this._unsub(obs);
-    }
-    for (var i = 0; i < this._sources.length; i++) {
-      if (this._sources[i] === obs) {
-        this._sources.splice(i, 1);
-        return;
-      }
-    }
-  },
-
-  _onActivation: function() {
-    var sources = cloneArray(this._sources);
-    for (var i = 0; i < sources.length; i++) {
-      this._sub(sources[i]);
-    }
-  },
-  _onDeactivation: function() {
-    for (var i = 0; i < this._sources.length; i++) {
-      this._unsub(this._sources[i]);
-    }
-  }
-
-});
-
-
-
-function Pool() {
-  _AbstractPool.call(this);
-}
-
-inherit(Pool, _AbstractPool, {
-
-  _name: 'pool',
-
-  add: function(obs) {
-    this._add(obs);
-    return this;
-  },
-  remove: function(obs) {
-    this._remove(obs);
-    return this;
-  }
-
-});
-
-Kefir.pool = function() {
-  return new Pool();
-}
-
-
-
-
-
-// .flatMap()
-
-function FlatMap(source, fn) {
-  _AbstractPool.call(this);
-  this._source = source;
-  this._name = source._name + '.flatMap';
-  this._fn = fn ? Fn(fn, 1) : null;
-  this._mainEnded = false;
-  this._lastValue = null;
-}
-
-inherit(FlatMap, _AbstractPool, {
-
-  _onActivation: function() {
-    _AbstractPool.prototype._onActivation.call(this);
-    this._source.onAny([this._handleMainSource, this]);
-  },
-  _onDeactivation: function() {
-    _AbstractPool.prototype._onDeactivation.call(this);
-    this._source.offAny([this._handleMainSource, this]);
-  },
-
-  _handleMainSource: function(event) {
-    if (event.type === 'value') {
-      if (!event.current || this._lastValue !== event.value) {
-        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
-      }
-      this._lastValue = event.value;
-    } else {
-      if (this._sources.length === 0) {
-        this._send('end', null, event.current);
-      } else {
-        this._mainEnded = true;
-      }
-    }
-  },
-
-  _remove: function(obs) {
-    _AbstractPool.prototype._remove.call(this, obs);
-    if (this._mainEnded && this._sources.length === 0) {
-      this._send('end');
-    }
-  },
-
-  _clear: function() {
-    _AbstractPool.prototype._clear.call(this);
-    this._source = null;
-    this._lastValue = null;
-  }
-
-});
-
-Observable.prototype.flatMap = function(fn) {
-  return new FlatMap(this, fn);
-}
-
-
-
-
-
-
-
-// .flatMapLatest()
-// TODO
-
-
 function produceStream(StreamClass, PropertyClass) {
   return function() {  return new StreamClass(this, arguments)  }
 }
 function produceProperty(StreamClass, PropertyClass) {
   return function() {  return new PropertyClass(this, arguments)  }
 }
+
 
 
 // .toProperty()
@@ -1451,23 +1564,88 @@ withOneSource('reduce', {
 
 
 
+// .debounce(wait, {immediate})
+
+withOneSource('debounce', {
+  _init: function(args) {
+    this._wait = Math.max(0, args[0]);
+    this._immediate = get(args[1], 'immediate', false);
+    this._lastAttempt = 0;
+    this._timeoutId = null;
+    this._laterValue = null;
+    this._endLater = false;
+    var $ = this;
+    this._$later = function() {  $._later()  };
+  },
+  _free: function() {
+    this._laterValue = null;
+    this._$later = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
+    } else {
+      this._lastAttempt = now();
+      if (this._immediate && !this._timeoutId) {
+        this._send('value', x);
+      }
+      if (!this._timeoutId) {
+        this._timeoutId = setTimeout(this._$later, this._wait);
+      }
+      if (!this._immediate) {
+        this._laterValue = x;
+      }
+    }
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+    } else {
+      if (this._timeoutId && !this._immediate) {
+        this._endLater = true;
+      } else {
+        this._send('end');
+      }
+    }
+  },
+  _later: function() {
+    var last = now() - this._lastAttempt;
+    if (last < this._wait && last >= 0) {
+      this._timeoutId = setTimeout(this._$later, this._wait - last);
+    } else {
+      this._timeoutId = null;
+      if (!this._immediate) {
+        this._send('value', this._laterValue);
+        this._laterValue = null;
+      }
+      if (this._endLater) {
+        this._send('end');
+      }
+    }
+  }
+});
+
+
+
+
+
 // .throttle(wait, {leading, trailing})
 
 withOneSource('throttle', {
   _init: function(args) {
-    this._wait = args[0];
+    this._wait = Math.max(0, args[0]);
     this._leading = get(args[1], 'leading', true);
     this._trailing = get(args[1], 'trailing', true);
-    this._trailingCallValue = null;
-    this._trailingCallTimeoutId = null;
-    this._endAfterTrailingCall = false;
+    this._trailingValue = null;
+    this._timeoutId = null;
+    this._endLater = false;
     this._lastCallTime = 0;
     var $ = this;
-    this._$makeTrailingCall = function() {  $._makeTrailingCall()  };
+    this._$trailingCall = function() {  $._trailingCall()  };
   },
   _free: function() {
-    this._trailingCallValue = null;
-    this._$makeTrailingCall = null;
+    this._trailingValue = null;
+    this._$trailingCall = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
@@ -1479,11 +1657,13 @@ withOneSource('throttle', {
       }
       var remaining = this._wait - (curTime - this._lastCallTime);
       if (remaining <= 0) {
-        this._cancelTralingCall();
+        this._cancelTraling();
         this._lastCallTime = curTime;
         this._send('value', x);
       } else if (this._trailing) {
-        this._scheduleTralingCall(x, remaining);
+        this._cancelTraling();
+        this._trailingValue = x;
+        this._timeoutId = setTimeout(this._$trailingCall, remaining);
       }
     }
   },
@@ -1491,32 +1671,25 @@ withOneSource('throttle', {
     if (isCurrent) {
       this._send('end', null, isCurrent);
     } else {
-      if (this._trailingCallTimeoutId) {
-        this._endAfterTrailingCall = true;
+      if (this._timeoutId) {
+        this._endLater = true;
       } else {
         this._send('end');
       }
     }
   },
-  _scheduleTralingCall: function(value, wait) {
-    if (this._trailingCallTimeoutId) {
-      this._cancelTralingCall();
-    }
-    this._trailingCallValue = value;
-    this._trailingCallTimeoutId = setTimeout(this._$makeTrailingCall, wait);
-  },
-  _cancelTralingCall: function() {
-    if (this._trailingCallTimeoutId !== null) {
-      clearTimeout(this._trailingCallTimeoutId);
-      this._trailingCallTimeoutId = null;
+  _cancelTraling: function() {
+    if (this._timeoutId !== null) {
+      clearTimeout(this._timeoutId);
+      this._timeoutId = null;
     }
   },
-  _makeTrailingCall: function() {
-    this._send('value', this._trailingCallValue);
-    this._trailingCallTimeoutId = null;
-    this._trailingCallValue = null;
+  _trailingCall: function() {
+    this._send('value', this._trailingValue);
+    this._timeoutId = null;
+    this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
-    if (this._endAfterTrailingCall) {
+    if (this._endLater) {
       this._send('end');
     }
   }
@@ -1526,28 +1699,25 @@ withOneSource('throttle', {
 
 
 
-
 // .delay()
 
 withOneSource('delay', {
   _init: function(args) {
-    this._wait = args[0];
+    this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._shiftBuff = function() {
-      $._send('value', $._buff.shift());
-    }
+    this._$shiftBuff = function() {  $._send('value', $._buff.shift())  }
   },
   _free: function() {
     this._buff = null;
-    this._shiftBuff = null;
+    this._$shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
     } else {
       this._buff.push(x);
-      setTimeout(this._shiftBuff, this._wait);
+      setTimeout(this._$shiftBuff, this._wait);
     }
   },
   _handleEnd: function(__, isCurrent) {
@@ -1659,26 +1829,6 @@ Kefir.constant = function(x) {
 }
 
 
-
-// Kefir.once(x)
-
-function Once(x) {
-  Stream.call(this);
-  this._value = x;
-}
-
-inherit(Once, Stream, {
-  _name: 'once',
-  _onActivation: function() {
-    this._send('value', this._value);
-    this._send('end');
-  }
-});
-
-Kefir.once = function(x) {
-  return new Once(x);
-}
-
 // .setName
 
 Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
@@ -1726,14 +1876,6 @@ Observable.prototype.tap = function(fn) {
     fn.invoke(x);
     return x;
   }).setName(this, 'tap');
-}
-
-
-
-// .defer
-
-Observable.prototype.defer = function() {
-  return this.delay(0).setName(this, 'defer');
 }
 
 
@@ -1796,6 +1938,24 @@ Observable.prototype.filterBy = function(other) {
     .setName(this, 'filterBy');
 }
 
+
+
+
+// .fromCallback
+
+Kefir.fromCallback = function(callbackConsumer) {
+  callbackConsumer = Fn(callbackConsumer, 1);
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      callbackConsumer.invoke(function(x) {
+        emitter.emit(x);
+        emitter.end();
+      });
+      called = true;
+    }
+  }).setName('fromCallback');
+}
 
 
   if (typeof define === 'function' && define.amd) {

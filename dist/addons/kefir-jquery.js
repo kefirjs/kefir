@@ -1,4 +1,4 @@
-/*! kefir addon - 0.2.5
+/*! An addon for Kefir.js v0.2.6
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -33,7 +33,16 @@
 
 
 
-    // $.fn.asKefirProperty = function(event, selector, getter) { ... }
+    $.fn.asKefirProperty = function(eventName, selector, getter) {
+      if (getter == null) {
+        getter = selector;
+        selector = null;
+      }
+      getter = Kefir.Fn(getter);
+      return this.asKefirStream(eventName, selector, getter)
+        .toProperty(getter.invoke())
+        .setName('asKefirProperty');
+    }
 
 
 

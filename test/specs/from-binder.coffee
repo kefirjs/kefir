@@ -1,5 +1,4 @@
-Kefir = require('kefir')
-{activate, deactivate} = require('../test-helpers.coffee')
+{activate, deactivate, Kefir} = require('../test-helpers.coffee')
 
 
 describe 'fromBinder', ->

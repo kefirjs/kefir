@@ -85,7 +85,7 @@ table, tr, td {
     margin: 5px 0;
   }
 ul {
-  list-style-type: circle;
+  list-style-type: square;
   padding: 0 0 0 20px;
 }
   li {
@@ -143,9 +143,9 @@ pre {
   box-shadow: 0 0 20px #ccc;
   font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
 }
-@media (max-width: 1050px) {
+@media (max-width: 1200px) {
   .sidebar {
-    width: 140px;
+    width: 170px;
   }
 }
   .sidebar a {
@@ -180,16 +180,11 @@ pre {
   margin: 40px 10px 50px 330px;
   font-family: Helvetica, Arial, sans-serif;
 }
-@media (max-width: 1050px) {
+@media (max-width: 1200px) {
   .container {
-    margin-left: 230px;
+    margin-left: 260px;
   }
 }
-  .warning {
-    margin-top: 15px;
-    font: bold 11px Arial;
-    color: #770000;
-  }
   .header {
     font-size: 16px;
     line-height: 30px;
@@ -197,9 +192,17 @@ pre {
     color: inherit;
   }
   .alias {
-    font-size: 14px;
+    display: block;
+    margin-left: 1em;
+    margin-bottom: .4em;
+  }
+  .alias:before {
+    content: 'Alias:';
+    font-family: Helvetica, Arial, sans-serif;
     font-style: italic;
-    margin-left: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-right: .5em;
   }
 
 p[id] {
@@ -218,4 +221,13 @@ h2[id] + p[id]{
   height: 60px;
   vertical-align: bottom;
   margin-bottom: -4px;
+}
+
+[data-emoji] {
+  width: 20px;
+  height: 20px;
+  visibility: hidden;
+}
+[data-emoji][src] {
+  visibility: visible;
 }

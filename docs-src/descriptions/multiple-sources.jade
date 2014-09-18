@@ -2,28 +2,43 @@ h2#combine-observables Combine observables
 
 
 
-+descr-method('combine', 'combine', 'Kefir.combine(observables, [fn]), observable.combine(other, [fn])').
++descr-method('combine', 'combine', 'Kefir.combine(obss, [fn])', 'obs.combine(otherObs, [fn])').
 
 
-+descr-method('and', 'and', 'Kefir.and(observables), observable.and(other)').
++descr-method('and', 'and', 'Kefir.and(obss)', 'obs.and(otherObs)').
 
 
-+descr-method('or', 'or', 'Kefir.or(observables), observable.or(other)').
++descr-method('or', 'or', 'Kefir.or(obss)', 'obs.or(otherObs)').
 
 
-+descr-method('sampled-by', 'sampledBy', 'Kefir.sampledBy(passiveObservables, activeObservables, [fn]), observable.sampledBy(other, [fn])').
++descr-method('sampled-by', 'sampledBy', 'Kefir.sampledBy(passiveObss, activeObss, [fn])', 'obs.sampledBy(otherObs, [fn])').
 
 
-+descr-method('merge', 'merge', 'Kefir.merge(observables), observable.merge(other)').
++descr-method('merge', 'merge', 'Kefir.merge(obss)', 'obs.merge(otherObs)').
+
+
++descr-method('concat', 'concat', 'Kefir.concat(obss)', 'obs.concat(otherObs)').
 
 
 +descr-method('pool', 'pool', 'Kefir.pool()').
 
 
-+descr-method('flat-map', 'flatMap', 'property.flatMap(fn)').
++descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
 
 
-+descr-method('awating', 'awating', 'observable.awating(other)').
++descr-method('flat-map-latest', 'flatMapLatest', 'obs.flatMapLatest([fn])').
 
 
-+descr-method('filter-by', 'filterBy', 'observable.filterBy(other)').
++descr-method('flat-map-first', 'flatMapFirst', 'obs.flatMapFirst([fn])').
+
+
++descr-method('flat-map-concat', 'flatMapConcat', 'obs.flatMapConcat([fn])').
+
+
++descr-method('flat-map-with-concurrency-limit', 'flatMapWithConcurrencyLimit', 'obs.flatMapWithConcurrencyLimit([fn], limit)').
+
+
++descr-method('awating', 'awating', 'obs.awating(otherObs)').
+
+
++descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').

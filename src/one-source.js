@@ -6,6 +6,7 @@ function produceProperty(StreamClass, PropertyClass) {
 }
 
 
+
 // .toProperty()
 
 withOneSource('toProperty', {
@@ -263,23 +264,88 @@ withOneSource('reduce', {
 
 
 
+// .debounce(wait, {immediate})
+
+withOneSource('debounce', {
+  _init: function(args) {
+    this._wait = Math.max(0, args[0]);
+    this._immediate = get(args[1], 'immediate', false);
+    this._lastAttempt = 0;
+    this._timeoutId = null;
+    this._laterValue = null;
+    this._endLater = false;
+    var $ = this;
+    this._$later = function() {  $._later()  };
+  },
+  _free: function() {
+    this._laterValue = null;
+    this._$later = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    if (isCurrent) {
+      this._send('value', x, isCurrent);
+    } else {
+      this._lastAttempt = now();
+      if (this._immediate && !this._timeoutId) {
+        this._send('value', x);
+      }
+      if (!this._timeoutId) {
+        this._timeoutId = setTimeout(this._$later, this._wait);
+      }
+      if (!this._immediate) {
+        this._laterValue = x;
+      }
+    }
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (isCurrent) {
+      this._send('end', null, isCurrent);
+    } else {
+      if (this._timeoutId && !this._immediate) {
+        this._endLater = true;
+      } else {
+        this._send('end');
+      }
+    }
+  },
+  _later: function() {
+    var last = now() - this._lastAttempt;
+    if (last < this._wait && last >= 0) {
+      this._timeoutId = setTimeout(this._$later, this._wait - last);
+    } else {
+      this._timeoutId = null;
+      if (!this._immediate) {
+        this._send('value', this._laterValue);
+        this._laterValue = null;
+      }
+      if (this._endLater) {
+        this._send('end');
+      }
+    }
+  }
+});
+
+
+
+
+
 // .throttle(wait, {leading, trailing})
 
 withOneSource('throttle', {
   _init: function(args) {
-    this._wait = args[0];
+    this._wait = Math.max(0, args[0]);
     this._leading = get(args[1], 'leading', true);
     this._trailing = get(args[1], 'trailing', true);
-    this._trailingCallValue = null;
-    this._trailingCallTimeoutId = null;
-    this._endAfterTrailingCall = false;
+    this._trailingValue = null;
+    this._timeoutId = null;
+    this._endLater = false;
     this._lastCallTime = 0;
     var $ = this;
-    this._$makeTrailingCall = function() {  $._makeTrailingCall()  };
+    this._$trailingCall = function() {  $._trailingCall()  };
   },
   _free: function() {
-    this._trailingCallValue = null;
-    this._$makeTrailingCall = null;
+    this._trailingValue = null;
+    this._$trailingCall = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
@@ -291,11 +357,13 @@ withOneSource('throttle', {
       }
       var remaining = this._wait - (curTime - this._lastCallTime);
       if (remaining <= 0) {
-        this._cancelTralingCall();
+        this._cancelTraling();
         this._lastCallTime = curTime;
         this._send('value', x);
       } else if (this._trailing) {
-        this._scheduleTralingCall(x, remaining);
+        this._cancelTraling();
+        this._trailingValue = x;
+        this._timeoutId = setTimeout(this._$trailingCall, remaining);
       }
     }
   },
@@ -303,32 +371,25 @@ withOneSource('throttle', {
     if (isCurrent) {
       this._send('end', null, isCurrent);
     } else {
-      if (this._trailingCallTimeoutId) {
-        this._endAfterTrailingCall = true;
+      if (this._timeoutId) {
+        this._endLater = true;
       } else {
         this._send('end');
       }
     }
   },
-  _scheduleTralingCall: function(value, wait) {
-    if (this._trailingCallTimeoutId) {
-      this._cancelTralingCall();
-    }
-    this._trailingCallValue = value;
-    this._trailingCallTimeoutId = setTimeout(this._$makeTrailingCall, wait);
-  },
-  _cancelTralingCall: function() {
-    if (this._trailingCallTimeoutId !== null) {
-      clearTimeout(this._trailingCallTimeoutId);
-      this._trailingCallTimeoutId = null;
+  _cancelTraling: function() {
+    if (this._timeoutId !== null) {
+      clearTimeout(this._timeoutId);
+      this._timeoutId = null;
     }
   },
-  _makeTrailingCall: function() {
-    this._send('value', this._trailingCallValue);
-    this._trailingCallTimeoutId = null;
-    this._trailingCallValue = null;
+  _trailingCall: function() {
+    this._send('value', this._trailingValue);
+    this._timeoutId = null;
+    this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
-    if (this._endAfterTrailingCall) {
+    if (this._endLater) {
       this._send('end');
     }
   }
@@ -338,28 +399,25 @@ withOneSource('throttle', {
 
 
 
-
 // .delay()
 
 withOneSource('delay', {
   _init: function(args) {
-    this._wait = args[0];
+    this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._shiftBuff = function() {
-      $._send('value', $._buff.shift());
-    }
+    this._$shiftBuff = function() {  $._send('value', $._buff.shift())  }
   },
   _free: function() {
     this._buff = null;
-    this._shiftBuff = null;
+    this._$shiftBuff = null;
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
       this._send('value', x, isCurrent);
     } else {
       this._buff.push(x);
-      setTimeout(this._shiftBuff, this._wait);
+      setTimeout(this._$shiftBuff, this._wait);
     }
   },
   _handleEnd: function(__, isCurrent) {

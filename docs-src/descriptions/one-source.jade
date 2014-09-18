@@ -1,7 +1,7 @@
 h2#modify Modify an observable
 
 p.
-  All methods in this section create new observable of same kind* from an original one.
+  All methods in this section create a new observable of same kind* from an original one.
   New observable applies some transformation to each event from original
   and emits result of transformation.
   In most cases a transformation is applied only to <b>value events</b>,
@@ -14,13 +14,13 @@ p.
   that always returns a property.
 
 
-+descr-method('map', 'map', 'observable.map(fn)').
++descr-method('map', 'map', 'obs.map(fn)').
   Applies given <b>fn</b> function to each value from original observable
   and emits value returned by <b>fn</b>.
 
 pre(title='code').
   var emitter = Kefir.emitter();
-  emitter.map(function(x) {  return x + 1;  }).log();
+  emitter.map(function(x) {  return x + 1  }).log();
   emitter.emit(1);
   emitter.emit(2);
   emitter.end();
@@ -33,7 +33,7 @@ pre(title='console output')
 div
 
 
-+descr-method('map-to', 'mapTo', 'observable.mapTo(value)').
++descr-method('map-to', 'mapTo', 'obs.mapTo(value)').
   On each value from original observable emits given <b>value</b>.<br>
   Shorthand for <tt>observable.map(function() {return value})</tt>.
 
@@ -52,7 +52,7 @@ pre(title='console output')
 div
 
 
-+descr-method('pluck', 'pluck', 'observable.pluck(propertyName)').
++descr-method('pluck', 'pluck', 'obs.pluck(propertyName)').
   On each value from original observable emits <tt>value[propertyName]</tt>.<br>
   Shorthand for <tt>observable.map(function(x) {return x.foo})</tt>
 
@@ -71,7 +71,7 @@ pre(title='console output')
 div
 
 
-+descr-method('invoke', 'invoke', 'observable.invoke(methodName)').
++descr-method('invoke', 'invoke', 'obs.invoke(methodName)').
   Just like <b>.pluck</b>, but instead of emitting <tt>value[propertyName]</tt>
   it emits <tt>value[methodName]()</tt>,
   i.e. calls method <b>methodName</b> of each value object
@@ -93,7 +93,7 @@ pre(title='console output')
 div
 
 
-+descr-method('not', 'not', 'observable.not()').
++descr-method('not', 'not', 'obs.not()').
   Inverts every value from original observable using <tt>!</tt> operator.<br>
   Shorthand for <tt>observable.map(function(x) {return !x})</tt>
 
@@ -112,7 +112,7 @@ pre(title='console output')
 div
 
 
-+descr-method('tap', 'tap', 'observable.tap(fn)').
++descr-method('tap', 'tap', 'obs.tap(fn)').
   Just like <b>.map</b> applies given <b>fn</b>
   function to each value from original observable, but emits original value
   (not what <b>fn</b> returns).
@@ -137,14 +137,14 @@ pre(title='console output')
 div
 
 
-+descr-method('filter', 'filter', 'observable.filter(predicate)').
++descr-method('filter', 'filter', 'obs.filter(predicate)').
   Filters values from original observable
   using given <b>predicate</b> function.
 
 pre(title='code')
   :escapehtml
     var emitter = Kefir.emitter();
-    emitter.filter(function(x) {  return x > 1;  }).log();
+    emitter.filter(function(x) {  return x > 1  }).log();
     emitter.emit(1);
     emitter.emit(2);
     emitter.end();
@@ -153,10 +153,12 @@ pre(title='console output')
   :escapehtml
     > [emitter.filter] <value> 2
     > [emitter.filter] <end>
-div
+
+p.
+  See also <a href="#filter-by">filterBy</a>.
 
 
-+descr-method('take', 'take', 'observable.take(n)').
++descr-method('take', 'take', 'obs.take(n)').
   Emits first <b>n</b> values from original observable, then ends.
 
 pre(title='code')
@@ -177,7 +179,7 @@ pre(title='console output')
 div
 
 
-+descr-method('take-while', 'takeWhile', 'observable.takeWhile(predicate)').
++descr-method('take-while', 'takeWhile', 'obs.takeWhile(predicate)').
   Emits values from original observable until given <b>predicate</b>
   function applied to a value returns false.
   Ends when <b>predicate</b> returns false.
@@ -185,7 +187,7 @@ div
 pre(title='code')
   :escapehtml
     var emitter = Kefir.emitter();
-    emitter.takeWhile(function(x) {return x < 3}).log();
+    emitter.takeWhile(function(x) {  return x < 3  }).log();
     emitter.emit(1);
     emitter.emit(2);
     emitter.emit(3);
@@ -200,7 +202,7 @@ pre(title='console output')
 div
 
 
-+descr-method('skip', 'skip', 'observable.skip(n)').
++descr-method('skip', 'skip', 'obs.skip(n)').
   Skips first <b>n</b> values from original observable, then emits all rest.
 
 pre(title='code')
@@ -221,7 +223,7 @@ pre(title='console output')
 div
 
 
-+descr-method('skip-while', 'skipWhile', 'observable.skipWhile(predicate)').
++descr-method('skip-while', 'skipWhile', 'obs.skipWhile(predicate)').
   Skips values from original observable until given <b>predicate</b>
   function applied to a value returns false,
   then stops applying <b>predicate</b> to values and emits all of them.
@@ -229,7 +231,7 @@ div
 pre(title='code')
   :escapehtml
     var emitter = Kefir.emitter();
-    emitter.skipWhile(function(x) {return x < 3}).log();
+    emitter.skipWhile(function(x) {  return x < 3  }).log();
     emitter.emit(1);
     emitter.emit(2);
     emitter.emit(3);
@@ -244,7 +246,7 @@ pre(title='console output')
 div
 
 
-+descr-method('skip-duplicates', 'skipDuplicates', 'observable.skipDuplicates([comparator])').
++descr-method('skip-duplicates', 'skipDuplicates', 'obs.skipDuplicates([comparator])').
   Skips duplicate values using <tt>===</tt> for comparison by default.
   Accepts optional <b>comparator</b> function,
   that, if provided, is used for comparison instead of <tt>===</tt>.
@@ -289,7 +291,7 @@ pre(title='console output')
 div
 
 
-+descr-method('diff', 'diff', 'observable.diff(seed, fn)').
++descr-method('diff', 'diff', 'obs.diff(seed, fn)').
   On each value from original observable calls <b>fn</b>
   function with previous and current value as arguments.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
@@ -317,7 +319,7 @@ pre(title='console output')
 div
 
 
-+descr-method('scan', 'scan', 'observable.scan(seed, fn)').
++descr-method('scan', 'scan', 'obs.scan(seed, fn)').
   On each value from original
   observable calls <b>fn</b> function with
   previous result returned by <b>fn</b> and
@@ -348,7 +350,7 @@ pre(title='console output')
 div
 
 
-+descr-method('reduce', 'reduce', 'observable.reduce(seed, fn)').
++descr-method('reduce', 'reduce', 'obs.reduce(seed, fn)').
   Similar to <b>.scan</b>, but emits only last result just before end.
 
 pre(title='code')
@@ -370,7 +372,7 @@ pre(title='console output')
 div
 
 
-+descr-method('delay', 'delay', 'observable.delay(wait)').
++descr-method('delay', 'delay', 'obs.delay(wait)').
   Delays all events by <b>wait</b> milliseconds,
   with exception for current value of property,
   or current end for already ended observable.
@@ -393,14 +395,16 @@ pre(title='console output')
 div
 
 
-+descr-method('defer', 'defer', 'observable.defer()').
+
+
++descr-method('throttle', 'throttle', 'obs.throttle(wait, [options])').
 
 
 
-+descr-method('throttle', 'throttle', 'observable.throttle(wait, [options])').
++descr-method('debounce', 'debounce', 'obs.debounce(wait, [options])').
 
 
 
-+descr-method('with-handler', 'withHandler', 'observable.withHandler(fn)').
++descr-method('with-handler', 'withHandler', 'obs.withHandler(fn)').
 
 

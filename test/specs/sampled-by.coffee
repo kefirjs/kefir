@@ -1,5 +1,4 @@
-Kefir = require('kefir')
-{stream, prop, send, activate, deactivate} = require('../test-helpers.coffee')
+{stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers.coffee')
 
 
 describe 'sampledBy', ->
