@@ -1,7 +1,5 @@
-Kefir = require('kefir')
-helpers = require('../test-helpers.coffee')
+{stream, prop, send, Kefir} = require('../test-helpers.coffee')
 
-{stream, prop, send} = helpers
 
 describe 'changes', ->
 

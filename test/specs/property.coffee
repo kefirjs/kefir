@@ -1,7 +1,5 @@
-Kefir = require('kefir')
-helpers = require('../test-helpers.coffee')
+{prop, send, activate, Kefir} = require('../test-helpers.coffee')
 
-{prop, send, activate} = helpers
 
 
 describe 'Property', ->

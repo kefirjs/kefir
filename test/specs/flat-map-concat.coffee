@@ -1,47 +1,53 @@
 {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers.coffee')
 
 
-describe 'flatMap', ->
+describe 'flatMapConcat', ->
 
 
   describe 'stream', ->
 
     it 'should return stream', ->
-      expect(stream().flatMap()).toBeStream()
+      expect(stream().flatMapConcat()).toBeStream()
 
     it 'should activate/deactivate source', ->
       a = stream()
-      expect(a.flatMap()).toActivate(a)
+      expect(a.flatMapConcat()).toActivate(a)
 
     it 'should be ended if source was ended', ->
-      expect(send(stream(), ['<end>']).flatMap()).toEmit ['<end:current>']
+      expect(send(stream(), ['<end>']).flatMapConcat()).toEmit ['<end:current>']
 
     it 'should handle events', ->
       a = stream()
       b = stream()
-      c = send(prop(), [0])
-      expect(a.flatMap()).toEmit [1, 2, 0, 3, 4, '<end>'], ->
+      c = stream()
+      expect(a.flatMapConcat()).toEmit [1, 2, 5, 6, '<end>'], ->
         send(b, [0])
         send(a, [b])
         send(b, [1, 2])
         send(a, [c, '<end>'])
-        send(b, [3, '<end>'])
-        send(c, [4, '<end>'])
+        send(c, [4])
+        send(b, [5, '<end>'])
+        send(c, [6, '<end>'])
+
 
     it 'should activate sub-sources', ->
       a = stream()
       b = stream()
       c = send(prop(), [0])
-      map = a.flatMap()
+      map = a.flatMapConcat()
       activate(map)
       send(a, [b, c])
       deactivate(map)
-      expect(map).toActivate(b, c)
+      expect(map).toActivate(b)
+      expect(map).not.toActivate(c)
+      send(b, ['<end>'])
+      expect(map).toActivate(c)
+
 
     it 'should accept optional map fn', ->
       a = stream()
       b = stream()
-      expect(a.flatMap((x) -> x.obs)).toEmit [1, 2, '<end>'], ->
+      expect(a.flatMapConcat((x) -> x.obs)).toEmit [1, 2, '<end>'], ->
         send(b, [0])
         send(a, [{obs: b}, '<end>'])
         send(b, [1, 2, '<end>'])
@@ -49,24 +55,24 @@ describe 'flatMap', ->
     it 'should correctly handle current values of sub sources on activation', ->
       a = stream()
       b = send(prop(), [1])
-      c = send(prop(), [2])
-      m = a.flatMap()
+      m = a.flatMapConcat()
       activate(m)
-      send(a, [b, c])
+      send(a, [b])
       deactivate(m)
-      expect(m).toEmit [{current: 1}, {current: 2}]
+      expect(m).toEmit [{current: 1}]
 
     it 'should correctly handle current values of new sub sources', ->
       a = stream()
-      b = send(prop(), [1])
+      b = send(prop(), [1, '<end>'])
       c = send(prop(), [2])
-      expect(a.flatMap()).toEmit [1, 2], ->
-        send(a, [b, c])
+      d = send(prop(), [3])
+      expect(a.flatMapConcat()).toEmit [1, 2], ->
+        send(a, [b, c, d])
 
     it 'should work nicely with Kefir.constant and Kefir.never', ->
       a = stream()
       expect(
-        a.flatMap (x) ->
+        a.flatMapConcat (x) ->
           if x > 2
             Kefir.constant(x)
           else
@@ -81,47 +87,23 @@ describe 'flatMap', ->
   describe 'property', ->
 
     it 'should return stream', ->
-      expect(prop().flatMap()).toBeStream()
+      expect(prop().flatMapConcat()).toBeStream()
 
     it 'should activate/deactivate source', ->
       a = prop()
-      expect(a.flatMap()).toActivate(a)
+      expect(a.flatMapConcat()).toActivate(a)
 
     it 'should be ended if source was ended', ->
-      expect(send(prop(), ['<end>']).flatMap()).toEmit ['<end:current>']
+      expect(send(prop(), ['<end>']).flatMapConcat()).toEmit ['<end:current>']
 
     it 'should be ended if source was ended (with value)', ->
       expect(
-        send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMap()
+        send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapConcat()
       ).toEmit [{current: 0}, '<end:current>']
-
-    it 'should not costantly adding current value on each activation', ->
-      a = send(prop(), [0])
-      b = send(prop(), [a])
-      map = b.flatMap()
-      activate(map)
-      deactivate(map)
-      activate(map)
-      deactivate(map)
-      expect(map).toEmit [{current: 0}]
-
-    it 'should allow to add same obs several times', ->
-      b = send(prop(), ['b0'])
-      c = stream()
-      a = send(prop(), [b])
-      expect(a.flatMap()).toEmit [
-        {current: 'b0'}, 'b0', 'b0', 'b0', 'b0',
-        'b1', 'b1', 'b1', 'b1', 'b1',
-        'c1', 'c1', 'c1',
-        '<end>'
-      ], ->
-        send(a, [b, c, b, c, c, b, b, '<end>'])
-        send(b, ['b1', '<end>'])
-        send(c, ['c1', '<end>'])
 
     it 'should correctly handle current value of source', ->
       a = send(prop(), [0])
       b = send(prop(), [a])
-      expect(b.flatMap()).toEmit [{current: 0}]
+      expect(b.flatMapConcat()).toEmit [{current: 0}]
 
 

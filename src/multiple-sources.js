@@ -1,9 +1,9 @@
 function _AbstractPool(options) {
   Stream.call(this);
 
-  this._queueLim = get(options, 'queueLim', 0); // -1...∞
+  this._queueLim = get(options, 'queueLim', 0);    // -1...∞
   this._concurLim = get(options, 'concurLim', -1); // -1, 1...∞
-  this._drop = get(options, 'drop', 'new'); // old, new
+  this._drop = get(options, 'drop', 'new');        // old, new
   if (this._concurLim === 0) {
     throw new Error('options.concurLim can\'t be 0');
   }
@@ -11,7 +11,6 @@ function _AbstractPool(options) {
   this._queue = [];
   this._curSources = [];
   this._activating = false;
-
 }
 
 inherit(_AbstractPool, Stream, {
@@ -205,7 +204,6 @@ function FlatMap(source, fn, options) {
   this._fn = fn ? Fn(fn, 1) : null;
   this._mainEnded = false;
   this._lastCurrent = null;
-  this.setName(source, 'flatMap');
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -249,7 +247,34 @@ inherit(FlatMap, _AbstractPool, {
 });
 
 Observable.prototype.flatMap = function(fn) {
-  return new FlatMap(this, fn);
+  return new FlatMap(this, fn)
+    .setName(this, 'flatMap');
+}
+
+Observable.prototype.flatMapLatest = function(fn) {
+  return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
+    .setName(this, 'flatMapLatest');
+}
+
+Observable.prototype.flatMapFirst = function(fn) {
+  return new FlatMap(this, fn, {concurLim: 1})
+    .setName(this, 'flatMapFirst');
+}
+
+Observable.prototype.flatMapConcat = function(fn) {
+  return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
+    .setName(this, 'flatMapConcat');
+}
+
+Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
+  var result;
+  if (limit === 0) {
+    result = Kefir.never();
+  } else {
+    if (limit < 0) {  limit = -1  }
+    result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
+  }
+  return result.setName(this, 'flatMapWithConcurrencyLimit');
 }
 
 
