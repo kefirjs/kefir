@@ -23,7 +23,19 @@ h2#combine-observables Combine observables
 +descr-method('pool', 'pool', 'Kefir.pool()').
 
 
-+descr-method('flat-map', 'flatMap', 'property.flatMap([fn])').
++descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
+
+
++descr-method('flat-map-latest', 'flatMapLatest', 'obs.flatMapLatest([fn])').
+
+
++descr-method('flat-map-first', 'flatMapFirst', 'obs.flatMapFirst([fn])').
+
+
++descr-method('flat-map-concat', 'flatMapConcat', 'obs.flatMapConcat([fn])').
+
+
++descr-method('flat-map-with-concurrency-limit', 'flatMapWithConcurrencyLimit', 'obs.flatMapWithConcurrencyLimit([fn], limit)').
 
 
 +descr-method('awating', 'awating', 'obs.awating(otherObs)').

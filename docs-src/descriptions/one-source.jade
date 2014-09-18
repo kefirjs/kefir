@@ -1,7 +1,7 @@
 h2#modify Modify an observable
 
 p.
-  All methods in this section create new observable of same kind* from an original one.
+  All methods in this section create a new observable of same kind* from an original one.
   New observable applies some transformation to each event from original
   and emits result of transformation.
   In most cases a transformation is applied only to <b>value events</b>,
@@ -20,7 +20,7 @@ p.
 
 pre(title='code').
   var emitter = Kefir.emitter();
-  emitter.map(function(x) {  return x + 1;  }).log();
+  emitter.map(function(x) {  return x + 1  }).log();
   emitter.emit(1);
   emitter.emit(2);
   emitter.end();
@@ -144,7 +144,7 @@ div
 pre(title='code')
   :escapehtml
     var emitter = Kefir.emitter();
-    emitter.filter(function(x) {  return x > 1;  }).log();
+    emitter.filter(function(x) {  return x > 1  }).log();
     emitter.emit(1);
     emitter.emit(2);
     emitter.end();
@@ -153,7 +153,9 @@ pre(title='console output')
   :escapehtml
     > [emitter.filter] <value> 2
     > [emitter.filter] <end>
-div
+
+p.
+  See also <a href="#filter-by">filterBy</a>.
 
 
 +descr-method('take', 'take', 'obs.take(n)').
@@ -185,7 +187,7 @@ div
 pre(title='code')
   :escapehtml
     var emitter = Kefir.emitter();
-    emitter.takeWhile(function(x) {return x < 3}).log();
+    emitter.takeWhile(function(x) {  return x < 3  }).log();
     emitter.emit(1);
     emitter.emit(2);
     emitter.emit(3);
@@ -229,7 +231,7 @@ div
 pre(title='code')
   :escapehtml
     var emitter = Kefir.emitter();
-    emitter.skipWhile(function(x) {return x < 3}).log();
+    emitter.skipWhile(function(x) {  return x < 3  }).log();
     emitter.emit(1);
     emitter.emit(2);
     emitter.emit(3);

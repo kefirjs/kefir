@@ -145,7 +145,7 @@ pre {
 }
 @media (max-width: 1200px) {
   .sidebar {
-    width: 140px;
+    width: 170px;
   }
 }
   .sidebar a {
@@ -182,7 +182,7 @@ pre {
 }
 @media (max-width: 1200px) {
   .container {
-    margin-left: 230px;
+    margin-left: 260px;
   }
 }
   .header {
@@ -231,35 +231,3 @@ h2[id] + p[id]{
 [data-emoji][src] {
   visibility: visible;
 }
-
-
-.help-note {
-  position: fixed;
-  right: 10px;
-  bottom: 10px;
-  position: fixed;
-  right: 10px;
-  bottom: 10px;
-  width: 150px;
-  border: solid 1px #c5c162;
-  padding: 10px;
-  font-size: .9em;
-  line-height: 1.2;
-  background: #FAF8C8;
-  opacity: .5;
-  overflow: hidden;
-  height: 47px;
-  cursor: default;
-  border-radius: 3px;
-  color: #4E4E3D;
-  -webkit-transition: all .3s;
-          transition: all .3s;
-}
-  .help-note:hover {
-    height: 90px;
-    opacity: 1;
-  }
-  .help-note strong {
-    display: block;
-    margin-bottom: 1em;
-  }
