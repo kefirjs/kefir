@@ -77,13 +77,20 @@ table, tr, td {
   margin: 0; padding: 0;
 }
   td, th {
-    padding: 2px 12px 2px 0;
+    padding: 2px 14px 2px 0;
+  }
+  th {
+    text-align: left;
   }
   table .rule {
-    height: 1px;
-    background: #ccc;
-    margin: 5px 0;
+    padding: 5px 0;
   }
+    table .rule:after {
+      content: '';
+      display: block;
+      border-bottom: solid 1px #ddd;
+    }
+
 ul {
   list-style-type: square;
   padding: 0 0 0 20px;
