@@ -1881,14 +1881,6 @@ Observable.prototype.tap = function(fn) {
 
 
 
-// .defer
-
-Observable.prototype.defer = function() {
-  return this.delay(0).setName(this, 'defer');
-}
-
-
-
 // .and
 
 Kefir.and = function(observables) {
@@ -20251,23 +20243,6 @@ describe('setName', function() {
     expect(a.toString()).toBe('[foo]');
     a.setName(stream().setName('foo'), 'bar');
     return expect(a.toString()).toBe('[foo.bar]');
-  });
-});
-
-describe('defer', function() {
-  it('should not emit synchronously', function() {
-    var a;
-    a = stream();
-    return expect(a.defer()).toEmit([], function() {
-      return send(a, [1, 2, '<end>']);
-    });
-  });
-  return it('should emit asynchronously without timeout', function() {
-    var a;
-    a = stream();
-    return expect(a.defer()).toEmitInTime([[0, 1], [0, 2], [0, '<end>']], function() {
-      return send(a, [1, 2, '<end>']);
-    });
   });
 });
 

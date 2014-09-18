@@ -49,14 +49,6 @@ Observable.prototype.tap = function(fn) {
 
 
 
-// .defer
-
-Observable.prototype.defer = function() {
-  return this.delay(0).setName(this, 'defer');
-}
-
-
-
 // .and
 
 Kefir.and = function(observables) {

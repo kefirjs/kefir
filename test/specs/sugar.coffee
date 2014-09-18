@@ -109,21 +109,6 @@ describe 'setName', ->
 
 
 
-describe 'defer', ->
-
-  it 'should not emit synchronously', ->
-    a = stream()
-    expect(a.defer()).toEmit [], ->
-      send(a, [1, 2, '<end>'])
-
-  it 'should emit asynchronously without timeout', ->
-    a = stream()
-    expect(a.defer()).toEmitInTime [[0, 1], [0, 2], [0, '<end>']], ->
-      send(a, [1, 2, '<end>'])
-
-
-
-
 describe 'and', ->
 
   it 'should work as expected', ->
