@@ -1,9 +1,9 @@
 function _AbstractPool(options) {
   Stream.call(this);
 
-  this._queueLim = get(options, 'queueLim', 0);    // -1...∞
-  this._concurLim = get(options, 'concurLim', -1); // -1, 1...∞
-  this._drop = get(options, 'drop', 'new');        // old, new
+  this._queueLim = get(options, 'queueLim', 0);
+  this._concurLim = get(options, 'concurLim', -1);
+  this._drop = get(options, 'drop', 'new');
   if (this._concurLim === 0) {
     throw new Error('options.concurLim can\'t be 0');
   }
