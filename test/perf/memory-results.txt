@@ -1,106 +1,106 @@
 
 very base stream (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.29 KiB   w/ subscr. +0.75 KiB   sum 1.03 KiB 
+Kefir   w/o subscr. 0.29 KiB   w/ subscr. +0.67 KiB   sum 0.96 KiB 
 Bacon   w/o subscr. 1.94 KiB   w/ subscr. +0.92 KiB   sum 2.86 KiB 
 Rx      w/o subscr. 1.48 KiB   w/ subscr. +1.25 KiB   sum 2.74 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 6.71 1.23 2.76    Rx 5.14 1.68 2.64
+Kefir 1.00 1.00 1.00    Bacon 6.74 1.37 2.98    Rx 5.16 1.87 2.86
 
 
 bus vs emitter (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.11 KiB   w/ subscr. +0.27 KiB   sum 0.38 KiB 
-Bacon   w/o subscr. 2.69 KiB   w/ subscr. +0.77 KiB   sum 3.46 KiB 
+Kefir   w/o subscr. 0.11 KiB   w/ subscr. +0.17 KiB   sum 0.28 KiB 
+Bacon   w/o subscr. 2.69 KiB   w/ subscr. +0.76 KiB   sum 3.46 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 24.00 2.84 9.05
+Kefir 1.00 1.00 1.00    Bacon 24.29 4.41 12.16
 
 
 bus vs pool (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.16 KiB   w/ subscr. +0.28 KiB   sum 0.44 KiB 
+Kefir   w/o subscr. 0.23 KiB   w/ subscr. +0.18 KiB   sum 0.42 KiB 
 Bacon   w/o subscr. 2.67 KiB   w/ subscr. +0.76 KiB   sum 3.44 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 16.53 2.72 7.78
+Kefir 1.00 1.00 1.00    Bacon 11.42 4.17 8.24
 
 
 .combineAsArray(s1, s2, s3, s4) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.37 KiB   w/ subscr. +1.63 KiB   sum 2.00 KiB 
+Kefir   w/o subscr. 0.28 KiB   w/ subscr. +1.54 KiB   sum 1.82 KiB 
 Bacon   w/o subscr. 6.46 KiB   w/ subscr. +5.27 KiB   sum 11.73 KiB 
 Rx      w/o subscr. 0.34 KiB   w/ subscr. +3.61 KiB   sum 3.95 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 17.62 3.23 5.86    Rx 0.93 2.21 1.97
+Kefir 1.00 1.00 1.00    Bacon 22.74 3.42 6.43    Rx 1.19 2.34 2.16
 
 
 stream1.combine(stream2, ->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.46 KiB   w/ subscr. +0.93 KiB   sum 1.39 KiB 
+Kefir   w/o subscr. 0.41 KiB   w/ subscr. +0.83 KiB   sum 1.24 KiB 
 Bacon   w/o subscr. 8.85 KiB   w/ subscr. +4.28 KiB   sum 13.13 KiB 
 Rx      w/o subscr. 0.42 KiB   w/ subscr. +2.88 KiB   sum 3.30 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 19.07 4.62 9.44    Rx 0.90 3.10 2.37
+Kefir 1.00 1.00 1.00    Bacon 21.75 5.16 10.62    Rx 1.03 3.47 2.67
 
 
 .constant(i) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.08 KiB   w/ subscr. +0.01 KiB   sum 0.08 KiB 
-Bacon   w/o subscr. 2.47 KiB   w/ subscr. +1.07 KiB   sum 3.55 KiB 
+Kefir   w/o subscr. 0.08 KiB   w/ subscr. +0.01 KiB   sum 0.09 KiB 
+Bacon   w/o subscr. 2.48 KiB   w/ subscr. +1.07 KiB   sum 3.55 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 31.98 171.15 42.41
+Kefir 1.00 1.00 1.00    Bacon 32.14 81.35 39.33
 
 
 .delay(1) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.39 KiB   w/ subscr. +0.58 KiB   sum 0.97 KiB 
-Bacon   w/o subscr. 2.40 KiB   w/ subscr. +2.32 KiB   sum 4.72 KiB 
+Kefir   w/o subscr. 0.41 KiB   w/ subscr. +0.48 KiB   sum 0.89 KiB 
+Bacon   w/o subscr. 2.41 KiB   w/ subscr. +2.32 KiB   sum 4.72 KiB 
 Rx      w/o subscr. 0.33 KiB   w/ subscr. +3.06 KiB   sum 3.40 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 6.12 4.01 4.87    Rx 0.85 5.30 3.50
+Kefir 1.00 1.00 1.00    Bacon 5.88 4.84 5.32    Rx 0.82 6.41 3.83
 
 
 .filter(->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.39 KiB   w/ subscr. +0.57 KiB   sum 0.97 KiB 
+Kefir   w/o subscr. 0.39 KiB   w/ subscr. +0.48 KiB   sum 0.87 KiB 
 Bacon   w/o subscr. 3.46 KiB   w/ subscr. +1.35 KiB   sum 4.81 KiB 
 Rx      w/o subscr. 0.37 KiB   w/ subscr. +1.45 KiB   sum 1.83 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 8.80 2.35 4.97    Rx 0.95 2.53 1.89
+Kefir 1.00 1.00 1.00    Bacon 8.79 2.83 5.52    Rx 0.95 3.04 2.09
 
 
 .flatMap(->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.40 KiB   w/ subscr. +0.58 KiB   sum 0.98 KiB 
+Kefir   w/o subscr. 0.52 KiB   w/ subscr. +0.48 KiB   sum 1.01 KiB 
 Bacon   w/o subscr. 2.23 KiB   w/ subscr. +2.31 KiB   sum 4.54 KiB 
-Rx      w/o subscr. 0.79 KiB   w/ subscr. +2.49 KiB   sum 3.27 KiB 
+Rx      w/o subscr. 0.79 KiB   w/ subscr. +2.48 KiB   sum 3.27 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 5.61 3.96 4.63    Rx 1.98 4.26 3.34
+Kefir 1.00 1.00 1.00    Bacon 4.26 4.78 4.51    Rx 1.51 5.13 3.25
 
 
 .later(0, 1) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.29 KiB   w/ subscr. +0.59 KiB   sum 0.88 KiB 
-Bacon   w/o subscr. 2.42 KiB   w/ subscr. +1.41 KiB   sum 3.83 KiB 
+Kefir   w/o subscr. 0.28 KiB   w/ subscr. +0.50 KiB   sum 0.78 KiB 
+Bacon   w/o subscr. 2.42 KiB   w/ subscr. +1.42 KiB   sum 3.83 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 8.36 2.39 4.35
+Kefir 1.00 1.00 1.00    Bacon 8.53 2.84 4.91
 
 
 .map(->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.38 KiB   w/ subscr. +0.58 KiB   sum 0.96 KiB 
+Kefir   w/o subscr. 0.38 KiB   w/ subscr. +0.48 KiB   sum 0.87 KiB 
 Bacon   w/o subscr. 3.46 KiB   w/ subscr. +1.35 KiB   sum 4.81 KiB 
 Rx      w/o subscr. 0.37 KiB   w/ subscr. +1.45 KiB   sum 1.82 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 9.07 2.33 5.00    Rx 0.97 2.50 1.89
+Kefir 1.00 1.00 1.00    Bacon 9.08 2.79 5.56    Rx 0.97 2.99 2.11
 
 
 .mergeAll(s1, s2, s3, s4) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.13 KiB   w/ subscr. +1.50 KiB   sum 1.62 KiB 
-Bacon   w/o subscr. 2.03 KiB   w/ subscr. +3.14 KiB   sum 5.18 KiB 
-Rx      w/o subscr. 0.65 KiB   w/ subscr. +5.26 KiB   sum 5.91 KiB 
+Kefir   w/o subscr. 0.32 KiB   w/ subscr. +2.72 KiB   sum 3.04 KiB 
+Bacon   w/o subscr. 2.03 KiB   w/ subscr. +3.15 KiB   sum 5.18 KiB 
+Rx      w/o subscr. 0.65 KiB   w/ subscr. +5.26 KiB   sum 5.92 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 16.05 2.10 3.19    Rx 5.16 3.52 3.65
+Kefir 1.00 1.00 1.00    Bacon 6.29 1.16 1.70    Rx 2.02 1.94 1.94
 
 
 .never() (1000 samples)
@@ -109,57 +109,57 @@ Kefir   w/o subscr. -0.00 KiB   w/ subscr. -0.02 KiB   sum -0.02 KiB
 Bacon   w/o subscr. 2.05 KiB   w/ subscr. +0.89 KiB   sum 2.94 KiB 
 Rx      w/o subscr. 0.23 KiB   w/ subscr. -0.00 KiB   sum 0.23 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon -671.96 -53.48 -149.63    Rx -76.45 0.13 -11.78
+Kefir 1.00 1.00 1.00    Bacon -795.94 -52.83 -151.67    Rx -90.28 0.17 -11.86
 
 
 stream1.sampledBy(stream2, ->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.48 KiB   w/ subscr. +0.92 KiB   sum 1.40 KiB 
-Bacon   w/o subscr. 5.96 KiB   w/ subscr. +3.86 KiB   sum 9.83 KiB 
+Kefir   w/o subscr. 0.47 KiB   w/ subscr. +0.83 KiB   sum 1.30 KiB 
+Bacon   w/o subscr. 5.97 KiB   w/ subscr. +3.86 KiB   sum 9.83 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 12.44 4.19 7.01
+Kefir 1.00 1.00 1.00    Bacon 12.64 4.67 7.56
 
 
 .scan(0, ->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.37 KiB   w/ subscr. +0.58 KiB   sum 0.95 KiB 
+Kefir   w/o subscr. 0.37 KiB   w/ subscr. +0.48 KiB   sum 0.85 KiB 
 Bacon   w/o subscr. 2.96 KiB   w/ subscr. +1.54 KiB   sum 4.50 KiB 
 Rx      w/o subscr. 0.38 KiB   w/ subscr. +1.15 KiB   sum 1.53 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 7.99 2.65 4.73    Rx 1.04 1.98 1.61
+Kefir 1.00 1.00 1.00    Bacon 8.00 3.19 5.27    Rx 1.04 2.38 1.80
 
 
 .sequentially(0, [1, 2]) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.35 KiB   w/ subscr. +0.55 KiB   sum 0.90 KiB 
+Kefir   w/o subscr. 0.34 KiB   w/ subscr. +0.45 KiB   sum 0.80 KiB 
 Bacon   w/o subscr. 2.38 KiB   w/ subscr. +1.41 KiB   sum 3.79 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 6.82 2.58 4.23
+Kefir 1.00 1.00 1.00    Bacon 6.91 3.11 4.76
 
 
 .skipDuplicates(->) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.39 KiB   w/ subscr. +0.58 KiB   sum 0.97 KiB 
+Kefir   w/o subscr. 0.39 KiB   w/ subscr. +0.48 KiB   sum 0.87 KiB 
 Bacon   w/o subscr. 3.57 KiB   w/ subscr. +1.35 KiB   sum 4.92 KiB 
 Rx      w/o subscr. 0.38 KiB   w/ subscr. +1.46 KiB   sum 1.83 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 9.07 2.34 5.06    Rx 0.96 2.52 1.89
+Kefir 1.00 1.00 1.00    Bacon 9.07 2.81 5.63    Rx 0.96 3.03 2.10
 
 
 .take(5) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.23 KiB   w/ subscr. +0.57 KiB   sum 0.80 KiB 
+Kefir   w/o subscr. 0.23 KiB   w/ subscr. +0.48 KiB   sum 0.71 KiB 
 Bacon   w/o subscr. 3.32 KiB   w/ subscr. +1.35 KiB   sum 4.67 KiB 
 Rx      w/o subscr. 0.29 KiB   w/ subscr. +1.45 KiB   sum 1.74 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 14.66 2.35 5.84    Rx 1.29 2.53 2.18
+Kefir 1.00 1.00 1.00    Bacon 14.56 2.82 6.61    Rx 1.28 3.03 2.47
 
 
 .throttle(1) (1000 samples)
 ----------------------------------------------------------------
-Kefir   w/o subscr. 0.44 KiB   w/ subscr. +0.57 KiB   sum 1.01 KiB 
+Kefir   w/o subscr. 0.45 KiB   w/ subscr. +0.48 KiB   sum 0.93 KiB 
 Bacon   w/o subscr. 7.30 KiB   w/ subscr. +2.18 KiB   sum 9.47 KiB 
 Rx      w/o subscr. 0.43 KiB   w/ subscr. +1.01 KiB   sum 1.44 KiB 
 -----------------------
-Kefir 1.00 1.00 1.00    Bacon 16.67 3.79 9.36    Rx 0.98 1.75 1.42
+Kefir 1.00 1.00 1.00    Bacon 16.22 4.53 10.19    Rx 0.96 2.10 1.55
 
