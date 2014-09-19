@@ -4,12 +4,14 @@ mixin method(anchor, name)
     a(href=anchor)= name
 
 
-mixin descr-method(anchor, name, code, alias)
+mixin descr-method(anchor, name, code, alias, shorthand)
   p(id=anchor)
     a.header(href='#' + anchor) #{name}
     code #{code}
     if alias
       code.alias #{alias}
-    else
+    if shorthand
+      code.shorthand #{shorthand}
+    if !alias && !shorthand
       br
     block

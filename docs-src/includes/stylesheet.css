@@ -131,6 +131,7 @@ pre {
     padding: 0 .5em;
     font-size: .8em;
     color: #8b8b8b;
+    background: rgba(251, 251, 251, 0.9);
   }
   pre + pre {
     margin-top: -10px;
@@ -198,18 +199,21 @@ pre {
     font-weight: bold;
     color: inherit;
   }
-  .alias {
+  .alias, .shorthand {
     display: block;
     margin-left: 1em;
     margin-bottom: .4em;
   }
-  .alias:before {
+  .alias:before, .shorthand:before {
     content: 'Alias:';
     font-family: Helvetica, Arial, sans-serif;
     font-style: italic;
     font-size: 1.1em;
     font-weight: bold;
     margin-right: .5em;
+  }
+  .shorthand:before {
+    content: 'Shorthand for:';
   }
 
 p[id] {

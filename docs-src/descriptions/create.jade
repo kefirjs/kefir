@@ -171,7 +171,6 @@ pre(title='console output')
     > [withInterval] <value> 2003
     > [withInterval] <value> 3005
     > [withInterval] <end>
-    ...
 div
 
 p.
@@ -180,8 +179,40 @@ p.
 
 
 
-+descr-method('from-callback', 'fromCallback', 'Kefir.fromCallback(callbackConsumer)').
++descr-method('from-callback', 'fromCallback', 'Kefir.fromCallback(fn)').
+  Convert a <b>fn</b> function than accepts <b>callback</b>
+  as first argument to a stream.
+  Emits at most one value when <b>callback</b> is called then ends.
+  <b>Fn</b> will be called at most
+  once on first <a href="#active-state">activation</a> of a stream
+  (i.e. when first subscriber added).
 
+pre(title='code')
+  :escapehtml
+    var stream = Kefir.fromCallback(function(callback) {
+      // we use setTimeout here just to simulate some asynchronous activity
+      setTimeout(function() {  callback(1)  }, 1000);
+    });
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromCallback] <value> 1
+    > [fromCallback] <end>
+
+p Another example where we use <a href="#callbacks">an array form of function</a>:
+
+pre(title='code')
+  :escapehtml
+    var url = 'http://pozadi.github.io/kefir/';
+    var stream = Kefir.fromCallback([jQuery.get, null, url]);
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromCallback] <value> <!DOCTYPE html><html...
+    > [fromCallback] <end>
+div
 
 
 +descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').

@@ -33,9 +33,8 @@ pre(title='console output')
 div
 
 
-+descr-method('map-to', 'mapTo', 'obs.mapTo(value)').
++descr-method('map-to', 'mapTo', 'obs.mapTo(value)', null, 'obs.map(function() {return value})').
   On each value from original observable emits given <b>value</b>.<br>
-  Shorthand for <tt>observable.map(function() {return value})</tt>.
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -52,9 +51,8 @@ pre(title='console output')
 div
 
 
-+descr-method('pluck', 'pluck', 'obs.pluck(propertyName)').
++descr-method('pluck', 'pluck', 'obs.pluck(propertyName)', null, 'obs.map(function(x) {return x.foo})').
   On each value from original observable emits <tt>value[propertyName]</tt>.<br>
-  Shorthand for <tt>observable.map(function(x) {return x.foo})</tt>
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -71,12 +69,11 @@ pre(title='console output')
 div
 
 
-+descr-method('invoke', 'invoke', 'obs.invoke(methodName)').
++descr-method('invoke', 'invoke', 'obs.invoke(methodName)', null, 'obs.map(function(x) {return x.foo()})').
   Just like <b>.pluck</b>, but instead of emitting <tt>value[propertyName]</tt>
   it emits <tt>value[methodName]()</tt>,
   i.e. calls method <b>methodName</b> of each value object
   and emits whatever it returns.<br>
-  Shorthand for <tt>observable.map(function(x) {return x.foo()})</tt>
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -93,9 +90,8 @@ pre(title='console output')
 div
 
 
-+descr-method('not', 'not', 'obs.not()').
++descr-method('not', 'not', 'obs.not()', null, 'obs.map(function(x) {return !x})').
   Inverts every value from original observable using <tt>!</tt> operator.<br>
-  Shorthand for <tt>observable.map(function(x) {return !x})</tt>
 
 pre(title='code').
   var emitter = Kefir.emitter();

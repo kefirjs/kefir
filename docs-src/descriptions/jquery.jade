@@ -46,5 +46,29 @@ pre(title='console output')
 div
 
 
-+descr-method('as-kefir-property', 'asKefirProperty', '$(...).asKefirProperty(eventName, [selector], getter)').
++descr-method('as-kefir-property', 'asKefirProperty', '$(...).asKefirProperty(eventName, [selector], getter)', null, '$(...).asKefirStream(eventName, [selector], getter).toProperty(getter())').
+  Like <b>asKefirStream</b>, but instead of optional <b>eventTransformer</b> accepts
+  required <b>getter</b> function, which is called like <b>eventTransformer</b>
+  for each new event, but also called once without any argument
+  at moment when property is created.
+  Also unlike <b>asKefirStream</b> returns a property.
+
+pre(title='code').
+  var cursorPosition = $('body').asKefirProperty('mousemove', function(event) {
+    if (!event) { // if no event passed then it's an "on creation" call
+      return [0, 0];
+    } else {
+      return [event.pageX, event.pageY];
+    }
+  });
+  cursorPosition.log();
+
+pre(title='console output')
+  :escapehtml
+    > [asKefirProperty] <value:current> [0, 0]
+    > [asKefirProperty] <value> [551, 1168]
+    > [asKefirProperty] <value> [551, 1168]
+    > [asKefirProperty] <value> [556, 1161]
+    > ...
+
 
