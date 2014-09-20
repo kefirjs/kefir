@@ -505,7 +505,74 @@ emitter.emit(new Date());
 emitter.end();
 </pre><pre title="console output">&gt; [emitter.delay.map] &lt;value&gt; 100
 &gt; [emitter.delay.map] &lt;value&gt; 100
-&gt; [emitter.delay.map] &lt;end&gt;</pre><div></div><p id="throttle"><a href="#throttle" class="header">throttle</a><code>obs.throttle(wait, [options])</code><br/></p><p id="debounce"><a href="#debounce" class="header">debounce</a><code>obs.debounce(wait, [options])</code><br/></p><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>obs.withHandler(fn)</code><br/></p><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(obss, [fn])</code><code class="alias">obs.combine(otherObs, [fn])</code></p><p id="and"><a href="#and" class="header">and</a><code>Kefir.and(obss)</code><code class="alias">obs.and(otherObs)</code></p><p id="or"><a href="#or" class="header">or</a><code>Kefir.or(obss)</code><code class="alias">obs.or(otherObs)</code></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObss, activeObss, [fn])</code><code class="alias">obs.sampledBy(otherObs, [fn])</code></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(obss)</code><code class="alias">obs.merge(otherObs)</code></p><p id="concat"><a href="#concat" class="header">concat</a><code>Kefir.concat(obss)</code><code class="alias">obs.concat(otherObs)</code></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>obs.flatMap([fn])</code><br/></p><p id="flat-map-latest"><a href="#flat-map-latest" class="header">flatMapLatest</a><code>obs.flatMapLatest([fn])</code><br/></p><p id="flat-map-first"><a href="#flat-map-first" class="header">flatMapFirst</a><code>obs.flatMapFirst([fn])</code><br/></p><p id="flat-map-concat"><a href="#flat-map-concat" class="header">flatMapConcat</a><code>obs.flatMapConcat([fn])</code><br/></p><p id="flat-map-with-concurrency-limit"><a href="#flat-map-with-concurrency-limit" class="header">flatMapWithConcurrencyLimit</a><code>obs.flatMapWithConcurrencyLimit([fn], limit)</code><br/></p><p id="awating"><a href="#awating" class="header">awating</a><code>obs.awating(otherObs)</code><br/></p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/></p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
+&gt; [emitter.delay.map] &lt;end&gt;</pre><div></div><p id="throttle"><a href="#throttle" class="header">throttle</a><code>obs.throttle(wait, [options])</code><br/>Return new throttled version of <b>obs</b> observable, which will emit values
+only at most once per every <b>wait</b> milliseconds.
+If used on a property current value will always pass intact without any delay.
+</p><p>Accepts optional <b>options</b> object similar to
+<a href="http://underscorejs.org/#throttle" target="_blank">underscore.throttle</a>.
+By default, will emit event as soon as it comes for the first time, and,
+if any new events will come during the wait period,
+will emit last of them as soon as that period is over.
+If you'd like to disable the leading-edge emit,
+pass <tt>{leading: false}</tt>, and if you'd like to disable the emit
+on the trailing-edge, pass <tt>{trailing: false}</tt>.
+</p><pre title="code">var stream = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+var throttled = stream.throttle(250);
+throttled.log();
+</pre><pre title="console output">&gt; [sequentially.throttle] &lt;value&gt; 1
+&gt; [sequentially.throttle] &lt;value&gt; 3
+&gt; [sequentially.throttle] &lt;value&gt; 5
+&gt; [sequentially.throttle] &lt;value&gt; 8
+&gt; [sequentially.throttle] &lt;value&gt; 0
+&gt; [sequentially.throttle] &lt;end&gt;</pre><div></div><p id="debounce"><a href="#debounce" class="header">debounce</a><code>obs.debounce(wait, [options])</code><br/>Creates new debounced version of <b>obs</b> observable.
+Will emit a value only after <b>wait</b> milliseconds period of no events.
+Pass <tt>{immediate: true}</tt> as an <b>options</b> object to cause
+observable to emit value on leading instead of the
+trailing edge of the <b>wait</b> interval.
+If used on a property current value will always pass intact without any delay.
+</p><pre title="code">var stream = Kefir.sequentially(100, [1, 2, 3, -1, -2, -3, 4, 5, 6]);
+stream = stream.filter(function(x) {return x &gt; 0});
+var debounced = stream.debounce(250);
+debounced.log();
+</pre><pre title="console output">&gt; [sequentially.filter.debounce] &lt;value&gt; 3
+&gt; [sequentially.filter.debounce] &lt;value&gt; 6
+&gt; [sequentially.filter.debounce] &lt;end&gt;</pre><div></div><p id="with-handler"><a href="#with-handler" class="header">withHandler</a><code>obs.withHandler(handler)</code><br/>The most general transformation method. All other transformation methods above
+can be implemented via <b>withHandler</b>.
+Will call <b>handler</b> function on each event from <b>obs</b> observable
+passing to it two arguments: an <a href="#emitter-object">emitter object</a>,
+and an event object (with same format as in <a href="#on-any">.onAny</a> callback).
+</p><p>By default will not emit any values, and will not end when <b>obs</b>
+observable ends. Instead you should implement desired behaviour in
+<b>handler</b> function, i.e. analyse <b>event object</b> and call
+<tt>emitter.emit()</tt> or <tt>emitter.end()</tt> if necessary. You can call
+<b>emitter</b> methods several times in each <b>handler</b> execution,
+and you can also call them at any time later, for example to implement
+<a href="#delay">.delay()</a>.
+</p><pre title="code">var em = Kefir.emitter();
+em.withHandler(function(emitter, event) {
+  if (event.type === &#x27;end&#x27;) {
+    emitter.emit(&#x27;bye&#x27;);
+    emitter.end();
+  }
+  if (event.type === &#x27;value&#x27;) {
+    for (var i = 0; i &lt; event.value; i++) {
+      emitter.emit(event.value);
+    }
+  }
+}).log();
+em.emit(0);
+em.emit(1);
+em.emit(2);
+em.emit(3);
+em.end();
+</pre><pre title="console output">&gt; [emitter.withHandler] &lt;value&gt; 1
+&gt; [emitter.withHandler] &lt;value&gt; 2
+&gt; [emitter.withHandler] &lt;value&gt; 2
+&gt; [emitter.withHandler] &lt;value&gt; 3
+&gt; [emitter.withHandler] &lt;value&gt; 3
+&gt; [emitter.withHandler] &lt;value&gt; 3
+&gt; [emitter.withHandler] &lt;value&gt; bye
+&gt; [emitter.withHandler] &lt;end&gt;</pre><div></div><h2 id="combine-observables">Combine observables</h2><p id="combine"><a href="#combine" class="header">combine</a><code>Kefir.combine(obss, [fn])</code><code class="alias">obs.combine(otherObs, [fn])</code></p><p id="and"><a href="#and" class="header">and</a><code>Kefir.and(obss)</code><code class="alias">obs.and(otherObs)</code></p><p id="or"><a href="#or" class="header">or</a><code>Kefir.or(obss)</code><code class="alias">obs.or(otherObs)</code></p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObss, activeObss, [fn])</code><code class="alias">obs.sampledBy(otherObs, [fn])</code></p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(obss)</code><code class="alias">obs.merge(otherObs)</code></p><p id="concat"><a href="#concat" class="header">concat</a><code>Kefir.concat(obss)</code><code class="alias">obs.concat(otherObs)</code></p><p id="pool"><a href="#pool" class="header">pool</a><code>Kefir.pool()</code><br/></p><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>obs.flatMap([fn])</code><br/></p><p id="flat-map-latest"><a href="#flat-map-latest" class="header">flatMapLatest</a><code>obs.flatMapLatest([fn])</code><br/></p><p id="flat-map-first"><a href="#flat-map-first" class="header">flatMapFirst</a><code>obs.flatMapFirst([fn])</code><br/></p><p id="flat-map-concat"><a href="#flat-map-concat" class="header">flatMapConcat</a><code>obs.flatMapConcat([fn])</code><br/></p><p id="flat-map-with-concurrency-limit"><a href="#flat-map-with-concurrency-limit" class="header">flatMapWithConcurrencyLimit</a><code>obs.flatMapWithConcurrencyLimit([fn], limit)</code><br/></p><p id="awating"><a href="#awating" class="header">awating</a><code>obs.awating(otherObs)</code><br/></p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/></p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
 active or inactive. When observable in inactive state it not emits any
 events, and not subscribes to it's original source.
 Observables automatically became active when first listener added,
