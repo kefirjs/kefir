@@ -33,9 +33,8 @@ pre(title='console output')
 div
 
 
-+descr-method('map-to', 'mapTo', 'obs.mapTo(value)').
++descr-method('map-to', 'mapTo', 'obs.mapTo(value)', null, 'obs.map(function() {return value})').
   On each value from original observable emits given <b>value</b>.<br>
-  Shorthand for <tt>observable.map(function() {return value})</tt>.
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -52,9 +51,8 @@ pre(title='console output')
 div
 
 
-+descr-method('pluck', 'pluck', 'obs.pluck(propertyName)').
++descr-method('pluck', 'pluck', 'obs.pluck(propertyName)', null, 'obs.map(function(x) {return x.foo})').
   On each value from original observable emits <tt>value[propertyName]</tt>.<br>
-  Shorthand for <tt>observable.map(function(x) {return x.foo})</tt>
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -71,12 +69,11 @@ pre(title='console output')
 div
 
 
-+descr-method('invoke', 'invoke', 'obs.invoke(methodName)').
++descr-method('invoke', 'invoke', 'obs.invoke(methodName)', null, 'obs.map(function(x) {return x.foo()})').
   Just like <b>.pluck</b>, but instead of emitting <tt>value[propertyName]</tt>
   it emits <tt>value[methodName]()</tt>,
   i.e. calls method <b>methodName</b> of each value object
   and emits whatever it returns.<br>
-  Shorthand for <tt>observable.map(function(x) {return x.foo()})</tt>
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -93,9 +90,8 @@ pre(title='console output')
 div
 
 
-+descr-method('not', 'not', 'obs.not()').
++descr-method('not', 'not', 'obs.not()', null, 'obs.map(function(x) {return !x})').
   Inverts every value from original observable using <tt>!</tt> operator.<br>
-  Shorthand for <tt>observable.map(function(x) {return !x})</tt>
 
 pre(title='code').
   var emitter = Kefir.emitter();
@@ -398,13 +394,110 @@ div
 
 
 +descr-method('throttle', 'throttle', 'obs.throttle(wait, [options])').
+  Return new throttled version of <b>obs</b> observable, which will emit values
+  only at most once per every <b>wait</b> milliseconds.
+  If used on a property current value will always pass intact without any delay.
+
+p.
+  Accepts optional <b>options</b> object similar to
+  <a href="http://underscorejs.org/#throttle" target="_blank">underscore.throttle</a>.
+  By default, will emit event as soon as it comes for the first time, and,
+  if any new events will come during the wait period,
+  will emit last of them as soon as that period is over.
+  If you'd like to disable the leading-edge emit,
+  pass <tt>{leading: false}</tt>, and if you'd like to disable the emit
+  on the trailing-edge, pass <tt>{trailing: false}</tt>.
+
+pre(title='code')
+  :escapehtml
+    var stream = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+    var throttled = stream.throttle(250);
+    throttled.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.throttle] <value> 1
+    > [sequentially.throttle] <value> 3
+    > [sequentially.throttle] <value> 5
+    > [sequentially.throttle] <value> 8
+    > [sequentially.throttle] <value> 0
+    > [sequentially.throttle] <end>
+div
+
+
 
 
 
 +descr-method('debounce', 'debounce', 'obs.debounce(wait, [options])').
+  Creates new debounced version of <b>obs</b> observable.
+  Will emit a value only after <b>wait</b> milliseconds period of no events.
+  Pass <tt>{immediate: true}</tt> as an <b>options</b> object to cause
+  observable to emit value on leading instead of the
+  trailing edge of the <b>wait</b> interval.
+  If used on a property current value will always pass intact without any delay.
+
+pre(title='code')
+  :escapehtml
+    var stream = Kefir.sequentially(100, [1, 2, 3, -1, -2, -3, 4, 5, 6]);
+    stream = stream.filter(function(x) {return x > 0});
+    var debounced = stream.debounce(250);
+    debounced.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.filter.debounce] <value> 3
+    > [sequentially.filter.debounce] <value> 6
+    > [sequentially.filter.debounce] <end>
+div
 
 
 
-+descr-method('with-handler', 'withHandler', 'obs.withHandler(fn)').
 
 
++descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
+  The most general transformation method. All other transformation methods above
+  can be implemented via <b>withHandler</b>.
+  Will call <b>handler</b> function on each event from <b>obs</b> observable
+  passing to it two arguments: an <a href="#emitter-object">emitter object</a>,
+  and an event object (with same format as in <a href="#on-any">.onAny</a> callback).
+
+p.
+  By default will not emit any values, and will not end when <b>obs</b>
+  observable ends. Instead you should implement desired behaviour in
+  <b>handler</b> function, i.e. analyse <b>event object</b> and call
+  <tt>emitter.emit()</tt> or <tt>emitter.end()</tt> if necessary. You can call
+  <b>emitter</b> methods several times in each <b>handler</b> execution,
+  and you can also call them at any time later, for example to implement
+  <a href="#delay">.delay()</a>.
+
+pre(title='code')
+  :escapehtml
+    var em = Kefir.emitter();
+    em.withHandler(function(emitter, event) {
+      if (event.type === 'end') {
+        emitter.emit('bye');
+        emitter.end();
+      }
+      if (event.type === 'value') {
+        for (var i = 0; i < event.value; i++) {
+          emitter.emit(event.value);
+        }
+      }
+    }).log();
+    em.emit(0);
+    em.emit(1);
+    em.emit(2);
+    em.emit(3);
+    em.end();
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.withHandler] <value> 1
+    > [emitter.withHandler] <value> 2
+    > [emitter.withHandler] <value> 2
+    > [emitter.withHandler] <value> 3
+    > [emitter.withHandler] <value> 3
+    > [emitter.withHandler] <value> 3
+    > [emitter.withHandler] <value> bye
+    > [emitter.withHandler] <end>
+div
