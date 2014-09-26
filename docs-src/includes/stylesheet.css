@@ -151,11 +151,6 @@ pre {
   box-shadow: 0 0 20px #ccc;
   font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
 }
-@media (max-width: 1200px) {
-  .sidebar {
-    width: 170px;
-  }
-}
   .sidebar a {
     color: inherit;
   }
@@ -189,8 +184,25 @@ pre {
   font-family: Helvetica, Arial, sans-serif;
 }
 @media (max-width: 1200px) {
+  .sidebar {
+    width: 170px;
+  }
   .container {
     margin-left: 260px;
+  }
+}
+@media (max-width: 780px) {
+  .sidebar {
+    position: static;
+    float: left;
+    /*background: none;*/
+    border: none;
+    box-shadow: none;
+    padding: 15px 20px;
+    margin-top: -40px;
+  }
+  .container {
+    margin-left: 230px;
   }
 }
   .header {
