@@ -215,6 +215,34 @@ pre(title='console output')
 div
 
 
+
++descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
+  Creates a stream from
+  <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget" target="_blank">DOM</a>
+  or <a href="http://nodejs.org/api/events.html" target="_blank">EventEmitter (Node.js)</a> events.
+  <b>Target</b> is a DOM node or an EventEmitter, <b>eventName</b> is event name,
+  and <b>transform</b> is optional transformation function like in
+  <a href="#as-kefir-stream">asKefirStream</a> method.
+
+pre(title='code')
+  :escapehtml
+    var stream = Kefir.fromEvent(document.body, 'click');
+    stream.log()
+
+pre(title='console output')
+  :escapehtml
+    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
+    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 361, x: 751 ...}
+    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
+div
+
+p.
+  Note that it uses <tt>addEventListener()</tt> for DOM events,
+  which is not supported by IE8. If you need IE8 support use
+  <a href="#jquery">jQuery addon<a>.
+
+
+
 +descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
   Another method for creation general purpose stream,
   along with <a href="#emitter">emitter</a>.

@@ -1958,6 +1958,27 @@ Kefir.fromCallback = function(callbackConsumer) {
 }
 
 
+
+
+// .fromEvent
+
+Kefir.fromEvent = function(target, eventName, transformer) {
+  transformer = transformer && Fn(transformer);
+  var sub = target.addEventListener || target.addListener || target.bind;
+  var unsub = target.removeEventListener || target.removeListener || target.unbind;
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ?
+      function() {
+        emitter.emit(transformer.applyWithContext(this, arguments));
+      } : emitter.emit;
+    sub.call(target, eventName, handler);
+    return function() {
+      unsub.call(target, eventName, handler);
+    }
+  }).setName('fromEvent');
+}
+
+
   if (typeof define === 'function' && define.amd) {
     define([], function() {
       return Kefir;
