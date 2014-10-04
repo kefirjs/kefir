@@ -1080,11 +1080,11 @@ inherit(Pool, _AbstractPool, {
 
   _name: 'pool',
 
-  add: function(obs) {
+  plug: function(obs) {
     this._add(obs);
     return this;
   },
-  remove: function(obs) {
+  unplug: function(obs) {
     this._remove(obs);
     return this;
   }

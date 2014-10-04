@@ -10,9 +10,9 @@ describe 'pool', ->
     a = stream()
     b = prop()
     c = stream()
-    pool = Kefir.pool().add(a).add(b).add(c)
+    pool = Kefir.pool().plug(a).plug(b).plug(c)
     expect(pool).toActivate(a, b, c)
-    pool.remove(b)
+    pool.unplug(b)
     expect(pool).toActivate(a, c)
     expect(pool).not.toActivate(b)
 
@@ -20,7 +20,7 @@ describe 'pool', ->
     a = stream()
     b = send(prop(), [0])
     c = stream()
-    pool = Kefir.pool().add(a).add(b).add(c)
+    pool = Kefir.pool().plug(a).plug(b).plug(c)
     expect(pool).toEmit [{current: 0}, 1, 2, 3, 4, 5, 6], ->
       send(a, [1])
       send(b, [2])
@@ -34,14 +34,14 @@ describe 'pool', ->
     b = send(prop(), [1])
     c = send(prop(), [2])
 
-    pool = Kefir.pool().add(a).add(b).add(c)
+    pool = Kefir.pool().plug(a).plug(b).plug(c)
     expect(pool).toEmit [{current: 0}, {current: 1}, {current: 2}]
 
-    pool = Kefir.pool().add(a).add(b).add(c)
+    pool = Kefir.pool().plug(a).plug(b).plug(c)
     activate(pool)
     expect(pool).toEmit []
 
-    pool = Kefir.pool().add(a).add(b).add(c)
+    pool = Kefir.pool().plug(a).plug(b).plug(c)
     activate(pool)
     deactivate(pool)
     expect(pool).toEmit [{current: 0}, {current: 1}, {current: 2}]
@@ -50,7 +50,7 @@ describe 'pool', ->
     a = stream()
     b = send(prop(), [0])
     c = stream()
-    pool = Kefir.pool().add(a).add(b).add(c).remove(b)
+    pool = Kefir.pool().plug(a).plug(b).plug(c).unplug(b)
     expect(pool).toEmit [1, 3, 5, 6], ->
       send(a, [1])
       send(b, [2])
@@ -64,5 +64,5 @@ describe 'pool', ->
       b = send(prop(), [1])
       c = send(prop(), [2])
       expect(pool).toEmit [1, 2], ->
-        pool.add(b)
-        pool.add(c)
+        pool.plug(b)
+        pool.plug(c)
