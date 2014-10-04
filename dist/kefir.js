@@ -1787,8 +1787,14 @@ function Emitter() {
 
 inherit(Emitter, Stream, {
   _name: 'emitter',
-  emit: function(x) {  this._send('value', x)  },
-  end: function() {  this._send('end')  }
+  emit: function(x) {
+    this._send('value', x);
+    return this;
+  },
+  end: function() {
+    this._send('end');
+    return this;
+  }
 });
 
 Kefir.emitter = function() {
