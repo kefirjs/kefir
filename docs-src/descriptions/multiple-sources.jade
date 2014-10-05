@@ -167,7 +167,7 @@ p.
 
 
 +descr-method('merge', 'merge', 'Kefir.merge(obss)', 'obs.merge(otherObs)').
-  Creates a stream. Merges several <b>obss</b> observables together,
+  Merges several <b>obss</b> observables into single stream,
   i.e. simply repeats values from each source observable.
   Ends when all <b>obss</b> observables ends.
 
@@ -290,27 +290,217 @@ pre(title='events in time').
   pool:    ---------2-----3--3----4--------
 
 p.
-  In this graph <b>plug</b> and <b>unplug</b> shown just to illustrate moments when we plug and unplug sources, please don't be confused that there is some <b>plug</b> or <b>unplug</b> streams somewhere.
+  In this graph <b>plug</b> and <b>unplug</b> shown just to illustrate
+  moments when we plug and unplug sources, please don't be confused that
+  there is some <b>plug</b> or <b>unplug</b> streams somewhere.
 
 
 
 +descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
+  Creates a stream, which passes every value of <b>obs</b>
+  observable to <b>fn</b> function, which must return an observable.
+  Then repeats events from each of those observables like
+  <a href="#merge">merge</a> or <a href="#pool">pool</a>.
+
+p.
+  In other words, <b>flatMap</b> is a <a href="#pool">pool</a>
+  to which automatically being added values from <b>obs</b>
+  observable passed through <b>fn</b> function.
+
+p.
+  If no <b>fn</b> provided, it expected that <b>obs</b> emits observables directly.
+
+p.
+  <b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
+
+pre(title='code').
+  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var result = source.flatMap(function(x) {
+    return Kefir.interval(40, x).take(4);
+  });
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMap] <value> 1
+    > [sequentially.flatMap] <value> 1
+    > [sequentially.flatMap] <value> 1
+    > [sequentially.flatMap] <value> 2
+    > [sequentially.flatMap] <value> 1
+    > [sequentially.flatMap] <value> 2
+    > [sequentially.flatMap] <value> 2
+    > [sequentially.flatMap] <value> 3
+    > [sequentially.flatMap] <value> 2
+    > [sequentially.flatMap] <value> 3
+    > [sequentially.flatMap] <value> 3
+    > [sequentially.flatMap] <value> 3
+    > [sequentially.flatMap] <end>
+
+pre(title='events in time').
+  source:      ----------1---------2---------3X
+
+  spawned 1:             ---1---1---1---1X
+  spawned 2:                       ---2---2---2---2X
+  spawned 3:                                 ---3---3---3---3X
+
+  result:      -------------1---1---1-2-1-2---2-3-2-3---3---3X
+div
+
 
 
 
 +descr-method('flat-map-latest', 'flatMapLatest', 'obs.flatMapLatest([fn])').
+  Like <b>flatMap</b>, but repeats events only from the latest added observable.
+  I.e. it switching from one observable to another.
+
+pre(title='code').
+  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var result = source.flatMapLatest(function(x) {
+    return Kefir.interval(40, x).take(4);
+  });
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMapLatest] <value> 1
+    > [sequentially.flatMapLatest] <value> 1
+    > [sequentially.flatMapLatest] <value> 2
+    > [sequentially.flatMapLatest] <value> 2
+    > [sequentially.flatMapLatest] <value> 3
+    > [sequentially.flatMapLatest] <value> 3
+    > [sequentially.flatMapLatest] <value> 3
+    > [sequentially.flatMapLatest] <value> 3
+    > [sequentially.flatMapLatest] <end>
+
+pre(title='events in time').
+  source:      ----------1---------2---------3X
+
+  spawned 1:             ---1---1---1---1X
+  spawned 2:                       ---2---2---2---2X
+  spawned 3:                                 ---3---3---3---3X
+
+  result:      -------------1---1-----2---2-----3---3---3---3X
+div
 
 
 
 +descr-method('flat-map-first', 'flatMapFirst', 'obs.flatMapFirst([fn])').
+  Like <b>flatMap</b>, but adds new observable only if previous one ended,
+  in other case it just ignoring new observable.
+
+pre(title='code').
+  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var result = source.flatMapFirst(function(x) {
+    return Kefir.interval(40, x).take(4);
+  });
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMapFirst] <value> 1
+    > [sequentially.flatMapFirst] <value> 1
+    > [sequentially.flatMapFirst] <value> 1
+    > [sequentially.flatMapFirst] <value> 1
+    > [sequentially.flatMapFirst] <value> 3
+    > [sequentially.flatMapFirst] <value> 3
+    > [sequentially.flatMapFirst] <value> 3
+    > [sequentially.flatMapFirst] <value> 3
+    > [sequentially.flatMapFirst] <end>
+
+pre(title='events in time').
+  source:      ----------1---------2---------3X
+
+  spawned 1:             ---1---1---1---1X
+  spawned 2:                       ---2---2---2---2X
+  spawned 3:                                 ---3---3---3---3X
+
+  result:      -------------1---1---1---1-------3---3---3---3X
+div
 
 
 
 +descr-method('flat-map-concat', 'flatMapConcat', 'obs.flatMapConcat([fn])').
+  Like <b>flatMapFirst</b>, but instead of ignoring new observable
+  (if previous one still alive), <b>flatMapConcat</b> adds it to the queue.
+  Then, when current source ends, it takes oldest observable from the queue,
+  and switches to it.
+
+pre(title='code').
+  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var result = source.flatMapConcat(function(x) {
+    return Kefir.interval(40, x).take(4);
+  });
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMapConcat] <value> 1
+    > [sequentially.flatMapConcat] <value> 1
+    > [sequentially.flatMapConcat] <value> 1
+    > [sequentially.flatMapConcat] <value> 1
+    > [sequentially.flatMapConcat] <value> 2
+    > [sequentially.flatMapConcat] <value> 2
+    > [sequentially.flatMapConcat] <value> 2
+    > [sequentially.flatMapConcat] <value> 2
+    > [sequentially.flatMapConcat] <value> 3
+    > [sequentially.flatMapConcat] <value> 3
+    > [sequentially.flatMapConcat] <value> 3
+    > [sequentially.flatMapConcat] <value> 3
+    > [sequentially.flatMapConcat] <end>
+
+pre(title='events in time').
+  source:      ----------1---------2---------3X
+
+  spawned 1:             ---1---1---1---1X
+  spawned 2:                             ---2---2---2---2X
+  spawned 3:                                             ---3---3---3---3X
+
+  result:      -------------1---1---1---1---2---2---2---2---3---3---3---3X
+div
 
 
 
 +descr-method('flat-map-with-concurrency-limit', 'flatMapWithConcurrencyLimit', 'obs.flatMapWithConcurrencyLimit([fn], limit)').
+  Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapWithConcurrencyLimit(fn, 1)</tt>.
+
+pre(title='code').
+  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var result = source.flatMapWithConcurrencyLimit(function(x) {
+    return Kefir.interval(40, x).take(6);
+  }, 2);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
+    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
+    > [sequentially.flatMapWithConcurrencyLimit] <end>
+
+pre(title='events in time').
+  source:      ----------1---------2---------3X
+
+  spawned 1:             ---1---1---1---1---1---1X
+  spawned 2:                       ---2---2---2---2---2---2X
+  spawned 3:                                     ---3---3---3---3---3---3X
+
+  result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X
+div
 
 
 
