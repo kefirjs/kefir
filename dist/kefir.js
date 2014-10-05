@@ -1,4 +1,4 @@
-/*! Kefir.js v0.2.6
+/*! Kefir.js v0.2.7
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1080,11 +1080,11 @@ inherit(Pool, _AbstractPool, {
 
   _name: 'pool',
 
-  add: function(obs) {
+  plug: function(obs) {
     this._add(obs);
     return this;
   },
-  remove: function(obs) {
+  unplug: function(obs) {
     this._remove(obs);
     return this;
   }
@@ -1787,8 +1787,14 @@ function Emitter() {
 
 inherit(Emitter, Stream, {
   _name: 'emitter',
-  emit: function(x) {  this._send('value', x)  },
-  end: function() {  this._send('end')  }
+  emit: function(x) {
+    this._send('value', x);
+    return this;
+  },
+  end: function() {
+    this._send('end');
+    return this;
+  }
 });
 
 Kefir.emitter = function() {
@@ -1955,6 +1961,27 @@ Kefir.fromCallback = function(callbackConsumer) {
       called = true;
     }
   }).setName('fromCallback');
+}
+
+
+
+
+// .fromEvent
+
+Kefir.fromEvent = function(target, eventName, transformer) {
+  transformer = transformer && Fn(transformer);
+  var sub = target.addEventListener || target.addListener || target.bind;
+  var unsub = target.removeEventListener || target.removeListener || target.unbind;
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ?
+      function() {
+        emitter.emit(transformer.applyWithContext(this, arguments));
+      } : emitter.emit;
+    sub.call(target, eventName, handler);
+    return function() {
+      unsub.call(target, eventName, handler);
+    }
+  }).setName('fromEvent');
 }
 
 
