@@ -266,7 +266,7 @@ Observable.prototype.flatMapConcat = function(fn) {
     .setName(this, 'flatMapConcat');
 }
 
-Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
+Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
   if (limit === 0) {
     result = Kefir.never();
@@ -274,7 +274,7 @@ Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
     if (limit < 0) {  limit = -1  }
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
-  return result.setName(this, 'flatMapWithConcurrencyLimit');
+  return result.setName(this, 'flatMapConcurLimit');
 }
 
 

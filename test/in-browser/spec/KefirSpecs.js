@@ -1170,7 +1170,7 @@ Observable.prototype.flatMapConcat = function(fn) {
     .setName(this, 'flatMapConcat');
 }
 
-Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
+Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
   if (limit === 0) {
     result = Kefir.never();
@@ -1178,7 +1178,7 @@ Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
     if (limit < 0) {  limit = -1  }
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
-  return result.setName(this, 'flatMapWithConcurrencyLimit');
+  return result.setName(this, 'flatMapConcurLimit');
 }
 
 
@@ -18013,18 +18013,18 @@ var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
 
-describe('flatMapWithConcurrencyLimit', function() {
+describe('flatMapConcurLimit', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().flatMapWithConcurrencyLimit(null, 1)).toBeStream();
+      return expect(stream().flatMapConcurLimit(null, 1)).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.flatMapWithConcurrencyLimit(null, 1)).toActivate(a);
+      return expect(a.flatMapConcurLimit(null, 1)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).flatMapWithConcurrencyLimit(null, 1)).toEmit(['<end:current>']);
+      return expect(send(stream(), ['<end>']).flatMapConcurLimit(null, 1)).toEmit(['<end:current>']);
     });
     it('should handle events', function() {
       var a, b, c, d;
@@ -18032,7 +18032,7 @@ describe('flatMapWithConcurrencyLimit', function() {
       b = stream();
       c = stream();
       d = stream();
-      return expect(a.flatMapWithConcurrencyLimit(null, 2)).toEmit([1, 2, 4, 5, 6, '<end>'], function() {
+      return expect(a.flatMapConcurLimit(null, 2)).toEmit([1, 2, 4, 5, 6, '<end>'], function() {
         send(b, [0]);
         send(a, [b]);
         send(b, [1]);
@@ -18050,7 +18050,7 @@ describe('flatMapWithConcurrencyLimit', function() {
       b = stream();
       c = stream();
       d = stream();
-      map = a.flatMapWithConcurrencyLimit(null, 2);
+      map = a.flatMapConcurLimit(null, 2);
       activate(map);
       send(a, [b, c, d]);
       deactivate(map);
@@ -18063,7 +18063,7 @@ describe('flatMapWithConcurrencyLimit', function() {
       var a, b;
       a = stream();
       b = stream();
-      return expect(a.flatMapWithConcurrencyLimit((function(x) {
+      return expect(a.flatMapConcurLimit((function(x) {
         return x.obs;
       }), 1)).toEmit([1, 2, '<end>'], function() {
         send(b, [0]);
@@ -18081,7 +18081,7 @@ describe('flatMapWithConcurrencyLimit', function() {
       b = send(prop(), [1]);
       c = send(prop(), [2]);
       d = send(prop(), [3]);
-      m = a.flatMapWithConcurrencyLimit(null, 2);
+      m = a.flatMapConcurLimit(null, 2);
       activate(m);
       send(a, [b, c, d]);
       deactivate(m);
@@ -18100,25 +18100,25 @@ describe('flatMapWithConcurrencyLimit', function() {
       c = send(prop(), [2]);
       d = send(prop(), [3]);
       e = send(prop(), [4]);
-      return expect(a.flatMapWithConcurrencyLimit(null, 2)).toEmit([4, 1, 2], function() {
+      return expect(a.flatMapConcurLimit(null, 2)).toEmit([4, 1, 2], function() {
         return send(a, [e, b, c, d]);
       });
     });
   });
   return describe('property', function() {
     it('should return stream', function() {
-      return expect(prop().flatMapWithConcurrencyLimit(null, 1)).toBeStream();
+      return expect(prop().flatMapConcurLimit(null, 1)).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.flatMapWithConcurrencyLimit(null, 1)).toActivate(a);
+      return expect(a.flatMapConcurLimit(null, 1)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).flatMapWithConcurrencyLimit(null, 1)).toEmit(['<end:current>']);
+      return expect(send(prop(), ['<end>']).flatMapConcurLimit(null, 1)).toEmit(['<end:current>']);
     });
     it('should be ended if source was ended (with value)', function() {
-      return expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapWithConcurrencyLimit(null, 1)).toEmit([
+      return expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapConcurLimit(null, 1)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -18128,7 +18128,7 @@ describe('flatMapWithConcurrencyLimit', function() {
       var a, b;
       a = send(prop(), [0]);
       b = send(prop(), [a]);
-      return expect(b.flatMapWithConcurrencyLimit(null, 1)).toEmit([
+      return expect(b.flatMapConcurLimit(null, 1)).toEmit([
         {
           current: 0
         }

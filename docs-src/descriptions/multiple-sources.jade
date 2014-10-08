@@ -460,37 +460,37 @@ div
 
 
 
-+descr-method('flat-map-with-concurrency-limit', 'flatMapWithConcurrencyLimit', 'obs.flatMapWithConcurrencyLimit([fn], limit)').
-  Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapWithConcurrencyLimit(fn, 1)</tt>.
++descr-method('flat-map-with-concurrency-limit', 'flatMapConcurLimit', 'obs.flatMapConcurLimit([fn], limit)').
+  Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 
 pre(title='code').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
-  var result = source.flatMapWithConcurrencyLimit(function(x) {
+  var result = source.flatMapConcurLimit(function(x) {
     return Kefir.interval(40, x).take(6);
   }, 2);
   result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <end>
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <end>
 
 pre(title='events in time').
   source:      ----------1---------2---------3X
