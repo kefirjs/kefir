@@ -49,6 +49,7 @@ body {
   line-height: 22px;
   background: #f4f4f4;
   color: #000;
+  min-width: 780px;
 }
 a {
   color: #476cff;
