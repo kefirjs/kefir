@@ -31,9 +31,7 @@
   "ignore": [
     "**",
     "!dist/**",
-    "!LICENSE.txt",
-    "!demos/**",
-    "!index.html"
+    "!LICENSE.txt"
   ],
   "devDependencies": {
     "bacon": "~0.7.21",
