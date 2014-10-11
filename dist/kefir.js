@@ -1889,6 +1889,16 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
 
 
 
+
+// .timestamp
+
+Observable.prototype.timestamp = function() {
+  return this.map(function(x) {  return {value: x, time: now()}  }).setName(this, 'timestamp');
+}
+
+
+
+
 // .tap
 
 Observable.prototype.tap = function(fn) {

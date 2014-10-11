@@ -108,6 +108,23 @@ pre(title='console output')
 div
 
 
++descr-method('timestamp', 'timestamp', 'obs.timestamp()', null, 'obs.map(function(x) {return {value: x, time: new Date().getTime()}})').
+  Wraps each value to object with timestamp of the event.
+
+pre(title='code').
+  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var result = source.timestamp();
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.timestamp] <value> Object {value: 1, time: 1413022203878}
+    > [sequentially.timestamp] <value> Object {value: 2, time: 1413022203980}
+    > [sequentially.timestamp] <value> Object {value: 3, time: 1413022204081}
+    > [sequentially.timestamp] <end>
+div
+
+
 +descr-method('tap', 'tap', 'obs.tap(fn)').
   Just like <b>.map</b> applies given <b>fn</b>
   function to each value from original observable, but emits original value
