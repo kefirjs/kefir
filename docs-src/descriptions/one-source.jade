@@ -19,17 +19,16 @@ p.
   and emits value returned by <b>fn</b>.
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  emitter.map(function(x) {  return x + 1  }).log();
-  emitter.emit(1);
-  emitter.emit(2);
-  emitter.end();
+  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var result = source.map(function(x) {  return x + 1  });
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.map] <value> 2
-    > [emitter.map] <value> 3
-    > [emitter.map] <end>
+    > [sequentially.map] <value> 2
+    > [sequentially.map] <value> 3
+    > [sequentially.map] <value> 4
+    > [sequentially.map] <end>
 div
 
 
@@ -37,17 +36,16 @@ div
   On each value from original observable emits given <b>value</b>.<br>
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  emitter.mapTo(5).log();
-  emitter.emit(1);
-  emitter.emit(2);
-  emitter.end();
+  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var result = source.mapTo(5);
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.mapTo] <value> 5
-    > [emitter.mapTo] <value> 5
-    > [emitter.mapTo] <end>
+    > [sequentially.mapTo] <value> 5
+    > [sequentially.mapTo] <value> 5
+    > [sequentially.mapTo] <value> 5
+    > [sequentially.mapTo] <end>
 div
 
 
@@ -55,17 +53,16 @@ div
   On each value from original observable emits <tt>value[propertyName]</tt>.<br>
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  emitter.pluck('num').log();
-  emitter.emit({num: 1});
-  emitter.emit({num: 2});
-  emitter.end();
+  var source = Kefir.sequentially(100, [{num: 1}, {num: 2}, {num: 3}]);
+  var result = source.pluck('num');
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.pluck] <value> 1
-    > [emitter.pluck] <value> 2
-    > [emitter.pluck] <end>
+    > [sequentially.pluck] <value> 1
+    > [sequentially.pluck] <value> 2
+    > [sequentially.pluck] <value> 3
+    > [sequentially.pluck] <end>
 div
 
 
@@ -76,35 +73,38 @@ div
   and emits whatever it returns.<br>
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  emitter.invoke('getNum').log();
-  emitter.emit({num: 1, getNum: function() {return this.num}});
-  emitter.emit({num: 2, getNum: function() {return this.num}});
-  emitter.end();
+  var source = Kefir.sequentially(100, [
+    {getNum: function(){return 1}},
+    {getNum: function(){return 2}},
+    {getNum: function(){return 3}}
+  ]);
+  var result = source.invoke('getNum');
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.invoke] <value> 1
-    > [emitter.invoke] <value> 2
-    > [emitter.invoke] <end>
+    > [sequentially.invoke] <value> 1
+    > [sequentially.invoke] <value> 2
+    > [sequentially.invoke] <value> 3
+    > [sequentially.invoke] <end>
 div
+
 
 
 +descr-method('not', 'not', 'obs.not()', null, 'obs.map(function(x) {return !x})').
   Inverts every value from original observable using <tt>!</tt> operator.<br>
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  emitter.not().log();
-  emitter.emit(true);
-  emitter.emit(false);
-  emitter.end();
+  var source = Kefir.sequentially(100, [true, false, true]);
+  var result = source.not();
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.not] <value> false
-    > [emitter.not] <value> true
-    > [emitter.not] <end>
+    > [sequentially.not] <value> false
+    > [sequentially.not] <value> true
+    > [sequentially.not] <value> false
+    > [sequentially.not] <end>
 div
 
 
@@ -131,22 +131,22 @@ div
   (not what <b>fn</b> returns).
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  emitter.tap(function(x) {
+  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var result = source.tap(function(x) {
     console.log('from tap fn:', x);
     return 5; // will be ignored
-  }).log();
-  emitter.emit(1);
-  emitter.emit(2);
-  emitter.end();
+  });
+  result.log();
 
 pre(title='console output')
   :escapehtml
     > from tap fn: 1
-    > [emitter.tap] <value> 1
+    > [sequentially.tap] <value> 1
     > from tap fn: 2
-    > [emitter.tap] <value> 2
-    > [emitter.tap] <end>
+    > [sequentially.tap] <value> 2
+    > from tap fn: 3
+    > [sequentially.tap] <value> 3
+    > [sequentially.tap] <end>
 div
 
 
@@ -156,16 +156,15 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.filter(function(x) {  return x > 1  }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.end();
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.filter(function(x) {  return x > 1  });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.filter] <value> 2
-    > [emitter.filter] <end>
+    > [sequentially.filter] <value> 2
+    > [sequentially.filter] <value> 3
+    > [sequentially.filter] <end>
 
 p.
   See also <a href="#filter-by">filterBy</a>.
@@ -176,19 +175,15 @@ p.
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.take(2).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.emit(4);
-    emitter.end();
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.take(2);
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.take] <value> 1
-    > [emitter.take] <value> 2
-    > [emitter.take] <end>
+    > [sequentially.take] <value> 1
+    > [sequentially.take] <value> 2
+    > [sequentially.take] <end>
 div
 
 
@@ -199,19 +194,15 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.takeWhile(function(x) {  return x < 3  }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.emit(1);
-    emitter.end();
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.takeWhile(function(x) {  return x < 3  });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.takeWhile] <value> 1
-    > [emitter.takeWhile] <value> 2
-    > [emitter.takeWhile] <end>
+    > [sequentially.takeWhile] <value> 1
+    > [sequentially.takeWhile] <value> 2
+    > [sequentially.takeWhile] <end>
 div
 
 
@@ -220,19 +211,14 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.skip(2).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.emit(4);
-    emitter.end();
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.skip(2);
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.skip] <value> 3
-    > [emitter.skip] <value> 4
-    > [emitter.skip] <end>
+    > [sequentially.skip] <value> 3
+    > [sequentially.skip] <end>
 div
 
 
@@ -243,19 +229,15 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.skipWhile(function(x) {  return x < 3  }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.emit(1);
-    emitter.end();
+    var source = Kefir.sequentially(100, [1, 3, 2]);
+    var result = source.skipWhile(function(x) {  return x < 3  });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.skipWhile] <value> 3
-    > [emitter.skipWhile] <value> 1
-    > [emitter.skipWhile] <end>
+    > [sequentially.skipWhile] <value> 3
+    > [sequentially.skipWhile] <value> 2
+    > [sequentially.skipWhile] <end>
 div
 
 
@@ -266,41 +248,35 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.skipDuplicates().log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.end();
+    var source = Kefir.sequentially(100, [1, 2, 2, 3, 1]);
+    var result = source.skipDuplicates();
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.skipDuplicates] <value> 1
-    > [emitter.skipDuplicates] <value> 2
-    > [emitter.skipDuplicates] <value> 3
-    > [emitter.skipDuplicates] <end>
+    > [sequentially.skipDuplicates] <value> 1
+    > [sequentially.skipDuplicates] <value> 2
+    > [sequentially.skipDuplicates] <value> 3
+    > [sequentially.skipDuplicates] <value> 1
+    > [sequentially.skipDuplicates] <end>
 
 p With custom <b>comparator</b> function:
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.skipDuplicates(function(a, b) {
+    var source = Kefir.sequentially(100, [1, 2, 2.1, 3, 1]);
+    var result = source.skipDuplicates(function(a, b) {
       return Math.round(a) === Math.round(b);
-    }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(2.1);
-    emitter.emit(3);
-    emitter.end();
+    });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.skipDuplicates] <value> 1
-    > [emitter.skipDuplicates] <value> 2
-    > [emitter.skipDuplicates] <value> 3
-    > [emitter.skipDuplicates] <end>
+    > [sequentially.skipDuplicates] <value> 1
+    > [sequentially.skipDuplicates] <value> 2
+    > [sequentially.skipDuplicates] <value> 3
+    > [sequentially.skipDuplicates] <value> 1
+    > [sequentially.skipDuplicates] <end>
 div
 
 
@@ -312,23 +288,19 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.diff(0, function(prev, next) {
+    var source = Kefir.sequentially(100, [1, 2, 2, 3]);
+    var result = source.diff(0, function(prev, next) {
       return next - prev;
-    }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.end();
+    });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.diff] <value> 1
-    > [emitter.diff] <value> 1
-    > [emitter.diff] <value> 0
-    > [emitter.diff] <value> 1
-    > [emitter.diff] <end>
+    > [sequentially.diff] <value> 1
+    > [sequentially.diff] <value> 1
+    > [sequentially.diff] <value> 0
+    > [sequentially.diff] <value> 1
+    > [sequentially.diff] <end>
 div
 
 
@@ -342,24 +314,20 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.scan(0, function(prev, next) {
+    var source = Kefir.sequentially(100, [1, 2, 2, 3]);
+    var result = source.scan(0, function(prev, next) {
       return next + prev;
-    }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.end();
+    });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.scan] <value:current> 0
-    > [emitter.scan] <value> 1
-    > [emitter.scan] <value> 3
-    > [emitter.scan] <value> 5
-    > [emitter.scan] <value> 8
-    > [emitter.scan] <end>
+    > [sequentially.scan] <value:current> 0
+    > [sequentially.scan] <value> 1
+    > [sequentially.scan] <value> 3
+    > [sequentially.scan] <value> 5
+    > [sequentially.scan] <value> 8
+    > [sequentially.scan] <end>
 div
 
 
@@ -368,20 +336,16 @@ div
 
 pre(title='code')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.reduce(0, function(prev, next) {
+    var source = Kefir.sequentially(100, [1, 2, 2, 3]);
+    var result = source.reduce(0, function(prev, next) {
       return next + prev;
-    }).log();
-    emitter.emit(1);
-    emitter.emit(2);
-    emitter.emit(2);
-    emitter.emit(3);
-    emitter.end();
+    });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.reduce] <value> 8
-    > [emitter.reduce] <end>
+    > [sequentially.reduce] <value> 8
+    > [sequentially.reduce] <end>
 div
 
 
@@ -524,8 +488,8 @@ p.
 
 pre(title='code')
   :escapehtml
-    var em = Kefir.emitter();
-    em.withHandler(function(emitter, event) {
+    var source = Kefir.sequentially(100, [0, 1, 2, 3]);
+    var result = source.withHandler(function(emitter, event) {
       if (event.type === 'end') {
         emitter.emit('bye');
         emitter.end();
@@ -535,21 +499,17 @@ pre(title='code')
           emitter.emit(event.value);
         }
       }
-    }).log();
-    em.emit(0);
-    em.emit(1);
-    em.emit(2);
-    em.emit(3);
-    em.end();
+    });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.withHandler] <value> 1
-    > [emitter.withHandler] <value> 2
-    > [emitter.withHandler] <value> 2
-    > [emitter.withHandler] <value> 3
-    > [emitter.withHandler] <value> 3
-    > [emitter.withHandler] <value> 3
-    > [emitter.withHandler] <value> bye
-    > [emitter.withHandler] <end>
+    > [sequentially.withHandler] <value> 1
+    > [sequentially.withHandler] <value> 2
+    > [sequentially.withHandler] <value> 2
+    > [sequentially.withHandler] <value> 3
+    > [sequentially.withHandler] <value> 3
+    > [sequentially.withHandler] <value> 3
+    > [sequentially.withHandler] <value> bye
+    > [sequentially.withHandler] <end>
 div
