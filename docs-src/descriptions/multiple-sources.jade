@@ -296,6 +296,32 @@ p.
 
 
 
++descr-method('bus', 'bus', 'Kefir.bus()').
+  <b>Bus</b> is a pool with <a href="#emitter">emitter</a> methods.
+  You can emit methods from it directly. It is the best choice to expose
+  an input from a module, so module users could easily send events to your
+  module directly or by plugging an observable.
+
+pre(title='code').
+  var bus = Kefir.bus();
+  var emitter = Kefir.emitter();
+  bus.log();
+
+  bus.plug(emitter);
+  bus.emit(1);
+  emitter.emit(2);
+  bus.end();
+
+pre(title='console output')
+  :escapehtml
+    > [bus] <value> 1
+    > [bus] <value> 2
+    > [bus] <end>
+div
+
+
+
+
 +descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
   Creates a stream, which passes every value of <b>obs</b>
   observable to <b>fn</b> function, which must return an observable.

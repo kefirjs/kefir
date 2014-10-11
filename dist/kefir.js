@@ -1099,6 +1099,44 @@ Kefir.pool = function() {
 
 
 
+// .bus()
+
+function Bus() {
+  _AbstractPool.call(this);
+}
+
+inherit(Bus, _AbstractPool, {
+
+  _name: 'bus',
+
+  plug: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  unplug: function(obs) {
+    this._remove(obs);
+    return this;
+  },
+
+  emit: function(x) {
+    this._send('value', x);
+    return this;
+  },
+  end: function() {
+    this._send('end');
+    return this;
+  }
+
+});
+
+Kefir.bus = function() {
+  return new Bus();
+}
+
+
+
+
+
 // .flatMap()
 
 function FlatMap(source, fn, options) {
