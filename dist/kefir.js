@@ -1365,6 +1365,21 @@ var withFnArgMixin = {
 };
 
 
+
+// .transform(fn)
+
+withOneSource('transform', extend({
+  _handleValue: function(x, isCurrent) {
+    var xs = this._fn.invoke(x);
+    for (var i = 0; i < xs.length; i++) {
+      this._send('value', xs[i], isCurrent);
+    }
+  }
+}, withFnArgMixin));
+
+
+
+
 // .map(fn)
 
 withOneSource('map', extend({

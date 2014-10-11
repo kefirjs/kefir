@@ -454,6 +454,41 @@ div
 
 
 
++descr-method('transform', 'transform', 'obs.transform(handler)').
+  General transformation method. It allows you to do three kind
+  of transformation on each value: change value (like map), skip value (like filter),
+  and respond with several values to single value.
+
+p.
+  The <b>handler</b> function is called with each value emitted by source <b>obs</b> observable,
+  and supposed to return an array of values. All values from that array will be emitted.
+  If you want to skip a value, return an empty array. If you want to change value,
+  return array with single new value. And if you want to respond with several values,
+  return them in array.
+
+pre(title='code')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4]);
+    var result = source.transform(function(x) {
+      if (x % 2 === 0) {
+        return [x * 10];
+      } else {
+        return [];
+      }
+    });
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.transform] <value> 20
+    > [sequentially.transform] <value> 40
+    > [sequentially.transform] <end>
+div
+
+
+
+
+
 +descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
   The most general transformation method. All other transformation methods above
   can be implemented via <b>withHandler</b>.
