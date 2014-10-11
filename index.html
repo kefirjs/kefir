@@ -239,9 +239,7 @@ cursorPosition.log();
 &gt; [asKefirProperty] &lt;value&gt; [551, 1168]
 &gt; [asKefirProperty] &lt;value&gt; [551, 1168]
 &gt; [asKefirProperty] &lt;value&gt; [556, 1161]
-&gt; ...
-
-</pre><h2 id="convert">Convert observables</h2><p id="to-property"><a href="#to-property" class="header">toProperty</a><code>stream.toProperty([current])</code><br/>Converts a stream to a property.
+&gt; ...</pre><h2 id="convert">Convert observables</h2><p id="to-property"><a href="#to-property" class="header">toProperty</a><code>stream.toProperty([current])</code><br/>Converts a stream to a property.
 Accepts optional <b>current</b> argument, which becomes current value of the
 property.
 </p><pre title="code">var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -917,7 +915,9 @@ spawned 1:             ---1---1---1---1---1---1X
 spawned 2:                       ---2---2---2---2---2---2X
 spawned 3:                                     ---3---3---3---3---3---3X
 
-result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><p id="awating"><a href="#awating" class="header">awating</a><code>obs.awating(otherObs)</code><br/></p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/></p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
+result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><p id="awating"><a href="#awating" class="header">awating</a><code>obs.awating(otherObs)</code><br/> 
+
+</p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/> </p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
 active or inactive. When observable in inactive state it not emits any
 events, and not subscribes to it's original source.
 Observables automatically became active when first listener added,
