@@ -74,6 +74,9 @@ h1 small {
   color: #b1b1b1;
   line-height: 2;
 }
+h1 sup {
+  font-weight: normal;
+}
 table, tr, td {
   margin: 0; padding: 0;
 }
