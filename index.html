@@ -1023,7 +1023,7 @@ and can be passed safely as callbacks without binding (see example).
 $(&#x27;.foo&#x27;).on(&#x27;click&#x27;, emitter.emit.bind(emitter))
 
 // you can do just this
-$(&#x27;.foo&#x27;).on(&#x27;click&#x27;, emitter.emit)</pre><div></div></div><script src="bower-packages/jquery/jquery.js"></script><script src="dist/kefir.min.js"></script><script src="dist/addons/kefir-jquery.min.js"></script><script>$.getJSON('https://api.github.com/emojis', function(emojis){
+$(&#x27;.foo&#x27;).on(&#x27;click&#x27;, emitter.emit)</pre><div></div></div><script src="bower-packages/jquery/jquery.js"></script><script src="dist/kefir.js"></script><script src="dist/addons/kefir-jquery.js"></script><script>$.getJSON('https://api.github.com/emojis', function(emojis){
   $('[data-emoji]').each(function(){
     var name = $(this).data('emoji');
     $(this).attr({
