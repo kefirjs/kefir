@@ -761,12 +761,12 @@ unplug:  -------------------a------------
 
 pool:    ---------2-----3--3----4--------
 </pre><p>In this graph <b>plug</b> and <b>unplug</b> shown just to illustrate
-moments when we plug and unplug sources, please don't be confused that
+moments when we plug and unplug sources, don't be confused that
 there is some <b>plug</b> or <b>unplug</b> streams somewhere.
 
 
 </p><p id="bus"><a href="#bus" class="header">bus</a><code>Kefir.bus()</code><br/><b>Bus</b> is a pool with <a href="#emitter">emitter</a> methods.
-You can emit methods from it directly. It is the best choice to expose
+You can emit values from it directly. It is the best choice to expose
 an input from a module, so module users could easily send events to your
 module directly or by plugging an observable.
 </p><pre title="code">var bus = Kefir.bus();
