@@ -87,19 +87,18 @@
 
 &lt;script type="text/javascript"&gt;
 
-  function inputPropety($input) {
-    function getValue() {
-      return $input.val();
-    }
-    return $input.asKefirStream('change mousemove', getValue).toProperty(getValue());
+  function sliderVal($slider) {
+    return $slider.asKefirProperty('change mousemove', function() {
+      return $slider.val();
+    });
   }
 
-  function normalize300(x) {
+  function normalize(x) {
     return x * 300;
   }
 
-  var xPos = inputPropety($('#x-input')).map(normalize300);
-  var yPos = inputPropety($('#y-input')).map(normalize300);
+  var xPos = sliderVal($('#x-input')).map(normalize);
+  var yPos = sliderVal($('#y-input')).map(normalize);
 
   var pos = Kefir.combine([xPos, yPos], function(x, y) {
     return {
@@ -119,19 +118,18 @@
 
       <script type="text/javascript">
 
-        function inputPropety($input) {
-          function getValue() {
-            return $input.val();
-          }
-          return $input.asKefirStream('change mousemove', getValue).toProperty(getValue());
+        function sliderVal($slider) {
+          return $slider.asKefirProperty('change mousemove', function() {
+            return $slider.val();
+          });
         }
 
-        function normalize300(x) {
+        function normalize(x) {
           return x * 300;
         }
 
-        var xPos = inputPropety($('#x-input')).map(normalize300);
-        var yPos = inputPropety($('#y-input')).map(normalize300);
+        var xPos = sliderVal($('#x-input')).map(normalize);
+        var yPos = sliderVal($('#y-input')).map(normalize);
 
         var pos = Kefir.combine([xPos, yPos], function(x, y) {
           return {
