@@ -49,7 +49,7 @@ body {
   line-height: 22px;
   background: #f4f4f4;
   color: #000;
-  min-width: 780px;
+  min-width: 700px;
 }
 a {
   color: #476cff;
@@ -73,6 +73,9 @@ h2 {
 h1 small {
   color: #b1b1b1;
   line-height: 2;
+}
+h1 sup {
+  font-weight: normal;
 }
 table, tr, td {
   margin: 0; padding: 0;

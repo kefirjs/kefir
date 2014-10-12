@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "FRP library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory consumption",
   "main": "dist/kefir.js",
   "scripts": {
@@ -39,9 +39,9 @@
     "grunt-cli": "~0.1.13",
     "grunt-contrib-clean": "~0.6.0",
     "grunt-contrib-concat": "~0.5.0",
-    "grunt-contrib-jade": "~0.12.0",
+    "grunt-contrib-jade": "~0.13.0",
     "grunt-contrib-jshint": "~0.10.0",
-    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-uglify": "~0.6.0",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-jasmine-node": "~0.2.1",
     "grunt-release": "~0.7.0",

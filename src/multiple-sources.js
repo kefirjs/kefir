@@ -196,6 +196,44 @@ Kefir.pool = function() {
 
 
 
+// .bus()
+
+function Bus() {
+  _AbstractPool.call(this);
+}
+
+inherit(Bus, _AbstractPool, {
+
+  _name: 'bus',
+
+  plug: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  unplug: function(obs) {
+    this._remove(obs);
+    return this;
+  },
+
+  emit: function(x) {
+    this._send('value', x);
+    return this;
+  },
+  end: function() {
+    this._send('end');
+    return this;
+  }
+
+});
+
+Kefir.bus = function() {
+  return new Bus();
+}
+
+
+
+
+
 // .flatMap()
 
 function FlatMap(source, fn, options) {
@@ -266,7 +304,7 @@ Observable.prototype.flatMapConcat = function(fn) {
     .setName(this, 'flatMapConcat');
 }
 
-Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
+Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
   if (limit === 0) {
     result = Kefir.never();
@@ -274,7 +312,7 @@ Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
     if (limit < 0) {  limit = -1  }
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
-  return result.setName(this, 'flatMapWithConcurrencyLimit');
+  return result.setName(this, 'flatMapConcurLimit');
 }
 
 

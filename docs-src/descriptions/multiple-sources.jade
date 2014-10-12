@@ -296,6 +296,32 @@ p.
 
 
 
++descr-method('bus', 'bus', 'Kefir.bus()').
+  <b>Bus</b> is a pool with <a href="#emitter">emitter</a> methods.
+  You can emit methods from it directly. It is the best choice to expose
+  an input from a module, so module users could easily send events to your
+  module directly or by plugging an observable.
+
+pre(title='code').
+  var bus = Kefir.bus();
+  var emitter = Kefir.emitter();
+  bus.log();
+
+  bus.plug(emitter);
+  bus.emit(1);
+  emitter.emit(2);
+  bus.end();
+
+pre(title='console output')
+  :escapehtml
+    > [bus] <value> 1
+    > [bus] <value> 2
+    > [bus] <end>
+div
+
+
+
+
 +descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
   Creates a stream, which passes every value of <b>obs</b>
   observable to <b>fn</b> function, which must return an observable.
@@ -460,37 +486,37 @@ div
 
 
 
-+descr-method('flat-map-with-concurrency-limit', 'flatMapWithConcurrencyLimit', 'obs.flatMapWithConcurrencyLimit([fn], limit)').
-  Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapWithConcurrencyLimit(fn, 1)</tt>.
++descr-method('flat-map-with-concurrency-limit', 'flatMapConcurLimit', 'obs.flatMapConcurLimit([fn], limit)').
+  Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 
 pre(title='code').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
-  var result = source.flatMapWithConcurrencyLimit(function(x) {
+  var result = source.flatMapConcurLimit(function(x) {
     return Kefir.interval(40, x).take(6);
   }, 2);
   result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 1
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 2
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <value> 3
-    > [sequentially.flatMapWithConcurrencyLimit] <end>
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 1
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 2
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <value> 3
+    > [sequentially.flatMapConcurLimit] <end>
 
 pre(title='events in time').
   source:      ----------1---------2---------3X
@@ -505,6 +531,10 @@ div
 
 
 +descr-method('awating', 'awating', 'obs.awating(otherObs)').
+  #{" "}
 
 
 +descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
+  #{" "}
+
+

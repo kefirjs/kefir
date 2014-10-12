@@ -1,4 +1,4 @@
-/*! Kefir.js v0.2.7
+/*! Kefir.js v0.2.8
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1099,6 +1099,44 @@ Kefir.pool = function() {
 
 
 
+// .bus()
+
+function Bus() {
+  _AbstractPool.call(this);
+}
+
+inherit(Bus, _AbstractPool, {
+
+  _name: 'bus',
+
+  plug: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  unplug: function(obs) {
+    this._remove(obs);
+    return this;
+  },
+
+  emit: function(x) {
+    this._send('value', x);
+    return this;
+  },
+  end: function() {
+    this._send('end');
+    return this;
+  }
+
+});
+
+Kefir.bus = function() {
+  return new Bus();
+}
+
+
+
+
+
 // .flatMap()
 
 function FlatMap(source, fn, options) {
@@ -1169,7 +1207,7 @@ Observable.prototype.flatMapConcat = function(fn) {
     .setName(this, 'flatMapConcat');
 }
 
-Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
+Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
   if (limit === 0) {
     result = Kefir.never();
@@ -1177,7 +1215,7 @@ Observable.prototype.flatMapWithConcurrencyLimit = function(fn, limit) {
     if (limit < 0) {  limit = -1  }
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
-  return result.setName(this, 'flatMapWithConcurrencyLimit');
+  return result.setName(this, 'flatMapConcurLimit');
 }
 
 
@@ -1363,6 +1401,21 @@ var withFnArgMixin = {
   _init: function(args) {  this._fn = Fn(args[0], 1)  },
   _free: function() {  this._fn = null  }
 };
+
+
+
+// .transform(fn)
+
+withOneSource('transform', extend({
+  _handleValue: function(x, isCurrent) {
+    var xs = this._fn.invoke(x);
+    for (var i = 0; i < xs.length; i++) {
+      this._send('value', xs[i], isCurrent);
+    }
+  }
+}, withFnArgMixin));
+
+
 
 
 // .map(fn)
@@ -1871,6 +1924,16 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
     function(x) {  return x[methodName]()  }
   ).setName(this, 'invoke');
 }
+
+
+
+
+// .timestamp
+
+Observable.prototype.timestamp = function() {
+  return this.map(function(x) {  return {value: x, time: now()}  }).setName(this, 'timestamp');
+}
+
 
 
 

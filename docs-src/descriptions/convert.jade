@@ -7,19 +7,17 @@ h2#convert Convert observables
   property.
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  var property = emitter.toProperty(0);
-  property.log();
-  emitter.emit(1);
-  emitter.emit(2);
-  emitter.end();
+  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var result = source.toProperty(0);
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.toProperty] <value:current> 0
-    > [emitter.toProperty] <value> 1
-    > [emitter.toProperty] <value> 2
-    > [emitter.toProperty] <end>
+    > [sequentially.toProperty] <value:current> 0
+    > [sequentially.toProperty] <value> 1
+    > [sequentially.toProperty] <value> 2
+    > [sequentially.toProperty] <value> 3
+    > [sequentially.toProperty] <end>
 div
 
 
@@ -30,17 +28,15 @@ div
   (stream's subscribers won't get it).
 
 pre(title='code').
-  var emitter = Kefir.emitter();
-  var property = emitter.toProperty(0);
-  var changesStream = property.changes();
-  changesStream.log();
-  emitter.emit(1);
-  emitter.emit(2);
-  emitter.end();
+  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var property = source.toProperty(0);
+  var result = property.changes();
+  result.log();
 
 pre(title='console output')
   :escapehtml
-    > [emitter.toProperty.changes] <value> 1
-    > [emitter.toProperty.changes] <value> 2
-    > [emitter.toProperty.changes] <end>
+    > [sequentially.toProperty.changes] <value> 1
+    > [sequentially.toProperty.changes] <value> 2
+    > [sequentially.toProperty.changes] <value> 3
+    > [sequentially.toProperty.changes] <end>
 div

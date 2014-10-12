@@ -1,4 +1,4 @@
-a.toc-title(href='#') Kefir.js <span class="version">(#{pkg.version})</span>
+a.toc-title(href='#') Kefir.js
 ul.toc-section
   li: a(href='#downloads') Downloads
   li: a(href='#npm-bower') Install via NPM or Bower
@@ -50,6 +50,7 @@ ul.toc-section
   +method('#pluck', 'pluck')
   +method('#invoke', 'invoke')
   +method('#not', 'not')
+  +method('#timestamp', 'timestamp')
   +method('#tap', 'tap')
   +method('#filter', 'filter')
   +method('#take', 'take')
@@ -63,6 +64,7 @@ ul.toc-section
   +method('#delay', 'delay')
   +method('#throttle', 'throttle')
   +method('#debounce', 'debounce')
+  +method('#transform', 'transform')
   +method('#with-handler', 'withHandler')
 
 a.toc-title(href='#combine-observables') Combine observables
@@ -74,11 +76,12 @@ ul.toc-section
   +method('#merge', 'merge')
   +method('#concat', 'concat')
   +method('#pool', 'pool')
+  +method('#bus', 'bus')
   +method('#flat-map', 'flatMap')
   +method('#flat-map-latest', 'flatMapLatest')
   +method('#flat-map-first', 'flatMapFirst')
   +method('#flat-map-concat', 'flatMapConcat')
-  +method('#flat-map-with-concurrency-limit', 'flatMapWithConcurrencyLimit')
+  +method('#flat-map-with-concurrency-limit', 'flatMapConcurLimit')
   +method('#awating', 'awating')
   +method('#filter-by', 'filterBy')
 
