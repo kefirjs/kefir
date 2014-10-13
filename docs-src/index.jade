@@ -7,7 +7,7 @@ html(lang="en")
     meta(http-equiv='X-UA-Compatible', content='IE=edge')
     title Kefir.js — Bacon.js / RxJS inspired FRP library for JavaScript with focus on high performance and low memory usage
     meta(name='description', content='Kefir.js — Bacon.js / RxJS inspired FRP library with focus on high performance and low memory usage')
-    meta(name='viewport', content='width=1000')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
     style(type='text/css')
       include:uglify-css includes/stylesheet.css
   body
@@ -44,8 +44,18 @@ html(lang="en")
       });
 
       var $window = $(window);
-      $window.asKefirProperty('scroll', function() {
-        return -$window.scrollLeft();
-      }).onValue(['css', $('.sidebar'), 'left']);
+      var $document = $(document);
+      var scrollLeft = $window.asKefirProperty('scroll', function() {
+        return $window.scrollLeft();
+      });
+      var winWidth = $window.asKefirProperty('resize', function() {
+        return $window.width();
+      });
+      var docWidth = $window.asKefirProperty('resize', function() {
+        return $document.width();
+      });
+      Kefir.combine([scrollLeft, winWidth, docWidth], function(scrollLeft, winWidth, docWidth) {
+        return -Math.min(docWidth - winWidth, Math.max(0, scrollLeft));
+      }).skipDuplicates().onValue(['css', $('.sidebar'), 'left']);
 
     | <!-- Yandex.Metrika counter --><script type="text/javascript">(function (d, w, c) { (w[c] = w[c] || []).push(function() { try { w.yaCounter26158662 = new Ya.Metrika({id:26158662}); } catch(e) { } }); var n = d.getElementsByTagName("script")[0], s = d.createElement("script"), f = function () { n.parentNode.insertBefore(s, n); }; s.type = "text/javascript"; s.async = true; s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js"; if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); } })(document, window, "yandex_metrika_callbacks");</script><noscript><div><img src="//mc.yandex.ru/watch/26158662" style="position:absolute; left:-9999px;" alt="" /></div></noscript><!-- /Yandex.Metrika counter -->
