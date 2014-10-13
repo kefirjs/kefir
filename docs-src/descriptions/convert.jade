@@ -6,7 +6,7 @@ h2#convert Convert observables
   Accepts optional <b>current</b> argument, which becomes current value of the
   property.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.toProperty(0);
   result.log();
@@ -27,7 +27,7 @@ div
   If property has current value, it will be ignored
   (stream's subscribers won't get it).
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var property = source.toProperty(0);
   var result = property.changes();

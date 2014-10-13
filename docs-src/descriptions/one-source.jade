@@ -18,7 +18,7 @@ p.
   Applies given <b>fn</b> function to each value from original observable
   and emits value returned by <b>fn</b>.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.map(function(x) {  return x + 1  });
   result.log();
@@ -35,7 +35,7 @@ div
 +descr-method('map-to', 'mapTo', 'obs.mapTo(value)', null, 'obs.map(function() {return value})').
   On each value from original observable emits given <b>value</b>.<br>
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.mapTo(5);
   result.log();
@@ -52,7 +52,7 @@ div
 +descr-method('pluck', 'pluck', 'obs.pluck(propertyName)', null, 'obs.map(function(x) {return x.foo})').
   On each value from original observable emits <tt>value[propertyName]</tt>.<br>
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [{num: 1}, {num: 2}, {num: 3}]);
   var result = source.pluck('num');
   result.log();
@@ -72,7 +72,7 @@ div
   i.e. calls method <b>methodName</b> of each value object
   and emits whatever it returns.<br>
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [
     {getNum: function(){return 1}},
     {getNum: function(){return 2}},
@@ -94,7 +94,7 @@ div
 +descr-method('not', 'not', 'obs.not()', null, 'obs.map(function(x) {return !x})').
   Inverts every value from original observable using <tt>!</tt> operator.<br>
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [true, false, true]);
   var result = source.not();
   result.log();
@@ -111,7 +111,7 @@ div
 +descr-method('timestamp', 'timestamp', 'obs.timestamp()', null, 'obs.map(function(x) {return {value: x, time: new Date().getTime()}})').
   Wraps each value to object with timestamp of the event.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.timestamp();
   result.log();
@@ -130,7 +130,7 @@ div
   function to each value from original observable, but emits original value
   (not what <b>fn</b> returns).
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.tap(function(x) {
     console.log('from tap fn:', x);
@@ -154,7 +154,7 @@ div
   Filters values from original observable
   using given <b>predicate</b> function.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.filter(function(x) {  return x > 1  });
@@ -173,7 +173,7 @@ p.
 +descr-method('take', 'take', 'obs.take(n)').
   Emits first <b>n</b> values from original observable, then ends.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.take(2);
@@ -192,7 +192,7 @@ div
   function applied to a value returns false.
   Ends when <b>predicate</b> returns false.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.takeWhile(function(x) {  return x < 3  });
@@ -209,7 +209,7 @@ div
 +descr-method('skip', 'skip', 'obs.skip(n)').
   Skips first <b>n</b> values from original observable, then emits all rest.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.skip(2);
@@ -227,7 +227,7 @@ div
   function applied to a value returns false,
   then stops applying <b>predicate</b> to values and emits all of them.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 3, 2]);
     var result = source.skipWhile(function(x) {  return x < 3  });
@@ -246,7 +246,7 @@ div
   Accepts optional <b>comparator</b> function,
   that, if provided, is used for comparison instead of <tt>===</tt>.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3, 1]);
     var result = source.skipDuplicates();
@@ -262,7 +262,7 @@ pre(title='console output')
 
 p With custom <b>comparator</b> function:
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2.1, 3, 1]);
     var result = source.skipDuplicates(function(a, b) {
@@ -286,7 +286,7 @@ div
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
     var result = source.diff(0, function(prev, next) {
@@ -312,7 +312,7 @@ div
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns. Always creates a property.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
     var result = source.scan(0, function(prev, next) {
@@ -334,7 +334,7 @@ div
 +descr-method('reduce', 'reduce', 'obs.reduce(seed, fn)').
   Similar to <b>.scan</b>, but emits only last result just before end.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
     var result = source.reduce(0, function(prev, next) {
@@ -354,7 +354,7 @@ div
   with exception for current value of property,
   or current end for already ended observable.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var emitter = Kefir.emitter();
     emitter.delay(100).map(function(originalEmitTime){
@@ -389,7 +389,7 @@ p.
   pass <tt>{leading: false}</tt>, and if you'd like to disable the emit
   on the trailing-edge, pass <tt>{trailing: false}</tt>.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var stream = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
     var throttled = stream.throttle(250);
@@ -417,7 +417,7 @@ div
   trailing edge of the <b>wait</b> interval.
   If used on a property current value will always pass intact without any delay.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var stream = Kefir.sequentially(100, [1, 2, 3, -1, -2, -3, 4, 5, 6]);
     stream = stream.filter(function(x) {return x > 0});
@@ -447,7 +447,7 @@ p.
   return array with single new value. And if you want to respond with several values,
   return them in array.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3, 4]);
     var result = source.transform(function(x) {
@@ -486,7 +486,7 @@ p.
   and you can also call them at any time later, for example to implement
   <a href="#delay">.delay()</a>.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, 1, 2, 3]);
     var result = source.withHandler(function(emitter, event) {

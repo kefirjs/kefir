@@ -16,7 +16,7 @@ p.
   If no <b>eventTransformer</b> provided, jQuery event object
   will be emited in stream.
 
-pre(title='code').
+pre(title='example').
   var clicks = $('body').asKefirStream('click');
   clicks.log();
 
@@ -29,7 +29,7 @@ pre(title='console output')
 p.
   Example with optional arguments:
 
-pre(title='code').
+pre(title='example').
   var clicksOnContainer = $('body').asKefirStream('click', '.container');
   clicksOnContainer.log('[clicks on .container]');
 
@@ -53,7 +53,7 @@ div
   at moment when property is created.
   Also unlike <b>asKefirStream</b> returns a property.
 
-pre(title='code').
+pre(title='example').
   var cursorPosition = $('body').asKefirProperty('mousemove', function(event) {
     if (!event) { // if no event passed then it's an "on creation" call
       return [0, 0];
