@@ -10,7 +10,7 @@ p.
   current value, <b>fn</b> will be called
   immediately with property current value as argument.
 
-pre(title='code').
+pre(title='example').
   var emitter = Kefir.emitter();
   emitter.onValue(function(x) {  console.log('value:', x)  });
   emitter.emit(1);
@@ -28,7 +28,7 @@ pre(title='console output')
   Subscribes <b>fn</b> functions to ending off an observable.
   If observable already ended, <b>fn</b> will be called immediately.
 
-pre(title='code').
+pre(title='example').
   var emitter = Kefir.emitter();
   emitter.onEnd(function(x) {  console.log('stream ended')  });
   emitter.end();
@@ -55,7 +55,7 @@ ul
     | <b>current</b> is a boolean, that equals <tt>true</tt> if callback was
     | called with current value of a property, or on end of already ended observable
 
-pre(title='code').
+pre(title='example').
   var emitter = Kefir.emitter();
   emitter.onAny(function(event) {  console.log('event:', event)  });
   emitter.emit(1);
@@ -75,7 +75,7 @@ pre(title='console output')
   Turns on logging of any events on an observable to browser console.
   Accepts optional <b>name</b> argument that will be shown in log if provided.
 
-pre(title='code').
+pre(title='example').
   var emitter = Kefir.emitter();
   emitter.log('myEmitter');
   emitter.emit(1);

@@ -6,7 +6,7 @@ h2#create-stream Create a stream
   <tt>.emit(value)</tt> and <tt>.end()</tt>.
   Then you can easily send events to stream via <b>emit()</b>.
 
-pre(title='code').
+pre(title='example').
   var emitter = Kefir.emitter();
   emitter.log(); // log events to console (see <a href="#log">log</a>)
   emitter.emit(1);
@@ -34,7 +34,7 @@ p.
 +descr-method('never', 'never', 'Kefir.never()').
   Creates a stream, that already ended and will never produce any events.
 
-pre(title='code').
+pre(title='example').
   var stream = Kefir.never();
   stream.log();
 
@@ -50,7 +50,7 @@ div
   Creates a stream, that produces single <b>value</b>
   after <b>wait</b> milliseconds then ends.
 
-pre(title='code').
+pre(title='example').
   var stream = Kefir.later(1000, 1);
   stream.log();
 
@@ -66,7 +66,7 @@ div
   Creates a stream, that produces same <b>value</b>
   each <b>interval</b> milliseconds. Never ends.
 
-pre(title='code').
+pre(title='example').
   var stream = Kefir.interval(1000, 1);
   stream.log();
 
@@ -84,7 +84,7 @@ div
   delivered with given <b>interval</b> in milliseconds.
   Ends after all <b>values</b> delivered.
 
-pre(title='code').
+pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2, 3]);
   stream.log();
 
@@ -103,7 +103,7 @@ div
   When all values emitted, it begins to produce them again from start.
   Never ends.
 
-pre(title='code').
+pre(title='example').
   var stream = Kefir.repeatedly(1000, [1, 2, 3]);
   stream.log();
 
@@ -126,7 +126,7 @@ div
   and emits values returned by <b>fn</b>.
   Never ends.
 
-pre(title='code').
+pre(title='example').
   var start = new Date();
   var stream = Kefir.fromPoll(1000, function(){ return new Date() - start });
   stream.log();
@@ -152,7 +152,7 @@ div
   but not actualy a stream, you can read more about emitter object
   <a href="#emitter-object">here</a>).
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var start = new Date();
     var stream = Kefir.withInterval(1000, function(emitter) {
@@ -187,7 +187,7 @@ p.
   once on first <a href="#active-state">activation</a> of a stream
   (i.e. when first subscriber added).
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var stream = Kefir.fromCallback(function(callback) {
       // we use setTimeout here just to simulate some asynchronous activity
@@ -202,7 +202,7 @@ pre(title='console output')
 
 p Another example where we use <a href="#callbacks">an array form of function</a>:
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var url = 'http://pozadi.github.io/kefir/';
     var stream = Kefir.fromCallback([jQuery.get, null, url]);
@@ -224,7 +224,7 @@ div
   and <b>transform</b> is optional transformation function like in
   <a href="#as-kefir-stream">asKefirStream</a> method.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var stream = Kefir.fromEvent(document.body, 'click');
     stream.log()
@@ -259,7 +259,7 @@ p.
   Read about <a href="#active-state">active state</a> to understand what
   <b>activation</b> and <b>deactivation</b> means.
 
-pre(title='code')
+pre(title='example')
   :escapehtml
     var stream = Kefir.fromBinder(function(emitter) {
       console.log('!activation');
@@ -302,7 +302,7 @@ p.
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
   Creates ended property, with specified <b>current value</b>.
 
-pre(title='code').
+pre(title='example').
   var property = Kefir.constant(1);
   property.log();
 

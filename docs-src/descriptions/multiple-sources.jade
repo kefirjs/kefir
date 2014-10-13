@@ -17,7 +17,7 @@ p.
 p.
   You can also combine two observables by calling <tt>a.combine(b, fn)</tt> if you like.
 
-pre(title='code').
+pre(title='example').
   var foo = Kefir.emitter();
   var bar = Kefir.emitter();
   var sum = Kefir.combine([foo, bar], function(f, b) {
@@ -55,7 +55,7 @@ div
 +descr-method('and', 'and', 'Kefir.and(obss)', 'obs.and(otherObs)').
   Combines <b>obss</b> observables using <tt>&amp;&amp;</tt> (logical and) operator.
 
-pre(title='code').
+pre(title='example').
   var a = Kefir.emitter();
   var b = Kefir.emitter();
   var c = Kefir.emitter();
@@ -86,7 +86,7 @@ div
 +descr-method('or', 'or', 'Kefir.or(obss)', 'obs.or(otherObs)').
   Combines <b>obss</b> observables using <tt>||</tt> (logical or) operator.
 
-pre(title='code').
+pre(title='example').
   var a = Kefir.emitter();
   var b = Kefir.emitter();
   var c = Kefir.emitter();
@@ -129,7 +129,7 @@ p.
 p.
   Ends when all of <b>activeObss</b> ends.
 
-pre(title='code').
+pre(title='example').
   var a = Kefir.repeatedly(100, [0, 1, 2]);
   var b = Kefir.repeatedly(100, [0, 1, 2]).delay(20);
   var c = Kefir.sequentially(100, [0, 1, 2]).delay(40);
@@ -174,7 +174,7 @@ p.
 p.
   You can also merge two observables by calling <tt>a.merge(b)</tt>, if you like.
 
-pre(title='code').
+pre(title='example').
   var a = Kefir.sequentially(100, [0, 1, 2]);
   var b = Kefir.sequentially(100, [0, 1, 2]).delay(30);
   var c = Kefir.sequentially(100, [0, 1, 2]).delay(60);
@@ -208,7 +208,7 @@ div
   but it starts emitting values from next source only after previous source ends,
   ignoring any values from next sources before that.
 
-pre(title='code').
+pre(title='example').
   var a = Kefir.emitter();
   var b = Kefir.emitter();
   var c = Kefir.emitter();
@@ -252,7 +252,7 @@ div
   add observables to it using <b>plug</b> method,
   and remove using <b>unplug</b>. <b>Pool</b> never ends.
 
-pre(title='code').
+pre(title='example').
   var a = Kefir.emitter();
   var b = Kefir.emitter();
 
@@ -302,7 +302,7 @@ p.
   an input from a module, so module users could easily send events to your
   module directly or by plugging an observable.
 
-pre(title='code').
+pre(title='example').
   var bus = Kefir.bus();
   var emitter = Kefir.emitter();
   bus.log();
@@ -339,7 +339,7 @@ p.
 p.
   <b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
   var result = source.flatMap(function(x) {
     return Kefir.interval(40, x).take(4);
@@ -379,7 +379,7 @@ div
   Like <b>flatMap</b>, but repeats events only from the latest added observable.
   I.e. it switching from one observable to another.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
   var result = source.flatMapLatest(function(x) {
     return Kefir.interval(40, x).take(4);
@@ -414,7 +414,7 @@ div
   Like <b>flatMap</b>, but adds new observable only if previous one ended,
   in other case it just ignoring new observable.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
   var result = source.flatMapFirst(function(x) {
     return Kefir.interval(40, x).take(4);
@@ -451,7 +451,7 @@ div
   Then, when current source ends, it takes oldest observable from the queue,
   and switches to it.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
   var result = source.flatMapConcat(function(x) {
     return Kefir.interval(40, x).take(4);
@@ -489,7 +489,7 @@ div
 +descr-method('flat-map-with-concurrency-limit', 'flatMapConcurLimit', 'obs.flatMapConcurLimit([fn], limit)').
   Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 
-pre(title='code').
+pre(title='example').
   var source = Kefir.sequentially(100, [1, 2 ,3]);
   var result = source.flatMapConcurLimit(function(x) {
     return Kefir.interval(40, x).take(6);
