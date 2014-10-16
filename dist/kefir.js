@@ -1397,24 +1397,32 @@ withOneSource('withHandler', {
 
 
 
-var withFnArgMixin = {
-  _init: function(args) {  this._fn = Fn(args[0], 1)  },
-  _free: function() {  this._fn = null  }
-};
-
-
-
 // .transform(fn)
 
-withOneSource('transform', extend({
+withOneSource('transform', {
+  _init: function(args) {
+    this._fn = args[0] ? Fn(args[0], 1) : null;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn.invoke(x);
+    var xs = this._fn === null ? x : this._fn.invoke(x);
     for (var i = 0; i < xs.length; i++) {
       this._send('value', xs[i], isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
+
+
+
+
+
+var withFnArgMixin = {
+  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _free: function() {  this._fn = null  }
+};
 
 
 
@@ -1504,7 +1512,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] && Fn(args[0], 2);
+    this._fn = args[0] ? Fn(args[0], 2) : null;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -1512,7 +1520,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _isEqual: function(a, b) {
-    return this._fn ? this._fn.invoke(a, b) : a === b;
+    return this._fn === null ? a === b : this._fn.invoke(a, b);
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {

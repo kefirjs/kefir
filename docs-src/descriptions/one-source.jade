@@ -435,7 +435,7 @@ div
 
 
 
-+descr-method('transform', 'transform', 'obs.transform(handler)').
++descr-method('transform', 'transform', 'obs.transform([handler])').
   General transformation method. It allows you to do three kind
   of transformation on each value: change value (like map), skip value (like filter),
   and respond with several values to single value.
@@ -446,6 +446,10 @@ p.
   If you want to skip a value, return an empty array. If you want to change value,
   return array with single new value. And if you want to respond with several values,
   return them in array.
+
+p.
+  If no <b>handler</b> function provided it assumed that <b>obs</b> observable
+  emits arrays directly.
 
 pre(title='example')
   :escapehtml

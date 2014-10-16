@@ -515,7 +515,7 @@ var debounced = stream.debounce(250);
 debounced.log();
 </pre><pre title="console output">&gt; [sequentially.filter.debounce] &lt;value&gt; 3
 &gt; [sequentially.filter.debounce] &lt;value&gt; 6
-&gt; [sequentially.filter.debounce] &lt;end&gt;</pre><div></div><p id="transform"><a href="#transform" class="header">transform</a><code>obs.transform(handler)</code><br/>General transformation method. It allows you to do three kind
+&gt; [sequentially.filter.debounce] &lt;end&gt;</pre><div></div><p id="transform"><a href="#transform" class="header">transform</a><code>obs.transform([handler])</code><br/>General transformation method. It allows you to do three kind
 of transformation on each value: change value (like map), skip value (like filter),
 and respond with several values to single value.
 </p><p>The <b>handler</b> function is called with each value emitted by source <b>obs</b> observable,
@@ -523,6 +523,8 @@ and supposed to return an array of values. All values from that array will be em
 If you want to skip a value, return an empty array. If you want to change value,
 return array with single new value. And if you want to respond with several values,
 return them in array.
+</p><p>If no <b>handler</b> function provided it assumed that <b>obs</b> observable
+emits arrays directly.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3, 4]);
 var result = source.transform(function(x) {
   if (x % 2 === 0) {

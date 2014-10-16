@@ -1,3 +1,8 @@
+## 0.2.9
+
+The `fn` argument in the `.transform` method is now optional.
+
+
 ## 0.2.8
 
 Method `.flatMapWithConcurrencyLimit` renamed to `.flatMapConcurLimit`.
@@ -7,6 +12,7 @@ New methods:
  - .transform
  - .timestamp
  - Kefir.bus
+
 
 ## 0.2.7
 

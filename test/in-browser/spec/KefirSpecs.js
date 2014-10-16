@@ -1398,24 +1398,32 @@ withOneSource('withHandler', {
 
 
 
-var withFnArgMixin = {
-  _init: function(args) {  this._fn = Fn(args[0], 1)  },
-  _free: function() {  this._fn = null  }
-};
-
-
-
 // .transform(fn)
 
-withOneSource('transform', extend({
+withOneSource('transform', {
+  _init: function(args) {
+    this._fn = args[0] ? Fn(args[0], 1) : null;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn.invoke(x);
+    var xs = this._fn === null ? x : this._fn.invoke(x);
     for (var i = 0; i < xs.length; i++) {
       this._send('value', xs[i], isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
+
+
+
+
+
+var withFnArgMixin = {
+  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _free: function() {  this._fn = null  }
+};
 
 
 
@@ -1505,7 +1513,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] && Fn(args[0], 2);
+    this._fn = args[0] ? Fn(args[0], 2) : null;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -1513,7 +1521,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _isEqual: function(a, b) {
-    return this._fn ? this._fn.invoke(a, b) : a === b;
+    return this._fn === null ? a === b : this._fn.invoke(a, b);
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
@@ -21410,7 +21418,7 @@ describe('transform', function() {
     it('should be ended if source was ended', function() {
       return expect(send(stream(), ['<end>']).transform(function() {})).toEmit(['<end:current>']);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.transform(function(x) {
@@ -21426,6 +21434,13 @@ describe('transform', function() {
         }
       })).toEmit([1, 2, 1, 2, 3, '<end>'], function() {
         return send(a, [1, 2, 3, '<end>']);
+      });
+    });
+    return it('if no `fn` provided should use the `id` function by default', function() {
+      var a;
+      a = stream();
+      return expect(a.transform()).toEmit([1, 2, 3, '<end>'], function() {
+        return send(a, [[1], [], [2, 3], '<end>']);
       });
     });
   });
@@ -21473,7 +21488,7 @@ describe('transform', function() {
         }
       ]);
     });
-    return it('should handle multiple currents correctly', function() {
+    it('should handle multiple currents correctly', function() {
       return expect(send(prop(), [2]).transform(function(x) {
         var _i, _results;
         return (function() {
@@ -21486,6 +21501,17 @@ describe('transform', function() {
           current: 2
         }
       ]);
+    });
+    return it('if no `fn` provided should use the `id` function by default', function() {
+      var a;
+      a = send(prop(), [[1]]);
+      return expect(a.transform()).toEmit([
+        {
+          current: 1
+        }, 2, 3, 4, '<end>'
+      ], function() {
+        return send(a, [[2], [], [3, 4], '<end>']);
+      });
     });
   });
 });
