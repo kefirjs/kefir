@@ -24,6 +24,11 @@ describe 'transform', ->
       ).toEmit [1, 2, 1, 2, 3, '<end>'], ->
         send(a, [1, 2, 3, '<end>'])
 
+    it 'if no `fn` provided should use the `id` function by default', ->
+      a = stream()
+      expect(a.transform()).toEmit [1, 2, 3, '<end>'], ->
+        send(a, [[1], [], [2, 3], '<end>'])
+
 
 
   describe 'property', ->
@@ -54,5 +59,10 @@ describe 'transform', ->
       expect(
         send(prop(), [2]).transform (x) -> [1..x]
       ).toEmit [{current: 2}]
+
+    it 'if no `fn` provided should use the `id` function by default', ->
+      a = send(prop(), [[1]])
+      expect(a.transform()).toEmit [{current: 1}, 2, 3, 4, '<end>'], ->
+        send(a, [[2], [], [3, 4], '<end>'])
 
 

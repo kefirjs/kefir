@@ -1,5 +1,5 @@
 (function() {
-  var Bacon, BufferingSource, Bus, CompositeUnsubscribe, ConsumingSource, DepCache, Desc, Dispatcher, End, Error, Event, EventStream, Initial, Next, None, Observable, Property, PropertyDispatcher, Some, Source, UpdateBarrier, addPropertyInitValueToStream, assert, assertArray, assertEventStream, assertFunction, assertNoArguments, assertString, cloneArray, compositeUnsubscribe, containsDuplicateDeps, convertArgsToFunction, describe, end, eventIdCounter, findDeps, flatMap_, former, idCounter, initial, isArray, isFieldKey, isFunction, isObservable, latterF, liftCallback, makeFunction, makeFunctionArgs, makeFunction_, makeObservable, makeSpawner, next, nop, partiallyApplied, recursionDepth, registerObs, spys, toCombinator, toEvent, toFieldExtractor, toFieldKey, toOption, toSimpleExtractor, withDescription, withMethodCallSupport, _, _ref,
+  var Bacon, BufferingSource, Bus, CompositeUnsubscribe, ConsumingSource, DepCache, Desc, Dispatcher, End, Error, Event, EventStream, Exception, Initial, Next, None, Observable, Property, PropertyDispatcher, Some, Source, UpdateBarrier, addPropertyInitValueToStream, assert, assertArray, assertEventStream, assertFunction, assertNoArguments, assertString, cloneArray, compositeUnsubscribe, containsDuplicateDeps, convertArgsToFunction, describe, end, eventIdCounter, findDeps, flatMap_, former, idCounter, initial, isArray, isFieldKey, isFunction, isObservable, latterF, liftCallback, makeFunction, makeFunctionArgs, makeFunction_, makeObservable, makeSpawner, next, nop, partiallyApplied, recursionDepth, registerObs, spys, toCombinator, toEvent, toFieldExtractor, toFieldKey, toOption, toSimpleExtractor, withDescription, withMethodCallSupport, _, _ref,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -11,7 +11,9 @@
     }
   };
 
-  Bacon.version = '0.7.21';
+  Bacon.version = '0.7.23';
+
+  Exception = (typeof global !== "undefined" && global !== null ? global : this).Error;
 
   Bacon.fromBinder = function(binder, eventTransformer) {
     if (eventTransformer == null) {
@@ -54,24 +56,24 @@
     });
   };
 
-  Bacon.$ = {
-    asEventStream: function(eventName, selector, eventTransformer) {
-      var _ref;
-      if (isFunction(selector)) {
-        _ref = [selector, null], eventTransformer = _ref[0], selector = _ref[1];
-      }
-      return withDescription(this.selector || this, "asEventStream", eventName, Bacon.fromBinder((function(_this) {
-        return function(handler) {
-          _this.on(eventName, selector, handler);
-          return function() {
-            return _this.off(eventName, selector, handler);
-          };
-        };
-      })(this), eventTransformer));
+  Bacon.$ = {};
+
+  Bacon.$.asEventStream = function(eventName, selector, eventTransformer) {
+    var _ref;
+    if (isFunction(selector)) {
+      _ref = [selector, void 0], eventTransformer = _ref[0], selector = _ref[1];
     }
+    return withDescription(this.selector || this, "asEventStream", eventName, Bacon.fromBinder((function(_this) {
+      return function(handler) {
+        _this.on(eventName, selector, handler);
+        return function() {
+          return _this.off(eventName, selector, handler);
+        };
+      };
+    })(this), eventTransformer));
   };
 
-  if ((_ref = typeof jQuery !== "undefined" && jQuery !== null ? jQuery : typeof Zepto !== "undefined" && Zepto !== null ? Zepto : null) != null) {
+  if ((_ref = typeof jQuery !== "undefined" && jQuery !== null ? jQuery : typeof Zepto !== "undefined" && Zepto !== null ? Zepto : void 0) != null) {
     _ref.fn.asEventStream = Bacon.$.asEventStream;
   }
 
@@ -249,18 +251,20 @@
   };
 
   Bacon.fromArray = function(values) {
+    var i;
     assertArray(values);
     values = cloneArray(values);
+    i = 0;
     return new EventStream(describe(Bacon, "fromArray", values), function(sink) {
       var reply, unsubd, value;
       unsubd = false;
       reply = Bacon.more;
       while ((reply !== Bacon.noMore) && !unsubd) {
-        if (_.empty(values)) {
+        if (i >= values.length) {
           sink(end());
           reply = Bacon.noMore;
         } else {
-          value = values.shift();
+          value = values[i++];
           reply = sink(toEvent(value));
         }
       }
@@ -473,7 +477,7 @@
   Bacon.retry = function(options) {
     var delay, isRetryable, maxRetries, retries, retry, source;
     if (!isFunction(options.source)) {
-      throw "'source' option has to be a function";
+      throw new Exception("'source' option has to be a function");
     }
     source = options.source;
     retries = options.retries || 0;
@@ -505,7 +509,7 @@
           retriesDone: maxRetries - retries
         });
       } else {
-        return Bacon.once(new Bacon.Error(e));
+        return Bacon.once(new Error(e));
       }
     }));
   };
@@ -1033,9 +1037,9 @@
 
     Observable.prototype.flatMapError = function(fn) {
       return withDescription(this, "flatMapError", fn, this.mapError(function(err) {
-        return new Bacon.Error(err);
+        return new Error(err);
       }).flatMap(function(x) {
-        if (x instanceof Bacon.Error) {
+        if (x instanceof Error) {
           return fn(x.error);
         } else {
           return Bacon.once(x);
@@ -1276,14 +1280,14 @@
     EventStream.prototype.buffer = function(delay, onInput, onFlush) {
       var buffer, delayMs, reply;
       if (onInput == null) {
-        onInput = (function() {});
+        onInput = nop;
       }
       if (onFlush == null) {
-        onFlush = (function() {});
+        onFlush = nop;
       }
       buffer = {
         scheduled: false,
-        end: null,
+        end: void 0,
         values: [],
         flush: function() {
           var reply;
@@ -1627,7 +1631,7 @@
     var justInitValue;
     justInitValue = new EventStream(describe(property, "justInitValue"), function(sink) {
       var unsub, value;
-      value = null;
+      value = void 0;
       unsub = property.subscribeInternal(function(event) {
         if (event.hasValue()) {
           value = event;
@@ -1647,7 +1651,7 @@
 
   Dispatcher = (function() {
     function Dispatcher(subscribe, handleEvent) {
-      var done, ended, prevError, pushIt, pushing, queue, removeSub, subscriptions, unsubscribeFromSource, waiters;
+      var ended, prevError, pushIt, pushing, queue, removeSub, subscriptions, unsubscribeFromSource;
       if (subscribe == null) {
         subscribe = function() {
           return nop;
@@ -1660,24 +1664,10 @@
       this.hasSubscribers = function() {
         return subscriptions.length > 0;
       };
-      prevError = null;
+      prevError = void 0;
       unsubscribeFromSource = nop;
       removeSub = function(subscription) {
         return subscriptions = _.without(subscription, subscriptions);
-      };
-      waiters = null;
-      done = function() {
-        var w, ws, _i, _len, _results;
-        if (waiters != null) {
-          ws = waiters;
-          waiters = null;
-          _results = [];
-          for (_i = 0, _len = ws.length; _i < _len; _i++) {
-            w = ws[_i];
-            _results.push(w());
-          }
-          return _results;
-        }
       };
       pushIt = function(event) {
         var reply, sub, success, tmp, _i, _len;
@@ -1711,7 +1701,6 @@
             event = queue.shift();
             this.push(event);
           }
-          done(event);
           if (this.hasSubscribers()) {
             return Bacon.more;
           } else {
@@ -2077,7 +2066,7 @@
       this.context = context;
       this.method = method;
       this.args = args;
-      this.cached = null;
+      this.cached = void 0;
     }
 
     Desc.prototype.deps = function() {
@@ -2307,20 +2296,20 @@
     }
     checkObservable = function(obs) {
       var deps;
-      if (Bacon._.contains(state, obs)) {
+      if (_.contains(state, obs)) {
         return true;
       } else {
         deps = obs.internalDeps();
         if (deps.length) {
           state.push(obs);
-          return Bacon._.any(deps, checkObservable);
+          return _.any(deps, checkObservable);
         } else {
           state.push(obs);
           return false;
         }
       }
     };
-    return Bacon._.any(observables, checkObservable);
+    return _.any(observables, checkObservable);
   };
 
   Bacon.update = function() {
@@ -2703,13 +2692,13 @@
 
   assert = function(message, condition) {
     if (!condition) {
-      throw message;
+      throw new Exception(message);
     }
   };
 
   assertEventStream = function(event) {
     if (!(event instanceof EventStream)) {
-      throw "not an EventStream : " + event;
+      throw new Exception("not an EventStream : " + event);
     }
   };
 
@@ -2731,7 +2720,7 @@
 
   assertArray = function(xs) {
     if (!isArray(xs)) {
-      throw "not an array : " + xs;
+      throw new Exception("not an array : " + xs);
     }
   };
 
@@ -2741,7 +2730,7 @@
 
   assertString = function(x) {
     if (typeof x !== "string") {
-      throw "not a string : " + x;
+      throw new Exception("not a string : " + x);
     }
   };
 
@@ -3002,7 +2991,7 @@
       return function() {
         if (value === None) {
           value = f();
-          f = null;
+          f = void 0;
         }
         return value;
       };

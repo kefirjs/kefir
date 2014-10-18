@@ -435,7 +435,7 @@ div
 
 
 
-+descr-method('transform', 'transform', 'obs.transform(handler)').
++descr-method('transform', 'transform', 'obs.transform([handler])').
   General transformation method. It allows you to do three kind
   of transformation on each value: change value (like map), skip value (like filter),
   and respond with several values to single value.
@@ -446,6 +446,10 @@ p.
   If you want to skip a value, return an empty array. If you want to change value,
   return array with single new value. And if you want to respond with several values,
   return them in array.
+
+p.
+  If no <b>handler</b> function provided it assumed that <b>obs</b> observable
+  emits arrays directly.
 
 pre(title='example')
   :escapehtml
@@ -464,6 +468,41 @@ pre(title='console output')
     > [sequentially.transform] <value> 20
     > [sequentially.transform] <value> 40
     > [sequentially.transform] <end>
+div
+
+
+
+
+
+
++descr-method('transduce', 'transduce', 'obs.transduce(transducer)').
+  This method allows you to use transducers in Kefir.
+  It supports any transducers implementation that follows
+  <a href="https://github.com/cognitect-labs/transducers-js#the-transducer-protocol">the transducer protocol</a>.
+  As far as I aware, there is two libraries that do this —
+  <a href="https://github.com/cognitect-labs/transducers-js">transducers-js</a> and
+  <a href="https://github.com/jlongster/transducers.js">transducers.js</a>.
+  To learn more about transducers please visit those libraries pages.
+
+p.
+  Here is an example with <a href="https://github.com/cognitect-labs/transducers-js">transducers-js</a>:
+
+pre(title='example')
+  :escapehtml
+    var t = transducers;
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
+    var result = source.transduce(t.comp(
+      t.map(function(x) {return x + 10}),
+      t.filter(function(x) {return x % 2 === 0}),
+      t.take(2)
+    ));
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.transduce] <value> 12
+    > [sequentially.transduce] <value> 14
+    > [sequentially.transduce] <end>
 div
 
 

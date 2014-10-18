@@ -59,24 +59,82 @@ withOneSource('withHandler', {
 
 
 
-var withFnArgMixin = {
-  _init: function(args) {  this._fn = Fn(args[0], 1)  },
-  _free: function() {  this._fn = null  }
-};
-
-
-
 // .transform(fn)
 
-withOneSource('transform', extend({
+withOneSource('transform', {
+  _init: function(args) {
+    this._fn = args[0] ? Fn(args[0], 1) : null;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn.invoke(x);
+    var xs = this._fn === null ? x : this._fn.invoke(x);
     for (var i = 0; i < xs.length; i++) {
       this._send('value', xs[i], isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
+
+
+
+
+
+
+// .transduce(transducer)
+
+function xformForObs(obs) {
+  return {
+    init: function() {
+      return null;
+    },
+    step: function(res, input) {
+      obs._send('value', input, obs._forcedCurrent);
+      return null;
+    },
+    result: function(res) {
+      obs._send('end', null, obs._forcedCurrent);
+      return null;
+    }
+  };
+}
+
+withOneSource('transduce', {
+  _init: function(args) {
+    this._xform = args[0](xformForObs(this));
+    this._forcedCurrent = true;
+    this._endIfReduced(this._xform.init());
+    this._forcedCurrent = false;
+  },
+  _free: function() {
+    this._xform = null;
+  },
+  _endIfReduced: function(obj) {
+    if (obj !== null) {
+      this._xform.result(null);
+    }
+  },
+  _handleValue: function(x, isCurrent) {
+    this._forcedCurrent = isCurrent;
+    this._endIfReduced(this._xform.step(null, x));
+    this._forcedCurrent = false;
+  },
+  _handleEnd: function(__, isCurrent) {
+    this._forcedCurrent = isCurrent;
+    this._xform.result(null);
+    this._forcedCurrent = false;
+  }
+});
+
+
+
+
+
+var withFnArgMixin = {
+  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _free: function() {  this._fn = null  }
+};
 
 
 
@@ -166,7 +224,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] && Fn(args[0], 2);
+    this._fn = args[0] ? Fn(args[0], 2) : null;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -174,7 +232,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _isEqual: function(a, b) {
-    return this._fn ? this._fn.invoke(a, b) : a === b;
+    return this._fn === null ? a === b : this._fn.invoke(a, b);
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
