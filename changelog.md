@@ -1,6 +1,7 @@
 ## 0.2.9
 
-The `fn` argument in the `.transform` method is now optional.
+ - The `fn` argument in the `.transform` method is now optional.
+ - Transducers support via `.transduce` method.
 
 
 ## 0.2.8

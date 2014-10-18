@@ -1419,6 +1419,56 @@ withOneSource('transform', {
 
 
 
+
+// .transduce(transducer)
+
+function xformForObs(obs) {
+  return {
+    init: function() {
+      return null;
+    },
+    step: function(res, input) {
+      obs._send('value', input, obs._forcedCurrent);
+      return null;
+    },
+    result: function(res) {
+      obs._send('end', null, obs._forcedCurrent);
+      return null;
+    }
+  };
+}
+
+withOneSource('transduce', {
+  _init: function(args) {
+    this._xform = args[0](xformForObs(this));
+    this._forcedCurrent = true;
+    this._endIfReduced(this._xform.init());
+    this._forcedCurrent = false;
+  },
+  _free: function() {
+    this._xform = null;
+  },
+  _endIfReduced: function(obj) {
+    if (obj !== null) {
+      this._xform.result(null);
+    }
+  },
+  _handleValue: function(x, isCurrent) {
+    this._forcedCurrent = isCurrent;
+    this._endIfReduced(this._xform.step(null, x));
+    this._forcedCurrent = false;
+  },
+  _handleEnd: function(__, isCurrent) {
+    this._forcedCurrent = isCurrent;
+    this._xform.result(null);
+    this._forcedCurrent = false;
+  }
+});
+
+
+
+
+
 var withFnArgMixin = {
   _init: function(args) {  this._fn = Fn(args[0], 1)  },
   _free: function() {  this._fn = null  }

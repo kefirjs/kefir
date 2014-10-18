@@ -51,7 +51,9 @@
     "rx": "~2.3.3",
     "semver": "~2.3.0",
     "shelljs": "~0.3.0",
-    "sinon": "~1.10.1"
+    "sinon": "~1.10.1",
+    "transducers-js": "0.4.135",
+    "transducers.js": "0.2.2"
   },
   "testling": {
     "scripts": [
