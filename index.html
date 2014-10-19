@@ -538,12 +538,11 @@ result.log();
 &gt; [sequentially.transform] &lt;value&gt; 40
 &gt; [sequentially.transform] &lt;end&gt;</pre><div></div><p id="transduce"><a href="#transduce" class="header">transduce</a><code>obs.transduce(transducer)</code><br/>This method allows you to use transducers in Kefir.
 It supports any transducers implementation that follows
-<a href="https://github.com/cognitect-labs/transducers-js#the-transducer-protocol">the transducer protocol</a>.
-As far as I aware, there is two libraries that do this —
-<a href="https://github.com/cognitect-labs/transducers-js">transducers-js</a> and
-<a href="https://github.com/jlongster/transducers.js">transducers.js</a>.
+<a href="https://github.com/cognitect-labs/transducers-js#the-transducer-protocol">the transducer protocol</a>, for example
+<a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a> or
+<a href="https://github.com/jlongster/transducers.js">jlongster/transducers.js</a>.
 To learn more about transducers please visit those libraries pages.
-</p><p>Here is an example with <a href="https://github.com/cognitect-labs/transducers-js">transducers-js</a>:
+</p><p>Here is an example with <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a>:
 </p><pre title="example">var t = transducers;
 var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
 var result = source.transduce(t.comp(
