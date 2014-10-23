@@ -435,7 +435,7 @@ div
 
 
 
-+descr-method('transform', 'transform', 'obs.transform([handler])').
++descr-method('flatten', 'flatten', 'obs.flatten([handler])').
   General transformation method. It allows you to do three kind
   of transformation on each value: change value (like map), skip value (like filter),
   and respond with several values to single value.
@@ -454,7 +454,7 @@ p.
 pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3, 4]);
-    var result = source.transform(function(x) {
+    var result = source.flatten(function(x) {
       if (x % 2 === 0) {
         return [x * 10];
       } else {
@@ -465,9 +465,9 @@ pre(title='example')
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.transform] <value> 20
-    > [sequentially.transform] <value> 40
-    > [sequentially.transform] <end>
+    > [sequentially.flatten] <value> 20
+    > [sequentially.flatten] <value> 40
+    > [sequentially.flatten] <end>
 div
 
 

@@ -1397,9 +1397,9 @@ withOneSource('withHandler', {
 
 
 
-// .transform(fn)
+// .flatten(fn)
 
-withOneSource('transform', {
+withOneSource('flatten', {
   _init: function(args) {
     this._fn = args[0] ? Fn(args[0], 1) : null;
   },
