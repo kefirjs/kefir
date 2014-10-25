@@ -340,7 +340,7 @@ p.
   <b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMap(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -380,7 +380,7 @@ div
   I.e. it switching from one observable to another.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapLatest(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -415,7 +415,7 @@ div
   in other case it just ignoring new observable.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapFirst(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -452,7 +452,7 @@ div
   and switches to it.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapConcat(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -490,7 +490,7 @@ div
   Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapConcurLimit(function(x) {
     return Kefir.interval(40, x).take(6);
   }, 2);
@@ -531,10 +531,59 @@ div
 
 
 +descr-method('awaiting', 'awaiting', 'obs.awaiting(otherObs)').
-  #{" "}
+  Returns a property that represents the awaiting status of two observables,
+  i.e. answers the question «Has <b>obs</b> observable emitted a value
+  since the last value from <b>otherObs</b> observable has been emitted?».
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3]);
+  var bar = Kefir.sequentially(100, [1, 2, 3]).delay(40);
+  var result = foo.awaiting(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.awaiting] <value:current> false
+    > [sequentially.awaiting] <value> true
+    > [sequentially.awaiting] <value> false
+    > [sequentially.awaiting] <value> true
+    > [sequentially.awaiting] <value> false
+    > [sequentially.awaiting] <value> true
+    > [sequentially.awaiting] <value> false
+    > [sequentially.awaiting] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3X
+  bar:     ------1----2----3X
+
+  result:  f---t-f--t-f--t-fX
+div
 
 
 +descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
-  #{" "}
+  Works like <a href="#filter">filter</a>, but instead of calling a predicate
+  on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+  var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
+  var result = foo.filterBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.filterBy] <value> 1
+    > [sequentially.filterBy] <value> 2
+    > [sequentially.filterBy] <value> 5
+    > [sequentially.filterBy] <value> 6
+    > [sequentially.filterBy] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4----5----6----7----8X
+  bar:     t----------f---------t---------fX
+
+  result:  ----1----2--------------5----6----------X
+div
+
 
 

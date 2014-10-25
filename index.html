@@ -807,7 +807,7 @@ to which automatically being added values from <b>obs</b>
 observable passed through <b>fn</b> function.
 </p><p>If no <b>fn</b> provided, it expected that <b>obs</b> emits observables directly.
 </p><p><b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
-</p><pre title="example">var source = Kefir.sequentially(100, [1, 2 ,3]);
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMap(function(x) {
   return Kefir.interval(40, x).take(4);
 });
@@ -833,7 +833,7 @@ spawned 3:                                 ---3---3---3---3X
 
 result:      -------------1---1---1-2-1-2---2-3-2-3---3---3X</pre><div></div><p id="flat-map-latest"><a href="#flat-map-latest" class="header">flatMapLatest</a><code>obs.flatMapLatest([fn])</code><br/>Like <b>flatMap</b>, but repeats events only from the latest added observable.
 I.e. it switching from one observable to another.
-</p><pre title="example">var source = Kefir.sequentially(100, [1, 2 ,3]);
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMapLatest(function(x) {
   return Kefir.interval(40, x).take(4);
 });
@@ -855,7 +855,7 @@ spawned 3:                                 ---3---3---3---3X
 
 result:      -------------1---1-----2---2-----3---3---3---3X</pre><div></div><p id="flat-map-first"><a href="#flat-map-first" class="header">flatMapFirst</a><code>obs.flatMapFirst([fn])</code><br/>Like <b>flatMap</b>, but adds new observable only if previous one ended,
 in other case it just ignoring new observable.
-</p><pre title="example">var source = Kefir.sequentially(100, [1, 2 ,3]);
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMapFirst(function(x) {
   return Kefir.interval(40, x).take(4);
 });
@@ -879,7 +879,7 @@ result:      -------------1---1---1---1-------3---3---3---3X</pre><div></div><p 
 (if previous one still alive), <b>flatMapConcat</b> adds it to the queue.
 Then, when current source ends, it takes oldest observable from the queue,
 and switches to it.
-</p><pre title="example">var source = Kefir.sequentially(100, [1, 2 ,3]);
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMapConcat(function(x) {
   return Kefir.interval(40, x).take(4);
 });
@@ -904,7 +904,7 @@ spawned 2:                             ---2---2---2---2X
 spawned 3:                                             ---3---3---3---3X
 
 result:      -------------1---1---1---1---2---2---2---2---3---3---3---3X</pre><div></div><p id="flat-map-with-concurrency-limit"><a href="#flat-map-with-concurrency-limit" class="header">flatMapConcurLimit</a><code>obs.flatMapConcurLimit([fn], limit)</code><br/>Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
-</p><pre title="example">var source = Kefir.sequentially(100, [1, 2 ,3]);
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMapConcurLimit(function(x) {
   return Kefir.interval(40, x).take(6);
 }, 2);
@@ -934,9 +934,39 @@ spawned 1:             ---1---1---1---1---1---1X
 spawned 2:                       ---2---2---2---2---2---2X
 spawned 3:                                     ---3---3---3---3---3---3X
 
-result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><p id="awaiting"><a href="#awaiting" class="header">awaiting</a><code>obs.awaiting(otherObs)</code><br/> 
+result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><p id="awaiting"><a href="#awaiting" class="header">awaiting</a><code>obs.awaiting(otherObs)</code><br/>Returns a property that represents the awaiting status of two observables,
+i.e. answers the question «Has <b>obs</b> observable emitted a value
+since the last value from <b>otherObs</b> observable has been emitted?».
+</p><pre title="example">var foo = Kefir.sequentially(100, [1, 2, 3]);
+var bar = Kefir.sequentially(100, [1, 2, 3]).delay(40);
+var result = foo.awaiting(bar);
+result.log();
+</pre><pre title="console output">&gt; [sequentially.awaiting] &lt;value:current&gt; false
+&gt; [sequentially.awaiting] &lt;value&gt; true
+&gt; [sequentially.awaiting] &lt;value&gt; false
+&gt; [sequentially.awaiting] &lt;value&gt; true
+&gt; [sequentially.awaiting] &lt;value&gt; false
+&gt; [sequentially.awaiting] &lt;value&gt; true
+&gt; [sequentially.awaiting] &lt;value&gt; false
+&gt; [sequentially.awaiting] &lt;end&gt;
+</pre><pre title="events in time">foo:     ----1----2----3X
+bar:     ------1----2----3X
 
-</p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/> </p><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
+result:  f---t-f--t-f--t-fX</pre><div></div><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/>Works like <a href="#filter">filter</a>, but instead of calling a predicate
+on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
+</p><pre title="example">var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
+var result = foo.filterBy(bar);
+result.log();
+</pre><pre title="console output">&gt; [sequentially.filterBy] &lt;value&gt; 1
+&gt; [sequentially.filterBy] &lt;value&gt; 2
+&gt; [sequentially.filterBy] &lt;value&gt; 5
+&gt; [sequentially.filterBy] &lt;value&gt; 6
+&gt; [sequentially.filterBy] &lt;end&gt;
+</pre><pre title="events in time">foo:     ----1----2----3----4----5----6----7----8X
+bar:     t----------f---------t---------fX
+
+result:  ----1----2--------------5----6----------X</pre><div></div><h2 id="active-state">Active state</h2><p>Each stream or property at any time may be in one of two states —
 active or inactive. When observable in inactive state it not emits any
 events, and not subscribes to it's original source.
 Observables automatically became active when first listener added,
