@@ -1,12 +1,13 @@
 ## 0.2.10
 
- - Method `.transform` renamed to `.flatten`.
+ - Method `.transform` renamed to `.flatten`
+ - New method `.slidingWindow`
 
 
 ## 0.2.9
 
- - The `fn` argument in the `.transform` method is now optional.
- - Transducers support via `.transduce` method.
+ - The `fn` argument in the `.transform` method is now optional
+ - Transducers support via `.transduce` method
 
 
 ## 0.2.8

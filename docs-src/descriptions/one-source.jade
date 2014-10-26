@@ -349,6 +349,32 @@ pre(title='console output')
 div
 
 
+
+
++descr-method('sliding-window', 'slidingWindow', 'obs.slidingWindow(max, [min])').
+  Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
+  where <b>n</b> is between <b>max</b> and <b>min</b> arguments.
+  By default <b>min</b> equals <tt>0</tt>.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
+    var result = source.slidingWindow(3, 2)
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.slidingWindow] <value> [1, 2]
+    > [sequentially.slidingWindow] <value> [1, 2, 3]
+    > [sequentially.slidingWindow] <value> [2, 3, 4]
+    > [sequentially.slidingWindow] <value> [3, 4, 5]
+    > [sequentially.slidingWindow] <end>
+div
+
+
+
+
+
 +descr-method('delay', 'delay', 'obs.delay(wait)').
   Delays all events by <b>wait</b> milliseconds,
   with exception for current value of property,

@@ -269,6 +269,18 @@ function rest(arr, start, onEmpty) {
   return onEmpty;
 }
 
+function slide(cur, next, max) {
+  var length = Math.min(max, cur.length + 1),
+      offset = cur.length - length + 1,
+      result = new Array(length),
+      i;
+  for (i = offset; i < length; i++) {
+    result[i - offset] = cur[i];
+  }
+  result[length - 1] = next;
+  return result;
+}
+
 var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
