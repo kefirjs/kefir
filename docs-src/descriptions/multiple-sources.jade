@@ -322,25 +322,17 @@ div
 
 
 
-+descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
-  Creates a stream, which passes every value of <b>obs</b>
-  observable to <b>fn</b> function, which must return an observable.
-  Then repeats events from each of those observables like
-  <a href="#merge">merge</a> or <a href="#pool">pool</a>.
-
-p.
-  In other words, <b>flatMap</b> is a <a href="#pool">pool</a>
-  to which automatically being added values from <b>obs</b>
-  observable passed through <b>fn</b> function.
-
-p.
-  If no <b>fn</b> provided, it expected that <b>obs</b> emits observables directly.
++descr-method('flat-map', 'flatMap', 'obs.flatMap([transform])').
+  Works similar to <a href="#flatten">flatten</a>,
+  but instead of array handles observables. Like in <b>flatten</b> you can
+  either provide a <b>transform</b> function which will return observables,
+  or you can use source <b>obs</b> observable that already emits observables.
 
 p.
   <b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMap(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -380,7 +372,7 @@ div
   I.e. it switching from one observable to another.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapLatest(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -415,7 +407,7 @@ div
   in other case it just ignoring new observable.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapFirst(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -452,7 +444,7 @@ div
   and switches to it.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapConcat(function(x) {
     return Kefir.interval(40, x).take(4);
   });
@@ -490,7 +482,7 @@ div
   Like <b>flatMapConcat</b>, but with configurable number of concurent sources, i.e. <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2 ,3]);
+  var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.flatMapConcurLimit(function(x) {
     return Kefir.interval(40, x).take(6);
   }, 2);
@@ -531,10 +523,59 @@ div
 
 
 +descr-method('awaiting', 'awaiting', 'obs.awaiting(otherObs)').
-  #{" "}
+  Returns a property that represents the awaiting status of two observables,
+  i.e. answers the question «Has <b>obs</b> observable emitted a value
+  since the last value from <b>otherObs</b> observable has been emitted?».
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3]);
+  var bar = Kefir.sequentially(100, [1, 2, 3]).delay(40);
+  var result = foo.awaiting(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.awaiting] <value:current> false
+    > [sequentially.awaiting] <value> true
+    > [sequentially.awaiting] <value> false
+    > [sequentially.awaiting] <value> true
+    > [sequentially.awaiting] <value> false
+    > [sequentially.awaiting] <value> true
+    > [sequentially.awaiting] <value> false
+    > [sequentially.awaiting] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3X
+  bar:     ------1----2----3X
+
+  result:  f---t-f--t-f--t-fX
+div
 
 
 +descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
-  #{" "}
+  Works like <a href="#filter">filter</a>, but instead of calling a predicate
+  on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+  var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
+  var result = foo.filterBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.filterBy] <value> 1
+    > [sequentially.filterBy] <value> 2
+    > [sequentially.filterBy] <value> 5
+    > [sequentially.filterBy] <value> 6
+    > [sequentially.filterBy] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4----5----6----7----8X
+  bar:     t----------f---------t---------fX
+
+  result:  ----1----2--------------5----6----------X
+div
+
 
 

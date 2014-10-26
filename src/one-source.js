@@ -59,9 +59,9 @@ withOneSource('withHandler', {
 
 
 
-// .transform(fn)
+// .flatten(fn)
 
-withOneSource('transform', {
+withOneSource('flatten', {
   _init: function(args) {
     this._fn = args[0] ? Fn(args[0], 1) : null;
   },
@@ -320,7 +320,7 @@ withOneSource('reduce', {
     this._result = args[0];
     this._fn = Fn(args[1], 2);
   },
-  _free: function(){
+  _free: function() {
     this._fn = null;
     this._result = null;
   },
@@ -330,6 +330,28 @@ withOneSource('reduce', {
   _handleEnd: function(__, isCurrent) {
     this._send('value', this._result, isCurrent);
     this._send('end', null, isCurrent);
+  }
+});
+
+
+
+
+// .slidingWindow(max[, min])
+
+withOneSource('slidingWindow', {
+  _init: function(args) {
+    this._max = args[0];
+    this._min = args[1] || 0;
+    this._cache = [];
+  },
+  _free: function() {
+    this._cache = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    this._cache = slide(this._cache, x, this._max);
+    if (this._cache.length >= this._min) {
+      this._send('value', this._cache, isCurrent);
+    }
   }
 });
 
