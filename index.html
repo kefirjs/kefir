@@ -314,6 +314,7 @@ then new one also will be a stream. Same for properties.
 This rule has one exception for <a href="#scan">scan method</a>,
 that always returns a property.
 
+
 </p><p id="map"><a href="#map" class="header">map</a><code>obs.map(fn)</code><br/>Applies given <b>fn</b> function to each value from original observable
 and emits value returned by <b>fn</b>.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -388,6 +389,7 @@ result.log();
 &gt; [sequentially.filter] &lt;value&gt; 3
 &gt; [sequentially.filter] &lt;end&gt;
 </pre><p>See also <a href="#filter-by">filterBy</a>.
+
 
 </p><p id="take"><a href="#take" class="header">take</a><code>obs.take(n)</code><br/>Emits first <b>n</b> values from original observable, then ends.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -525,16 +527,25 @@ var debounced = stream.debounce(250);
 debounced.log();
 </pre><pre title="console output">&gt; [sequentially.filter.debounce] &lt;value&gt; 3
 &gt; [sequentially.filter.debounce] &lt;value&gt; 6
-&gt; [sequentially.filter.debounce] &lt;end&gt;</pre><div></div><p id="flatten"><a href="#flatten" class="header">flatten</a><code>obs.flatten([handler])</code><br/>General transformation method. It allows you to do three kind
+&gt; [sequentially.filter.debounce] &lt;end&gt;</pre><div></div><p id="flatten"><a href="#flatten" class="header">flatten</a><code>obs.flatten([transformer])</code><br/>For this method it's expected that <b>obs</b> observable emits arrays.
+The result observable (that <b>flatten</b> returns) will emit each element of those arrays.
+</p><pre title="example">var source = Kefir.sequentially(100, [[1], [], [2,3]]);
+var result = source.flatten();
+result.log();
+</pre><pre title="console output">&gt; [sequentially.flatten] &lt;value&gt; 1
+&gt; [sequentially.flatten] &lt;value&gt; 2
+&gt; [sequentially.flatten] &lt;value&gt; 3
+&gt; [sequentially.flatten] &lt;end&gt;
+</pre><p>You can also provide the <b>transformer</b> function
+which will be applied to each value from <b>obs</b> observable,
+and supposed to return an array. This makes <b>flatten</b>
+pretty powerful transformation method.
+It allows you to do three kind
 of transformation on each value: change value (like map), skip value (like filter),
 and respond with several values to single value.
-</p><p>The <b>handler</b> function is called with each value emitted by source <b>obs</b> observable,
-and supposed to return an array of values. All values from that array will be emitted.
 If you want to skip a value, return an empty array. If you want to change value,
 return array with single new value. And if you want to respond with several values,
 return them in array.
-</p><p>If no <b>handler</b> function provided it assumed that <b>obs</b> observable
-emits arrays directly.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3, 4]);
 var result = source.flatten(function(x) {
   if (x % 2 === 0) {
@@ -546,7 +557,14 @@ var result = source.flatten(function(x) {
 result.log();
 </pre><pre title="console output">&gt; [sequentially.flatten] &lt;value&gt; 20
 &gt; [sequentially.flatten] &lt;value&gt; 40
-&gt; [sequentially.flatten] &lt;end&gt;</pre><div></div><p id="transduce"><a href="#transduce" class="header">transduce</a><code>obs.transduce(transducer)</code><br/>This method allows you to use transducers in Kefir.
+&gt; [sequentially.flatten] &lt;end&gt;
+</pre><p>See also <a href="#flat-map">flatMap</a>
+
+
+
+
+
+</p><p id="transduce"><a href="#transduce" class="header">transduce</a><code>obs.transduce(transducer)</code><br/>This method allows you to use transducers in Kefir.
 It supports any transducers implementation that follows
 <a href="https://github.com/cognitect-labs/transducers-js#the-transducer-protocol">the transducer protocol</a>, for example
 <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a> or
@@ -808,14 +826,10 @@ emitter.emit(2);
 bus.end();
 </pre><pre title="console output">&gt; [bus] &lt;value&gt; 1
 &gt; [bus] &lt;value&gt; 2
-&gt; [bus] &lt;end&gt;</pre><div></div><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>obs.flatMap([fn])</code><br/>Creates a stream, which passes every value of <b>obs</b>
-observable to <b>fn</b> function, which must return an observable.
-Then repeats events from each of those observables like
-<a href="#merge">merge</a> or <a href="#pool">pool</a>.
-</p><p>In other words, <b>flatMap</b> is a <a href="#pool">pool</a>
-to which automatically being added values from <b>obs</b>
-observable passed through <b>fn</b> function.
-</p><p>If no <b>fn</b> provided, it expected that <b>obs</b> emits observables directly.
+&gt; [bus] &lt;end&gt;</pre><div></div><p id="flat-map"><a href="#flat-map" class="header">flatMap</a><code>obs.flatMap([transform])</code><br/>Works similar to <a href="#flatten">flatten</a>,
+but instead of array handles observables. Like in <b>flatten</b> you can
+either provide a <b>transform</b> function which will return observables,
+or you can use source <b>obs</b> observable that already emits observables.
 </p><p><b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMap(function(x) {

@@ -14,6 +14,7 @@ p.
   that always returns a property.
 
 
+
 +descr-method('map', 'map', 'obs.map(fn)').
   Applies given <b>fn</b> function to each value from original observable
   and emits value returned by <b>fn</b>.
@@ -30,6 +31,7 @@ pre(title='console output')
     > [sequentially.map] <value> 4
     > [sequentially.map] <end>
 div
+
 
 
 +descr-method('map-to', 'mapTo', 'obs.mapTo(value)', null, 'obs.map(function() {return value})').
@@ -49,6 +51,7 @@ pre(title='console output')
 div
 
 
+
 +descr-method('pluck', 'pluck', 'obs.pluck(propertyName)', null, 'obs.map(function(x) {return x.foo})').
   On each value from original observable emits <tt>value[propertyName]</tt>.<br>
 
@@ -64,6 +67,7 @@ pre(title='console output')
     > [sequentially.pluck] <value> 3
     > [sequentially.pluck] <end>
 div
+
 
 
 +descr-method('invoke', 'invoke', 'obs.invoke(methodName)', null, 'obs.map(function(x) {return x.foo()})').
@@ -108,6 +112,7 @@ pre(title='console output')
 div
 
 
+
 +descr-method('timestamp', 'timestamp', 'obs.timestamp()', null, 'obs.map(function(x) {return {value: x, time: new Date().getTime()}})').
   Wraps each value to object with timestamp of the event.
 
@@ -123,6 +128,7 @@ pre(title='console output')
     > [sequentially.timestamp] <value> Object {value: 3, time: 1413022204081}
     > [sequentially.timestamp] <end>
 div
+
 
 
 +descr-method('tap', 'tap', 'obs.tap(fn)').
@@ -150,6 +156,7 @@ pre(title='console output')
 div
 
 
+
 +descr-method('filter', 'filter', 'obs.filter(predicate)').
   Filters values from original observable
   using given <b>predicate</b> function.
@@ -170,6 +177,7 @@ p.
   See also <a href="#filter-by">filterBy</a>.
 
 
+
 +descr-method('take', 'take', 'obs.take(n)').
   Emits first <b>n</b> values from original observable, then ends.
 
@@ -185,6 +193,7 @@ pre(title='console output')
     > [sequentially.take] <value> 2
     > [sequentially.take] <end>
 div
+
 
 
 +descr-method('take-while', 'takeWhile', 'obs.takeWhile(predicate)').
@@ -206,6 +215,7 @@ pre(title='console output')
 div
 
 
+
 +descr-method('skip', 'skip', 'obs.skip(n)').
   Skips first <b>n</b> values from original observable, then emits all rest.
 
@@ -220,6 +230,7 @@ pre(title='console output')
     > [sequentially.skip] <value> 3
     > [sequentially.skip] <end>
 div
+
 
 
 +descr-method('skip-while', 'skipWhile', 'obs.skipWhile(predicate)').
@@ -239,6 +250,7 @@ pre(title='console output')
     > [sequentially.skipWhile] <value> 2
     > [sequentially.skipWhile] <end>
 div
+
 
 
 +descr-method('skip-duplicates', 'skipDuplicates', 'obs.skipDuplicates([comparator])').
@@ -280,6 +292,7 @@ pre(title='console output')
 div
 
 
+
 +descr-method('diff', 'diff', 'obs.diff(seed, fn)').
   On each value from original observable calls <b>fn</b>
   function with previous and current value as arguments.
@@ -302,6 +315,7 @@ pre(title='console output')
     > [sequentially.diff] <value> 1
     > [sequentially.diff] <end>
 div
+
 
 
 +descr-method('scan', 'scan', 'obs.scan(seed, fn)').
@@ -331,6 +345,7 @@ pre(title='console output')
 div
 
 
+
 +descr-method('reduce', 'reduce', 'obs.reduce(seed, fn)').
   Similar to <b>.scan</b>, but emits only last result just before end.
 
@@ -347,7 +362,6 @@ pre(title='console output')
     > [sequentially.reduce] <value> 8
     > [sequentially.reduce] <end>
 div
-
 
 
 
@@ -370,7 +384,6 @@ pre(title='console output')
     > [sequentially.slidingWindow] <value> [3, 4, 5]
     > [sequentially.slidingWindow] <end>
 div
-
 
 
 
@@ -461,21 +474,34 @@ div
 
 
 
-+descr-method('flatten', 'flatten', 'obs.flatten([handler])').
-  General transformation method. It allows you to do three kind
-  of transformation on each value: change value (like map), skip value (like filter),
-  and respond with several values to single value.
++descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
+  For this method it's expected that <b>obs</b> observable emits arrays.
+  The result observable (that <b>flatten</b> returns) will emit each element of those arrays.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [[1], [], [2,3]]);
+    var result = source.flatten();
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatten] <value> 1
+    > [sequentially.flatten] <value> 2
+    > [sequentially.flatten] <value> 3
+    > [sequentially.flatten] <end>
 
 p.
-  The <b>handler</b> function is called with each value emitted by source <b>obs</b> observable,
-  and supposed to return an array of values. All values from that array will be emitted.
+  You can also provide the <b>transformer</b> function
+  which will be applied to each value from <b>obs</b> observable,
+  and supposed to return an array. This makes <b>flatten</b>
+  pretty powerful transformation method.
+  It allows you to do three kind
+  of transformation on each value: change value (like map), skip value (like filter),
+  and respond with several values to single value.
   If you want to skip a value, return an empty array. If you want to change value,
   return array with single new value. And if you want to respond with several values,
   return them in array.
-
-p.
-  If no <b>handler</b> function provided it assumed that <b>obs</b> observable
-  emits arrays directly.
 
 pre(title='example')
   :escapehtml
@@ -494,7 +520,9 @@ pre(title='console output')
     > [sequentially.flatten] <value> 20
     > [sequentially.flatten] <value> 40
     > [sequentially.flatten] <end>
-div
+
+p.
+  See also <a href="#flat-map">flatMap</a>
 
 
 

@@ -322,19 +322,11 @@ div
 
 
 
-+descr-method('flat-map', 'flatMap', 'obs.flatMap([fn])').
-  Creates a stream, which passes every value of <b>obs</b>
-  observable to <b>fn</b> function, which must return an observable.
-  Then repeats events from each of those observables like
-  <a href="#merge">merge</a> or <a href="#pool">pool</a>.
-
-p.
-  In other words, <b>flatMap</b> is a <a href="#pool">pool</a>
-  to which automatically being added values from <b>obs</b>
-  observable passed through <b>fn</b> function.
-
-p.
-  If no <b>fn</b> provided, it expected that <b>obs</b> emits observables directly.
++descr-method('flat-map', 'flatMap', 'obs.flatMap([transform])').
+  Works similar to <a href="#flatten">flatten</a>,
+  but instead of array handles observables. Like in <b>flatten</b> you can
+  either provide a <b>transform</b> function which will return observables,
+  or you can use source <b>obs</b> observable that already emits observables.
 
 p.
   <b>flatMap</b> ends when <b>obs</b> and all spawned observables ends.
