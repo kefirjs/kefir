@@ -20,6 +20,9 @@ module.exports = (grunt) ->
     ;(function(global){
       "use strict";
 
+      var Kefir = {};
+
+
 
   """
 
@@ -74,7 +77,6 @@ module.exports = (grunt) ->
           footer: outro
         files:
           'dist/kefir.js': [
-            'src/utils/utils.js'
             'src/utils/*.js'
             'src/core.js'
             'src/*.js'
