@@ -161,18 +161,6 @@ function isEqualArrays(a, b) {
   return true;
 }
 
-function getFn(fn, context) {
-  if (isFn(fn)) {
-    return fn;
-  } else {
-    if (context == null || !isFn(context[fn])) {
-      throw new Error('Not a function: ' + fn + ' in context: ' + context);
-    } else {
-      return context[fn];
-    }
-  }
-}
-
 function apply(fn, c, a) {
   var aLength = a ? a.length : 0;
   if (c == null) {
@@ -288,22 +276,25 @@ function bind(fn, context, args, boundFunctionLength) {
 // array functions (a.k.a fnMeta) helpers
 
 function normFnMeta(fnMeta) {
+  var fn, context, args;
   if (fnMeta instanceof _Fn) {
     return fnMeta;
   } else {
     if (isFn(fnMeta)) {
-      return {
-        fn: fnMeta,
-        context: null,
-        args: []
-      };
+      return {fn: fnMeta, context: null, args: []};
     } else {
       if (isArrayLike(fnMeta)) {
-        return {
-          fn: getFn(fnMeta[0], fnMeta[1]),
-          context: (fnMeta[1] == null ? null : fnMeta[1]),
-          args: rest(fnMeta, 2, [])
-        };
+        context = (fnMeta[1] == null ? null : fnMeta[1]);
+        fn = fnMeta[0];
+        args = rest(fnMeta, 2, []);
+        if (!isFn(fn)) {
+          if (context !== null && isFn(context[fn])) {
+            fn = context[fn];
+          } else {
+            throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+          }
+        }
+        return {fn: fn, context: context, args: args};
       } else {
         throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
       }
@@ -358,8 +349,8 @@ Fn.isEqual = function(a, b) {
   if (a === b) {
     return true;
   }
-  a = Fn(a, null, true);
-  b = Fn(b, null, true);
+  a = Fn(a);
+  b = Fn(b);
   return a.fn === b.fn &&
     a.context === b.context &&
     isEqualArrays(a.args, b.args);
