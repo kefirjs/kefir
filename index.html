@@ -438,10 +438,12 @@ result.log();
 &gt; [sequentially.skipDuplicates] &lt;value&gt; 2
 &gt; [sequentially.skipDuplicates] &lt;value&gt; 3
 &gt; [sequentially.skipDuplicates] &lt;value&gt; 1
-&gt; [sequentially.skipDuplicates] &lt;end&gt;</pre><div></div><p id="diff"><a href="#diff" class="header">diff</a><code>obs.diff(seed, fn)</code><br/>On each value from original observable calls <b>fn</b>
+&gt; [sequentially.skipDuplicates] &lt;end&gt;</pre><div></div><p id="diff"><a href="#diff" class="header">diff</a><code>obs.diff(seed, [fn])</code><br/>On each value from original observable calls <b>fn</b>
 function with previous and current value as arguments.
 At first time calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns.
+</p><p>If no <b>fn</b> function provided,
+<tt>function(a, b) {return [a, b]}</tt> will be used as default.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
 var result = source.diff(0, function(prev, next) {
   return next - prev;

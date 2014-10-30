@@ -1,3 +1,8 @@
+## 0.2.11
+
+ - The `fn` argument of the `.diff` method is now optional
+
+
 ## 0.2.10
 
  - Method `.transform` renamed to `.flatten`
@@ -6,7 +11,7 @@
 
 ## 0.2.9
 
- - The `fn` argument in the `.transform` method is now optional
+ - The `fn` argument of the `.transform` method is now optional
  - Transducers support via `.transduce` method
 
 

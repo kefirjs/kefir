@@ -293,11 +293,15 @@ div
 
 
 
-+descr-method('diff', 'diff', 'obs.diff(seed, fn)').
++descr-method('diff', 'diff', 'obs.diff(seed, [fn])').
   On each value from original observable calls <b>fn</b>
   function with previous and current value as arguments.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns.
+
+p.
+  If no <b>fn</b> function provided,
+  <tt>function(a, b) {return [a, b]}</tt> will be used as default.
 
 pre(title='example')
   :escapehtml

@@ -1628,14 +1628,17 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = Fn(args[1], 2);
+    this._fn = args[1] ? Fn(args[1], 2) : null;
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(this._prev, x), isCurrent);
+    var result = (this._fn === null) ?
+      [this._prev, x] :
+      this._fn.invoke(this._prev, x);
+    this._send('value', result, isCurrent);
     this._prev = x;
   }
 });

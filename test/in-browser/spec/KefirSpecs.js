@@ -1629,14 +1629,17 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = Fn(args[1], 2);
+    this._fn = args[1] ? Fn(args[1], 2) : null;
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(this._prev, x), isCurrent);
+    var result = (this._fn === null) ?
+      [this._prev, x] :
+      this._fn.invoke(this._prev, x);
+    this._send('value', result, isCurrent);
     this._prev = x;
   }
 });
@@ -20640,12 +20643,19 @@ describe('diff', function() {
     it('should be ended if source was ended', function() {
       return expect(send(stream(), ['<end>']).diff(0, function() {})).toEmit(['<end:current>']);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.diff(0, function(prev, next) {
         return prev - next;
       })).toEmit([-1, -2, '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('works without fn argument', function() {
+      var a;
+      a = stream();
+      return expect(a.diff(0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
@@ -20662,7 +20672,7 @@ describe('diff', function() {
     it('should be ended if source was ended', function() {
       return expect(send(prop(), ['<end>']).diff(0, function() {})).toEmit(['<end:current>']);
     });
-    return it('should handle events and current', function() {
+    it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.diff(0, function(prev, next) {
@@ -20671,6 +20681,17 @@ describe('diff', function() {
         {
           current: -1
         }, -2, -3, '<end>'
+      ], function() {
+        return send(a, [3, 6, '<end>']);
+      });
+    });
+    return it('works without fn argument', function() {
+      var a;
+      a = send(prop(), [1]);
+      return expect(a.diff(0)).toEmit([
+        {
+          current: [0, 1]
+        }, [1, 3], [3, 6], '<end>'
       ], function() {
         return send(a, [3, 6, '<end>']);
       });
