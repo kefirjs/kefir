@@ -118,7 +118,11 @@ function bind(fn, context, args, boundFunctionLength) {
 
 
 
-// Fn
+
+
+
+
+// array functions (a.k.a fnMeta) helpers
 
 function normFnMeta(fnMeta) {
   if (fnMeta instanceof _Fn) {
@@ -148,6 +152,17 @@ function applyFnMeta(fnMeta, args) {
   fnMeta = normFnMeta(fnMeta);
   return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
 }
+
+function buildFn(fnMeta, length) {
+  fnMeta = normFnMeta(fnMeta);
+  return bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
+}
+
+
+
+
+
+// Fn class
 
 function _Fn(fnMeta, length) {
   this.context = fnMeta.context;

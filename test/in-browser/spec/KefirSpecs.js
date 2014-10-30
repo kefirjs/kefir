@@ -282,7 +282,11 @@ function bind(fn, context, args, boundFunctionLength) {
 
 
 
-// Fn
+
+
+
+
+// array functions (a.k.a fnMeta) helpers
 
 function normFnMeta(fnMeta) {
   if (fnMeta instanceof _Fn) {
@@ -312,6 +316,17 @@ function applyFnMeta(fnMeta, args) {
   fnMeta = normFnMeta(fnMeta);
   return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
 }
+
+function buildFn(fnMeta, length) {
+  fnMeta = normFnMeta(fnMeta);
+  return bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
+}
+
+
+
+
+
+// Fn class
 
 function _Fn(fnMeta, length) {
   this.context = fnMeta.context;
@@ -793,7 +808,7 @@ Observable.prototype.offLog = function(name) {
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = Fn(args[0], 1);
+    this._fn = buildFn(args[0], 1);
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send('value', x)  },
@@ -805,7 +820,7 @@ withInterval('withInterval', {
     this._emitter = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._emitter);
+    this._fn(this._emitter);
   }
 });
 
@@ -817,13 +832,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = Fn(args[0], 0);
+    this._fn = buildFn(args[0], 0);
   },
   _free: function() {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', this._fn.invoke());
+    this._send('value', this._fn());
   }
 });
 
@@ -1150,7 +1165,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? Fn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : null;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -1171,7 +1186,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+        this._add(this._fn ? this._fn(event.value) : event.value);
       }
       this._lastCurrent = event.value;
     } else {
@@ -1383,7 +1398,7 @@ withOneSource('changes', {
 
 withOneSource('withHandler', {
   _init: function(args) {
-    this._handler = Fn(args[0], 2);
+    this._handler = buildFn(args[0], 2);
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
@@ -1397,7 +1412,7 @@ withOneSource('withHandler', {
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._emitter, event);
+    this._handler(this._emitter, event);
     this._forcedCurrent = false;
   }
 });
@@ -1409,13 +1424,13 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? Fn(args[0], 1) : null;
+    this._fn = args[0] ? buildFn(args[0], 1) : null;
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn === null ? x : this._fn.invoke(x);
+    var xs = this._fn === null ? x : this._fn(x);
     for (var i = 0; i < xs.length; i++) {
       this._send('value', xs[i], isCurrent);
     }
@@ -1478,7 +1493,7 @@ withOneSource('transduce', {
 
 
 var withFnArgMixin = {
-  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _init: function(args) {  this._fn = buildFn(args[0], 1)  },
   _free: function() {  this._fn = null  }
 };
 
@@ -1488,7 +1503,7 @@ var withFnArgMixin = {
 
 withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(x), isCurrent);
+    this._send('value', this._fn(x), isCurrent);
   }
 }, withFnArgMixin));
 
@@ -1500,7 +1515,7 @@ withOneSource('map', extend({
 
 withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
-    if (this._fn.invoke(x)) {
+    if (this._fn(x)) {
       this._send('value', x, isCurrent);
     }
   }
@@ -1514,7 +1529,7 @@ withOneSource('filter', extend({
 
 withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
-    if (this._fn.invoke(x)) {
+    if (this._fn(x)) {
       this._send('value', x, isCurrent);
     } else {
       this._send('end', null, isCurrent);
@@ -1570,7 +1585,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? Fn(args[0], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : null;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -1578,7 +1593,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _isEqual: function(a, b) {
-    return this._fn === null ? a === b : this._fn.invoke(a, b);
+    return this._fn === null ? a === b : this._fn(a, b);
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
@@ -1596,7 +1611,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = Fn(args[0], 1);
+    this._fn = buildFn(args[0], 1);
     this._skip = true;
   },
   _free: function() {
@@ -1607,7 +1622,7 @@ withOneSource('skipWhile', {
       this._send('value', x, isCurrent);
       return;
     }
-    if (!this._fn.invoke(x)) {
+    if (!this._fn(x)) {
       this._skip = false;
       this._fn = null;
       this._send('value', x, isCurrent);
@@ -1624,7 +1639,7 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = args[1] ? Fn(args[1], 2) : null;
+    this._fn = args[1] ? buildFn(args[1], 2) : null;
   },
   _free: function() {
     this._prev = null;
@@ -1633,7 +1648,7 @@ withOneSource('diff', {
   _handleValue: function(x, isCurrent) {
     var result = (this._fn === null) ?
       [this._prev, x] :
-      this._fn.invoke(this._prev, x);
+      this._fn(this._prev, x);
     this._send('value', result, isCurrent);
     this._prev = x;
   }
@@ -1648,13 +1663,13 @@ withOneSource('diff', {
 withOneSource('scan', {
   _init: function(args) {
     this._send('value', args[0], true);
-    this._fn = Fn(args[1], 2);
+    this._fn = buildFn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(this._current, x), isCurrent);
+    this._send('value', this._fn(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1667,14 +1682,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   _init: function(args) {
     this._result = args[0];
-    this._fn = Fn(args[1], 2);
+    this._fn = buildFn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = this._fn.invoke(this._result, x);
+    this._result = this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
     this._send('value', this._result, isCurrent);
@@ -1878,7 +1893,7 @@ withOneSource('delay', {
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = Fn(fn, 1);
+  this._fn = buildFn(fn, 1);
   this._unsubscribe = null;
 }
 
@@ -1894,15 +1909,15 @@ inherit(FromBinder, Stream, {
         emit: function(x) {  $._send('value', x, isCurrent)  },
         end: function() {  $._send('end', null, isCurrent)  }
       };
-    unsub = this._fn.invoke(emitter);
+    unsub = this._fn(emitter);
     isCurrent = false;
     if (unsub) {
-      this._unsubscribe = Fn(unsub, 0);
+      this._unsubscribe = buildFn(unsub, 0);
     }
   },
   _onDeactivation: function() {
     if (this._unsubscribe !== null) {
-      this._unsubscribe.invoke();
+      this._unsubscribe();
       this._unsubscribe = null;
     }
   },
@@ -2031,9 +2046,9 @@ Observable.prototype.timestamp = function() {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = Fn(fn, 1);
+  fn = buildFn(fn, 1);
   return this.map(function(x) {
-    fn.invoke(x);
+    fn(x);
     return x;
   }).setName(this, 'tap');
 }
@@ -2104,11 +2119,11 @@ Observable.prototype.filterBy = function(other) {
 // .fromCallback
 
 Kefir.fromCallback = function(callbackConsumer) {
-  callbackConsumer = Fn(callbackConsumer, 1);
+  callbackConsumer = buildFn(callbackConsumer, 1);
   var called = false;
   return Kefir.fromBinder(function(emitter) {
     if (!called) {
-      callbackConsumer.invoke(function(x) {
+      callbackConsumer(function(x) {
         emitter.emit(x);
         emitter.end();
       });

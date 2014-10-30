@@ -50,9 +50,9 @@ Observable.prototype.timestamp = function() {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = Fn(fn, 1);
+  fn = buildFn(fn, 1);
   return this.map(function(x) {
-    fn.invoke(x);
+    fn(x);
     return x;
   }).setName(this, 'tap');
 }
@@ -123,11 +123,11 @@ Observable.prototype.filterBy = function(other) {
 // .fromCallback
 
 Kefir.fromCallback = function(callbackConsumer) {
-  callbackConsumer = Fn(callbackConsumer, 1);
+  callbackConsumer = buildFn(callbackConsumer, 1);
   var called = false;
   return Kefir.fromBinder(function(emitter) {
     if (!called) {
-      callbackConsumer.invoke(function(x) {
+      callbackConsumer(function(x) {
         emitter.emit(x);
         emitter.end();
       });

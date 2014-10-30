@@ -2,7 +2,7 @@
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = Fn(fn, 1);
+  this._fn = buildFn(fn, 1);
   this._unsubscribe = null;
 }
 
@@ -18,15 +18,15 @@ inherit(FromBinder, Stream, {
         emit: function(x) {  $._send('value', x, isCurrent)  },
         end: function() {  $._send('end', null, isCurrent)  }
       };
-    unsub = this._fn.invoke(emitter);
+    unsub = this._fn(emitter);
     isCurrent = false;
     if (unsub) {
-      this._unsubscribe = Fn(unsub, 0);
+      this._unsubscribe = buildFn(unsub, 0);
     }
   },
   _onDeactivation: function() {
     if (this._unsubscribe !== null) {
-      this._unsubscribe.invoke();
+      this._unsubscribe();
       this._unsubscribe = null;
     }
   },
