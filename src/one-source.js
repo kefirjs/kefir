@@ -193,7 +193,7 @@ withOneSource('take', {
     this._n--;
     this._send('value', x, isCurrent);
     if (this._n === 0) {
-      this._send('end');
+      this._send('end', null, isCurrent);
     }
   }
 });
