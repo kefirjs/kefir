@@ -102,23 +102,6 @@ Observable.prototype.awaiting = function(other) {
 
 
 
-// .filterBy
-
-Observable.prototype.filterBy = function(other) {
-  return other
-    .sampledBy(this)
-    .withHandler(function(emitter, e) {
-      if (e.type === 'end') {
-        emitter.end();
-      } else if (e.value[0]) {
-        emitter.emit(e.value[1]);
-      }
-    })
-    .setName(this, 'filterBy');
-}
-
-
-
 
 // .fromCallback
 
