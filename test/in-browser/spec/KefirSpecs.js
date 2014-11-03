@@ -560,18 +560,6 @@ function withOneSource(name, mixin, options) {
 
 function withTwoSources(name, mixin /*, options*/) {
 
-
-  // options = extend({
-  //   streamMethod: function(StreamClass, PropertyClass) {
-  //     return function() {  return new StreamClass(this, arguments)  }
-  //   },
-  //   propertyMethod: function(StreamClass, PropertyClass) {
-  //     return function() {  return new PropertyClass(this, arguments)  }
-  //   }
-  // }, options || {});
-
-
-
   mixin = extend({
     _init: function() {},
     _free: function() {},
@@ -581,9 +569,6 @@ function withTwoSources(name, mixin /*, options*/) {
 
     _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
     _handleSecondaryEnd: function(__, isCurrent) {},
-
-    // _onActivationHook: function() {},
-    // _onDeactivationHook: function() {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
@@ -605,7 +590,6 @@ function withTwoSources(name, mixin /*, options*/) {
     },
 
     _onActivation: function() {
-      // this._onActivationHook();
       if (!this._secondaryRemoved) {
         this._secondary.onAny([this._handleSecondaryAny, this]);
       }
@@ -614,7 +598,6 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
     _onDeactivation: function() {
-      // this._onDeactivationHook();
       if (!this._secondaryRemoved) {
         this._secondary.offAny([this._handleSecondaryAny, this]);
       }
@@ -659,14 +642,6 @@ function withTwoSources(name, mixin /*, options*/) {
   Property.prototype[name] = function(secondary) {
     return new AnonymousProperty(this, secondary);
   }
-
-  // if (options.streamMethod) {
-  //   Stream.prototype[name] = options.streamMethod(AnonymousStream, AnonymousProperty);
-  // }
-
-  // if (options.propertyMethod) {
-  //   Property.prototype[name] = options.propertyMethod(AnonymousStream, AnonymousProperty);
-  // }
 
 }
 
