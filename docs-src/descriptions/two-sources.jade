@@ -1,0 +1,119 @@
+h2#combine-two Combine two observables
+
+p.
+  Just like in <a href="#modify">"Modify an observable"</a> section,
+  all methods from this section return observables of same kind as an original
+  observable on which method was called.
+
++descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
+  Works like <a href="#filter">filter</a>, but instead of calling a predicate
+  on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+  var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
+  var result = foo.filterBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.filterBy] <value> 1
+    > [sequentially.filterBy] <value> 2
+    > [sequentially.filterBy] <value> 5
+    > [sequentially.filterBy] <value> 6
+    > [sequentially.filterBy] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4----5----6----7----8X
+  bar:     t----------f---------t---------fX
+
+  result:  ----1----2--------------5----6----------X
+div
+
+
+
++descr-method('take-while-by', 'takeWhileBy', 'obs.takeWhileBy(otherObs)').
+  Works like <a href="#take-while">takeWhile</a>, but instead of using a
+  predicate function it uses another observable. It takes values from
+  <b>obs</b> observable until the first falsey value from <b>otherObs</b>.
+
+p.
+  <img data-emoji="point_up"> Note that it will not produce any value until
+  first value from <b>otherObs</b>, if that not what you need, just turn your
+  stream into property with current value <tt>true</tt>
+  by calling <tt>.toProperty(true)</tt>.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+  var bar = Kefir.sequentially(200, [true, false, true]).delay(40).toProperty(true);
+  var result = foo.takeWhileBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.takeWhileBy] <value> 1
+    > [sequentially.takeWhileBy] <value> 2
+    > [sequentially.takeWhileBy] <value> 3
+    > [sequentially.takeWhileBy] <value> 4
+    > [sequentially.takeWhileBy] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4----5----6----7----8X
+  bar:     t----------t---------f---------tX
+
+  result:  ----1----2----3----4-X
+div
+
+
+
+
++descr-method('skip-while-by', 'skipWhileBy', 'obs.skipWhileBy(otherObs)').
+  Works like <a href="#skip-while">skipWhile</a>, but instead of using a
+  predicate function it uses another observable. It skips values from
+  <b>obs</b> observable until first falsey value from <b>otherObs</b>.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+  var bar = Kefir.sequentially(200, [true, false, true]).delay(40);
+  var result = foo.skipWhileBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.skipWhileBy] <value> 1
+    > [sequentially.skipWhileBy] <value> 2
+    > [sequentially.skipWhileBy] <value> 3
+    > [sequentially.skipWhileBy] <value> 4
+    > [sequentially.skipWhileBy] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4----5----6----7----8X
+  bar:     -----------t---------f---------tX
+
+  result:  ------------------------5----6----7----8X
+div
+
+
+
++descr-method('wait-for', 'waitFor', 'obs.waitFor(otherObs)').
+  Similar to <a href="#skip-while-by">skipWhileBy</a>, but instead of
+  waiting for first falsey value from <b>otherObs</b>, it waits for just any value from it.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
+  var bar = Kefir.later(250, 0);
+  var result = foo.waitFor(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.waitFor] <value> 3
+    > [sequentially.waitFor] <value> 4
+    > [sequentially.waitFor] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4X
+  bar:     -----------0X
+
+  result:  --------------3----4X
+div

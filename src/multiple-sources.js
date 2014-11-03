@@ -239,7 +239,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? Fn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : null;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -260,7 +260,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+        this._add(this._fn ? this._fn(event.value) : event.value);
       }
       this._lastCurrent = event.value;
     } else {

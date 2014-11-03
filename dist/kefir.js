@@ -1,173 +1,28 @@
-/*! Kefir.js v0.2.10
+/*! Kefir.js v0.2.11
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
   "use strict";
 
-var NOTHING = ['<nothing>'];
+  var Kefir = {};
 
-function get(map, key, notFound) {
-  if (map && key in map) {
-    return map[key];
-  } else {
-    return notFound;
-  }
-}
 
-function own(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-function createObj(proto) {
-  var F = function() {};
-  F.prototype = proto;
-  return new F();
-}
-
-function extend(target /*, mixin1, mixin2...*/) {
-  var length = arguments.length
-    , i, prop;
-  for (i = 1; i < length; i++) {
-    for (prop in arguments[i]) {
-      target[prop] = arguments[i][prop];
+function and() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (!arguments[i]) {
+      return arguments[i];
     }
   }
-  return target;
+  return arguments[i - 1];
 }
 
-function inherit(Child, Parent /*, mixin1, mixin2...*/) {
-  var length = arguments.length
-    , i;
-  Child.prototype = createObj(Parent.prototype);
-  Child.prototype.constructor = Child;
-  for (i = 2; i < length; i++) {
-    extend(Child.prototype, arguments[i]);
-  }
-  return Child;
-}
-
-function agrsToArray(args) {
-  if (args.length === 1 && isArray(args[0])) {
-    return args[0];
-  }
-  return cloneArray(args);
-}
-
-function getFn(fn, context) {
-  if (isFn(fn)) {
-    return fn;
-  } else {
-    if (context == null || !isFn(context[fn])) {
-      throw new Error('Not a function: ' + fn + ' in context: ' + context);
-    } else {
-      return context[fn];
+function or() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (arguments[i]) {
+      return arguments[i];
     }
   }
-}
-
-function apply(fn, c, a) {
-  var aLength = a ? a.length : 0;
-  if (c == null) {
-    switch (aLength) {
-      case 0:  return fn();
-      case 1:  return fn(a[0]);
-      case 2:  return fn(a[0], a[1]);
-      case 3:  return fn(a[0], a[1], a[2]);
-      case 4:  return fn(a[0], a[1], a[2], a[3]);
-      default: return fn.apply(null, a);
-    }
-  } else {
-    switch (aLength) {
-      case 0:  return fn.call(c);
-      default: return fn.apply(c, a);
-    }
-  }
-}
-
-function bindWithoutContext(fn, a, length) {
-  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
-  switch (length) {
-    case 0:
-      switch (a.length) {
-        case 0:  return fn;
-        case 1:  return function() {return fn(a0)}
-        case 2:  return function() {return fn(a0, a1)}
-        case 3:  return function() {return fn(a0, a1, a2)}
-        case 4:  return function() {return fn(a0, a1, a2, a3)}
-        default: return function() {return fn.apply(null, a)}
-      }
-      break;
-    case 1:
-      switch (a.length) {
-        case 0:  return fn;
-        case 1:  return function(b0) {return fn(a0, b0)}
-        case 2:  return function(b0) {return fn(a0, a1, b0)}
-        case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
-        case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
-        default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
-      }
-      break;
-    case 2:
-      switch (a.length) {
-        case 0:  return fn;
-        case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
-        case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
-        case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
-        case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
-        default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
-      }
-      break;
-    default:
-      switch (a.length) {
-        case 0:  return fn;
-        default: return function() {return apply(fn, null, concat(a, arguments))}
-      }
-  }
-}
-
-function bindWithContext(fn, c, a, length) {
-  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
-  switch (length) {
-    case 0:
-      switch (a.length) {
-        case 0:  return function() {return fn.call(c)}
-        default: return function() {return fn.apply(c, a)}
-      }
-      break;
-    case 1:
-      switch (a.length) {
-        case 0:  return function(b0) {return fn.call(c, b0)}
-        case 1:  return function(b0) {return fn.call(c, a0, b0)}
-        case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
-        case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
-        case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
-        default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
-      }
-      break;
-    case 2:
-      switch (a.length) {
-        case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
-        case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
-        case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
-        case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
-        case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
-        default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
-      }
-      break;
-    default:
-      switch (a.length) {
-        case 0: return function() {return fn.apply(c, arguments)}
-        default: return function() {return fn.apply(c, concat(a, arguments))}
-      }
-  }
-}
-
-function bind(fn, context, args, boundFunctionLength) {
-  if (context == null) {
-    return bindWithoutContext(fn, args, boundFunctionLength);
-  } else {
-    return bindWithContext(fn, context, args, boundFunctionLength);
-  }
+  return arguments[i - 1];
 }
 
 function concat(a, b) {
@@ -287,6 +142,271 @@ function slide(cur, next, max) {
   return result;
 }
 
+function isEqualArrays(a, b) {
+  var length, i;
+  if (a == null && b == null) {
+    return true;
+  }
+  if (a == null || b == null) {
+    return false;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (i = 0, length = a.length; i < length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function apply(fn, c, a) {
+  var aLength = a ? a.length : 0;
+  if (c == null) {
+    switch (aLength) {
+      case 0:  return fn();
+      case 1:  return fn(a[0]);
+      case 2:  return fn(a[0], a[1]);
+      case 3:  return fn(a[0], a[1], a[2]);
+      case 4:  return fn(a[0], a[1], a[2], a[3]);
+      default: return fn.apply(null, a);
+    }
+  } else {
+    switch (aLength) {
+      case 0:  return fn.call(c);
+      default: return fn.apply(c, a);
+    }
+  }
+}
+
+function bindWithoutContext(fn, a, length) {
+  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+  switch (length) {
+    case 0:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function() {return fn(a0)}
+        case 2:  return function() {return fn(a0, a1)}
+        case 3:  return function() {return fn(a0, a1, a2)}
+        case 4:  return function() {return fn(a0, a1, a2, a3)}
+        default: return function() {return fn.apply(null, a)}
+      }
+      break;
+    case 1:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function(b0) {return fn(a0, b0)}
+        case 2:  return function(b0) {return fn(a0, a1, b0)}
+        case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
+        case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
+        default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
+      }
+      break;
+    case 2:
+      switch (a.length) {
+        case 0:  return fn;
+        case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
+        case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
+        case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
+        case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
+        default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
+      }
+      break;
+    default:
+      switch (a.length) {
+        case 0:  return fn;
+        default: return function() {return apply(fn, null, concat(a, arguments))}
+      }
+  }
+}
+
+function bindWithContext(fn, c, a, length) {
+  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+  switch (length) {
+    case 0:
+      switch (a.length) {
+        case 0:  return function() {return fn.call(c)}
+        default: return function() {return fn.apply(c, a)}
+      }
+      break;
+    case 1:
+      switch (a.length) {
+        case 0:  return function(b0) {return fn.call(c, b0)}
+        case 1:  return function(b0) {return fn.call(c, a0, b0)}
+        case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
+        case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
+        case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
+        default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
+      }
+      break;
+    case 2:
+      switch (a.length) {
+        case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
+        case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
+        case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
+        case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
+        case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
+        default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
+      }
+      break;
+    default:
+      switch (a.length) {
+        case 0: return function() {return fn.apply(c, arguments)}
+        default: return function() {return fn.apply(c, concat(a, arguments))}
+      }
+  }
+}
+
+function bind(fn, context, args, boundFunctionLength) {
+  if (context == null) {
+    return bindWithoutContext(fn, args, boundFunctionLength);
+  } else {
+    return bindWithContext(fn, context, args, boundFunctionLength);
+  }
+}
+
+
+
+
+
+
+
+
+// array functions (a.k.a fnMeta) helpers
+
+function normFnMeta(fnMeta) {
+  var fn, context, args;
+  if (fnMeta instanceof _Fn) {
+    return fnMeta;
+  } else {
+    if (isFn(fnMeta)) {
+      return {fn: fnMeta, context: null, args: []};
+    } else {
+      if (isArrayLike(fnMeta)) {
+        context = (fnMeta[1] == null ? null : fnMeta[1]);
+        fn = fnMeta[0];
+        args = rest(fnMeta, 2, []);
+        if (!isFn(fn)) {
+          if (context !== null && isFn(context[fn])) {
+            fn = context[fn];
+          } else {
+            throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+          }
+        }
+        return {fn: fn, context: context, args: args};
+      } else {
+        throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+      }
+    }
+  }
+}
+
+function applyFnMeta(fnMeta, args) {
+  fnMeta = normFnMeta(fnMeta);
+  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
+}
+
+function buildFn(fnMeta, length) {
+  fnMeta = normFnMeta(fnMeta);
+  return bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
+}
+
+
+
+
+
+// Fn class
+
+function _Fn(fnMeta, length) {
+  this.context = fnMeta.context;
+  this.fn = fnMeta.fn;
+  this.args = fnMeta.args;
+  this.invoke = bind(this.fn, this.context, this.args, length);
+}
+
+_Fn.prototype.apply = function(args) {
+  return apply(this.invoke, null, args);
+}
+
+_Fn.prototype.applyWithContext = function(context, args) {
+  if (this.context === null) {
+    return apply(this.fn, context, concat(this.args, args));
+  } else {
+    return this.apply(args);
+  }
+}
+
+function Fn(fnMeta, length) {
+  if (fnMeta instanceof _Fn) {
+    return fnMeta;
+  } else {
+    return new _Fn(normFnMeta(fnMeta), length == null ? 100 : length);
+  }
+}
+
+Fn.isEqual = function(a, b) {
+  if (a === b) {
+    return true;
+  }
+  a = Fn(a);
+  b = Fn(b);
+  return a.fn === b.fn &&
+    a.context === b.context &&
+    isEqualArrays(a.args, b.args);
+}
+
+Kefir.Fn = Fn;
+
+function get(map, key, notFound) {
+  if (map && key in map) {
+    return map[key];
+  } else {
+    return notFound;
+  }
+}
+
+function own(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+function createObj(proto) {
+  var F = function() {};
+  F.prototype = proto;
+  return new F();
+}
+
+function extend(target /*, mixin1, mixin2...*/) {
+  var length = arguments.length
+    , i, prop;
+  for (i = 1; i < length; i++) {
+    for (prop in arguments[i]) {
+      target[prop] = arguments[i][prop];
+    }
+  }
+  return target;
+}
+
+function inherit(Child, Parent /*, mixin1, mixin2...*/) {
+  var length = arguments.length
+    , i;
+  Child.prototype = createObj(Parent.prototype);
+  Child.prototype.constructor = Child;
+  for (i = 2; i < length; i++) {
+    extend(Child.prototype, arguments[i]);
+  }
+  return Child;
+}
+
+var NOTHING = ['<nothing>'];
+
+function agrsToArray(args) {
+  if (args.length === 1 && isArray(args[0])) {
+    return args[0];
+  }
+  return cloneArray(args);
+}
+
 var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
@@ -316,43 +436,6 @@ if (!isArguments(arguments)) {
   isArguments = function(obj) {
     return !!(obj && own(obj, 'callee'));
   }
-}
-
-function isEqualArrays(a, b) {
-  var length, i;
-  if (a == null && b == null) {
-    return true;
-  }
-  if (a == null || b == null) {
-    return false;
-  }
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (i = 0, length = a.length; i < length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function and() {
-  for (var i = 0; i < arguments.length; i++) {
-    if (!arguments[i]) {
-      return arguments[i];
-    }
-  }
-  return arguments[i - 1];
-}
-
-function or() {
-  for (var i = 0; i < arguments.length; i++) {
-    if (arguments[i]) {
-      return arguments[i];
-    }
-  }
-  return arguments[i - 1];
 }
 
 function withInterval(name, mixin) {
@@ -474,87 +557,92 @@ function withOneSource(name, mixin, options) {
 
 }
 
+function withTwoSources(name, mixin /*, options*/) {
 
+  mixin = extend({
+    _init: function() {},
+    _free: function() {},
 
-var Kefir = {};
+    _handlePrimaryValue: function(x, isCurrent) {},
+    _handlePrimaryEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
 
+    _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
+    _handleSecondaryEnd: function(__, isCurrent) {},
 
-
-
-// Fn
-
-function normFnMeta(fnMeta) {
-  if (fnMeta instanceof _Fn) {
-    return fnMeta;
-  } else {
-    if (isFn(fnMeta)) {
-      return {
-        fn: fnMeta,
-        context: null,
-        args: []
-      };
-    } else {
-      if (isArrayLike(fnMeta)) {
-        return {
-          fn: getFn(fnMeta[0], fnMeta[1]),
-          context: (fnMeta[1] == null ? null : fnMeta[1]),
-          args: rest(fnMeta, 2, [])
-        };
-      } else {
-        throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
+    _handlePrimaryAny: function(event) {
+      switch (event.type) {
+        case 'value': this._handlePrimaryValue(event.value, event.current); break;
+        case 'end': this._handlePrimaryEnd(event.value, event.current); break;
       }
+    },
+    _handleSecondaryAny: function(event) {
+      switch (event.type) {
+        case 'value': this._handleSecondaryValue(event.value, event.current); break;
+        case 'end': this._handleSecondaryEnd(event.value, event.current); break;
+      }
+    },
+
+    _removeSecondary: function() {
+      this._secondary.offAny([this._handleSecondaryAny, this]);
+      this._secondary = null;
+      this._secondaryRemoved = true;
+    },
+
+    _onActivation: function() {
+      if (!this._secondaryRemoved) {
+        this._secondary.onAny([this._handleSecondaryAny, this]);
+      }
+      if (this._alive) {
+        this._primary.onAny([this._handlePrimaryAny, this]);
+      }
+    },
+    _onDeactivation: function() {
+      if (!this._secondaryRemoved) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+      }
+      this._primary.offAny([this._handlePrimaryAny, this]);
     }
+  }, mixin || {});
+
+
+
+  function buildClass(BaseClass) {
+    function AnonymousObservable(primary, secondary) {
+      BaseClass.call(this);
+      this._primary = primary;
+      this._secondary = secondary;
+      this._name = primary._name + '.' + name;
+      this._lastSecondary = NOTHING;
+      this._secondaryRemoved = false;
+      this._init();
+    }
+
+    inherit(AnonymousObservable, BaseClass, {
+      _clear: function() {
+        BaseClass.prototype._clear.call(this);
+        this._primary = null;
+        this._secondary = null;
+        this._lastSecondary = null;
+        this._free();
+      }
+    }, mixin);
+
+    return AnonymousObservable;
   }
-}
 
-function applyFnMeta(fnMeta, args) {
-  fnMeta = normFnMeta(fnMeta);
-  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
-}
 
-function _Fn(fnMeta, length) {
-  this.context = fnMeta.context;
-  this.fn = fnMeta.fn;
-  this.args = fnMeta.args;
-  this.invoke = bind(this.fn, this.context, this.args, length);
-}
+  var AnonymousStream = buildClass(Stream);
+  var AnonymousProperty = buildClass(Property);
 
-_Fn.prototype.apply = function(args) {
-  return apply(this.invoke, null, args);
-}
-
-_Fn.prototype.applyWithContext = function(context, args) {
-  if (this.context === null) {
-    return apply(this.fn, context, concat(this.args, args));
-  } else {
-    return this.apply(args);
+  Stream.prototype[name] = function(secondary) {
+    return new AnonymousStream(this, secondary);
   }
-}
 
-function Fn(fnMeta, length) {
-  if (fnMeta instanceof _Fn) {
-    return fnMeta;
-  } else {
-    return new _Fn(normFnMeta(fnMeta), length == null ? 100 : length);
+  Property.prototype[name] = function(secondary) {
+    return new AnonymousProperty(this, secondary);
   }
+
 }
-
-Fn.isEqual = function(a, b) {
-  if (a === b) {
-    return true;
-  }
-  a = Fn(a, null, true);
-  b = Fn(b, null, true);
-  return a.fn === b.fn &&
-    a.context === b.context &&
-    isEqualArrays(a.args, b.args);
-}
-
-Kefir.Fn = Fn;
-
-
-
-
 
 // Subscribers
 
@@ -797,7 +885,7 @@ Observable.prototype.offLog = function(name) {
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = Fn(args[0], 1);
+    this._fn = buildFn(args[0], 1);
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send('value', x)  },
@@ -809,7 +897,7 @@ withInterval('withInterval', {
     this._emitter = null;
   },
   _onTick: function() {
-    this._fn.invoke(this._emitter);
+    this._fn(this._emitter);
   }
 });
 
@@ -821,13 +909,13 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = Fn(args[0], 0);
+    this._fn = buildFn(args[0], 0);
   },
   _free: function() {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', this._fn.invoke());
+    this._send('value', this._fn());
   }
 });
 
@@ -1154,7 +1242,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? Fn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : null;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -1175,7 +1263,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn.invoke(event.value) : event.value);
+        this._add(this._fn ? this._fn(event.value) : event.value);
       }
       this._lastCurrent = event.value;
     } else {
@@ -1387,7 +1475,7 @@ withOneSource('changes', {
 
 withOneSource('withHandler', {
   _init: function(args) {
-    this._handler = Fn(args[0], 2);
+    this._handler = buildFn(args[0], 2);
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
@@ -1401,7 +1489,7 @@ withOneSource('withHandler', {
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler.invoke(this._emitter, event);
+    this._handler(this._emitter, event);
     this._forcedCurrent = false;
   }
 });
@@ -1413,13 +1501,13 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? Fn(args[0], 1) : null;
+    this._fn = args[0] ? buildFn(args[0], 1) : null;
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn === null ? x : this._fn.invoke(x);
+    var xs = this._fn === null ? x : this._fn(x);
     for (var i = 0; i < xs.length; i++) {
       this._send('value', xs[i], isCurrent);
     }
@@ -1482,7 +1570,7 @@ withOneSource('transduce', {
 
 
 var withFnArgMixin = {
-  _init: function(args) {  this._fn = Fn(args[0], 1)  },
+  _init: function(args) {  this._fn = buildFn(args[0], 1)  },
   _free: function() {  this._fn = null  }
 };
 
@@ -1492,7 +1580,7 @@ var withFnArgMixin = {
 
 withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(x), isCurrent);
+    this._send('value', this._fn(x), isCurrent);
   }
 }, withFnArgMixin));
 
@@ -1504,7 +1592,7 @@ withOneSource('map', extend({
 
 withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
-    if (this._fn.invoke(x)) {
+    if (this._fn(x)) {
       this._send('value', x, isCurrent);
     }
   }
@@ -1518,7 +1606,7 @@ withOneSource('filter', extend({
 
 withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
-    if (this._fn.invoke(x)) {
+    if (this._fn(x)) {
       this._send('value', x, isCurrent);
     } else {
       this._send('end', null, isCurrent);
@@ -1543,7 +1631,7 @@ withOneSource('take', {
     this._n--;
     this._send('value', x, isCurrent);
     if (this._n === 0) {
-      this._send('end');
+      this._send('end', null, isCurrent);
     }
   }
 });
@@ -1574,7 +1662,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? Fn(args[0], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : null;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -1582,7 +1670,7 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _isEqual: function(a, b) {
-    return this._fn === null ? a === b : this._fn.invoke(a, b);
+    return this._fn === null ? a === b : this._fn(a, b);
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
@@ -1600,7 +1688,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = Fn(args[0], 1);
+    this._fn = buildFn(args[0], 1);
     this._skip = true;
   },
   _free: function() {
@@ -1611,7 +1699,7 @@ withOneSource('skipWhile', {
       this._send('value', x, isCurrent);
       return;
     }
-    if (!this._fn.invoke(x)) {
+    if (!this._fn(x)) {
       this._skip = false;
       this._fn = null;
       this._send('value', x, isCurrent);
@@ -1628,14 +1716,17 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = Fn(args[1], 2);
+    this._fn = args[1] ? buildFn(args[1], 2) : null;
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(this._prev, x), isCurrent);
+    var result = (this._fn === null) ?
+      [this._prev, x] :
+      this._fn(this._prev, x);
+    this._send('value', result, isCurrent);
     this._prev = x;
   }
 });
@@ -1649,13 +1740,13 @@ withOneSource('diff', {
 withOneSource('scan', {
   _init: function(args) {
     this._send('value', args[0], true);
-    this._fn = Fn(args[1], 2);
+    this._fn = buildFn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn.invoke(this._current, x), isCurrent);
+    this._send('value', this._fn(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1668,14 +1759,14 @@ withOneSource('scan', {
 withOneSource('reduce', {
   _init: function(args) {
     this._result = args[0];
-    this._fn = Fn(args[1], 2);
+    this._fn = buildFn(args[1], 2);
   },
   _free: function() {
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = this._fn.invoke(this._result, x);
+    this._result = this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
     this._send('value', this._result, isCurrent);
@@ -1879,7 +1970,7 @@ withOneSource('delay', {
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = Fn(fn, 1);
+  this._fn = buildFn(fn, 1);
   this._unsubscribe = null;
 }
 
@@ -1895,15 +1986,15 @@ inherit(FromBinder, Stream, {
         emit: function(x) {  $._send('value', x, isCurrent)  },
         end: function() {  $._send('end', null, isCurrent)  }
       };
-    unsub = this._fn.invoke(emitter);
+    unsub = this._fn(emitter);
     isCurrent = false;
     if (unsub) {
-      this._unsubscribe = Fn(unsub, 0);
+      this._unsubscribe = buildFn(unsub, 0);
     }
   },
   _onDeactivation: function() {
     if (this._unsubscribe !== null) {
-      this._unsubscribe.invoke();
+      this._unsubscribe();
       this._unsubscribe = null;
     }
   },
@@ -2032,9 +2123,9 @@ Observable.prototype.timestamp = function() {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = Fn(fn, 1);
+  fn = buildFn(fn, 1);
   return this.map(function(x) {
-    fn.invoke(x);
+    fn(x);
     return x;
   }).setName(this, 'tap');
 }
@@ -2084,32 +2175,15 @@ Observable.prototype.awaiting = function(other) {
 
 
 
-// .filterBy
-
-Observable.prototype.filterBy = function(other) {
-  return other
-    .sampledBy(this)
-    .withHandler(function(emitter, e) {
-      if (e.type === 'end') {
-        emitter.end();
-      } else if (e.value[0]) {
-        emitter.emit(e.value[1]);
-      }
-    })
-    .setName(this, 'filterBy');
-}
-
-
-
 
 // .fromCallback
 
 Kefir.fromCallback = function(callbackConsumer) {
-  callbackConsumer = Fn(callbackConsumer, 1);
+  callbackConsumer = buildFn(callbackConsumer, 1);
   var called = false;
   return Kefir.fromBinder(function(emitter) {
     if (!called) {
-      callbackConsumer.invoke(function(x) {
+      callbackConsumer(function(x) {
         emitter.emit(x);
         emitter.end();
       });
@@ -2138,6 +2212,96 @@ Kefir.fromEvent = function(target, eventName, transformer) {
     }
   }).setName('fromEvent');
 }
+
+withTwoSources('filterBy', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING && this._lastSecondary) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING || !this._lastSecondary) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+withTwoSources('waitFor', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryValue: function(x) {
+    this._lastSecondary = x;
+    this._removeSecondary();
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+withTwoSources('takeWhileBy', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._send('end', null, isCurrent);
+    }
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+
+withTwoSources('skipWhileBy', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._removeSecondary();
+    }
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING || this._lastSecondary) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
 
 
   if (typeof define === 'function' && define.amd) {

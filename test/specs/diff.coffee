@@ -21,6 +21,11 @@ describe 'diff', ->
       expect(a.diff 0, (prev, next) -> prev - next).toEmit [-1, -2, '<end>'], ->
         send(a, [1, 3, '<end>'])
 
+    it 'works without fn argument', ->
+      a = stream()
+      expect(a.diff 0).toEmit [[0,1], [1,3], '<end>'], ->
+        send(a, [1, 3, '<end>'])
+
 
 
   describe 'property', ->
@@ -38,6 +43,11 @@ describe 'diff', ->
     it 'should handle events and current', ->
       a = send(prop(), [1])
       expect(a.diff 0, (prev, next) -> prev - next).toEmit [{current: -1}, -2, -3, '<end>'], ->
+        send(a, [3, 6, '<end>'])
+
+    it 'works without fn argument', ->
+      a = send(prop(), [1])
+      expect(a.diff 0).toEmit [{current: [0,1]}, [1,3], [3,6], '<end>'], ->
         send(a, [3, 6, '<end>'])
 
 

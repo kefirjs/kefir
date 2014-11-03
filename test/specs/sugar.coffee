@@ -177,28 +177,4 @@ describe 'awaiting', ->
 
 
 
-describe 'filterBy', ->
-
-  it 'should work as expected', ->
-    a = stream()
-    b = stream()
-
-    expect(a.filterBy(b)).toEmit [3, 4, 7, 8, '<end>'], ->
-      send(a, [1, 2]) # ignored as B has no value yet
-      send(b, [true])
-      send(a, [3, 4]) # passed
-      send(b, [0])
-      send(a, [5, 6]) # dropped
-      send(b, [1])
-      send(a, [7, 8]) # passed
-      send(b, [false])
-      send(a, [9, '<end>']) # 9 dropped, <end> passed
-
-  it 'should preserve current', ->
-    a = send(prop(), [1]);
-    b = send(prop(), [2]);
-    expect(a.filterBy(b)).toEmit [{current: 1}]
-
-
-
 

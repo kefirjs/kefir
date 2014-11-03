@@ -58,6 +58,9 @@ describe 'take', ->
       expect(a.take(3)).toEmit [{current: 1}, 2, 3, '<end>'], ->
         send(a, [2, 3, 4, 5, '<end>'])
 
+    it 'should work correctly with .constant', ->
+      expect(Kefir.constant(1).take(1)).toEmit([{current: 1}, '<end:current>'])
+
 
 
 
