@@ -4027,7 +4027,7 @@ function createPositionalPseudo( fn ) {
 /**
  * Checks a node for validity as a Sizzle context
  * @param {Element|Object=} context
- * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
+ * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsey value
  */
 function testContext( context ) {
 	return context && typeof context.getElementsByTagName !== strundefined && context;
@@ -12044,7 +12044,7 @@ jQuery.extend({
 
 		// Remove hash character (#7531: and string promotion)
 		// Add protocol if not provided (#5866: IE7 issue with protocol-less urls)
-		// Handle falsy url in the settings object (#10093: consistency with old signature)
+		// Handle falsey url in the settings object (#10093: consistency with old signature)
 		// We also use the url parameter if available
 		s.url = ( ( url || s.url || ajaxLocation ) + "" ).replace( rhash, "" ).replace( rprotocol, ajaxLocParts[ 1 ] + "//" );
 
@@ -14780,9 +14780,9 @@ var sinon = (function (formatio) {
         return !!actual;
     }, "truthy");
 
-    match.falsy = match(function (actual) {
+    match.falsey = match(function (actual) {
         return !actual;
-    }, "falsy");
+    }, "falsey");
 
     match.same = function (expectation) {
         return match(function (actual) {
@@ -14924,7 +14924,7 @@ var sinon = (function (formatio) {
 
             expects: function expects(method) {
                 if (!method) {
-                    throw new TypeError("method is falsy");
+                    throw new TypeError("method is falsey");
                 }
 
                 if (!this.expectations) {
@@ -17226,7 +17226,7 @@ if (typeof module !== 'undefined' && module.exports) {
 },{}],22:[function(require,module,exports){
 // transducers-js 0.4.136
 // http://github.com/cognitect-labs/transducers-js
-// 
+//
 // Copyright 2014 Cognitect. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19363,16 +19363,16 @@ com.cognitect.transducers.toFn = function(a, b) {
 com.cognitect.transducers.first = com.cognitect.transducers.wrap(function(a, b) {
   return com.cognitect.transducers.reduced(b);
 });
-TRANSDUCERS_BROWSER_TARGET && (goog.exportSymbol("transducers.reduced", com.cognitect.transducers.reduced), goog.exportSymbol("transducers.isReduced", com.cognitect.transducers.isReduced), goog.exportSymbol("transducers.comp", com.cognitect.transducers.comp), goog.exportSymbol("transducers.complement", com.cognitect.transducers.complement), goog.exportSymbol("transducers.transduce", com.cognitect.transducers.transduce), goog.exportSymbol("transducers.reduce", com.cognitect.transducers.reduce), goog.exportSymbol("transducers.map", 
-com.cognitect.transducers.map), goog.exportSymbol("transducers.Map", com.cognitect.transducers.Map), goog.exportSymbol("transducers.filter", com.cognitect.transducers.filter), goog.exportSymbol("transducers.Filter", com.cognitect.transducers.Filter), goog.exportSymbol("transducers.remove", com.cognitect.transducers.remove), goog.exportSymbol("transducers.Remove", com.cognitect.transducers.Remove), goog.exportSymbol("transducers.keep", com.cognitect.transducers.keep), goog.exportSymbol("transducers.Keep", 
-com.cognitect.transducers.Keep), goog.exportSymbol("transducers.keepIndexed", com.cognitect.transducers.keepIndexed), goog.exportSymbol("transducers.KeepIndexed", com.cognitect.transducers.KeepIndexed), goog.exportSymbol("transducers.take", com.cognitect.transducers.take), goog.exportSymbol("transducers.Take", com.cognitect.transducers.Take), goog.exportSymbol("transducers.takeWhile", com.cognitect.transducers.takeWhile), goog.exportSymbol("transducers.TakeWhile", com.cognitect.transducers.TakeWhile), 
-goog.exportSymbol("transducers.takeNth", com.cognitect.transducers.takeNth), goog.exportSymbol("transducers.TakeNth", com.cognitect.transducers.TakeNth), goog.exportSymbol("transducers.drop", com.cognitect.transducers.drop), goog.exportSymbol("transducers.Drop", com.cognitect.transducers.Drop), goog.exportSymbol("transducers.dropWhile", com.cognitect.transducers.dropWhile), goog.exportSymbol("transducers.DropWhile", com.cognitect.transducers.DropWhile), goog.exportSymbol("transducers.partitionBy", 
-com.cognitect.transducers.partitionBy), goog.exportSymbol("transducers.PartitionBy", com.cognitect.transducers.PartitionBy), goog.exportSymbol("transducers.partitionAll", com.cognitect.transducers.partitionAll), goog.exportSymbol("transducers.PartitionAll", com.cognitect.transducers.PartitionAll), goog.exportSymbol("transducers.completing", com.cognitect.transducers.completing), goog.exportSymbol("transducers.Completing", com.cognitect.transducers.Completing), goog.exportSymbol("transducers.wrap", 
-com.cognitect.transducers.wrap), goog.exportSymbol("transducers.Wrap", com.cognitect.transducers.Wrap), goog.exportSymbol("transducers.cat", com.cognitect.transducers.cat), goog.exportSymbol("transducers.mapcat", com.cognitect.transducers.mapcat), goog.exportSymbol("transducers.into", com.cognitect.transducers.into), goog.exportSymbol("transducers.toFn", com.cognitect.transducers.toFn), goog.exportSymbol("transducers.first", com.cognitect.transducers.first), goog.exportSymbol("transducers.ensureReduced", 
+TRANSDUCERS_BROWSER_TARGET && (goog.exportSymbol("transducers.reduced", com.cognitect.transducers.reduced), goog.exportSymbol("transducers.isReduced", com.cognitect.transducers.isReduced), goog.exportSymbol("transducers.comp", com.cognitect.transducers.comp), goog.exportSymbol("transducers.complement", com.cognitect.transducers.complement), goog.exportSymbol("transducers.transduce", com.cognitect.transducers.transduce), goog.exportSymbol("transducers.reduce", com.cognitect.transducers.reduce), goog.exportSymbol("transducers.map",
+com.cognitect.transducers.map), goog.exportSymbol("transducers.Map", com.cognitect.transducers.Map), goog.exportSymbol("transducers.filter", com.cognitect.transducers.filter), goog.exportSymbol("transducers.Filter", com.cognitect.transducers.Filter), goog.exportSymbol("transducers.remove", com.cognitect.transducers.remove), goog.exportSymbol("transducers.Remove", com.cognitect.transducers.Remove), goog.exportSymbol("transducers.keep", com.cognitect.transducers.keep), goog.exportSymbol("transducers.Keep",
+com.cognitect.transducers.Keep), goog.exportSymbol("transducers.keepIndexed", com.cognitect.transducers.keepIndexed), goog.exportSymbol("transducers.KeepIndexed", com.cognitect.transducers.KeepIndexed), goog.exportSymbol("transducers.take", com.cognitect.transducers.take), goog.exportSymbol("transducers.Take", com.cognitect.transducers.Take), goog.exportSymbol("transducers.takeWhile", com.cognitect.transducers.takeWhile), goog.exportSymbol("transducers.TakeWhile", com.cognitect.transducers.TakeWhile),
+goog.exportSymbol("transducers.takeNth", com.cognitect.transducers.takeNth), goog.exportSymbol("transducers.TakeNth", com.cognitect.transducers.TakeNth), goog.exportSymbol("transducers.drop", com.cognitect.transducers.drop), goog.exportSymbol("transducers.Drop", com.cognitect.transducers.Drop), goog.exportSymbol("transducers.dropWhile", com.cognitect.transducers.dropWhile), goog.exportSymbol("transducers.DropWhile", com.cognitect.transducers.DropWhile), goog.exportSymbol("transducers.partitionBy",
+com.cognitect.transducers.partitionBy), goog.exportSymbol("transducers.PartitionBy", com.cognitect.transducers.PartitionBy), goog.exportSymbol("transducers.partitionAll", com.cognitect.transducers.partitionAll), goog.exportSymbol("transducers.PartitionAll", com.cognitect.transducers.PartitionAll), goog.exportSymbol("transducers.completing", com.cognitect.transducers.completing), goog.exportSymbol("transducers.Completing", com.cognitect.transducers.Completing), goog.exportSymbol("transducers.wrap",
+com.cognitect.transducers.wrap), goog.exportSymbol("transducers.Wrap", com.cognitect.transducers.Wrap), goog.exportSymbol("transducers.cat", com.cognitect.transducers.cat), goog.exportSymbol("transducers.mapcat", com.cognitect.transducers.mapcat), goog.exportSymbol("transducers.into", com.cognitect.transducers.into), goog.exportSymbol("transducers.toFn", com.cognitect.transducers.toFn), goog.exportSymbol("transducers.first", com.cognitect.transducers.first), goog.exportSymbol("transducers.ensureReduced",
 com.cognitect.transducers.first), goog.exportSymbol("transducers.unreduced", com.cognitect.transducers.first), goog.exportSymbol("transducers.deref", com.cognitect.transducers.deref));
-TRANSDUCERS_NODE_TARGET && (module.exports = {reduced:com.cognitect.transducers.reduced, isReduced:com.cognitect.transducers.isReduced, comp:com.cognitect.transducers.comp, complement:com.cognitect.transducers.complement, map:com.cognitect.transducers.map, Map:com.cognitect.transducers.Map, filter:com.cognitect.transducers.filter, Filter:com.cognitect.transducers.Filter, remove:com.cognitect.transducers.remove, Remove:com.cognitect.transducers.Remove, keep:com.cognitect.transducers.keep, Kemove:com.cognitect.transducers.Keep, 
-keepIndexed:com.cognitect.transducers.keepIndexed, KeepIndexed:com.cognitect.transducers.KeepIndexed, take:com.cognitect.transducers.take, Take:com.cognitect.transducers.Take, takeWhile:com.cognitect.transducers.takeWhile, TakeWhile:com.cognitect.transducers.TakeWhile, takeNth:com.cognitect.transducers.takeNth, TakeNth:com.cognitect.transducers.TakeNth, drop:com.cognitect.transducers.drop, Drop:com.cognitect.transducers.Drop, dropWhile:com.cognitect.transducers.dropWhile, DropWhile:com.cognitect.transducers.DropWhile, 
-partitionBy:com.cognitect.transducers.partitionBy, PartitionBy:com.cognitect.transducers.PartitionBy, partitionAll:com.cognitect.transducers.partitionAll, PartitionAll:com.cognitect.transducers.PartitionAll, completing:com.cognitect.transducers.completing, Completing:com.cognitect.transducers.Completing, wrap:com.cognitect.transducers.wrap, Wrap:com.cognitect.transducers.Wrap, cat:com.cognitect.transducers.cat, mapcat:com.cognitect.transducers.mapcat, transduce:com.cognitect.transducers.transduce, 
+TRANSDUCERS_NODE_TARGET && (module.exports = {reduced:com.cognitect.transducers.reduced, isReduced:com.cognitect.transducers.isReduced, comp:com.cognitect.transducers.comp, complement:com.cognitect.transducers.complement, map:com.cognitect.transducers.map, Map:com.cognitect.transducers.Map, filter:com.cognitect.transducers.filter, Filter:com.cognitect.transducers.Filter, remove:com.cognitect.transducers.remove, Remove:com.cognitect.transducers.Remove, keep:com.cognitect.transducers.keep, Kemove:com.cognitect.transducers.Keep,
+keepIndexed:com.cognitect.transducers.keepIndexed, KeepIndexed:com.cognitect.transducers.KeepIndexed, take:com.cognitect.transducers.take, Take:com.cognitect.transducers.Take, takeWhile:com.cognitect.transducers.takeWhile, TakeWhile:com.cognitect.transducers.TakeWhile, takeNth:com.cognitect.transducers.takeNth, TakeNth:com.cognitect.transducers.TakeNth, drop:com.cognitect.transducers.drop, Drop:com.cognitect.transducers.Drop, dropWhile:com.cognitect.transducers.dropWhile, DropWhile:com.cognitect.transducers.DropWhile,
+partitionBy:com.cognitect.transducers.partitionBy, PartitionBy:com.cognitect.transducers.PartitionBy, partitionAll:com.cognitect.transducers.partitionAll, PartitionAll:com.cognitect.transducers.PartitionAll, completing:com.cognitect.transducers.completing, Completing:com.cognitect.transducers.Completing, wrap:com.cognitect.transducers.wrap, Wrap:com.cognitect.transducers.Wrap, cat:com.cognitect.transducers.cat, mapcat:com.cognitect.transducers.mapcat, transduce:com.cognitect.transducers.transduce,
 reduce:com.cognitect.transducers.reduce, into:com.cognitect.transducers.into, toFn:com.cognitect.transducers.toFn, first:com.cognitect.transducers.first, ensureReduced:com.cognitect.transducers.ensureReduced, unreduced:com.cognitect.transducers.unreduced, deref:com.cognitect.transducers.deref});
 
 
@@ -20910,7 +20910,7 @@ describe('filterBy', function() {
     it('should be ended if secondary was ended', function() {
       return expect(stream().filterBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should end when secondary ends if last value from it was falsy', function() {
+    it('should end when secondary ends if last value from it was falsey', function() {
       var a, b;
       a = stream();
       b = stream();
@@ -20918,7 +20918,7 @@ describe('filterBy', function() {
         return send(b, [false, '<end>']);
       });
     });
-    it('should not end when secondary ends if last value from it wasn\'t falsy', function() {
+    it('should not end when secondary ends if last value from it wasn\'t falsey', function() {
       var a, b;
       a = stream();
       b = stream();
@@ -20966,13 +20966,13 @@ describe('filterBy', function() {
     it('should be ended if secondary was ended and has no current', function() {
       return expect(stream().filterBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should be ended if secondary was ended and has falsy current', function() {
+    it('should be ended if secondary was ended and has falsey current', function() {
       return expect(stream().filterBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
     });
     it('should not be ended if secondary was ended but has truthy current', function() {
       return expect(stream().filterBy(send(prop(), [true, '<end>']))).toEmit([]);
     });
-    it('should end when secondary ends if last value from it was falsy', function() {
+    it('should end when secondary ends if last value from it was falsey', function() {
       var a, b;
       a = stream();
       b = prop();
@@ -20980,7 +20980,7 @@ describe('filterBy', function() {
         return send(b, [false, '<end>']);
       });
     });
-    it('should not end when secondary ends if last value from it wasn\'t falsy', function() {
+    it('should not end when secondary ends if last value from it wasn\'t falsey', function() {
       var a, b;
       a = stream();
       b = prop();
@@ -21028,7 +21028,7 @@ describe('filterBy', function() {
     it('should be ended if secondary was ended', function() {
       return expect(prop().filterBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should end when secondary ends if last value from it was falsy', function() {
+    it('should end when secondary ends if last value from it was falsey', function() {
       var a, b;
       a = prop();
       b = stream();
@@ -21036,7 +21036,7 @@ describe('filterBy', function() {
         return send(b, [false, '<end>']);
       });
     });
-    it('should not end when secondary ends if last value from it wasn\'t falsy', function() {
+    it('should not end when secondary ends if last value from it wasn\'t falsey', function() {
       var a, b;
       a = prop();
       b = stream();
@@ -21084,13 +21084,13 @@ describe('filterBy', function() {
     it('should be ended if secondary was ended and has no current', function() {
       return expect(prop().filterBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should be ended if secondary was ended and has falsy current', function() {
+    it('should be ended if secondary was ended and has falsey current', function() {
       return expect(prop().filterBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
     });
     it('should not be ended if secondary was ended but has truthy current', function() {
       return expect(prop().filterBy(send(prop(), [true, '<end>']))).toEmit([]);
     });
-    it('should end when secondary ends if last value from it was falsy', function() {
+    it('should end when secondary ends if last value from it was falsey', function() {
       var a, b;
       a = prop();
       b = prop();
@@ -21098,7 +21098,7 @@ describe('filterBy', function() {
         return send(b, [false, '<end>']);
       });
     });
-    it('should not end when secondary ends if last value from it wasn\'t falsy', function() {
+    it('should not end when secondary ends if last value from it wasn\'t falsey', function() {
       var a, b;
       a = prop();
       b = prop();
@@ -23600,7 +23600,7 @@ describe('skipWhileBy', function() {
       b = stream();
       return expect(a.skipWhileBy(b)).toActivate(a, b);
     });
-    it('should not activate secondary after first falsy value from it', function() {
+    it('should not activate secondary after first falsey value from it', function() {
       var a, b, res;
       a = stream();
       b = stream();
@@ -23659,7 +23659,7 @@ describe('skipWhileBy', function() {
       b = prop();
       return expect(a.skipWhileBy(b)).toActivate(a, b);
     });
-    it('should not activate secondary after first falsy value from it', function() {
+    it('should not activate secondary after first falsey value from it', function() {
       var a, b, res;
       a = stream();
       b = prop();
@@ -23679,7 +23679,7 @@ describe('skipWhileBy', function() {
     it('should be ended if secondary was ended and has truthy current', function() {
       return expect(stream().skipWhileBy(send(prop(), [true, '<end>']))).toEmit(['<end:current>']);
     });
-    it('should not be ended if secondary was ended but has falsy current', function() {
+    it('should not be ended if secondary was ended but has falsey current', function() {
       return expect(stream().skipWhileBy(send(prop(), [false, '<end>']))).toEmit([]);
     });
     it('should end when secondary ends if only value from it was truthy', function() {
@@ -23724,7 +23724,7 @@ describe('skipWhileBy', function() {
       b = stream();
       return expect(a.skipWhileBy(b)).toActivate(a, b);
     });
-    it('should not activate secondary after first falsy value from it', function() {
+    it('should not activate secondary after first falsey value from it', function() {
       var a, b, res;
       a = prop();
       b = stream();
@@ -23783,7 +23783,7 @@ describe('skipWhileBy', function() {
       b = prop();
       return expect(a.skipWhileBy(b)).toActivate(a, b);
     });
-    it('should not activate secondary after first falsy value from it', function() {
+    it('should not activate secondary after first falsey value from it', function() {
       var a, b, res;
       a = prop();
       b = prop();
@@ -23800,7 +23800,7 @@ describe('skipWhileBy', function() {
     it('should be ended if secondary was ended and has no current', function() {
       return expect(prop().skipWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should not be ended if secondary was ended and has falsy current', function() {
+    it('should not be ended if secondary was ended and has falsey current', function() {
       return expect(prop().skipWhileBy(send(prop(), [false, '<end>']))).toEmit([]);
     });
     it('should be ended if secondary was ended but has truthy current', function() {
@@ -24660,7 +24660,7 @@ describe('takeWhileBy', function() {
         return send(b, [true, '<end>']);
       });
     });
-    it('should end on first falsy value from secondary', function() {
+    it('should end on first falsey value from secondary', function() {
       var a, b;
       a = stream();
       b = stream();
@@ -24708,13 +24708,13 @@ describe('takeWhileBy', function() {
     it('should be ended if secondary was ended and has no current', function() {
       return expect(stream().takeWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should be ended if secondary was ended and has falsy current', function() {
+    it('should be ended if secondary was ended and has falsey current', function() {
       return expect(stream().takeWhileBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
     });
     it('should not be ended if secondary was ended but has truthy current', function() {
       return expect(stream().takeWhileBy(send(prop(), [true, '<end>']))).toEmit([]);
     });
-    it('should end on first falsy value from secondary', function() {
+    it('should end on first falsey value from secondary', function() {
       var a, b;
       a = stream();
       b = prop();
@@ -24778,7 +24778,7 @@ describe('takeWhileBy', function() {
         return send(b, [true, '<end>']);
       });
     });
-    it('should end on first falsy value from secondary', function() {
+    it('should end on first falsey value from secondary', function() {
       var a, b;
       a = prop();
       b = stream();
@@ -24826,13 +24826,13 @@ describe('takeWhileBy', function() {
     it('should be ended if secondary was ended and has no current', function() {
       return expect(prop().takeWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
     });
-    it('should be ended if secondary was ended and has falsy current', function() {
+    it('should be ended if secondary was ended and has falsey current', function() {
       return expect(prop().takeWhileBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
     });
     it('should not be ended if secondary was ended but has truthy current', function() {
       return expect(prop().takeWhileBy(send(prop(), [true, '<end>']))).toEmit([]);
     });
-    it('should end on first falsy value from secondary', function() {
+    it('should end on first falsey value from secondary', function() {
       var a, b;
       a = prop();
       b = prop();

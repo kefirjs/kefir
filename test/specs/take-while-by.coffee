@@ -26,7 +26,7 @@ describe 'takeWhileBy', ->
       expect(a.takeWhileBy(b)).toEmit [], ->
         send(b, [true, '<end>'])
 
-    it 'should end on first falsy value from secondary', ->
+    it 'should end on first falsey value from secondary', ->
       a = stream()
       b = stream()
       expect(a.takeWhileBy(b)).toEmit ['<end>'], ->
@@ -68,13 +68,13 @@ describe 'takeWhileBy', ->
     it 'should be ended if secondary was ended and has no current', ->
       expect(stream().takeWhileBy(send(prop(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should be ended if secondary was ended and has falsy current', ->
+    it 'should be ended if secondary was ended and has falsey current', ->
       expect(stream().takeWhileBy(send(prop(), [false, '<end>']))).toEmit ['<end:current>']
 
     it 'should not be ended if secondary was ended but has truthy current', ->
       expect(stream().takeWhileBy(send(prop(), [true, '<end>']))).toEmit []
 
-    it 'should end on first falsy value from secondary', ->
+    it 'should end on first falsey value from secondary', ->
       a = stream()
       b = prop()
       expect(a.takeWhileBy(b)).toEmit ['<end>'], ->
@@ -128,7 +128,7 @@ describe 'takeWhileBy', ->
       expect(a.takeWhileBy(b)).toEmit [], ->
         send(b, [true, '<end>'])
 
-    it 'should end on first falsy value from secondary', ->
+    it 'should end on first falsey value from secondary', ->
       a = prop()
       b = stream()
       expect(a.takeWhileBy(b)).toEmit ['<end>'], ->
@@ -169,13 +169,13 @@ describe 'takeWhileBy', ->
     it 'should be ended if secondary was ended and has no current', ->
       expect(prop().takeWhileBy(send(prop(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should be ended if secondary was ended and has falsy current', ->
+    it 'should be ended if secondary was ended and has falsey current', ->
       expect(prop().takeWhileBy(send(prop(), [false, '<end>']))).toEmit ['<end:current>']
 
     it 'should not be ended if secondary was ended but has truthy current', ->
       expect(prop().takeWhileBy(send(prop(), [true, '<end>']))).toEmit []
 
-    it 'should end on first falsy value from secondary', ->
+    it 'should end on first falsey value from secondary', ->
       a = prop()
       b = prop()
       expect(a.takeWhileBy(b)).toEmit ['<end>'], ->

@@ -550,32 +550,3 @@ pre(title='events in time').
 
   result:  f---t-f--t-f--t-fX
 div
-
-
-+descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
-  Works like <a href="#filter">filter</a>, but instead of calling a predicate
-  on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
-
-pre(title='example').
-  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
-  var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
-  var result = foo.filterBy(bar);
-  result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.filterBy] <value> 1
-    > [sequentially.filterBy] <value> 2
-    > [sequentially.filterBy] <value> 5
-    > [sequentially.filterBy] <value> 6
-    > [sequentially.filterBy] <end>
-
-pre(title='events in time').
-  foo:     ----1----2----3----4----5----6----7----8X
-  bar:     t----------f---------t---------fX
-
-  result:  ----1----2--------------5----6----------X
-div
-
-
-

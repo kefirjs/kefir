@@ -14,7 +14,7 @@ describe 'skipWhileBy', ->
       b = stream()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsy value from it', ->
+    it 'should not activate secondary after first falsey value from it', ->
       a = stream()
       b = stream()
       res = a.waitFor(b)
@@ -66,7 +66,7 @@ describe 'skipWhileBy', ->
       b = prop()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsy value from it', ->
+    it 'should not activate secondary after first falsey value from it', ->
       a = stream()
       b = prop()
       res = a.waitFor(b)
@@ -85,7 +85,7 @@ describe 'skipWhileBy', ->
     it 'should be ended if secondary was ended and has truthy current', ->
       expect(stream().skipWhileBy(send(prop(), [true, '<end>']))).toEmit ['<end:current>']
 
-    it 'should not be ended if secondary was ended but has falsy current', ->
+    it 'should not be ended if secondary was ended but has falsey current', ->
       expect(stream().skipWhileBy(send(prop(), [false, '<end>']))).toEmit []
 
     it 'should end when secondary ends if only value from it was truthy', ->
@@ -124,7 +124,7 @@ describe 'skipWhileBy', ->
       b = stream()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsy value from it', ->
+    it 'should not activate secondary after first falsey value from it', ->
       a = prop()
       b = stream()
       res = a.waitFor(b)
@@ -175,7 +175,7 @@ describe 'skipWhileBy', ->
       b = prop()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsy value from it', ->
+    it 'should not activate secondary after first falsey value from it', ->
       a = prop()
       b = prop()
       res = a.waitFor(b)
@@ -191,7 +191,7 @@ describe 'skipWhileBy', ->
     it 'should be ended if secondary was ended and has no current', ->
       expect(prop().skipWhileBy(send(prop(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should not be ended if secondary was ended and has falsy current', ->
+    it 'should not be ended if secondary was ended and has falsey current', ->
       expect(prop().skipWhileBy(send(prop(), [false, '<end>']))).toEmit []
 
     it 'should be ended if secondary was ended but has truthy current', ->

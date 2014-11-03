@@ -20,13 +20,13 @@ describe 'filterBy', ->
     it 'should be ended if secondary was ended', ->
       expect(stream().filterBy(send(stream(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should end when secondary ends if last value from it was falsy', ->
+    it 'should end when secondary ends if last value from it was falsey', ->
       a = stream()
       b = stream()
       expect(a.filterBy(b)).toEmit ['<end>'], ->
         send(b, [false, '<end>'])
 
-    it 'should not end when secondary ends if last value from it wasn\'t falsy', ->
+    it 'should not end when secondary ends if last value from it wasn\'t falsey', ->
       a = stream()
       b = stream()
       expect(a.filterBy(b)).toEmit [], ->
@@ -68,19 +68,19 @@ describe 'filterBy', ->
     it 'should be ended if secondary was ended and has no current', ->
       expect(stream().filterBy(send(prop(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should be ended if secondary was ended and has falsy current', ->
+    it 'should be ended if secondary was ended and has falsey current', ->
       expect(stream().filterBy(send(prop(), [false, '<end>']))).toEmit ['<end:current>']
 
     it 'should not be ended if secondary was ended but has truthy current', ->
       expect(stream().filterBy(send(prop(), [true, '<end>']))).toEmit []
 
-    it 'should end when secondary ends if last value from it was falsy', ->
+    it 'should end when secondary ends if last value from it was falsey', ->
       a = stream()
       b = prop()
       expect(a.filterBy(b)).toEmit ['<end>'], ->
         send(b, [false, '<end>'])
 
-    it 'should not end when secondary ends if last value from it wasn\'t falsy', ->
+    it 'should not end when secondary ends if last value from it wasn\'t falsey', ->
       a = stream()
       b = prop()
       expect(a.filterBy(b)).toEmit [], ->
@@ -122,13 +122,13 @@ describe 'filterBy', ->
     it 'should be ended if secondary was ended', ->
       expect(prop().filterBy(send(stream(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should end when secondary ends if last value from it was falsy', ->
+    it 'should end when secondary ends if last value from it was falsey', ->
       a = prop()
       b = stream()
       expect(a.filterBy(b)).toEmit ['<end>'], ->
         send(b, [false, '<end>'])
 
-    it 'should not end when secondary ends if last value from it wasn\'t falsy', ->
+    it 'should not end when secondary ends if last value from it wasn\'t falsey', ->
       a = prop()
       b = stream()
       expect(a.filterBy(b)).toEmit [], ->
@@ -169,19 +169,19 @@ describe 'filterBy', ->
     it 'should be ended if secondary was ended and has no current', ->
       expect(prop().filterBy(send(prop(), ['<end>']))).toEmit ['<end:current>']
 
-    it 'should be ended if secondary was ended and has falsy current', ->
+    it 'should be ended if secondary was ended and has falsey current', ->
       expect(prop().filterBy(send(prop(), [false, '<end>']))).toEmit ['<end:current>']
 
     it 'should not be ended if secondary was ended but has truthy current', ->
       expect(prop().filterBy(send(prop(), [true, '<end>']))).toEmit []
 
-    it 'should end when secondary ends if last value from it was falsy', ->
+    it 'should end when secondary ends if last value from it was falsey', ->
       a = prop()
       b = prop()
       expect(a.filterBy(b)).toEmit ['<end>'], ->
         send(b, [false, '<end>'])
 
-    it 'should not end when secondary ends if last value from it wasn\'t falsy', ->
+    it 'should not end when secondary ends if last value from it wasn\'t falsey', ->
       a = prop()
       b = prop()
       expect(a.filterBy(b)).toEmit [], ->
