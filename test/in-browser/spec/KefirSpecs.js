@@ -598,16 +598,26 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
 
+    _removeSecondary: function() {
+      this._secondary.offAny([this._handleSecondaryAny, this]);
+      this._secondary = null;
+      this._secondaryRemoved = true;
+    },
+
     _onActivation: function() {
       // this._onActivationHook();
-      this._secondary.onAny([this._handleSecondaryAny, this]);
+      if (!this._secondaryRemoved) {
+        this._secondary.onAny([this._handleSecondaryAny, this]);
+      }
       if (this._alive) {
         this._primary.onAny([this._handlePrimaryAny, this]);
       }
     },
     _onDeactivation: function() {
       // this._onDeactivationHook();
-      this._secondary.offAny([this._handleSecondaryAny, this]);
+      if (!this._secondaryRemoved) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+      }
       this._primary.offAny([this._handlePrimaryAny, this]);
     }
   }, mixin || {});
@@ -621,6 +631,7 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
+      this._secondaryRemoved = false;
       this._init();
     }
 
@@ -2248,9 +2259,28 @@ withTwoSources('filterBy', {
 
 withTwoSources('waitFor', {
 
-  _init: function() {
-    this._secondary = this._secondary.take(1);
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING) {
+      this._send('value', x, isCurrent);
+    }
   },
+
+  _handleSecondaryValue: function(x) {
+    this._lastSecondary = x;
+    this._removeSecondary();
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
@@ -2258,8 +2288,41 @@ withTwoSources('waitFor', {
     }
   },
 
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._send('end', null, isCurrent);
+    }
+  },
+
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+
+withTwoSources('skipWhileBy', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._removeSecondary();
+    }
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING || this._lastSecondary) {
       this._send('end', null, isCurrent);
     }
   }
@@ -20196,7 +20259,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":73}],25:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],25:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -20231,7 +20294,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":73}],26:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],26:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -20345,7 +20408,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":73}],27:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],27:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -20473,7 +20536,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":73}],28:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],28:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -20493,7 +20556,7 @@ describe('constant', function() {
 
 
 
-},{"kefir":75}],29:[function(require,module,exports){
+},{"kefir":77}],29:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -20684,7 +20747,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":73}],30:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],30:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -20748,7 +20811,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":73}],31:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],31:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -20824,7 +20887,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":73}],32:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],32:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -20850,7 +20913,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":75}],33:[function(require,module,exports){
+},{"kefir":77}],33:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -21099,7 +21162,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":73}],34:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],34:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -21164,7 +21227,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":73}],35:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],35:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21299,7 +21362,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":73}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21433,7 +21496,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":73}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21567,7 +21630,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":73}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],38:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21698,7 +21761,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":73}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],39:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21861,7 +21924,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":73}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],40:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -21979,7 +22042,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":73}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22061,7 +22124,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":73}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],42:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22138,7 +22201,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":73}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],43:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22341,7 +22404,7 @@ describe('fromEvent', function() {
 
 
 
-},{"../test-helpers.coffee":73}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],44:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22361,7 +22424,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":75}],45:[function(require,module,exports){
+},{"kefir":77}],45:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22377,7 +22440,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":75}],46:[function(require,module,exports){
+},{"kefir":77}],46:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 _ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser, Kefir = _ref.Kefir;
@@ -22713,7 +22776,7 @@ if (!inBrowser) {
 
 
 
-},{"../test-helpers.coffee":73,"addons/kefir-jquery":74,"jquery":6}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":75,"addons/kefir-jquery":76,"jquery":6}],47:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22729,7 +22792,7 @@ describe('later', function() {
 
 
 
-},{"kefir":75}],48:[function(require,module,exports){
+},{"kefir":77}],48:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22787,7 +22850,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":73}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],49:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22901,7 +22964,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":73}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],50:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22917,7 +22980,7 @@ describe('never', function() {
 
 
 
-},{"kefir":75}],51:[function(require,module,exports){
+},{"kefir":77}],51:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23016,7 +23079,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":73}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],52:[function(require,module,exports){
 var Kefir, activate, prop, send, _ref;
 
 _ref = require('../test-helpers.coffee'), prop = _ref.prop, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -23176,7 +23239,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":73}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],53:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23238,7 +23301,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":73}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],54:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -23257,7 +23320,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":75}],55:[function(require,module,exports){
+},{"kefir":77}],55:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -23381,7 +23444,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":73}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],56:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23451,7 +23514,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":73}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],57:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -23470,7 +23533,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":75}],58:[function(require,module,exports){
+},{"kefir":77}],58:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23546,7 +23609,264 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":73}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],59:[function(require,module,exports){
+var Kefir, activate, deactivate, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, deactivate = _ref.deactivate, activate = _ref.activate;
+
+describe('skipWhileBy', function() {
+  describe('stream, stream', function() {
+    it('should return a stream', function() {
+      return expect(stream().skipWhileBy(stream())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first falsy value from it', function() {
+      var a, b, res;
+      a = stream();
+      b = stream();
+      res = a.waitFor(b);
+      activate(res);
+      send(b, [true, false]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).skipWhileBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(stream().skipWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should skip values as expected', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  describe('stream, property', function() {
+    it('should return a stream', function() {
+      return expect(stream().skipWhileBy(prop())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first falsy value from it', function() {
+      var a, b, res;
+      a = stream();
+      b = prop();
+      res = a.waitFor(b);
+      activate(res);
+      send(b, [true, false]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).skipWhileBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(stream().skipWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has truthy current', function() {
+      return expect(stream().skipWhileBy(send(prop(), [true, '<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has falsy current', function() {
+      return expect(stream().skipWhileBy(send(prop(), [false, '<end>']))).toEmit([]);
+    });
+    it('should end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should skip values as expected', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  describe('property, stream', function() {
+    it('should return a property', function() {
+      return expect(prop().skipWhileBy(stream())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first falsy value from it', function() {
+      var a, b, res;
+      a = prop();
+      b = stream();
+      res = a.waitFor(b);
+      activate(res);
+      send(b, [true, false]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).skipWhileBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(prop().skipWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should skip values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = stream();
+      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  return describe('property, property', function() {
+    it('should return a property', function() {
+      return expect(prop().skipWhileBy(prop())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first falsy value from it', function() {
+      var a, b, res;
+      a = prop();
+      b = prop();
+      res = a.waitFor(b);
+      activate(res);
+      send(b, [true, false]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).skipWhileBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(prop().skipWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended and has falsy current', function() {
+      return expect(prop().skipWhileBy(send(prop(), [false, '<end>']))).toEmit([]);
+    });
+    it('should be ended if secondary was ended but has truthy current', function() {
+      return expect(prop().skipWhileBy(send(prop(), [true, '<end>']))).toEmit(['<end:current>']);
+    });
+    it('should end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should skip values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = send(prop(), [true]);
+      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":75}],60:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23652,7 +23972,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":73}],60:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],61:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23752,7 +24072,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":73}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],62:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23848,7 +24168,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":73}],62:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],63:[function(require,module,exports){
 var Kefir, activate, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -24083,7 +24403,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":73}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],64:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24335,7 +24655,256 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":73}],64:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],65:[function(require,module,exports){
+var Kefir, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+describe('takeWhileBy', function() {
+  describe('stream, stream', function() {
+    it('should return a stream', function() {
+      return expect(stream().takeWhileBy(stream())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).takeWhileBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(stream().takeWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should end on first falsy value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, false]);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit([3, 4, 5, 6, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+  describe('stream, property', function() {
+    it('should return a stream', function() {
+      return expect(stream().takeWhileBy(prop())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).takeWhileBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(stream().takeWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has falsy current', function() {
+      return expect(stream().takeWhileBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has truthy current', function() {
+      return expect(stream().takeWhileBy(send(prop(), [true, '<end>']))).toEmit([]);
+    });
+    it('should end on first falsy value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, false]);
+      });
+    });
+    it('should not end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit([3, 4, 5, 6, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+  describe('property, stream', function() {
+    it('should return a property', function() {
+      return expect(prop().takeWhileBy(stream())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).takeWhileBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(prop().takeWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should end on first falsy value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, false]);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = stream();
+      return expect(a.takeWhileBy(b)).toEmit([3, 4, 5, 6, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+  return describe('property, property', function() {
+    it('should return a property', function() {
+      return expect(prop().takeWhileBy(prop())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).takeWhileBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(prop().takeWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has falsy current', function() {
+      return expect(prop().takeWhileBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has truthy current', function() {
+      return expect(prop().takeWhileBy(send(prop(), [true, '<end>']))).toEmit([]);
+    });
+    it('should end on first falsy value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
+        return send(b, [true, false]);
+      });
+    });
+    it('should not end when secondary ends if only value from it was truthy', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeWhileBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = send(prop(), [true]);
+      return expect(a.takeWhileBy(b)).toEmit([
+        {
+          current: 0
+        }, 3, 4, 5, 6, '<end>'
+      ], function() {
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":75}],66:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24450,7 +25019,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":73}],65:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],67:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24535,7 +25104,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":73}],66:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],68:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24809,7 +25378,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":73}],67:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],69:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24898,7 +25467,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":73}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],70:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24944,7 +25513,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":73}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],71:[function(require,module,exports){
 var Kefir, comp, noop, prop, send, stream, testWithLib, _ref,
   __slice = [].slice;
 
@@ -25194,7 +25763,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":73,"transducers-js":22,"transducers.js":23}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":75,"transducers-js":22,"transducers.js":23}],72:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
@@ -25448,7 +26017,7 @@ describe('waitFor', function() {
 
 
 
-},{"../test-helpers.coffee":73}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],73:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25565,7 +26134,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":73}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":75}],74:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -25591,7 +26160,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":75}],73:[function(require,module,exports){
+},{"kefir":77}],75:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -25840,7 +26409,7 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],74:[function(require,module,exports){
+},{"../dist/kefir":1,"sinon":7}],76:[function(require,module,exports){
 /*! An addon for Kefir.js v0.2.10
  *  https://github.com/pozadi/kefir
  */
@@ -25904,6 +26473,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":75}],75:[function(require,module,exports){
+},{"jquery":6,"kefir":77}],77:[function(require,module,exports){
 module.exports=require(1)
-},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74]);

@@ -597,16 +597,26 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
 
+    _removeSecondary: function() {
+      this._secondary.offAny([this._handleSecondaryAny, this]);
+      this._secondary = null;
+      this._secondaryRemoved = true;
+    },
+
     _onActivation: function() {
       // this._onActivationHook();
-      this._secondary.onAny([this._handleSecondaryAny, this]);
+      if (!this._secondaryRemoved) {
+        this._secondary.onAny([this._handleSecondaryAny, this]);
+      }
       if (this._alive) {
         this._primary.onAny([this._handlePrimaryAny, this]);
       }
     },
     _onDeactivation: function() {
       // this._onDeactivationHook();
-      this._secondary.offAny([this._handleSecondaryAny, this]);
+      if (!this._secondaryRemoved) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+      }
       this._primary.offAny([this._handlePrimaryAny, this]);
     }
   }, mixin || {});
@@ -620,6 +630,7 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
+      this._secondaryRemoved = false;
       this._init();
     }
 
@@ -2247,9 +2258,28 @@ withTwoSources('filterBy', {
 
 withTwoSources('waitFor', {
 
-  _init: function() {
-    this._secondary = this._secondary.take(1);
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING) {
+      this._send('value', x, isCurrent);
+    }
   },
+
+  _handleSecondaryValue: function(x) {
+    this._lastSecondary = x;
+    this._removeSecondary();
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
@@ -2257,8 +2287,41 @@ withTwoSources('waitFor', {
     }
   },
 
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._send('end', null, isCurrent);
+    }
+  },
+
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+
+withTwoSources('skipWhileBy', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._removeSecondary();
+    }
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING || this._lastSecondary) {
       this._send('end', null, isCurrent);
     }
   }

@@ -38,16 +38,26 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
 
+    _removeSecondary: function() {
+      this._secondary.offAny([this._handleSecondaryAny, this]);
+      this._secondary = null;
+      this._secondaryRemoved = true;
+    },
+
     _onActivation: function() {
       // this._onActivationHook();
-      this._secondary.onAny([this._handleSecondaryAny, this]);
+      if (!this._secondaryRemoved) {
+        this._secondary.onAny([this._handleSecondaryAny, this]);
+      }
       if (this._alive) {
         this._primary.onAny([this._handlePrimaryAny, this]);
       }
     },
     _onDeactivation: function() {
       // this._onDeactivationHook();
-      this._secondary.offAny([this._handleSecondaryAny, this]);
+      if (!this._secondaryRemoved) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+      }
       this._primary.offAny([this._handlePrimaryAny, this]);
     }
   }, mixin || {});
@@ -61,6 +71,7 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
+      this._secondaryRemoved = false;
       this._init();
     }
 

@@ -1,6 +1,9 @@
 ## 0.2.11
 
  - The `fn` argument of the `.diff` method is now optional
+ - New method `.waitFor`
+ - New method `.takeWhileBy`
+ - New method `.skipWhileBy`
 
 
 ## 0.2.10
@@ -12,18 +15,15 @@
 ## 0.2.9
 
  - The `fn` argument of the `.transform` method is now optional
- - Transducers support via `.transduce` method
+ - New method `.transduce`
 
 
 ## 0.2.8
 
-Method `.flatMapWithConcurrencyLimit` renamed to `.flatMapConcurLimit`.
-
-New methods:
-
- - .transform
- - .timestamp
- - Kefir.bus
+ - Method `.flatMapWithConcurrencyLimit` renamed to `.flatMapConcurLimit`
+ - New method `.transform`
+ - New method `.timestamp`
+ - New method `Kefir.bus`
 
 
 ## 0.2.7

@@ -18,9 +18,28 @@ withTwoSources('filterBy', {
 
 withTwoSources('waitFor', {
 
-  _init: function() {
-    this._secondary = this._secondary.take(1);
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING) {
+      this._send('value', x, isCurrent);
+    }
   },
+
+  _handleSecondaryValue: function(x) {
+    this._lastSecondary = x;
+    this._removeSecondary();
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
@@ -28,8 +47,41 @@ withTwoSources('waitFor', {
     }
   },
 
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._send('end', null, isCurrent);
+    }
+  },
+
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
+      this._send('end', null, isCurrent);
+    }
+  }
+
+});
+
+
+
+
+withTwoSources('skipWhileBy', {
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+      this._send('value', x, isCurrent);
+    }
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._lastSecondary = x;
+    if (!this._lastSecondary) {
+      this._removeSecondary();
+    }
+  },
+
+  _handleSecondaryEnd: function(__, isCurrent) {
+    if (this._lastSecondary === NOTHING || this._lastSecondary) {
       this._send('end', null, isCurrent);
     }
   }
