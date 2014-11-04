@@ -32,6 +32,11 @@ pre(title='console output')
     > [sequentially.map] <end>
 div
 
+pre(title='events in time').
+  source: ---1---2---3X
+  result: ---2---3---4X
+div
+
 
 
 +descr-method('map-to', 'mapTo', 'obs.mapTo(value)', null, 'obs.map(function() {return value})').
@@ -48,7 +53,12 @@ pre(title='console output')
     > [sequentially.mapTo] <value> 5
     > [sequentially.mapTo] <value> 5
     > [sequentially.mapTo] <end>
+
+pre(title='events in time').
+  source: ---1---2---3X
+  result: ---5---5---5X
 div
+
 
 
 
@@ -68,6 +78,12 @@ pre(title='console output')
     > [sequentially.pluck] <end>
 div
 
+pre(title='events in time').
+  source: ---({num: 1})---({num: 2})---({num: 3})X
+  result: ---(   1    )---(   2    )---(   3    )X
+div
+
+
 
 
 +descr-method('invoke', 'invoke', 'obs.invoke(methodName)', null, 'obs.map(function(x) {return x.foo()})').
@@ -78,11 +94,11 @@ div
 
 pre(title='example').
   var source = Kefir.sequentially(100, [
-    {getNum: function(){return 1}},
-    {getNum: function(){return 2}},
-    {getNum: function(){return 3}}
+    {foo: function(){return 1}},
+    {foo: function(){return 2}},
+    {foo: function(){return 3}}
   ]);
-  var result = source.invoke('getNum');
+  var result = source.invoke('foo');
   result.log();
 
 pre(title='console output')
@@ -91,6 +107,11 @@ pre(title='console output')
     > [sequentially.invoke] <value> 2
     > [sequentially.invoke] <value> 3
     > [sequentially.invoke] <end>
+
+pre(title='events in time')
+  :escapehtml
+    source: ---({foo: ()=>1})---({foo: ()=>2})---({foo: ()=>3})X
+    result: ---(     1      )---(     2      )---(     3      )X
 div
 
 
@@ -109,6 +130,10 @@ pre(title='console output')
     > [sequentially.not] <value> true
     > [sequentially.not] <value> false
     > [sequentially.not] <end>
+
+pre(title='events in time').
+  source: ---t---f---tX
+  result: ---f---t---fX
 div
 
 
@@ -117,7 +142,7 @@ div
   Wraps each value to object with timestamp of the event.
 
 pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2, 3]);
+  var source = Kefir.sequentially(100, [1, 2]);
   var result = source.timestamp();
   result.log();
 
@@ -125,8 +150,11 @@ pre(title='console output')
   :escapehtml
     > [sequentially.timestamp] <value> Object {value: 1, time: 1413022203878}
     > [sequentially.timestamp] <value> Object {value: 2, time: 1413022203980}
-    > [sequentially.timestamp] <value> Object {value: 3, time: 1413022204081}
     > [sequentially.timestamp] <end>
+
+pre(title='events in time').
+  source: ---(          1          )---(          2          )X
+  result: ---({value: 1, time: ...})---({value: 2, time: ...})X
 div
 
 
@@ -153,6 +181,10 @@ pre(title='console output')
     > from tap fn: 3
     > [sequentially.tap] <value> 3
     > [sequentially.tap] <end>
+
+pre(title='events in time').
+  source: ---1---2---3X
+  result: ---1---2---3X
 div
 
 
@@ -173,6 +205,11 @@ pre(title='console output')
     > [sequentially.filter] <value> 3
     > [sequentially.filter] <end>
 
+pre(title='events in time').
+  source: ---1---2---3X
+  result: -------2---3X
+div
+
 p.
   See also <a href="#filter-by">filterBy</a>.
 
@@ -192,6 +229,10 @@ pre(title='console output')
     > [sequentially.take] <value> 1
     > [sequentially.take] <value> 2
     > [sequentially.take] <end>
+
+pre(title='events in time').
+  source: ---1---2---3X
+  result: ---1---2X
 div
 
 
@@ -212,6 +253,10 @@ pre(title='console output')
     > [sequentially.takeWhile] <value> 1
     > [sequentially.takeWhile] <value> 2
     > [sequentially.takeWhile] <end>
+
+pre(title='events in time').
+  source: ---1---2---3X
+  result: ---1---2X
 div
 
 p.
@@ -231,6 +276,10 @@ pre(title='console output')
   :escapehtml
     > [sequentially.skip] <value> 3
     > [sequentially.skip] <end>
+
+pre(title='events in time').
+  source: ---1---2---3X
+  result: -----------3X
 div
 
 
@@ -251,6 +300,10 @@ pre(title='console output')
     > [sequentially.skipWhile] <value> 3
     > [sequentially.skipWhile] <value> 2
     > [sequentially.skipWhile] <end>
+
+pre(title='events in time').
+  source: ---1---3---2X
+  result: -------3---2X
 div
 
 p.
@@ -277,6 +330,11 @@ pre(title='console output')
     > [sequentially.skipDuplicates] <value> 1
     > [sequentially.skipDuplicates] <end>
 
+pre(title='events in time').
+  source: ---1---2---2---3---1X
+  result: ---1---2-------3---1X
+div
+
 p With custom <b>comparator</b> function:
 
 pre(title='example')
@@ -294,6 +352,10 @@ pre(title='console output')
     > [sequentially.skipDuplicates] <value> 3
     > [sequentially.skipDuplicates] <value> 1
     > [sequentially.skipDuplicates] <end>
+
+pre(title='events in time').
+  source: ---1---2---(2.1)---3---1X
+  result: ---1---2-----------3---1X
 div
 
 
@@ -323,6 +385,10 @@ pre(title='console output')
     > [sequentially.diff] <value> 0
     > [sequentially.diff] <value> 1
     > [sequentially.diff] <end>
+
+pre(title='events in time').
+  source: ---1---2---2---3X
+  result: ---1---1---0---1X
 div
 
 
@@ -351,6 +417,10 @@ pre(title='console output')
     > [sequentially.scan] <value> 5
     > [sequentially.scan] <value> 8
     > [sequentially.scan] <end>
+
+pre(title='events in time').
+  source:  ---1---2---2---3X
+  result: 0---1---3---5---8X
 div
 
 
@@ -370,6 +440,10 @@ pre(title='console output')
   :escapehtml
     > [sequentially.reduce] <value> 8
     > [sequentially.reduce] <end>
+
+pre(title='events in time').
+  source:  ---1---2---2---3 X
+  result:  ----------------8X
 div
 
 
@@ -392,6 +466,10 @@ pre(title='console output')
     > [sequentially.slidingWindow] <value> [2, 3, 4]
     > [sequentially.slidingWindow] <value> [3, 4, 5]
     > [sequentially.slidingWindow] <end>
+
+pre(title='events in time').
+  source:  ---1---(   2  )---(    3    )---(    4    )---(    5    )X
+  result:  -------([1, 2])---([1, 2, 3])---([2, 3, 4])---([3, 4, 5])X
 div
 
 
@@ -404,21 +482,22 @@ div
 
 pre(title='example')
   :escapehtml
-    var emitter = Kefir.emitter();
-    emitter.delay(100).map(function(originalEmitTime){
-      return new Date() - originalEmitTime;
-    }).log();
-    emitter.emit(new Date());
-    emitter.emit(new Date());
-    emitter.end();
+    var source = Kefir.sequentially(200, [1, 2, 3]);
+    var result = source.delay(100);
+    result.log();
+
 
 pre(title='console output')
   :escapehtml
-    > [emitter.delay.map] <value> 100
-    > [emitter.delay.map] <value> 100
-    > [emitter.delay.map] <end>
-div
+    > [sequentially.delay] <value> 1
+    > [sequentially.delay] <value> 2
+    > [sequentially.delay] <value> 3
+    > [sequentially.delay] <end>
 
+pre(title='events in time').
+  source:  -----1-----2-----3X
+  result:  --------1-----2-----3X
+div
 
 
 
@@ -439,18 +518,22 @@ p.
 
 pre(title='example')
   :escapehtml
-    var stream = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
-    var throttled = stream.throttle(250);
-    throttled.log();
+    var source = Kefir.sequentially(750, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+    var result = stream.throttle(2500);
+    result.log();
 
 pre(title='console output')
   :escapehtml
     > [sequentially.throttle] <value> 1
-    > [sequentially.throttle] <value> 3
-    > [sequentially.throttle] <value> 5
-    > [sequentially.throttle] <value> 8
+    > [sequentially.throttle] <value> 4
+    > [sequentially.throttle] <value> 7
     > [sequentially.throttle] <value> 0
     > [sequentially.throttle] <end>
+div
+
+pre(title='events in time').
+  source:  --1--2--3--4--5--6--7--8--9--0X
+  result:  --1---------4---------7---------0X
 div
 
 
@@ -467,16 +550,21 @@ div
 
 pre(title='example')
   :escapehtml
-    var stream = Kefir.sequentially(100, [1, 2, 3, -1, -2, -3, 4, 5, 6]);
-    stream = stream.filter(function(x) {return x > 0});
-    var debounced = stream.debounce(250);
-    debounced.log();
+    var source = Kefir.sequentially(100, [1, 2, 3, 0, 0, 0, 4, 5, 6]);
+    source = source.filter(function(x) {return x > 0});
+    var result = source.debounce(250);
+    result.log();
 
 pre(title='console output')
   :escapehtml
     > [sequentially.filter.debounce] <value> 3
     > [sequentially.filter.debounce] <value> 6
     > [sequentially.filter.debounce] <end>
+div
+
+pre(title='events in time').
+  source:  ---1---2---3---------------4---5---6X
+  result:  ----------------------3---------------------6X
 div
 
 
@@ -499,6 +587,11 @@ pre(title='console output')
     > [sequentially.flatten] <value> 2
     > [sequentially.flatten] <value> 3
     > [sequentially.flatten] <end>
+
+pre(title='events in time').
+  source:  ---([1])---([])---([2, 3])X
+  result:  ---( 1 )----------(2 )(3 )X
+div
 
 p.
   You can also provide the <b>transformer</b> function
@@ -529,6 +622,11 @@ pre(title='console output')
     > [sequentially.flatten] <value> 20
     > [sequentially.flatten] <value> 40
     > [sequentially.flatten] <end>
+
+pre(title='events in time').
+  source:  ---1---(2 )---3---(4 )X
+  result:  -------(20)-------(40)X
+div
 
 p.
   See also <a href="#flat-map">flatMap</a>
@@ -565,6 +663,10 @@ pre(title='console output')
     > [sequentially.transduce] <value> 12
     > [sequentially.transduce] <value> 14
     > [sequentially.transduce] <end>
+
+pre(title='events in time').
+  source:  ---1---(2 )---3---(4 )---5---6X
+  result:  -------(12)-------(14)X
 div
 
 
@@ -613,4 +715,9 @@ pre(title='console output')
     > [sequentially.withHandler] <value> 3
     > [sequentially.withHandler] <value> bye
     > [sequentially.withHandler] <end>
+div
+
+pre(title='events in time').
+  source:  ---0---1---( 2  )---(   3   )(  X   )
+  result:  -------1---(2)(2)---(3)(3)(3)(bye)(X)
 div

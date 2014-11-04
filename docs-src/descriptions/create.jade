@@ -19,6 +19,10 @@ pre(title='console output')
     > [emitter] <value> 2
     > [emitter] <end>
 
+pre(title='events in time').
+  emitter:  ----1----2----X
+div
+
 p.
   <img data-emoji="point_up"> <b>Emitter</b> is the easiest way
   to create general purpose stream,
@@ -41,6 +45,9 @@ pre(title='example').
 pre(title='console output')
   :escapehtml
     > [never] <end:current>
+
+pre(title='events in time').
+  stream:  X
 div
 
 
@@ -58,7 +65,11 @@ pre(title='console output (after 1 second)')
   :escapehtml
     > [later] <value> 1
     > [later] <end>
+
+pre(title='events in time').
+  stream:  ----1X
 div
+
 
 
 
@@ -76,6 +87,9 @@ pre(title='console output')
     > [interval] <value> 1
     > [interval] <value> 1
     ...
+
+pre(title='events in time').
+  stream:  ----1----1----1----1---
 div
 
 
@@ -94,6 +108,9 @@ pre(title='console output')
     > [sequentially] <value> 2
     > [sequentially] <value> 3
     > [sequentially] <end>
+
+pre(title='events in time').
+  stream:  ----1----2----3X
 div
 
 
@@ -117,6 +134,9 @@ pre(title='console output')
     > [repeatedly] <value> 3
     > [repeatedly] <value> 1
     ...
+
+pre(title='events in time').
+  stream:  ----1----2----3----1----2----3----1---
 div
 
 
@@ -140,6 +160,9 @@ pre(title='console output')
     > [fromPoll] <value> 5007
     > [fromPoll] <value> 6007
     ...
+
+pre(title='events in time').
+  stream:  ----(1001)----(2002)----(3004)----(4006)---
 div
 
 
@@ -171,6 +194,9 @@ pre(title='console output')
     > [withInterval] <value> 2003
     > [withInterval] <value> 3005
     > [withInterval] <end>
+
+pre(title='events in time').
+  stream:  ----(1002)----(2003)----(3005)----X
 div
 
 p.
@@ -200,6 +226,11 @@ pre(title='console output')
     > [fromCallback] <value> 1
     > [fromCallback] <end>
 
+pre(title='events in time').
+  stream:  ----1X
+div
+
+
 p Another example where we use <a href="#callbacks">an array form of function</a>:
 
 pre(title='example')
@@ -214,6 +245,10 @@ pre(title='console output')
     > [fromCallback] <end>
 div
 
+pre(title='events in time')
+  :escapehtml
+    stream:  ----("<!DOCTYPE html><html...")X
+div
 
 
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
@@ -234,12 +269,15 @@ pre(title='console output')
     > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
     > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 361, x: 751 ...}
     > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
+
+pre(title='events in time').
+  stream:  ----e--e----e---
 div
 
 p.
   Note that it uses <tt>addEventListener()</tt> for DOM events,
   which is not supported by IE8. If you need IE8 support use
-  <a href="#jquery">jQuery addon<a>.
+  <a href="#jquery">jQuery addon</a>.
 
 
 
@@ -285,6 +323,10 @@ pre(title='console output')
     > [fromBinder] <value> 3
     > !deactivation
 
+pre(title='events in time').
+  stream:  ----1----2----3---
+div
+
 p.
   See also <a href="demos/custom-stream.html">Custom stream demo</a>
   as another <b>fromBinder</b> usage example.
@@ -310,5 +352,8 @@ pre(title='console output')
   :escapehtml
     > [constant] <value:current> 1
     > [constant] <end:current>
+
+pre(title='events in time').
+  property: 1X
 div
 

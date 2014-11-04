@@ -18,6 +18,10 @@ pre(title='console output')
     > [sequentially.toProperty] <value> 2
     > [sequentially.toProperty] <value> 3
     > [sequentially.toProperty] <end>
+
+pre(title='events in time').
+  source:  ----1----2----3X
+  result: 0----1----2----3X
 div
 
 
@@ -39,4 +43,8 @@ pre(title='console output')
     > [sequentially.toProperty.changes] <value> 2
     > [sequentially.toProperty.changes] <value> 3
     > [sequentially.toProperty.changes] <end>
+
+pre(title='events in time').
+  property: 0----1----2----3X
+  result:    ----1----2----3X
 div
