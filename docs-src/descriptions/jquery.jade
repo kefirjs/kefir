@@ -26,6 +26,10 @@ pre(title='console output')
     > [asKefirStream] <value> jQuery.Event {originalEvent: MouseEvent...}
     > [asKefirStream] <value> jQuery.Event {originalEvent: MouseEvent...}
 
+pre(title='events in time').
+  clicks: --e----e--e---
+div
+
 p.
   Example with optional arguments:
 
@@ -43,6 +47,10 @@ pre(title='console output')
     > [e.pageX] <value> 15
     > [clicks on .container] <value> jQuery.Event {originalEvent: MouseEvent...}
     > [e.pageX] <value> 721
+
+pre(title='events in time').
+  clicksOnContainer: ----( e )----------( e )---
+  clicksPageX:       ----(643)---(15)---(721)---
 div
 
 
@@ -70,5 +78,9 @@ pre(title='console output')
     > [asKefirProperty] <value> [551, 1168]
     > [asKefirProperty] <value> [556, 1161]
     > ...
+
+pre(title='events in time').
+  cursorPosition: ([0, 0])---([551, 1168])----([551, 1168])--([556, 1161])---
+div
 
 
