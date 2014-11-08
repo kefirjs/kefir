@@ -16,16 +16,16 @@ function withOneSource(name, mixin, options) {
     _init: function(args) {},
     _free: function() {},
 
-    _handleValue: function(x, isCurrent) {  this._send('value', x, isCurrent)  },
-    _handleEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+    _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _onActivationHook: function() {},
     _onDeactivationHook: function() {},
 
     _handleAny: function(event) {
       switch (event.type) {
-        case 'value': this._handleValue(event.value, event.current); break;
-        case 'end': this._handleEnd(event.value, event.current); break;
+        case VALUE: this._handleValue(event.value, event.current); break;
+        case END: this._handleEnd(event.value, event.current); break;
       }
     },
 

@@ -5,21 +5,21 @@ function withTwoSources(name, mixin /*, options*/) {
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {},
-    _handlePrimaryEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+    _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
-        case 'value': this._handlePrimaryValue(event.value, event.current); break;
-        case 'end': this._handlePrimaryEnd(event.value, event.current); break;
+        case VALUE: this._handlePrimaryValue(event.value, event.current); break;
+        case END: this._handlePrimaryEnd(event.value, event.current); break;
       }
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
-        case 'value': this._handleSecondaryValue(event.value, event.current); break;
-        case 'end': this._handleSecondaryEnd(event.value, event.current); break;
+        case VALUE: this._handleSecondaryValue(event.value, event.current); break;
+        case END: this._handleSecondaryEnd(event.value, event.current); break;
       }
     },
 

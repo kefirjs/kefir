@@ -55,8 +55,8 @@ inherit(_AbstractPool, Stream, {
     obs.offEnd([this._removeCur, this, obs]);
   },
   _handleSubAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current && this._activating);
+    if (event.type === VALUE) {
+      this._send(VALUE, event.value, event.current && this._activating);
     }
   },
 
@@ -121,13 +121,13 @@ inherit(_AbstractPool, Stream, {
 
 var MergeLike = {
   _onEmpty: function() {
-    if (this._initialised) {  this._send('end', null, this._activating)  }
+    if (this._initialised) {  this._send(END, null, this._activating)  }
   }
 };
 
 function Merge(sources) {
   _AbstractPool.call(this);
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
@@ -148,7 +148,7 @@ Observable.prototype.merge = function(other) {
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
@@ -216,11 +216,11 @@ inherit(Bus, _AbstractPool, {
   },
 
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 
@@ -258,14 +258,14 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _handleMainSource: function(event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       if (!event.current || this._lastCurrent !== event.value) {
         this._add(this._fn(event.value));
       }
       this._lastCurrent = event.value;
     } else {
       if (this._isEmpty()) {
-        this._send('end', null, event.current);
+        this._send(END, null, event.current);
       } else {
         this._mainEnded = true;
       }
@@ -273,7 +273,7 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _onEmpty: function() {
-    if (this._mainEnded) {  this._send('end')  }
+    if (this._mainEnded) {  this._send(END)  }
   },
 
   _clear: function() {
@@ -324,7 +324,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 function SampledBy(passive, active, combinator) {
   Stream.call(this);
   if (active.length === 0) {
-    this._send('end');
+    this._send(END);
   } else {
     this._passiveCount = passive.length;
     this._combinator = combinator ? Fn(combinator) : null;
@@ -356,7 +356,7 @@ inherit(SampledBy, Stream, {
       this._emitIfFull(true);
     }
     if (this._endAfterActivation) {
-      this._send('end', null, true);
+      this._send(END, null, true);
     }
   },
 
@@ -374,12 +374,12 @@ inherit(SampledBy, Stream, {
       if (this._combinator !== null) {
         combined = this._combinator.apply(this._currents);
       }
-      this._send('value', combined, isCurrent);
+      this._send(VALUE, combined, isCurrent);
     }
   },
 
   _handleAny: function(i, event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       this._currents[i] = event.value;
       if (i >= this._passiveCount) {
         if (this._activating) {
@@ -395,7 +395,7 @@ inherit(SampledBy, Stream, {
           if (this._activating) {
             this._endAfterActivation = true;
           } else {
-            this._send('end', null, event.current);
+            this._send(END, null, event.current);
           }
         }
       }
