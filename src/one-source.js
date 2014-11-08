@@ -86,9 +86,6 @@ withOneSource('flatten', {
 
 function xformForObs(obs) {
   return {
-    init: function() {
-      return null;
-    },
     step: function(res, input) {
       obs._send('value', input, obs._forcedCurrent);
       return null;
@@ -103,21 +100,15 @@ function xformForObs(obs) {
 withOneSource('transduce', {
   _init: function(args) {
     this._xform = args[0](xformForObs(this));
-    this._forcedCurrent = true;
-    this._endIfReduced(this._xform.init());
-    this._forcedCurrent = false;
   },
   _free: function() {
     this._xform = null;
   },
-  _endIfReduced: function(obj) {
-    if (obj !== null) {
-      this._xform.result(null);
-    }
-  },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._endIfReduced(this._xform.step(null, x));
+    if (this._xform.step(null, x) !== null) {
+      this._xform.result(null);
+    }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
