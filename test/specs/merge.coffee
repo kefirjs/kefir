@@ -61,17 +61,3 @@ describe 'merge', ->
     activate(merge)
     deactivate(merge)
     expect(merge).toEmit [{current: 0}, {current: 1}, {current: 2}]
-
-  it 'also allows to not wrap sources to array, but pass it as arguments', ->
-    a = stream()
-    b = send(prop(), [0])
-    c = stream()
-    expect(Kefir.merge(a, b, c)).toEmit [{current: 0}, 1, 2, 3, 4, 5, 6, '<end>'], ->
-      send(a, [1])
-      send(b, [2])
-      send(c, [3])
-      send(a, ['<end>'])
-      send(b, [4, '<end>'])
-      send(c, [5, 6, '<end>'])
-
-

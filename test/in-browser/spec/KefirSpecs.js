@@ -401,13 +401,6 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
 
 var NOTHING = ['<nothing>'];
 
-function agrsToArray(args) {
-  if (args.length === 1 && isArray(args[0])) {
-    return args[0];
-  }
-  return cloneArray(args);
-}
-
 var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
@@ -1137,8 +1130,8 @@ function Merge(sources) {
 
 inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
-Kefir.merge = function() {
-  return new Merge(agrsToArray(arguments));
+Kefir.merge = function(obss) {
+  return new Merge(obss);
 }
 
 Observable.prototype.merge = function(other) {
@@ -1158,8 +1151,8 @@ function Concat(sources) {
 
 inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
-Kefir.concat = function() {
-  return new Concat(agrsToArray(arguments));
+Kefir.concat = function(obss) {
+  return new Concat(obss);
 }
 
 Observable.prototype.concat = function(other) {
@@ -22051,8 +22044,8 @@ describe('concat', function() {
       }
     ]);
   });
-  it('if made of ended properties, should emit all currents then end', function() {
-    return expect(Kefir.concat(send(prop(), [0, '<end>']), send(prop(), [1, '<end>']), send(prop(), [2, '<end>']))).toEmit([
+  return it('if made of ended properties, should emit all currents then end', function() {
+    return expect(Kefir.concat([send(prop(), [0, '<end>']), send(prop(), [1, '<end>']), send(prop(), [2, '<end>'])])).toEmit([
       {
         current: 0
       }, {
@@ -22061,26 +22054,6 @@ describe('concat', function() {
         current: 2
       }, '<end:current>'
     ]);
-  });
-  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
-    var a, b, c;
-    a = send(prop(), [0]);
-    b = prop();
-    c = stream();
-    return expect(Kefir.concat(a, b, c)).toEmit([
-      {
-        current: 0
-      }, 1, 4, 2, 5, 7, 8, '<end>'
-    ], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(c, [3]);
-      send(a, [4, '<end>']);
-      send(b, [5]);
-      send(c, [6]);
-      send(b, ['<end>']);
-      return send(c, [7, 8, '<end>']);
-    });
   });
 });
 
@@ -24461,7 +24434,7 @@ describe('merge', function() {
       return send(b, [3, '<end>']);
     });
   });
-  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
+  return it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
     var a, b, c, merge;
     a = send(prop(), [0]);
     b = send(prop(), [1]);
@@ -24491,24 +24464,6 @@ describe('merge', function() {
         current: 2
       }
     ]);
-  });
-  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
-    var a, b, c;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    return expect(Kefir.merge(a, b, c)).toEmit([
-      {
-        current: 0
-      }, 1, 2, 3, 4, 5, 6, '<end>'
-    ], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(c, [3]);
-      send(a, ['<end>']);
-      send(b, [4, '<end>']);
-      return send(c, [5, 6, '<end>']);
-    });
   });
 });
 

@@ -400,13 +400,6 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
 
 var NOTHING = ['<nothing>'];
 
-function agrsToArray(args) {
-  if (args.length === 1 && isArray(args[0])) {
-    return args[0];
-  }
-  return cloneArray(args);
-}
-
 var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
@@ -1136,8 +1129,8 @@ function Merge(sources) {
 
 inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
-Kefir.merge = function() {
-  return new Merge(agrsToArray(arguments));
+Kefir.merge = function(obss) {
+  return new Merge(obss);
 }
 
 Observable.prototype.merge = function(other) {
@@ -1157,8 +1150,8 @@ function Concat(sources) {
 
 inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
-Kefir.concat = function() {
-  return new Concat(agrsToArray(arguments));
+Kefir.concat = function(obss) {
+  return new Concat(obss);
 }
 
 Observable.prototype.concat = function(other) {

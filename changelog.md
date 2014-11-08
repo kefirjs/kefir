@@ -1,3 +1,7 @@
+## 0.2.12
+
+ - removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass it as individual arguments
+
 ## 0.2.11
 
  - The `fn` argument of the `.diff` method is now optional
