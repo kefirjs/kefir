@@ -3,7 +3,7 @@ Kefir = require('../../dist/kefir.js')
 Bacon = require('baconjs')
 Rx = require('rx')
 
-Benchmark.options.maxTime = 1;
+Benchmark.options.maxTime = 3;
 Benchmark.options.minSamples = 15;
 
 
@@ -15,29 +15,29 @@ getVal = ->
   bar: -> @foo
 
 
-buildKefir = (modify) ->
+buildKefir = (modify, _getVal=getVal) ->
   emitter = null
   property = Kefir.fromBinder (newEmitter) ->
     emitter = newEmitter
     null
   modify(property).onValue(noop)
-  -> emitter.emit(getVal())
+  -> emitter.emit(_getVal())
 
 
-buildBacon = (modify) ->
+buildBacon = (modify, _getVal=getVal) ->
   sink = null
   stream = new Bacon.EventStream (newSink) ->
     sink = newSink
   modify(stream).onValue(noop)
-  -> sink(new Bacon.Next(-> getVal()))
+  -> sink(new Bacon.Next(-> _getVal()))
 
 
-buildRx = (modify) ->
+buildRx = (modify, _getVal=getVal) ->
   observer = null
   stream = Rx.Observable.create (newObserver) ->
     observer = newObserver
   modify(stream.publish().refCount()).subscribe(noop)
-  -> observer.onNext(getVal())
+  -> observer.onNext(_getVal())
 
 
 exports.setupTest = (title, options) ->
@@ -48,19 +48,22 @@ exports.setupTest = (title, options) ->
   suite = new Benchmark.Suite()
 
   if options.kefir
-    suite.add('Kefir', buildKefir(options.kefir))
+    suite.add('Kefir', buildKefir(options.kefir, options.getVal))
 
   if options.kefirA
-    suite.add('Kefir A', buildKefir(options.kefirA))
+    suite.add('Kefir A', buildKefir(options.kefirA, options.getVal))
 
   if options.kefirB
-    suite.add('Kefir B', buildKefir(options.kefirB))
+    suite.add('Kefir B', buildKefir(options.kefirB, options.getVal))
+
+  if options.kefirC
+    suite.add('Kefir C', buildKefir(options.kefirC, options.getVal))
 
   if options.bacon
-    suite.add('Bacon', buildBacon(options.bacon))
+    suite.add('Bacon', buildBacon(options.bacon, options.getVal))
 
   if options.rx
-    suite.add('RxJS', buildRx(options.rx))
+    suite.add('RxJS', buildRx(options.rx, options.getVal))
 
   suite.on 'cycle', (event) ->
     console.log String(event.target)

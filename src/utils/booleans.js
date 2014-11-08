@@ -15,3 +15,7 @@ function or() {
   }
   return arguments[i - 1];
 }
+
+function not(x) {
+  return !x;
+}

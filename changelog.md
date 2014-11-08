@@ -1,6 +1,6 @@
 ## 0.2.12
 
- - removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass it as individual arguments
+ - removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass them as individual arguments
 
 ## 0.2.11
 

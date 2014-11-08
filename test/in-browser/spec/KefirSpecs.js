@@ -26,6 +26,10 @@ function or() {
   return arguments[i - 1];
 }
 
+function not(x) {
+  return !x;
+}
+
 function concat(a, b) {
   var result = new Array(a.length + b.length)
     , j = 0
@@ -400,6 +404,12 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
 }
 
 var NOTHING = ['<nothing>'];
+
+function noop() {}
+
+function id(x){
+  return x;
+}
 
 var now = Date.now ?
   function() { return Date.now() } :
@@ -1236,7 +1246,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? buildFn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : id;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -1257,7 +1267,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === 'value') {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn(event.value) : event.value);
+        this._add(this._fn(event.value));
       }
       this._lastCurrent = event.value;
     } else {
@@ -1368,7 +1378,7 @@ inherit(SampledBy, Stream, {
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator) {
+      if (this._combinator !== null) {
         combined = this._combinator.apply(this._currents);
       }
       this._send('value', combined, isCurrent);
@@ -1495,13 +1505,13 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 1) : null;
+    this._fn = args[0] ? buildFn(args[0], 1) : id;
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn === null ? x : this._fn(x);
+    var xs = this._fn(x);
     for (var i = 0; i < xs.length; i++) {
       this._send('value', xs[i], isCurrent);
     }
@@ -1647,18 +1657,15 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : function(a, b) {return a === b};
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
-  _isEqual: function(a, b) {
-    return this._fn === null ? a === b : this._fn(a, b);
-  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
+    if (this._prev === NOTHING || !this._fn(this._prev, x)) {
       this._send('value', x, isCurrent);
       this._prev = x;
     }
@@ -1701,17 +1708,14 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : null;
+    this._fn = args[1] ? buildFn(args[1], 2) : function(a, b) {return [a, b]};
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var result = (this._fn === null) ?
-      [this._prev, x] :
-      this._fn(this._prev, x);
-    this._send('value', result, isCurrent);
+    this._send('value', this._fn(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -2144,7 +2148,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName(this, 'not');
+  return this.map(not).setName(this, 'not');
 }
 
 

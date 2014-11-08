@@ -8,6 +8,7 @@ require('../perf-helper.coffee').setupTest 'stream.combine(Lib.constant(1), fn)'
     Kefir.combine([stream, Kefir.constant(1)], (a, b) -> a + b)
   bacon: (stream) ->
     stream.combine(Bacon.constant(1), (a, b) -> a + b)
+  getVal: -> 1
 }
 
 
@@ -21,4 +22,5 @@ require('../perf-helper.coffee').setupTest 'a.combine([b], (a, b) -> a + b) wher
     a = stream.map (x) -> x + 1
     b = stream.map (x) -> x + 2
     a.combine(b, (a, b) -> a + b)
+  getVal: -> 1
 }
