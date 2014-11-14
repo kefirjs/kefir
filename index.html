@@ -482,16 +482,17 @@ result.log();
 &gt; [sequentially.skipDuplicates] &lt;value&gt; 1
 &gt; [sequentially.skipDuplicates] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---(2.1)---3---1X
-result: ---1---2-----------3---1X</pre><div></div><p id="diff"><a href="#diff" class="header">diff</a><code>obs.diff(seed, [fn])</code><br/>On each value from original observable calls <b>fn</b>
+result: ---1---2-----------3---1X</pre><div></div><p id="diff"><a href="#diff" class="header">diff</a><code>obs.diff([fn], seed)</code><br/>On each value from original observable calls <b>fn</b>
 function with previous and current value as arguments.
 At first time calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns.
-</p><p>If no <b>fn</b> function provided,
+</p><p>If you want to omit <b>fn</b> place <tt>null</tt> in its place.
+If no <b>fn</b> function provided,
 <tt>function(a, b) {return [a, b]}</tt> will be used as default.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-var result = source.diff(0, function(prev, next) {
+var result = source.diff(function(prev, next) {
   return next - prev;
-});
+}, 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.diff] &lt;value&gt; 1
 &gt; [sequentially.diff] &lt;value&gt; 1
@@ -499,16 +500,16 @@ result.log();
 &gt; [sequentially.diff] &lt;value&gt; 1
 &gt; [sequentially.diff] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---2---3X
-result: ---1---1---0---1X</pre><div></div><p id="scan"><a href="#scan" class="header">scan</a><code>obs.scan(seed, fn)</code><br/>On each value from original
+result: ---1---1---0---1X</pre><div></div><p id="scan"><a href="#scan" class="header">scan</a><code>obs.scan(fn, seed)</code><br/>On each value from original
 observable calls <b>fn</b> function with
 previous result returned by <b>fn</b> and
 current value emitted by original observable.
 At first time calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns. Always creates a property.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-var result = source.scan(0, function(prev, next) {
+var result = source.scan(function(prev, next) {
   return next + prev;
-});
+}, 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.scan] &lt;value:current&gt; 0
 &gt; [sequentially.scan] &lt;value&gt; 1
@@ -517,11 +518,11 @@ result.log();
 &gt; [sequentially.scan] &lt;value&gt; 8
 &gt; [sequentially.scan] &lt;end&gt;
 </pre><pre title="events in time">source:  ---1---2---2---3X
-result: 0---1---3---5---8X</pre><div></div><p id="reduce"><a href="#reduce" class="header">reduce</a><code>obs.reduce(seed, fn)</code><br/>Similar to <b>.scan</b>, but emits only last result just before end.
+result: 0---1---3---5---8X</pre><div></div><p id="reduce"><a href="#reduce" class="header">reduce</a><code>obs.reduce(fn, seed)</code><br/>Similar to <b>.scan</b>, but emits only last result just before end.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-var result = source.reduce(0, function(prev, next) {
+var result = source.reduce(function(prev, next) {
   return next + prev;
-});
+}, 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.reduce] &lt;value&gt; 8
 &gt; [sequentially.reduce] &lt;end&gt;

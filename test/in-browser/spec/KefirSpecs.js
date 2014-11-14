@@ -1714,12 +1714,12 @@ withOneSource('skipWhile', {
 
 
 
-// .diff(seed, fn)
+// .diff(fn, seed)
 
 withOneSource('diff', {
   _init: function(args) {
-    this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : defaultDiff;
+    this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
+    this._prev = args[1];
   },
   _free: function() {
     this._prev = null;
@@ -1735,12 +1735,12 @@ withOneSource('diff', {
 
 
 
-// .scan(seed, fn)
+// .scan(fn, seed)
 
 withOneSource('scan', {
   _init: function(args) {
-    this._send(VALUE, args[0], true);
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._send(VALUE, args[1], true);
   },
   _free: function() {
     this._fn = null;
@@ -1754,12 +1754,12 @@ withOneSource('scan', {
 
 
 
-// .reduce(seed, fn)
+// .reduce(fn, seed)
 
 withOneSource('reduce', {
   _init: function(args) {
-    this._result = args[0];
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._result = args[1];
   },
   _free: function() {
     this._fn = null;
@@ -22341,58 +22341,60 @@ describe('delay', function() {
 
 
 },{"../test-helpers.coffee":84}],40:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref;
+var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+noop = function() {};
+
+minus = function(prev, next) {
+  return prev - next;
+};
 
 describe('diff', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().diff(0, function() {})).toBeStream();
+      return expect(stream().diff(noop, 0)).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.diff(0, function() {})).toActivate(a);
+      return expect(a.diff(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).diff(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(stream(), ['<end>']).diff(noop, 0)).toEmit(['<end:current>']);
     });
     it('should handle events', function() {
       var a;
       a = stream();
-      return expect(a.diff(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([-1, -2, '<end>'], function() {
+      return expect(a.diff(minus, 0)).toEmit([-1, -2, '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
     return it('works without fn argument', function() {
       var a;
       a = stream();
-      return expect(a.diff(0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
+      return expect(a.diff(null, 0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().diff(0, function() {})).toBeProperty();
+      return expect(prop().diff(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.diff(0, function() {})).toActivate(a);
+      return expect(a.diff(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).diff(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(prop(), ['<end>']).diff(noop, 0)).toEmit(['<end:current>']);
     });
     it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.diff(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([
+      return expect(a.diff(minus, 0)).toEmit([
         {
           current: -1
         }, -2, -3, '<end>'
@@ -22403,7 +22405,7 @@ describe('diff', function() {
     return it('works without fn argument', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.diff(0)).toEmit([
+      return expect(a.diff(null, 0)).toEmit([
         {
           current: [0, 1]
         }, [1, 3], [3, 6], '<end>'
@@ -24751,22 +24753,28 @@ describe('Property', function() {
 
 
 },{"../test-helpers.coffee":84}],62:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref;
+var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+noop = function() {};
+
+minus = function(prev, next) {
+  return prev - next;
+};
 
 describe('reduce', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().reduce(0, function() {})).toBeStream();
+      return expect(stream().reduce(noop, 0)).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.reduce(0, function() {})).toActivate(a);
+      return expect(a.reduce(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).reduce(0, function() {})).toEmit([
+      return expect(send(stream(), ['<end>']).reduce(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -24775,24 +24783,22 @@ describe('reduce', function() {
     return it('should handle events', function() {
       var a;
       a = stream();
-      return expect(a.reduce(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([-4, '<end>'], function() {
+      return expect(a.reduce(minus, 0)).toEmit([-4, '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().reduce(0, function() {})).toBeProperty();
+      return expect(prop().reduce(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.reduce(0, function() {})).toActivate(a);
+      return expect(a.reduce(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).reduce(0, function() {})).toEmit([
+      return expect(send(prop(), ['<end>']).reduce(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -24801,9 +24807,7 @@ describe('reduce', function() {
     return it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.reduce(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([-10, '<end>'], function() {
+      return expect(a.reduce(minus, 0)).toEmit([-10, '<end>'], function() {
         return send(a, [3, 6, '<end>']);
       });
     });
@@ -24956,22 +24960,28 @@ describe('sampledBy', function() {
 
 
 },{"../test-helpers.coffee":84}],65:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref;
+var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+noop = function() {};
+
+minus = function(prev, next) {
+  return prev - next;
+};
 
 describe('scan', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().scan(0, function() {})).toBeProperty();
+      return expect(stream().scan(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.scan(0, function() {})).toActivate(a);
+      return expect(a.scan(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).scan(0, function() {})).toEmit([
+      return expect(send(stream(), ['<end>']).scan(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -24980,9 +24990,7 @@ describe('scan', function() {
     return it('should handle events', function() {
       var a;
       a = stream();
-      return expect(a.scan(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([
+      return expect(a.scan(minus, 0)).toEmit([
         {
           current: 0
         }, -1, -4, '<end>'
@@ -24993,15 +25001,15 @@ describe('scan', function() {
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().scan(0, function() {})).toBeProperty();
+      return expect(prop().scan(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.scan(0, function() {})).toActivate(a);
+      return expect(a.scan(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).scan(0, function() {})).toEmit([
+      return expect(send(prop(), ['<end>']).scan(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -25010,9 +25018,7 @@ describe('scan', function() {
     return it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.scan(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([
+      return expect(a.scan(minus, 0)).toEmit([
         {
           current: -1
         }, -4, -10, '<end>'

@@ -1713,12 +1713,12 @@ withOneSource('skipWhile', {
 
 
 
-// .diff(seed, fn)
+// .diff(fn, seed)
 
 withOneSource('diff', {
   _init: function(args) {
-    this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : defaultDiff;
+    this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
+    this._prev = args[1];
   },
   _free: function() {
     this._prev = null;
@@ -1734,12 +1734,12 @@ withOneSource('diff', {
 
 
 
-// .scan(seed, fn)
+// .scan(fn, seed)
 
 withOneSource('scan', {
   _init: function(args) {
-    this._send(VALUE, args[0], true);
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._send(VALUE, args[1], true);
   },
   _free: function() {
     this._fn = null;
@@ -1753,12 +1753,12 @@ withOneSource('scan', {
 
 
 
-// .reduce(seed, fn)
+// .reduce(fn, seed)
 
 withOneSource('reduce', {
   _init: function(args) {
-    this._result = args[0];
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._result = args[1];
   },
   _free: function() {
     this._fn = null;
