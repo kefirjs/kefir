@@ -143,11 +143,9 @@ stream.log();
 var stream = Kefir.fromCallback([jQuery.get, null, url]);
 stream.log();
 </pre><pre title="console output">&gt; [fromCallback] &lt;value&gt; &lt;!DOCTYPE html&gt;&lt;html...
-&gt; [fromCallback] &lt;end&gt;</pre><div></div><pre title="events in time">stream:  ----(&quot;&lt;!DOCTYPE html&gt;&lt;html...&quot;)X</pre><div></div><p id="from-event"><a href="#from-event" class="header">fromEvent</a><code>Kefir.fromEvent(target, eventName, [transform])</code><br/>Creates a stream from
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget" target="_blank">DOM</a>
-or <a href="http://nodejs.org/api/events.html" target="_blank">EventEmitter (Node.js)</a> events.
-<b>Target</b> is a DOM node or an EventEmitter, <b>eventName</b> is event name,
-and <b>transform</b> is optional transformation function like in
+&gt; [fromCallback] &lt;end&gt;</pre><div></div><pre title="events in time">stream:  ----(&quot;&lt;!DOCTYPE html&gt;&lt;html...&quot;)X</pre><div></div><p id="from-event"><a href="#from-event" class="header">fromEvent</a><code>Kefir.fromEvent(target, eventName, [transform])</code><br/>Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter
+object, or an object that supports event listeners using <tt>on/off</tt> methods.
+You can also pass optional transformation function like in
 <a href="#as-kefir-stream">asKefirStream</a> method.
 </p><pre title="example">var stream = Kefir.fromEvent(document.body, &#x27;click&#x27;);
 stream.log()
@@ -437,7 +435,7 @@ result.log();
 &gt; [sequentially.takeWhile] &lt;value&gt; 2
 &gt; [sequentially.takeWhile] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---3X
-result: ---1---2X</pre><div></div><p>See also <a href="#take-while-by">takeWhileBy</a>.
+result: ---1---2---X</pre><div></div><p>See also <a href="#take-while-by">takeWhileBy</a>.
 
 </p><p id="skip"><a href="#skip" class="header">skip</a><code>obs.skip(n)</code><br/>Skips first <b>n</b> values from original observable, then emits all rest.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);

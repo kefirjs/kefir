@@ -2,6 +2,8 @@
 
  - Removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass them as individual arguments
  - Changed arguments order in `.scan`, `.reduce`, and `.diff`
+ - Added support of on/off methods pair to `.fromEvent`
+ - Removed undocumented support of bind/unbind pair from `.fromEvent`
 
 ## 0.2.11
 

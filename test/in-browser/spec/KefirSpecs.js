@@ -2197,19 +2197,40 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 // .fromEvent
 
+var subUnsubPairs = [
+  ['addEventListener', 'removeEventListener'],
+  ['addListener', 'removeListener'],
+  ['on', 'off']
+];
+
+function wrapEmitter(emitter, transformer) {
+  return function() {
+    emitter.emit(transformer.applyWithContext(this, arguments));
+  }
+}
+
 Kefir.fromEvent = function(target, eventName, transformer) {
+  var pair, sub, unsub;
+
   transformer = transformer && Fn(transformer);
-  var sub = target.addEventListener || target.addListener || target.bind;
-  var unsub = target.removeEventListener || target.removeListener || target.unbind;
-  return Kefir.fromBinder(function(emitter) {
-    var handler = transformer ?
-      function() {
-        emitter.emit(transformer.applyWithContext(this, arguments));
-      } : emitter.emit;
-    sub.call(target, eventName, handler);
-    return function() {
-      unsub.call(target, eventName, handler);
+
+  for (var i = 0; i < subUnsubPairs.length; i++) {
+    pair = subUnsubPairs[i];
+    if (isFn(target[pair[0]]) && isFn(target[pair[1]])) {
+      sub = pair[0];
+      unsub = pair[1];
+      break;
     }
+  }
+
+  if (sub === undefined) {
+    throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
+  }
+
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
+    target[sub](eventName, handler);
+    return [unsub, target, eventName, handler];
   }).setName('fromEvent');
 }
 
@@ -23738,7 +23759,7 @@ var Kefir, activate, deactivate, _ref;
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
 
 describe('fromEvent', function() {
-  var bindTarget, domTarget, nodeTarget;
+  var domTarget, nodeTarget, onOffTarget;
   domTarget = function() {
     return {
       addEventListener: function(name, fn) {
@@ -23763,12 +23784,12 @@ describe('fromEvent', function() {
       }
     };
   };
-  bindTarget = function() {
+  onOffTarget = function() {
     return {
-      bind: function(name, fn) {
+      on: function(name, fn) {
         return this[name + 'Listener'] = fn;
       },
-      unbind: function(name, fn) {
+      off: function(name, fn) {
         if (this[name + 'Listener'] === fn) {
           return delete this[name + 'Listener'];
         }
@@ -23790,7 +23811,7 @@ describe('fromEvent', function() {
     expect(target.fooListener).toEqual(jasmine.any(Function));
     deactivate(a);
     expect(target.fooListener).toBeUndefined();
-    target = bindTarget();
+    target = onOffTarget();
     a = Kefir.fromEvent(target, 'foo');
     expect(target.fooListener).toBeUndefined();
     activate(a);
@@ -23821,7 +23842,7 @@ describe('fromEvent', function() {
       target.fooListener(2);
       return target.fooListener(3);
     });
-    target = bindTarget();
+    target = onOffTarget();
     a = Kefir.fromEvent(target, 'foo');
     return expect(a).toEmit([1, 2, 3], function() {
       target.fooListener(1);
