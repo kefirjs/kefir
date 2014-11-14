@@ -197,7 +197,7 @@ withOneSource('take', {
 
 withOneSource('skip', {
   _init: function(args) {
-    this._n = args[0] < 0 ? 0 : args[0];
+    this._n = Math.max(0, args[0]);
   },
   _handleValue: function(x, isCurrent) {
     if (this._n === 0) {
@@ -215,7 +215,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : function(a, b) {return a === b};
+    this._fn = args[0] ? buildFn(args[0], 2) : strictEqual;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -266,7 +266,7 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : function(a, b) {return [a, b]};
+    this._fn = args[1] ? buildFn(args[1], 2) : defaultDiff;
   },
   _free: function() {
     this._prev = null;

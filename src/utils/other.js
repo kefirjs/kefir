@@ -5,8 +5,16 @@ var ANY = 'any';
 
 function noop() {}
 
-function id(x){
+function id(x) {
   return x;
+}
+
+function strictEqual(a, b) {
+  return a === b;
+}
+
+function defaultDiff(a, b) {
+  return [a, b]
 }
 
 var now = Date.now ?
