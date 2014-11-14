@@ -1,7 +1,6 @@
 Gruntfile.coffee
 Kefir-with-bg.svg
 Kefir.svg
-README.md
 bower-packages
 bower.json
 demos
@@ -10,3 +9,7 @@ grunt-tasks
 index.html
 src
 test
+.npmignore
+.travis.yml
+.jshintrc
+changelog.md
