@@ -4,7 +4,7 @@ function withTwoSources(name, mixin /*, options*/) {
     _init: function() {},
     _free: function() {},
 
-    _handlePrimaryValue: function(x, isCurrent) {},
+    _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
     _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
@@ -18,19 +18,25 @@ function withTwoSources(name, mixin /*, options*/) {
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
-        case VALUE: this._handleSecondaryValue(event.value, event.current); break;
-        case END: this._handleSecondaryEnd(event.value, event.current); break;
+        case VALUE:
+          this._handleSecondaryValue(event.value, event.current);
+          break;
+        case END:
+          this._handleSecondaryEnd(event.value, event.current);
+          this._removeSecondary();
+          break;
       }
     },
 
     _removeSecondary: function() {
-      this._secondary.offAny([this._handleSecondaryAny, this]);
-      this._secondary = null;
-      this._secondaryRemoved = true;
+      if (this._secondary !== null) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+        this._secondary = null;
+      }
     },
 
     _onActivation: function() {
-      if (!this._secondaryRemoved) {
+      if (this._secondary !== null) {
         this._secondary.onAny([this._handleSecondaryAny, this]);
       }
       if (this._alive) {
@@ -38,7 +44,7 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
     _onDeactivation: function() {
-      if (!this._secondaryRemoved) {
+      if (this._secondary !== null) {
         this._secondary.offAny([this._handleSecondaryAny, this]);
       }
       this._primary.offAny([this._handlePrimaryAny, this]);
@@ -54,7 +60,6 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
-      this._secondaryRemoved = false;
       this._init();
     }
 

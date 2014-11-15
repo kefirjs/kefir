@@ -39,6 +39,16 @@ withTwoSources('skipUntilBy', {
 
 
 
+withTwoSources('takeUntilBy', {
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._send(END, null, isCurrent);
+  }
+
+});
+
+
+
 withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {

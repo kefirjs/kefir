@@ -5,6 +5,7 @@
  - Added support of on/off methods pair to `.fromEvent`
  - Removed undocumented support of bind/unbind pair from `.fromEvent`
  - Method `.waitFor` renamed to `.skipUntilBy`
+ - New method `.takeUntilBy`
 
 ## 0.2.11
 
