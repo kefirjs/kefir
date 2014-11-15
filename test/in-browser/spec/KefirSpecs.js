@@ -2252,7 +2252,7 @@ withTwoSources('filterBy', {
 
 
 
-withTwoSources('waitFor', {
+withTwoSources('skipUntilBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
@@ -25150,6 +25150,260 @@ describe('skipDuplicates', function() {
 },{"../test-helpers.coffee":84}],68:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
+
+describe('skipUntilBy', function() {
+  describe('stream, stream', function() {
+    it('should return a stream', function() {
+      return expect(stream().skipUntilBy(stream())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = stream();
+      b = stream();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).skipUntilBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(stream().skipUntilBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [0, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should emit all values from primary after first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [0]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  describe('stream, property', function() {
+    it('should return a stream', function() {
+      return expect(stream().skipUntilBy(prop())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = stream();
+      b = prop();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).skipUntilBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(stream().skipUntilBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has any current', function() {
+      return expect(stream().skipUntilBy(send(prop(), [0, '<end>']))).toEmit([]);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should filter values as expected', function() {
+      var a, b;
+      a = stream();
+      b = send(prop(), [0]);
+      return expect(a.skipUntilBy(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
+        send(a, [3, 4]);
+        send(b, [2]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  describe('property, stream', function() {
+    it('should return a property', function() {
+      return expect(prop().skipUntilBy(stream())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = prop();
+      b = stream();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).skipUntilBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(prop().skipUntilBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [0, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should filter values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [0]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  return describe('property, property', function() {
+    it('should return a property', function() {
+      return expect(prop().skipUntilBy(prop())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = prop();
+      b = prop();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).skipUntilBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(prop().skipUntilBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has any current', function() {
+      return expect(prop().skipUntilBy(send(prop(), [0, '<end>']))).toEmit([]);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should filter values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = send(prop(), [0]);
+      return expect(a.skipUntilBy(b)).toEmit([
+        {
+          current: 0
+        }, 3, 4, 5, 6, 7, 8, 9, '<end>'
+      ], function() {
+        send(a, [3, 4]);
+        send(b, [2]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":84}],69:[function(require,module,exports){
+var Kefir, activate, deactivate, prop, send, stream, _ref;
+
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, deactivate = _ref.deactivate, activate = _ref.activate;
 
 describe('skipWhileBy', function() {
@@ -25167,7 +25421,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = stream();
       b = stream();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25226,7 +25480,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = stream();
       b = prop();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25291,7 +25545,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = prop();
       b = stream();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25350,7 +25604,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = prop();
       b = prop();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25404,7 +25658,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":84}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],70:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25510,7 +25764,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":84}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],71:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25610,7 +25864,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":84}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],72:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25706,7 +25960,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":84}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],73:[function(require,module,exports){
 var Kefir, activate, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -25941,7 +26195,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":84}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],74:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26193,7 +26447,7 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":84}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],75:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26442,7 +26696,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":84}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],76:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26557,7 +26811,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":84}],76:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],77:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26642,7 +26896,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":84}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],78:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26916,7 +27170,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":84}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],79:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27005,7 +27259,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":84}],79:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],80:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27051,7 +27305,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":84}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":84}],81:[function(require,module,exports){
 var Kefir, comp, noop, prop, send, stream, testWithLib, _ref,
   __slice = [].slice;
 
@@ -27301,261 +27555,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":84,"transducers-js":31,"transducers.js":32}],81:[function(require,module,exports){
-var Kefir, activate, deactivate, prop, send, stream, _ref;
-
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
-
-describe('waitFor', function() {
-  describe('stream, stream', function() {
-    it('should return a stream', function() {
-      return expect(stream().waitFor(stream())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = stream();
-      b = stream();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).waitFor(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(stream().waitFor(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [0, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should emit all values from primary after first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [0]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  describe('stream, property', function() {
-    it('should return a stream', function() {
-      return expect(stream().waitFor(prop())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = stream();
-      b = prop();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).waitFor(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(stream().waitFor(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has any current', function() {
-      return expect(stream().waitFor(send(prop(), [0, '<end>']))).toEmit([]);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should filter values as expected', function() {
-      var a, b;
-      a = stream();
-      b = send(prop(), [0]);
-      return expect(a.waitFor(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
-        send(a, [3, 4]);
-        send(b, [2]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  describe('property, stream', function() {
-    it('should return a property', function() {
-      return expect(prop().waitFor(stream())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = prop();
-      b = stream();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).waitFor(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(prop().waitFor(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [0, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should filter values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [0]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  return describe('property, property', function() {
-    it('should return a property', function() {
-      return expect(prop().waitFor(prop())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = prop();
-      b = prop();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).waitFor(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(prop().waitFor(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has any current', function() {
-      return expect(prop().waitFor(send(prop(), [0, '<end>']))).toEmit([]);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should filter values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = send(prop(), [0]);
-      return expect(a.waitFor(b)).toEmit([
-        {
-          current: 0
-        }, 3, 4, 5, 6, 7, 8, 9, '<end>'
-      ], function() {
-        send(a, [3, 4]);
-        send(b, [2]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-});
-
-
-
-},{"../test-helpers.coffee":84}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":84,"transducers-js":31,"transducers.js":32}],82:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;

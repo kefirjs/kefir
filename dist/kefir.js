@@ -2251,7 +2251,7 @@ withTwoSources('filterBy', {
 
 
 
-withTwoSources('waitFor', {
+withTwoSources('skipUntilBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {

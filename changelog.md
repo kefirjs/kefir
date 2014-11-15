@@ -4,6 +4,7 @@
  - Changed arguments order in `.scan`, `.reduce`, and `.diff`
  - Added support of on/off methods pair to `.fromEvent`
  - Removed undocumented support of bind/unbind pair from `.fromEvent`
+ - Method `.waitFor` renamed to `.skipUntilBy`
 
 ## 0.2.11
 

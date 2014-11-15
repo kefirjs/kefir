@@ -96,21 +96,21 @@ div
 
 
 
-+descr-method('wait-for', 'waitFor', 'obs.waitFor(otherObs)').
++descr-method('skip-until-by', 'skipUntilBy', 'obs.skipUntilBy(otherObs)').
   Similar to <a href="#skip-while-by">skipWhileBy</a>, but instead of
   waiting for first falsey value from <b>otherObs</b>, it waits for just any value from it.
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
   var bar = Kefir.later(250, 0);
-  var result = foo.waitFor(bar);
+  var result = foo.skipUntilBy(bar);
   result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.waitFor] <value> 3
-    > [sequentially.waitFor] <value> 4
-    > [sequentially.waitFor] <end>
+    > [sequentially.skipUntilBy] <value> 3
+    > [sequentially.skipUntilBy] <value> 4
+    > [sequentially.skipUntilBy] <end>
 
 pre(title='events in time').
   foo:     ----1----2----3----4X

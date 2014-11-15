@@ -17,7 +17,7 @@ describe 'skipWhileBy', ->
     it 'should not activate secondary after first falsey value from it', ->
       a = stream()
       b = stream()
-      res = a.waitFor(b)
+      res = a.skipWhileBy(b)
       activate(res)
       send(b, [true, false])
       deactivate(res)
@@ -69,7 +69,7 @@ describe 'skipWhileBy', ->
     it 'should not activate secondary after first falsey value from it', ->
       a = stream()
       b = prop()
-      res = a.waitFor(b)
+      res = a.skipWhileBy(b)
       activate(res)
       send(b, [true, false])
       deactivate(res)
@@ -127,7 +127,7 @@ describe 'skipWhileBy', ->
     it 'should not activate secondary after first falsey value from it', ->
       a = prop()
       b = stream()
-      res = a.waitFor(b)
+      res = a.skipWhileBy(b)
       activate(res)
       send(b, [true, false])
       deactivate(res)
@@ -178,7 +178,7 @@ describe 'skipWhileBy', ->
     it 'should not activate secondary after first falsey value from it', ->
       a = prop()
       b = prop()
-      res = a.waitFor(b)
+      res = a.skipWhileBy(b)
       activate(res)
       send(b, [true, false])
       deactivate(res)
