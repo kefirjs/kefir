@@ -86,7 +86,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName(this, 'not');
+  return this.map(not).setName(this, 'not');
 }
 
 
@@ -124,18 +124,39 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 // .fromEvent
 
+var subUnsubPairs = [
+  ['addEventListener', 'removeEventListener'],
+  ['addListener', 'removeListener'],
+  ['on', 'off']
+];
+
+function wrapEmitter(emitter, transformer) {
+  return function() {
+    emitter.emit(transformer.applyWithContext(this, arguments));
+  }
+}
+
 Kefir.fromEvent = function(target, eventName, transformer) {
+  var pair, sub, unsub;
+
   transformer = transformer && Fn(transformer);
-  var sub = target.addEventListener || target.addListener || target.bind;
-  var unsub = target.removeEventListener || target.removeListener || target.unbind;
-  return Kefir.fromBinder(function(emitter) {
-    var handler = transformer ?
-      function() {
-        emitter.emit(transformer.applyWithContext(this, arguments));
-      } : emitter.emit;
-    sub.call(target, eventName, handler);
-    return function() {
-      unsub.call(target, eventName, handler);
+
+  for (var i = 0; i < subUnsubPairs.length; i++) {
+    pair = subUnsubPairs[i];
+    if (isFn(target[pair[0]]) && isFn(target[pair[1]])) {
+      sub = pair[0];
+      unsub = pair[1];
+      break;
     }
+  }
+
+  if (sub === undefined) {
+    throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
+  }
+
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
+    target[sub](eventName, handler);
+    return [unsub, target, eventName, handler];
   }).setName('fromEvent');
 }

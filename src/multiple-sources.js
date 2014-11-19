@@ -17,15 +17,16 @@ inherit(_AbstractPool, Stream, {
 
   _name: 'abstractPool',
 
-  _add: function(obs) {
+  _add: function(obj, toObs) {
+    toObs = toObs || id;
     if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
-      this._addToCur(obs);
+      this._addToCur(toObs(obj));
     } else {
       if (this._queueLim === -1 || this._queue.length < this._queueLim) {
-        this._addToQueue(obs);
+        this._addToQueue(toObs(obj));
       } else if (this._drop === 'old') {
         this._removeOldest();
-        this._add(obs);
+        this._add(toObs(obj));
       }
     }
   },
@@ -55,8 +56,8 @@ inherit(_AbstractPool, Stream, {
     obs.offEnd([this._removeCur, this, obs]);
   },
   _handleSubAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current && this._activating);
+    if (event.type === VALUE) {
+      this._send(VALUE, event.value, event.current && this._activating);
     }
   },
 
@@ -121,20 +122,20 @@ inherit(_AbstractPool, Stream, {
 
 var MergeLike = {
   _onEmpty: function() {
-    if (this._initialised) {  this._send('end', null, this._activating)  }
+    if (this._initialised) {  this._send(END, null, this._activating)  }
   }
 };
 
 function Merge(sources) {
   _AbstractPool.call(this);
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
 inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
-Kefir.merge = function() {
-  return new Merge(agrsToArray(arguments));
+Kefir.merge = function(obss) {
+  return new Merge(obss);
 }
 
 Observable.prototype.merge = function(other) {
@@ -148,14 +149,14 @@ Observable.prototype.merge = function(other) {
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
 inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
-Kefir.concat = function() {
-  return new Concat(agrsToArray(arguments));
+Kefir.concat = function(obss) {
+  return new Concat(obss);
 }
 
 Observable.prototype.concat = function(other) {
@@ -216,11 +217,11 @@ inherit(Bus, _AbstractPool, {
   },
 
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 
@@ -239,7 +240,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? buildFn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : id;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -258,14 +259,14 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _handleMainSource: function(event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn(event.value) : event.value);
+        this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
     } else {
       if (this._isEmpty()) {
-        this._send('end', null, event.current);
+        this._send(END, null, event.current);
       } else {
         this._mainEnded = true;
       }
@@ -273,7 +274,7 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _onEmpty: function() {
-    if (this._mainEnded) {  this._send('end')  }
+    if (this._mainEnded) {  this._send(END)  }
   },
 
   _clear: function() {
@@ -324,7 +325,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 function SampledBy(passive, active, combinator) {
   Stream.call(this);
   if (active.length === 0) {
-    this._send('end');
+    this._send(END);
   } else {
     this._passiveCount = passive.length;
     this._combinator = combinator ? Fn(combinator) : null;
@@ -356,7 +357,7 @@ inherit(SampledBy, Stream, {
       this._emitIfFull(true);
     }
     if (this._endAfterActivation) {
-      this._send('end', null, true);
+      this._send(END, null, true);
     }
   },
 
@@ -371,15 +372,15 @@ inherit(SampledBy, Stream, {
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator) {
+      if (this._combinator !== null) {
         combined = this._combinator.apply(this._currents);
       }
-      this._send('value', combined, isCurrent);
+      this._send(VALUE, combined, isCurrent);
     }
   },
 
   _handleAny: function(i, event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       this._currents[i] = event.value;
       if (i >= this._passiveCount) {
         if (this._activating) {
@@ -395,7 +396,7 @@ inherit(SampledBy, Stream, {
           if (this._activating) {
             this._endAfterActivation = true;
           } else {
-            this._send('end', null, event.current);
+            this._send(END, null, event.current);
           }
         }
       }

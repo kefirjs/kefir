@@ -256,7 +256,7 @@ pre(title='console output')
 
 pre(title='events in time').
   source: ---1---2---3X
-  result: ---1---2X
+  result: ---1---2---X
 div
 
 p.
@@ -360,22 +360,23 @@ div
 
 
 
-+descr-method('diff', 'diff', 'obs.diff(seed, [fn])').
++descr-method('diff', 'diff', 'obs.diff([fn], seed)').
   On each value from original observable calls <b>fn</b>
   function with previous and current value as arguments.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns.
 
 p.
+  If you want to omit <b>fn</b> place <tt>null</tt> in its place.
   If no <b>fn</b> function provided,
   <tt>function(a, b) {return [a, b]}</tt> will be used as default.
 
 pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-    var result = source.diff(0, function(prev, next) {
+    var result = source.diff(function(prev, next) {
       return next - prev;
-    });
+    }, 0);
     result.log();
 
 pre(title='console output')
@@ -393,7 +394,7 @@ div
 
 
 
-+descr-method('scan', 'scan', 'obs.scan(seed, fn)').
++descr-method('scan', 'scan', 'obs.scan(fn, seed)').
   On each value from original
   observable calls <b>fn</b> function with
   previous result returned by <b>fn</b> and
@@ -404,9 +405,9 @@ div
 pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-    var result = source.scan(0, function(prev, next) {
+    var result = source.scan(function(prev, next) {
       return next + prev;
-    });
+    }, 0);
     result.log();
 
 pre(title='console output')
@@ -425,15 +426,15 @@ div
 
 
 
-+descr-method('reduce', 'reduce', 'obs.reduce(seed, fn)').
++descr-method('reduce', 'reduce', 'obs.reduce(fn, seed)').
   Similar to <b>.scan</b>, but emits only last result just before end.
 
 pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-    var result = source.reduce(0, function(prev, next) {
+    var result = source.reduce(function(prev, next) {
       return next + prev;
-    });
+    }, 0);
     result.log();
 
 pre(title='console output')

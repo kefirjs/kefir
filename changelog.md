@@ -1,3 +1,13 @@
+## 0.3.0
+
+ - Removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass them as individual arguments
+ - Changed arguments order in `.scan`, `.reduce`, and `.diff`
+ - Added support of on/off methods pair to `.fromEvent`
+ - Removed undocumented support of bind/unbind pair from `.fromEvent`
+ - Method `.waitFor` renamed to `.skipUntilBy`
+ - New method `.takeUntilBy`
+ - Method `source.flatMapFirst(fn)` now won't call `fn` when skiping values from `source`
+
 ## 0.2.11
 
  - The `fn` argument of the `.diff` method is now optional

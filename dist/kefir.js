@@ -1,4 +1,4 @@
-/*! Kefir.js v0.2.11
+/*! Kefir.js v0.3.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -23,6 +23,10 @@ function or() {
     }
   }
   return arguments[i - 1];
+}
+
+function not(x) {
+  return !x;
 }
 
 function concat(a, b) {
@@ -399,12 +403,22 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
 }
 
 var NOTHING = ['<nothing>'];
+var END = 'end';
+var VALUE = 'value';
+var ANY = 'any';
 
-function agrsToArray(args) {
-  if (args.length === 1 && isArray(args[0])) {
-    return args[0];
-  }
-  return cloneArray(args);
+function noop() {}
+
+function id(x) {
+  return x;
+}
+
+function strictEqual(a, b) {
+  return a === b;
+}
+
+function defaultDiff(a, b) {
+  return [a, b]
 }
 
 var now = Date.now ?
@@ -499,16 +513,16 @@ function withOneSource(name, mixin, options) {
     _init: function(args) {},
     _free: function() {},
 
-    _handleValue: function(x, isCurrent) {  this._send('value', x, isCurrent)  },
-    _handleEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+    _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _onActivationHook: function() {},
     _onDeactivationHook: function() {},
 
     _handleAny: function(event) {
       switch (event.type) {
-        case 'value': this._handleValue(event.value, event.current); break;
-        case 'end': this._handleEnd(event.value, event.current); break;
+        case VALUE: this._handleValue(event.value, event.current); break;
+        case END: this._handleEnd(event.value, event.current); break;
       }
     },
 
@@ -563,33 +577,39 @@ function withTwoSources(name, mixin /*, options*/) {
     _init: function() {},
     _free: function() {},
 
-    _handlePrimaryValue: function(x, isCurrent) {},
-    _handlePrimaryEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+    _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
-        case 'value': this._handlePrimaryValue(event.value, event.current); break;
-        case 'end': this._handlePrimaryEnd(event.value, event.current); break;
+        case VALUE: this._handlePrimaryValue(event.value, event.current); break;
+        case END: this._handlePrimaryEnd(event.value, event.current); break;
       }
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
-        case 'value': this._handleSecondaryValue(event.value, event.current); break;
-        case 'end': this._handleSecondaryEnd(event.value, event.current); break;
+        case VALUE:
+          this._handleSecondaryValue(event.value, event.current);
+          break;
+        case END:
+          this._handleSecondaryEnd(event.value, event.current);
+          this._removeSecondary();
+          break;
       }
     },
 
     _removeSecondary: function() {
-      this._secondary.offAny([this._handleSecondaryAny, this]);
-      this._secondary = null;
-      this._secondaryRemoved = true;
+      if (this._secondary !== null) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+        this._secondary = null;
+      }
     },
 
     _onActivation: function() {
-      if (!this._secondaryRemoved) {
+      if (this._secondary !== null) {
         this._secondary.onAny([this._handleSecondaryAny, this]);
       }
       if (this._alive) {
@@ -597,7 +617,7 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
     _onDeactivation: function() {
-      if (!this._secondaryRemoved) {
+      if (this._secondary !== null) {
         this._secondary.offAny([this._handleSecondaryAny, this]);
       }
       this._primary.offAny([this._handlePrimaryAny, this]);
@@ -613,7 +633,6 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
-      this._secondaryRemoved = false;
       this._init();
     }
 
@@ -652,10 +671,10 @@ function Subscribers() {
 
 extend(Subscribers, {
   callOne: function(fn, event) {
-    if (fn.type === 'any') {
+    if (fn.type === ANY) {
       fn.invoke(event);
     } else if (fn.type === event.type) {
-      if (fn.type === 'value') {
+      if (fn.type === VALUE) {
         fn.invoke(event.value);
       } else {
         fn.invoke();
@@ -663,10 +682,10 @@ extend(Subscribers, {
     }
   },
   callOnce: function(type, fnMeta, event) {
-    if (type === 'any') {
+    if (type === ANY) {
       applyFnMeta(fnMeta, [event]);
     } else if (type === event.type) {
-      if (type === 'value') {
+      if (type === VALUE) {
         applyFnMeta(fnMeta, [event.value]);
       } else {
         applyFnMeta(fnMeta, []);
@@ -677,7 +696,7 @@ extend(Subscribers, {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    fn = Fn(fn, type === 'end' ? 0 : 1);
+    fn = Fn(fn, type === END ? 0 : 1);
     fn.type = type;
     this._fns = concat(this._fns, [fn]);
   },
@@ -708,7 +727,7 @@ function Event(type, value, current) {
   return {type: type, value: value, current: !!current};
 }
 
-var CURRENT_END = Event('end', undefined, true);
+var CURRENT_END = Event(END, undefined, true);
 
 
 
@@ -750,7 +769,7 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       this._subscribers.callAll(Event(type, x, isCurrent));
-      if (type === 'end') {  this._clear()  }
+      if (type === END) {  this._clear()  }
     }
   },
 
@@ -774,13 +793,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  return this.on('value', fn)   },
-  onEnd:    function(fn) {  return this.on('end', fn)     },
-  onAny:    function(fn) {  return this.on('any', fn)     },
+  onValue:  function(fn) {  return this.on(VALUE, fn)   },
+  onEnd:    function(fn) {  return this.on(END, fn)     },
+  onAny:    function(fn) {  return this.on(ANY, fn)     },
 
-  offValue: function(fn) {  return this.off('value', fn)  },
-  offEnd:   function(fn) {  return this.off('end', fn)    },
-  offAny:   function(fn) {  return this.off('any', fn)    }
+  offValue: function(fn) {  return this.off(VALUE, fn)  },
+  offEnd:   function(fn) {  return this.off(END, fn)    },
+  offAny:   function(fn) {  return this.off(ANY, fn)    }
 
 });
 
@@ -832,8 +851,8 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._subscribers.callAll(Event(type, x));
       }
-      if (type === 'value') {  this._current = x  }
-      if (type === 'end') {  this._clear()  }
+      if (type === VALUE) {  this._current = x  }
+      if (type === END) {  this._clear()  }
     }
   },
 
@@ -843,7 +862,7 @@ inherit(Property, Observable, {
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      Subscribers.callOnce(type, fn, Event('value', this._current, true));
+      Subscribers.callOnce(type, fn, Event(VALUE, this._current, true));
     }
     if (!this._alive) {
       Subscribers.callOnce(type, fn, CURRENT_END);
@@ -862,7 +881,7 @@ inherit(Property, Observable, {
 
 function logCb(name, event) {
   var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-  if (event.type === 'value') {
+  if (event.type === VALUE) {
     console.log(name, typeStr, event.value);
   } else {
     console.log(name, typeStr);
@@ -888,8 +907,8 @@ withInterval('withInterval', {
     this._fn = buildFn(args[0], 1);
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send('value', x)  },
-      end: function() {  $._send('end')  }
+      emit: function(x) {  $._send(VALUE, x)  },
+      end: function() {  $._send(END)  }
     }
   },
   _free: function() {
@@ -915,7 +934,7 @@ withInterval('fromPoll', {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', this._fn());
+    this._send(VALUE, this._fn());
   }
 });
 
@@ -933,7 +952,7 @@ withInterval('interval', {
     this._x = null;
   },
   _onTick: function() {
-    this._send('value', this._x);
+    this._send(VALUE, this._x);
   }
 });
 
@@ -946,7 +965,7 @@ withInterval('sequentially', {
   _init: function(args) {
     this._xs = cloneArray(args[0]);
     if (this._xs.length === 0) {
-      this._send('end')
+      this._send(END)
     }
   },
   _free: function() {
@@ -955,11 +974,11 @@ withInterval('sequentially', {
   _onTick: function() {
     switch (this._xs.length) {
       case 1:
-        this._send('value', this._xs[0]);
-        this._send('end');
+        this._send(VALUE, this._xs[0]);
+        this._send(END);
         break;
       default:
-        this._send('value', this._xs.shift());
+        this._send(VALUE, this._xs.shift());
     }
   }
 });
@@ -977,7 +996,7 @@ withInterval('repeatedly', {
   _onTick: function() {
     if (this._xs.length > 0) {
       this._i = (this._i + 1) % this._xs.length;
-      this._send('value', this._xs[this._i]);
+      this._send(VALUE, this._xs[this._i]);
     }
   }
 });
@@ -996,8 +1015,8 @@ withInterval('later', {
     this._x = null;
   },
   _onTick: function() {
-    this._send('value', this._x);
-    this._send('end');
+    this._send(VALUE, this._x);
+    this._send(END);
   }
 });
 
@@ -1020,15 +1039,16 @@ inherit(_AbstractPool, Stream, {
 
   _name: 'abstractPool',
 
-  _add: function(obs) {
+  _add: function(obj, toObs) {
+    toObs = toObs || id;
     if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
-      this._addToCur(obs);
+      this._addToCur(toObs(obj));
     } else {
       if (this._queueLim === -1 || this._queue.length < this._queueLim) {
-        this._addToQueue(obs);
+        this._addToQueue(toObs(obj));
       } else if (this._drop === 'old') {
         this._removeOldest();
-        this._add(obs);
+        this._add(toObs(obj));
       }
     }
   },
@@ -1058,8 +1078,8 @@ inherit(_AbstractPool, Stream, {
     obs.offEnd([this._removeCur, this, obs]);
   },
   _handleSubAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current && this._activating);
+    if (event.type === VALUE) {
+      this._send(VALUE, event.value, event.current && this._activating);
     }
   },
 
@@ -1124,20 +1144,20 @@ inherit(_AbstractPool, Stream, {
 
 var MergeLike = {
   _onEmpty: function() {
-    if (this._initialised) {  this._send('end', null, this._activating)  }
+    if (this._initialised) {  this._send(END, null, this._activating)  }
   }
 };
 
 function Merge(sources) {
   _AbstractPool.call(this);
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
 inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
-Kefir.merge = function() {
-  return new Merge(agrsToArray(arguments));
+Kefir.merge = function(obss) {
+  return new Merge(obss);
 }
 
 Observable.prototype.merge = function(other) {
@@ -1151,14 +1171,14 @@ Observable.prototype.merge = function(other) {
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
 inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
-Kefir.concat = function() {
-  return new Concat(agrsToArray(arguments));
+Kefir.concat = function(obss) {
+  return new Concat(obss);
 }
 
 Observable.prototype.concat = function(other) {
@@ -1219,11 +1239,11 @@ inherit(Bus, _AbstractPool, {
   },
 
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 
@@ -1242,7 +1262,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? buildFn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : id;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -1261,14 +1281,14 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _handleMainSource: function(event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn(event.value) : event.value);
+        this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
     } else {
       if (this._isEmpty()) {
-        this._send('end', null, event.current);
+        this._send(END, null, event.current);
       } else {
         this._mainEnded = true;
       }
@@ -1276,7 +1296,7 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _onEmpty: function() {
-    if (this._mainEnded) {  this._send('end')  }
+    if (this._mainEnded) {  this._send(END)  }
   },
 
   _clear: function() {
@@ -1327,7 +1347,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 function SampledBy(passive, active, combinator) {
   Stream.call(this);
   if (active.length === 0) {
-    this._send('end');
+    this._send(END);
   } else {
     this._passiveCount = passive.length;
     this._combinator = combinator ? Fn(combinator) : null;
@@ -1359,7 +1379,7 @@ inherit(SampledBy, Stream, {
       this._emitIfFull(true);
     }
     if (this._endAfterActivation) {
-      this._send('end', null, true);
+      this._send(END, null, true);
     }
   },
 
@@ -1374,15 +1394,15 @@ inherit(SampledBy, Stream, {
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator) {
+      if (this._combinator !== null) {
         combined = this._combinator.apply(this._currents);
       }
-      this._send('value', combined, isCurrent);
+      this._send(VALUE, combined, isCurrent);
     }
   },
 
   _handleAny: function(i, event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       this._currents[i] = event.value;
       if (i >= this._passiveCount) {
         if (this._activating) {
@@ -1398,7 +1418,7 @@ inherit(SampledBy, Stream, {
           if (this._activating) {
             this._endAfterActivation = true;
           } else {
-            this._send('end', null, event.current);
+            this._send(END, null, event.current);
           }
         }
       }
@@ -1450,7 +1470,7 @@ function produceProperty(StreamClass, PropertyClass) {
 withOneSource('toProperty', {
   _init: function(args) {
     if (args.length > 0) {
-      this._send('value', args[0]);
+      this._send(VALUE, args[0]);
     }
   }
 }, {propertyMethod: null, streamMethod: produceProperty});
@@ -1463,7 +1483,7 @@ withOneSource('toProperty', {
 withOneSource('changes', {
   _handleValue: function(x, isCurrent) {
     if (!isCurrent) {
-      this._send('value', x);
+      this._send(VALUE, x);
     }
   }
 }, {streamMethod: null, propertyMethod: produceStream});
@@ -1479,8 +1499,8 @@ withOneSource('withHandler', {
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
-      end: function() {  $._send('end', null, $._forcedCurrent)  }
+      emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
+      end: function() {  $._send(END, null, $._forcedCurrent)  }
     }
   },
   _free: function() {
@@ -1501,15 +1521,15 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 1) : null;
+    this._fn = args[0] ? buildFn(args[0], 1) : id;
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn === null ? x : this._fn(x);
+    var xs = this._fn(x);
     for (var i = 0; i < xs.length; i++) {
-      this._send('value', xs[i], isCurrent);
+      this._send(VALUE, xs[i], isCurrent);
     }
   }
 });
@@ -1524,15 +1544,12 @@ withOneSource('flatten', {
 
 function xformForObs(obs) {
   return {
-    init: function() {
-      return null;
-    },
     step: function(res, input) {
-      obs._send('value', input, obs._forcedCurrent);
+      obs._send(VALUE, input, obs._forcedCurrent);
       return null;
     },
     result: function(res) {
-      obs._send('end', null, obs._forcedCurrent);
+      obs._send(END, null, obs._forcedCurrent);
       return null;
     }
   };
@@ -1541,21 +1558,15 @@ function xformForObs(obs) {
 withOneSource('transduce', {
   _init: function(args) {
     this._xform = args[0](xformForObs(this));
-    this._forcedCurrent = true;
-    this._endIfReduced(this._xform.init());
-    this._forcedCurrent = false;
   },
   _free: function() {
     this._xform = null;
   },
-  _endIfReduced: function(obj) {
-    if (obj !== null) {
-      this._xform.result(null);
-    }
-  },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._endIfReduced(this._xform.step(null, x));
+    if (this._xform.step(null, x) !== null) {
+      this._xform.result(null);
+    }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
@@ -1580,7 +1591,7 @@ var withFnArgMixin = {
 
 withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn(x), isCurrent);
+    this._send(VALUE, this._fn(x), isCurrent);
   }
 }, withFnArgMixin));
 
@@ -1593,7 +1604,7 @@ withOneSource('map', extend({
 withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -1607,9 +1618,9 @@ withOneSource('filter', extend({
 withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -1624,14 +1635,14 @@ withOneSource('take', {
   _init: function(args) {
     this._n = args[0];
     if (this._n <= 0) {
-      this._send('end');
+      this._send(END);
     }
   },
   _handleValue: function(x, isCurrent) {
     this._n--;
-    this._send('value', x, isCurrent);
+    this._send(VALUE, x, isCurrent);
     if (this._n === 0) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 });
@@ -1644,11 +1655,11 @@ withOneSource('take', {
 
 withOneSource('skip', {
   _init: function(args) {
-    this._n = args[0] < 0 ? 0 : args[0];
+    this._n = Math.max(0, args[0]);
   },
   _handleValue: function(x, isCurrent) {
     if (this._n === 0) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._n--;
     }
@@ -1662,19 +1673,16 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : strictEqual;
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
-  _isEqual: function(a, b) {
-    return this._fn === null ? a === b : this._fn(a, b);
-  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
-      this._send('value', x, isCurrent);
+    if (this._prev === NOTHING || !this._fn(this._prev, x)) {
+      this._send(VALUE, x, isCurrent);
       this._prev = x;
     }
   }
@@ -1696,13 +1704,13 @@ withOneSource('skipWhile', {
   },
   _handleValue: function(x, isCurrent) {
     if (!this._skip) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
       return;
     }
     if (!this._fn(x)) {
       this._skip = false;
       this._fn = null;
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   }
 });
@@ -1711,22 +1719,19 @@ withOneSource('skipWhile', {
 
 
 
-// .diff(seed, fn)
+// .diff(fn, seed)
 
 withOneSource('diff', {
   _init: function(args) {
-    this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
+    this._prev = args[1];
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var result = (this._fn === null) ?
-      [this._prev, x] :
-      this._fn(this._prev, x);
-    this._send('value', result, isCurrent);
+    this._send(VALUE, this._fn(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -1735,18 +1740,18 @@ withOneSource('diff', {
 
 
 
-// .scan(seed, fn)
+// .scan(fn, seed)
 
 withOneSource('scan', {
   _init: function(args) {
-    this._send('value', args[0], true);
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._send(VALUE, args[1], true);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn(this._current, x), isCurrent);
+    this._send(VALUE, this._fn(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1754,12 +1759,12 @@ withOneSource('scan', {
 
 
 
-// .reduce(seed, fn)
+// .reduce(fn, seed)
 
 withOneSource('reduce', {
   _init: function(args) {
-    this._result = args[0];
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._result = args[1];
   },
   _free: function() {
     this._fn = null;
@@ -1769,8 +1774,8 @@ withOneSource('reduce', {
     this._result = this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
-    this._send('value', this._result, isCurrent);
-    this._send('end', null, isCurrent);
+    this._send(VALUE, this._result, isCurrent);
+    this._send(END, null, isCurrent);
   }
 });
 
@@ -1791,7 +1796,7 @@ withOneSource('slidingWindow', {
   _handleValue: function(x, isCurrent) {
     this._cache = slide(this._cache, x, this._max);
     if (this._cache.length >= this._min) {
-      this._send('value', this._cache, isCurrent);
+      this._send(VALUE, this._cache, isCurrent);
     }
   }
 });
@@ -1819,11 +1824,11 @@ withOneSource('debounce', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._lastAttempt = now();
       if (this._immediate && !this._timeoutId) {
-        this._send('value', x);
+        this._send(VALUE, x);
       }
       if (!this._timeoutId) {
         this._timeoutId = setTimeout(this._$later, this._wait);
@@ -1835,12 +1840,12 @@ withOneSource('debounce', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       if (this._timeoutId && !this._immediate) {
         this._endLater = true;
       } else {
-        this._send('end');
+        this._send(END);
       }
     }
   },
@@ -1851,11 +1856,11 @@ withOneSource('debounce', {
     } else {
       this._timeoutId = null;
       if (!this._immediate) {
-        this._send('value', this._laterValue);
+        this._send(VALUE, this._laterValue);
         this._laterValue = null;
       }
       if (this._endLater) {
-        this._send('end');
+        this._send(END);
       }
     }
   }
@@ -1885,7 +1890,7 @@ withOneSource('throttle', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       var curTime = now();
       if (this._lastCallTime === 0 && !this._leading) {
@@ -1895,7 +1900,7 @@ withOneSource('throttle', {
       if (remaining <= 0) {
         this._cancelTraling();
         this._lastCallTime = curTime;
-        this._send('value', x);
+        this._send(VALUE, x);
       } else if (this._trailing) {
         this._cancelTraling();
         this._trailingValue = x;
@@ -1905,12 +1910,12 @@ withOneSource('throttle', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       if (this._timeoutId) {
         this._endLater = true;
       } else {
-        this._send('end');
+        this._send(END);
       }
     }
   },
@@ -1921,12 +1926,12 @@ withOneSource('throttle', {
     }
   },
   _trailingCall: function() {
-    this._send('value', this._trailingValue);
+    this._send(VALUE, this._trailingValue);
     this._timeoutId = null;
     this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
     if (this._endLater) {
-      this._send('end');
+      this._send(END);
     }
   }
 });
@@ -1942,7 +1947,7 @@ withOneSource('delay', {
     this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._$shiftBuff = function() {  $._send('value', $._buff.shift())  }
+    this._$shiftBuff = function() {  $._send(VALUE, $._buff.shift())  }
   },
   _free: function() {
     this._buff = null;
@@ -1950,7 +1955,7 @@ withOneSource('delay', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._buff.push(x);
       setTimeout(this._$shiftBuff, this._wait);
@@ -1958,10 +1963,10 @@ withOneSource('delay', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       var $ = this;
-      setTimeout(function() {  $._send('end')  }, this._wait);
+      setTimeout(function() {  $._send(END)  }, this._wait);
     }
   }
 });
@@ -1983,8 +1988,8 @@ inherit(FromBinder, Stream, {
       , unsub
       , isCurrent = true
       , emitter = {
-        emit: function(x) {  $._send('value', x, isCurrent)  },
-        end: function() {  $._send('end', null, isCurrent)  }
+        emit: function(x) {  $._send(VALUE, x, isCurrent)  },
+        end: function() {  $._send(END, null, isCurrent)  }
       };
     unsub = this._fn(emitter);
     isCurrent = false;
@@ -2024,11 +2029,11 @@ function Emitter() {
 inherit(Emitter, Stream, {
   _name: 'emitter',
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 });
@@ -2046,7 +2051,7 @@ Kefir.emitter = function() {
 // Kefir.never()
 
 var neverObj = new Stream();
-neverObj._send('end');
+neverObj._send(END);
 neverObj._name = 'never';
 Kefir.never = function() {  return neverObj  }
 
@@ -2058,8 +2063,8 @@ Kefir.never = function() {  return neverObj  }
 
 function Constant(x) {
   Property.call(this);
-  this._send('value', x);
-  this._send('end');
+  this._send(VALUE, x);
+  this._send(END);
 }
 
 inherit(Constant, Property, {
@@ -2159,7 +2164,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName(this, 'not');
+  return this.map(not).setName(this, 'not');
 }
 
 
@@ -2197,19 +2202,40 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 // .fromEvent
 
+var subUnsubPairs = [
+  ['addEventListener', 'removeEventListener'],
+  ['addListener', 'removeListener'],
+  ['on', 'off']
+];
+
+function wrapEmitter(emitter, transformer) {
+  return function() {
+    emitter.emit(transformer.applyWithContext(this, arguments));
+  }
+}
+
 Kefir.fromEvent = function(target, eventName, transformer) {
+  var pair, sub, unsub;
+
   transformer = transformer && Fn(transformer);
-  var sub = target.addEventListener || target.addListener || target.bind;
-  var unsub = target.removeEventListener || target.removeListener || target.unbind;
-  return Kefir.fromBinder(function(emitter) {
-    var handler = transformer ?
-      function() {
-        emitter.emit(transformer.applyWithContext(this, arguments));
-      } : emitter.emit;
-    sub.call(target, eventName, handler);
-    return function() {
-      unsub.call(target, eventName, handler);
+
+  for (var i = 0; i < subUnsubPairs.length; i++) {
+    pair = subUnsubPairs[i];
+    if (isFn(target[pair[0]]) && isFn(target[pair[1]])) {
+      sub = pair[0];
+      unsub = pair[1];
+      break;
     }
+  }
+
+  if (sub === undefined) {
+    throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
+  }
+
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
+    target[sub](eventName, handler);
+    return [unsub, target, eventName, handler];
   }).setName('fromEvent');
 }
 
@@ -2217,13 +2243,13 @@ withTwoSources('filterBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && this._lastSecondary) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -2231,11 +2257,11 @@ withTwoSources('filterBy', {
 
 
 
-withTwoSources('waitFor', {
+withTwoSources('skipUntilBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
@@ -2246,8 +2272,18 @@ withTwoSources('waitFor', {
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
+  }
+
+});
+
+
+
+withTwoSources('takeUntilBy', {
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._send(END, null, isCurrent);
   }
 
 });
@@ -2258,20 +2294,20 @@ withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryValue: function(x, isCurrent) {
     this._lastSecondary = x;
     if (!this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -2284,7 +2320,7 @@ withTwoSources('skipWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
@@ -2297,7 +2333,7 @@ withTwoSources('skipWhileBy', {
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING || this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 

@@ -252,11 +252,9 @@ div
 
 
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
-  Creates a stream from
-  <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget" target="_blank">DOM</a>
-  or <a href="http://nodejs.org/api/events.html" target="_blank">EventEmitter (Node.js)</a> events.
-  <b>Target</b> is a DOM node or an EventEmitter, <b>eventName</b> is event name,
-  and <b>transform</b> is optional transformation function like in
+  Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter
+  object, or an object that supports event listeners using <tt>on/off</tt> methods.
+  You can also pass optional transformation function like in
   <a href="#as-kefir-stream">asKefirStream</a> method.
 
 pre(title='example')

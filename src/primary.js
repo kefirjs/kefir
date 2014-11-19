@@ -15,8 +15,8 @@ inherit(FromBinder, Stream, {
       , unsub
       , isCurrent = true
       , emitter = {
-        emit: function(x) {  $._send('value', x, isCurrent)  },
-        end: function() {  $._send('end', null, isCurrent)  }
+        emit: function(x) {  $._send(VALUE, x, isCurrent)  },
+        end: function() {  $._send(END, null, isCurrent)  }
       };
     unsub = this._fn(emitter);
     isCurrent = false;
@@ -56,11 +56,11 @@ function Emitter() {
 inherit(Emitter, Stream, {
   _name: 'emitter',
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 });
@@ -78,7 +78,7 @@ Kefir.emitter = function() {
 // Kefir.never()
 
 var neverObj = new Stream();
-neverObj._send('end');
+neverObj._send(END);
 neverObj._name = 'never';
 Kefir.never = function() {  return neverObj  }
 
@@ -90,8 +90,8 @@ Kefir.never = function() {  return neverObj  }
 
 function Constant(x) {
   Property.call(this);
-  this._send('value', x);
-  this._send('end');
+  this._send(VALUE, x);
+  this._send(END);
 }
 
 inherit(Constant, Property, {

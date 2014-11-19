@@ -12,7 +12,7 @@ function produceProperty(StreamClass, PropertyClass) {
 withOneSource('toProperty', {
   _init: function(args) {
     if (args.length > 0) {
-      this._send('value', args[0]);
+      this._send(VALUE, args[0]);
     }
   }
 }, {propertyMethod: null, streamMethod: produceProperty});
@@ -25,7 +25,7 @@ withOneSource('toProperty', {
 withOneSource('changes', {
   _handleValue: function(x, isCurrent) {
     if (!isCurrent) {
-      this._send('value', x);
+      this._send(VALUE, x);
     }
   }
 }, {streamMethod: null, propertyMethod: produceStream});
@@ -41,8 +41,8 @@ withOneSource('withHandler', {
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
-      end: function() {  $._send('end', null, $._forcedCurrent)  }
+      emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
+      end: function() {  $._send(END, null, $._forcedCurrent)  }
     }
   },
   _free: function() {
@@ -63,15 +63,15 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 1) : null;
+    this._fn = args[0] ? buildFn(args[0], 1) : id;
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn === null ? x : this._fn(x);
+    var xs = this._fn(x);
     for (var i = 0; i < xs.length; i++) {
-      this._send('value', xs[i], isCurrent);
+      this._send(VALUE, xs[i], isCurrent);
     }
   }
 });
@@ -86,15 +86,12 @@ withOneSource('flatten', {
 
 function xformForObs(obs) {
   return {
-    init: function() {
-      return null;
-    },
     step: function(res, input) {
-      obs._send('value', input, obs._forcedCurrent);
+      obs._send(VALUE, input, obs._forcedCurrent);
       return null;
     },
     result: function(res) {
-      obs._send('end', null, obs._forcedCurrent);
+      obs._send(END, null, obs._forcedCurrent);
       return null;
     }
   };
@@ -103,21 +100,15 @@ function xformForObs(obs) {
 withOneSource('transduce', {
   _init: function(args) {
     this._xform = args[0](xformForObs(this));
-    this._forcedCurrent = true;
-    this._endIfReduced(this._xform.init());
-    this._forcedCurrent = false;
   },
   _free: function() {
     this._xform = null;
   },
-  _endIfReduced: function(obj) {
-    if (obj !== null) {
-      this._xform.result(null);
-    }
-  },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._endIfReduced(this._xform.step(null, x));
+    if (this._xform.step(null, x) !== null) {
+      this._xform.result(null);
+    }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
@@ -142,7 +133,7 @@ var withFnArgMixin = {
 
 withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn(x), isCurrent);
+    this._send(VALUE, this._fn(x), isCurrent);
   }
 }, withFnArgMixin));
 
@@ -155,7 +146,7 @@ withOneSource('map', extend({
 withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -169,9 +160,9 @@ withOneSource('filter', extend({
 withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -186,14 +177,14 @@ withOneSource('take', {
   _init: function(args) {
     this._n = args[0];
     if (this._n <= 0) {
-      this._send('end');
+      this._send(END);
     }
   },
   _handleValue: function(x, isCurrent) {
     this._n--;
-    this._send('value', x, isCurrent);
+    this._send(VALUE, x, isCurrent);
     if (this._n === 0) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 });
@@ -206,11 +197,11 @@ withOneSource('take', {
 
 withOneSource('skip', {
   _init: function(args) {
-    this._n = args[0] < 0 ? 0 : args[0];
+    this._n = Math.max(0, args[0]);
   },
   _handleValue: function(x, isCurrent) {
     if (this._n === 0) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._n--;
     }
@@ -224,19 +215,16 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : strictEqual;
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
-  _isEqual: function(a, b) {
-    return this._fn === null ? a === b : this._fn(a, b);
-  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
-      this._send('value', x, isCurrent);
+    if (this._prev === NOTHING || !this._fn(this._prev, x)) {
+      this._send(VALUE, x, isCurrent);
       this._prev = x;
     }
   }
@@ -258,13 +246,13 @@ withOneSource('skipWhile', {
   },
   _handleValue: function(x, isCurrent) {
     if (!this._skip) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
       return;
     }
     if (!this._fn(x)) {
       this._skip = false;
       this._fn = null;
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   }
 });
@@ -273,22 +261,19 @@ withOneSource('skipWhile', {
 
 
 
-// .diff(seed, fn)
+// .diff(fn, seed)
 
 withOneSource('diff', {
   _init: function(args) {
-    this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
+    this._prev = args[1];
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var result = (this._fn === null) ?
-      [this._prev, x] :
-      this._fn(this._prev, x);
-    this._send('value', result, isCurrent);
+    this._send(VALUE, this._fn(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -297,18 +282,18 @@ withOneSource('diff', {
 
 
 
-// .scan(seed, fn)
+// .scan(fn, seed)
 
 withOneSource('scan', {
   _init: function(args) {
-    this._send('value', args[0], true);
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._send(VALUE, args[1], true);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn(this._current, x), isCurrent);
+    this._send(VALUE, this._fn(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -316,12 +301,12 @@ withOneSource('scan', {
 
 
 
-// .reduce(seed, fn)
+// .reduce(fn, seed)
 
 withOneSource('reduce', {
   _init: function(args) {
-    this._result = args[0];
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._result = args[1];
   },
   _free: function() {
     this._fn = null;
@@ -331,8 +316,8 @@ withOneSource('reduce', {
     this._result = this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
-    this._send('value', this._result, isCurrent);
-    this._send('end', null, isCurrent);
+    this._send(VALUE, this._result, isCurrent);
+    this._send(END, null, isCurrent);
   }
 });
 
@@ -353,7 +338,7 @@ withOneSource('slidingWindow', {
   _handleValue: function(x, isCurrent) {
     this._cache = slide(this._cache, x, this._max);
     if (this._cache.length >= this._min) {
-      this._send('value', this._cache, isCurrent);
+      this._send(VALUE, this._cache, isCurrent);
     }
   }
 });
@@ -381,11 +366,11 @@ withOneSource('debounce', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._lastAttempt = now();
       if (this._immediate && !this._timeoutId) {
-        this._send('value', x);
+        this._send(VALUE, x);
       }
       if (!this._timeoutId) {
         this._timeoutId = setTimeout(this._$later, this._wait);
@@ -397,12 +382,12 @@ withOneSource('debounce', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       if (this._timeoutId && !this._immediate) {
         this._endLater = true;
       } else {
-        this._send('end');
+        this._send(END);
       }
     }
   },
@@ -413,11 +398,11 @@ withOneSource('debounce', {
     } else {
       this._timeoutId = null;
       if (!this._immediate) {
-        this._send('value', this._laterValue);
+        this._send(VALUE, this._laterValue);
         this._laterValue = null;
       }
       if (this._endLater) {
-        this._send('end');
+        this._send(END);
       }
     }
   }
@@ -447,7 +432,7 @@ withOneSource('throttle', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       var curTime = now();
       if (this._lastCallTime === 0 && !this._leading) {
@@ -457,7 +442,7 @@ withOneSource('throttle', {
       if (remaining <= 0) {
         this._cancelTraling();
         this._lastCallTime = curTime;
-        this._send('value', x);
+        this._send(VALUE, x);
       } else if (this._trailing) {
         this._cancelTraling();
         this._trailingValue = x;
@@ -467,12 +452,12 @@ withOneSource('throttle', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       if (this._timeoutId) {
         this._endLater = true;
       } else {
-        this._send('end');
+        this._send(END);
       }
     }
   },
@@ -483,12 +468,12 @@ withOneSource('throttle', {
     }
   },
   _trailingCall: function() {
-    this._send('value', this._trailingValue);
+    this._send(VALUE, this._trailingValue);
     this._timeoutId = null;
     this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
     if (this._endLater) {
-      this._send('end');
+      this._send(END);
     }
   }
 });
@@ -504,7 +489,7 @@ withOneSource('delay', {
     this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._$shiftBuff = function() {  $._send('value', $._buff.shift())  }
+    this._$shiftBuff = function() {  $._send(VALUE, $._buff.shift())  }
   },
   _free: function() {
     this._buff = null;
@@ -512,7 +497,7 @@ withOneSource('delay', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._buff.push(x);
       setTimeout(this._$shiftBuff, this._wait);
@@ -520,10 +505,10 @@ withOneSource('delay', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       var $ = this;
-      setTimeout(function() {  $._send('end')  }, this._wait);
+      setTimeout(function() {  $._send(END)  }, this._wait);
     }
   }
 });

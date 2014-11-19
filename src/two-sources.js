@@ -2,13 +2,13 @@ withTwoSources('filterBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && this._lastSecondary) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -16,11 +16,11 @@ withTwoSources('filterBy', {
 
 
 
-withTwoSources('waitFor', {
+withTwoSources('skipUntilBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
@@ -31,8 +31,18 @@ withTwoSources('waitFor', {
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
+  }
+
+});
+
+
+
+withTwoSources('takeUntilBy', {
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._send(END, null, isCurrent);
   }
 
 });
@@ -43,20 +53,20 @@ withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryValue: function(x, isCurrent) {
     this._lastSecondary = x;
     if (!this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -69,7 +79,7 @@ withTwoSources('skipWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
@@ -82,7 +92,7 @@ withTwoSources('skipWhileBy', {
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING || this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 

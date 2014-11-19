@@ -17,10 +17,10 @@ describe 'fromEvent', ->
       if this[name + 'Listener'] == fn
         delete this[name + 'Listener']
 
-  bindTarget = ->
-    bind: (name, fn) ->
+  onOffTarget = ->
+    on: (name, fn) ->
       this[name + 'Listener'] = fn
-    unbind: (name, fn) ->
+    off: (name, fn) ->
       if this[name + 'Listener'] == fn
         delete this[name + 'Listener']
 
@@ -39,7 +39,7 @@ describe 'fromEvent', ->
     deactivate(a)
     expect(target.fooListener).toBeUndefined()
 
-    target = bindTarget()
+    target = onOffTarget()
     a = Kefir.fromEvent(target, 'foo')
     expect(target.fooListener).toBeUndefined()
     activate(a)
@@ -71,7 +71,7 @@ describe 'fromEvent', ->
       target.fooListener(2)
       target.fooListener(3)
 
-    target = bindTarget()
+    target = onOffTarget()
     a = Kefir.fromEvent(target, 'foo')
     expect(a).toEmit [1, 2, 3], ->
       target.fooListener(1)

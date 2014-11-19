@@ -7,8 +7,8 @@ withInterval('withInterval', {
     this._fn = buildFn(args[0], 1);
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send('value', x)  },
-      end: function() {  $._send('end')  }
+      emit: function(x) {  $._send(VALUE, x)  },
+      end: function() {  $._send(END)  }
     }
   },
   _free: function() {
@@ -34,7 +34,7 @@ withInterval('fromPoll', {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', this._fn());
+    this._send(VALUE, this._fn());
   }
 });
 
@@ -52,7 +52,7 @@ withInterval('interval', {
     this._x = null;
   },
   _onTick: function() {
-    this._send('value', this._x);
+    this._send(VALUE, this._x);
   }
 });
 
@@ -65,7 +65,7 @@ withInterval('sequentially', {
   _init: function(args) {
     this._xs = cloneArray(args[0]);
     if (this._xs.length === 0) {
-      this._send('end')
+      this._send(END)
     }
   },
   _free: function() {
@@ -74,11 +74,11 @@ withInterval('sequentially', {
   _onTick: function() {
     switch (this._xs.length) {
       case 1:
-        this._send('value', this._xs[0]);
-        this._send('end');
+        this._send(VALUE, this._xs[0]);
+        this._send(END);
         break;
       default:
-        this._send('value', this._xs.shift());
+        this._send(VALUE, this._xs.shift());
     }
   }
 });
@@ -96,7 +96,7 @@ withInterval('repeatedly', {
   _onTick: function() {
     if (this._xs.length > 0) {
       this._i = (this._i + 1) % this._xs.length;
-      this._send('value', this._xs[this._i]);
+      this._send(VALUE, this._xs[this._i]);
     }
   }
 });
@@ -115,7 +115,7 @@ withInterval('later', {
     this._x = null;
   },
   _onTick: function() {
-    this._send('value', this._x);
-    this._send('end');
+    this._send(VALUE, this._x);
+    this._send(END);
   }
 });

@@ -77,6 +77,27 @@ describe 'flatMapFirst', ->
       ).toEmit [3, 4, 5], ->
         send(a, [1, 2, 3, 4, 5])
 
+    it 'should not call transformer function when skiping values', ->
+      count = 0
+      a = stream()
+      b = stream()
+      c = stream()
+      result = a.flatMapFirst (x) ->
+        count++
+        x
+      activate(result)
+      expect(count).toBe(0)
+      send(a, [b])
+      expect(count).toBe(1)
+      send(a, [c])
+      expect(count).toBe(1)
+      send(b, ['<end>'])
+      expect(count).toBe(1)
+      send(a, [c])
+      expect(count).toBe(2)
+
+
+
 
 
 

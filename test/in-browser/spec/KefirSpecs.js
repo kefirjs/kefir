@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v0.2.11
+/*! Kefir.js v0.3.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -24,6 +24,10 @@ function or() {
     }
   }
   return arguments[i - 1];
+}
+
+function not(x) {
+  return !x;
 }
 
 function concat(a, b) {
@@ -400,12 +404,22 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
 }
 
 var NOTHING = ['<nothing>'];
+var END = 'end';
+var VALUE = 'value';
+var ANY = 'any';
 
-function agrsToArray(args) {
-  if (args.length === 1 && isArray(args[0])) {
-    return args[0];
-  }
-  return cloneArray(args);
+function noop() {}
+
+function id(x) {
+  return x;
+}
+
+function strictEqual(a, b) {
+  return a === b;
+}
+
+function defaultDiff(a, b) {
+  return [a, b]
 }
 
 var now = Date.now ?
@@ -500,16 +514,16 @@ function withOneSource(name, mixin, options) {
     _init: function(args) {},
     _free: function() {},
 
-    _handleValue: function(x, isCurrent) {  this._send('value', x, isCurrent)  },
-    _handleEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+    _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _onActivationHook: function() {},
     _onDeactivationHook: function() {},
 
     _handleAny: function(event) {
       switch (event.type) {
-        case 'value': this._handleValue(event.value, event.current); break;
-        case 'end': this._handleEnd(event.value, event.current); break;
+        case VALUE: this._handleValue(event.value, event.current); break;
+        case END: this._handleEnd(event.value, event.current); break;
       }
     },
 
@@ -564,33 +578,39 @@ function withTwoSources(name, mixin /*, options*/) {
     _init: function() {},
     _free: function() {},
 
-    _handlePrimaryValue: function(x, isCurrent) {},
-    _handlePrimaryEnd: function(__, isCurrent) {  this._send('end', null, isCurrent)  },
+    _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
-        case 'value': this._handlePrimaryValue(event.value, event.current); break;
-        case 'end': this._handlePrimaryEnd(event.value, event.current); break;
+        case VALUE: this._handlePrimaryValue(event.value, event.current); break;
+        case END: this._handlePrimaryEnd(event.value, event.current); break;
       }
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
-        case 'value': this._handleSecondaryValue(event.value, event.current); break;
-        case 'end': this._handleSecondaryEnd(event.value, event.current); break;
+        case VALUE:
+          this._handleSecondaryValue(event.value, event.current);
+          break;
+        case END:
+          this._handleSecondaryEnd(event.value, event.current);
+          this._removeSecondary();
+          break;
       }
     },
 
     _removeSecondary: function() {
-      this._secondary.offAny([this._handleSecondaryAny, this]);
-      this._secondary = null;
-      this._secondaryRemoved = true;
+      if (this._secondary !== null) {
+        this._secondary.offAny([this._handleSecondaryAny, this]);
+        this._secondary = null;
+      }
     },
 
     _onActivation: function() {
-      if (!this._secondaryRemoved) {
+      if (this._secondary !== null) {
         this._secondary.onAny([this._handleSecondaryAny, this]);
       }
       if (this._alive) {
@@ -598,7 +618,7 @@ function withTwoSources(name, mixin /*, options*/) {
       }
     },
     _onDeactivation: function() {
-      if (!this._secondaryRemoved) {
+      if (this._secondary !== null) {
         this._secondary.offAny([this._handleSecondaryAny, this]);
       }
       this._primary.offAny([this._handlePrimaryAny, this]);
@@ -614,7 +634,6 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
-      this._secondaryRemoved = false;
       this._init();
     }
 
@@ -653,10 +672,10 @@ function Subscribers() {
 
 extend(Subscribers, {
   callOne: function(fn, event) {
-    if (fn.type === 'any') {
+    if (fn.type === ANY) {
       fn.invoke(event);
     } else if (fn.type === event.type) {
-      if (fn.type === 'value') {
+      if (fn.type === VALUE) {
         fn.invoke(event.value);
       } else {
         fn.invoke();
@@ -664,10 +683,10 @@ extend(Subscribers, {
     }
   },
   callOnce: function(type, fnMeta, event) {
-    if (type === 'any') {
+    if (type === ANY) {
       applyFnMeta(fnMeta, [event]);
     } else if (type === event.type) {
-      if (type === 'value') {
+      if (type === VALUE) {
         applyFnMeta(fnMeta, [event.value]);
       } else {
         applyFnMeta(fnMeta, []);
@@ -678,7 +697,7 @@ extend(Subscribers, {
 
 extend(Subscribers.prototype, {
   add: function(type, fn) {
-    fn = Fn(fn, type === 'end' ? 0 : 1);
+    fn = Fn(fn, type === END ? 0 : 1);
     fn.type = type;
     this._fns = concat(this._fns, [fn]);
   },
@@ -709,7 +728,7 @@ function Event(type, value, current) {
   return {type: type, value: value, current: !!current};
 }
 
-var CURRENT_END = Event('end', undefined, true);
+var CURRENT_END = Event(END, undefined, true);
 
 
 
@@ -751,7 +770,7 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       this._subscribers.callAll(Event(type, x, isCurrent));
-      if (type === 'end') {  this._clear()  }
+      if (type === END) {  this._clear()  }
     }
   },
 
@@ -775,13 +794,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  return this.on('value', fn)   },
-  onEnd:    function(fn) {  return this.on('end', fn)     },
-  onAny:    function(fn) {  return this.on('any', fn)     },
+  onValue:  function(fn) {  return this.on(VALUE, fn)   },
+  onEnd:    function(fn) {  return this.on(END, fn)     },
+  onAny:    function(fn) {  return this.on(ANY, fn)     },
 
-  offValue: function(fn) {  return this.off('value', fn)  },
-  offEnd:   function(fn) {  return this.off('end', fn)    },
-  offAny:   function(fn) {  return this.off('any', fn)    }
+  offValue: function(fn) {  return this.off(VALUE, fn)  },
+  offEnd:   function(fn) {  return this.off(END, fn)    },
+  offAny:   function(fn) {  return this.off(ANY, fn)    }
 
 });
 
@@ -833,8 +852,8 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._subscribers.callAll(Event(type, x));
       }
-      if (type === 'value') {  this._current = x  }
-      if (type === 'end') {  this._clear()  }
+      if (type === VALUE) {  this._current = x  }
+      if (type === END) {  this._clear()  }
     }
   },
 
@@ -844,7 +863,7 @@ inherit(Property, Observable, {
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      Subscribers.callOnce(type, fn, Event('value', this._current, true));
+      Subscribers.callOnce(type, fn, Event(VALUE, this._current, true));
     }
     if (!this._alive) {
       Subscribers.callOnce(type, fn, CURRENT_END);
@@ -863,7 +882,7 @@ inherit(Property, Observable, {
 
 function logCb(name, event) {
   var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-  if (event.type === 'value') {
+  if (event.type === VALUE) {
     console.log(name, typeStr, event.value);
   } else {
     console.log(name, typeStr);
@@ -889,8 +908,8 @@ withInterval('withInterval', {
     this._fn = buildFn(args[0], 1);
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send('value', x)  },
-      end: function() {  $._send('end')  }
+      emit: function(x) {  $._send(VALUE, x)  },
+      end: function() {  $._send(END)  }
     }
   },
   _free: function() {
@@ -916,7 +935,7 @@ withInterval('fromPoll', {
     this._fn = null;
   },
   _onTick: function() {
-    this._send('value', this._fn());
+    this._send(VALUE, this._fn());
   }
 });
 
@@ -934,7 +953,7 @@ withInterval('interval', {
     this._x = null;
   },
   _onTick: function() {
-    this._send('value', this._x);
+    this._send(VALUE, this._x);
   }
 });
 
@@ -947,7 +966,7 @@ withInterval('sequentially', {
   _init: function(args) {
     this._xs = cloneArray(args[0]);
     if (this._xs.length === 0) {
-      this._send('end')
+      this._send(END)
     }
   },
   _free: function() {
@@ -956,11 +975,11 @@ withInterval('sequentially', {
   _onTick: function() {
     switch (this._xs.length) {
       case 1:
-        this._send('value', this._xs[0]);
-        this._send('end');
+        this._send(VALUE, this._xs[0]);
+        this._send(END);
         break;
       default:
-        this._send('value', this._xs.shift());
+        this._send(VALUE, this._xs.shift());
     }
   }
 });
@@ -978,7 +997,7 @@ withInterval('repeatedly', {
   _onTick: function() {
     if (this._xs.length > 0) {
       this._i = (this._i + 1) % this._xs.length;
-      this._send('value', this._xs[this._i]);
+      this._send(VALUE, this._xs[this._i]);
     }
   }
 });
@@ -997,8 +1016,8 @@ withInterval('later', {
     this._x = null;
   },
   _onTick: function() {
-    this._send('value', this._x);
-    this._send('end');
+    this._send(VALUE, this._x);
+    this._send(END);
   }
 });
 
@@ -1021,15 +1040,16 @@ inherit(_AbstractPool, Stream, {
 
   _name: 'abstractPool',
 
-  _add: function(obs) {
+  _add: function(obj, toObs) {
+    toObs = toObs || id;
     if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
-      this._addToCur(obs);
+      this._addToCur(toObs(obj));
     } else {
       if (this._queueLim === -1 || this._queue.length < this._queueLim) {
-        this._addToQueue(obs);
+        this._addToQueue(toObs(obj));
       } else if (this._drop === 'old') {
         this._removeOldest();
-        this._add(obs);
+        this._add(toObs(obj));
       }
     }
   },
@@ -1059,8 +1079,8 @@ inherit(_AbstractPool, Stream, {
     obs.offEnd([this._removeCur, this, obs]);
   },
   _handleSubAny: function(event) {
-    if (event.type === 'value') {
-      this._send('value', event.value, event.current && this._activating);
+    if (event.type === VALUE) {
+      this._send(VALUE, event.value, event.current && this._activating);
     }
   },
 
@@ -1125,20 +1145,20 @@ inherit(_AbstractPool, Stream, {
 
 var MergeLike = {
   _onEmpty: function() {
-    if (this._initialised) {  this._send('end', null, this._activating)  }
+    if (this._initialised) {  this._send(END, null, this._activating)  }
   }
 };
 
 function Merge(sources) {
   _AbstractPool.call(this);
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
 inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
-Kefir.merge = function() {
-  return new Merge(agrsToArray(arguments));
+Kefir.merge = function(obss) {
+  return new Merge(obss);
 }
 
 Observable.prototype.merge = function(other) {
@@ -1152,14 +1172,14 @@ Observable.prototype.merge = function(other) {
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {  this._send('end')  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
   this._initialised = true;
 }
 
 inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
-Kefir.concat = function() {
-  return new Concat(agrsToArray(arguments));
+Kefir.concat = function(obss) {
+  return new Concat(obss);
 }
 
 Observable.prototype.concat = function(other) {
@@ -1220,11 +1240,11 @@ inherit(Bus, _AbstractPool, {
   },
 
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 
@@ -1243,7 +1263,7 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? buildFn(fn, 1) : null;
+  this._fn = fn ? buildFn(fn, 1) : id;
   this._mainEnded = false;
   this._lastCurrent = null;
 }
@@ -1262,14 +1282,14 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _handleMainSource: function(event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn ? this._fn(event.value) : event.value);
+        this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
     } else {
       if (this._isEmpty()) {
-        this._send('end', null, event.current);
+        this._send(END, null, event.current);
       } else {
         this._mainEnded = true;
       }
@@ -1277,7 +1297,7 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _onEmpty: function() {
-    if (this._mainEnded) {  this._send('end')  }
+    if (this._mainEnded) {  this._send(END)  }
   },
 
   _clear: function() {
@@ -1328,7 +1348,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 function SampledBy(passive, active, combinator) {
   Stream.call(this);
   if (active.length === 0) {
-    this._send('end');
+    this._send(END);
   } else {
     this._passiveCount = passive.length;
     this._combinator = combinator ? Fn(combinator) : null;
@@ -1360,7 +1380,7 @@ inherit(SampledBy, Stream, {
       this._emitIfFull(true);
     }
     if (this._endAfterActivation) {
-      this._send('end', null, true);
+      this._send(END, null, true);
     }
   },
 
@@ -1375,15 +1395,15 @@ inherit(SampledBy, Stream, {
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator) {
+      if (this._combinator !== null) {
         combined = this._combinator.apply(this._currents);
       }
-      this._send('value', combined, isCurrent);
+      this._send(VALUE, combined, isCurrent);
     }
   },
 
   _handleAny: function(i, event) {
-    if (event.type === 'value') {
+    if (event.type === VALUE) {
       this._currents[i] = event.value;
       if (i >= this._passiveCount) {
         if (this._activating) {
@@ -1399,7 +1419,7 @@ inherit(SampledBy, Stream, {
           if (this._activating) {
             this._endAfterActivation = true;
           } else {
-            this._send('end', null, event.current);
+            this._send(END, null, event.current);
           }
         }
       }
@@ -1451,7 +1471,7 @@ function produceProperty(StreamClass, PropertyClass) {
 withOneSource('toProperty', {
   _init: function(args) {
     if (args.length > 0) {
-      this._send('value', args[0]);
+      this._send(VALUE, args[0]);
     }
   }
 }, {propertyMethod: null, streamMethod: produceProperty});
@@ -1464,7 +1484,7 @@ withOneSource('toProperty', {
 withOneSource('changes', {
   _handleValue: function(x, isCurrent) {
     if (!isCurrent) {
-      this._send('value', x);
+      this._send(VALUE, x);
     }
   }
 }, {streamMethod: null, propertyMethod: produceStream});
@@ -1480,8 +1500,8 @@ withOneSource('withHandler', {
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send('value', x, $._forcedCurrent)  },
-      end: function() {  $._send('end', null, $._forcedCurrent)  }
+      emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
+      end: function() {  $._send(END, null, $._forcedCurrent)  }
     }
   },
   _free: function() {
@@ -1502,15 +1522,15 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 1) : null;
+    this._fn = args[0] ? buildFn(args[0], 1) : id;
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn === null ? x : this._fn(x);
+    var xs = this._fn(x);
     for (var i = 0; i < xs.length; i++) {
-      this._send('value', xs[i], isCurrent);
+      this._send(VALUE, xs[i], isCurrent);
     }
   }
 });
@@ -1525,15 +1545,12 @@ withOneSource('flatten', {
 
 function xformForObs(obs) {
   return {
-    init: function() {
-      return null;
-    },
     step: function(res, input) {
-      obs._send('value', input, obs._forcedCurrent);
+      obs._send(VALUE, input, obs._forcedCurrent);
       return null;
     },
     result: function(res) {
-      obs._send('end', null, obs._forcedCurrent);
+      obs._send(END, null, obs._forcedCurrent);
       return null;
     }
   };
@@ -1542,21 +1559,15 @@ function xformForObs(obs) {
 withOneSource('transduce', {
   _init: function(args) {
     this._xform = args[0](xformForObs(this));
-    this._forcedCurrent = true;
-    this._endIfReduced(this._xform.init());
-    this._forcedCurrent = false;
   },
   _free: function() {
     this._xform = null;
   },
-  _endIfReduced: function(obj) {
-    if (obj !== null) {
-      this._xform.result(null);
-    }
-  },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._endIfReduced(this._xform.step(null, x));
+    if (this._xform.step(null, x) !== null) {
+      this._xform.result(null);
+    }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
@@ -1581,7 +1592,7 @@ var withFnArgMixin = {
 
 withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn(x), isCurrent);
+    this._send(VALUE, this._fn(x), isCurrent);
   }
 }, withFnArgMixin));
 
@@ -1594,7 +1605,7 @@ withOneSource('map', extend({
 withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -1608,9 +1619,9 @@ withOneSource('filter', extend({
 withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -1625,14 +1636,14 @@ withOneSource('take', {
   _init: function(args) {
     this._n = args[0];
     if (this._n <= 0) {
-      this._send('end');
+      this._send(END);
     }
   },
   _handleValue: function(x, isCurrent) {
     this._n--;
-    this._send('value', x, isCurrent);
+    this._send(VALUE, x, isCurrent);
     if (this._n === 0) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 });
@@ -1645,11 +1656,11 @@ withOneSource('take', {
 
 withOneSource('skip', {
   _init: function(args) {
-    this._n = args[0] < 0 ? 0 : args[0];
+    this._n = Math.max(0, args[0]);
   },
   _handleValue: function(x, isCurrent) {
     if (this._n === 0) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._n--;
     }
@@ -1663,19 +1674,16 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : strictEqual;
     this._prev = NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._prev = null;
   },
-  _isEqual: function(a, b) {
-    return this._fn === null ? a === b : this._fn(a, b);
-  },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._isEqual(this._prev, x)) {
-      this._send('value', x, isCurrent);
+    if (this._prev === NOTHING || !this._fn(this._prev, x)) {
+      this._send(VALUE, x, isCurrent);
       this._prev = x;
     }
   }
@@ -1697,13 +1705,13 @@ withOneSource('skipWhile', {
   },
   _handleValue: function(x, isCurrent) {
     if (!this._skip) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
       return;
     }
     if (!this._fn(x)) {
       this._skip = false;
       this._fn = null;
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   }
 });
@@ -1712,22 +1720,19 @@ withOneSource('skipWhile', {
 
 
 
-// .diff(seed, fn)
+// .diff(fn, seed)
 
 withOneSource('diff', {
   _init: function(args) {
-    this._prev = args[0];
-    this._fn = args[1] ? buildFn(args[1], 2) : null;
+    this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
+    this._prev = args[1];
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var result = (this._fn === null) ?
-      [this._prev, x] :
-      this._fn(this._prev, x);
-    this._send('value', result, isCurrent);
+    this._send(VALUE, this._fn(this._prev, x), isCurrent);
     this._prev = x;
   }
 });
@@ -1736,18 +1741,18 @@ withOneSource('diff', {
 
 
 
-// .scan(seed, fn)
+// .scan(fn, seed)
 
 withOneSource('scan', {
   _init: function(args) {
-    this._send('value', args[0], true);
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._send(VALUE, args[1], true);
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send('value', this._fn(this._current, x), isCurrent);
+    this._send(VALUE, this._fn(this._current, x), isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1755,12 +1760,12 @@ withOneSource('scan', {
 
 
 
-// .reduce(seed, fn)
+// .reduce(fn, seed)
 
 withOneSource('reduce', {
   _init: function(args) {
-    this._result = args[0];
-    this._fn = buildFn(args[1], 2);
+    this._fn = buildFn(args[0], 2);
+    this._result = args[1];
   },
   _free: function() {
     this._fn = null;
@@ -1770,8 +1775,8 @@ withOneSource('reduce', {
     this._result = this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
-    this._send('value', this._result, isCurrent);
-    this._send('end', null, isCurrent);
+    this._send(VALUE, this._result, isCurrent);
+    this._send(END, null, isCurrent);
   }
 });
 
@@ -1792,7 +1797,7 @@ withOneSource('slidingWindow', {
   _handleValue: function(x, isCurrent) {
     this._cache = slide(this._cache, x, this._max);
     if (this._cache.length >= this._min) {
-      this._send('value', this._cache, isCurrent);
+      this._send(VALUE, this._cache, isCurrent);
     }
   }
 });
@@ -1820,11 +1825,11 @@ withOneSource('debounce', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._lastAttempt = now();
       if (this._immediate && !this._timeoutId) {
-        this._send('value', x);
+        this._send(VALUE, x);
       }
       if (!this._timeoutId) {
         this._timeoutId = setTimeout(this._$later, this._wait);
@@ -1836,12 +1841,12 @@ withOneSource('debounce', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       if (this._timeoutId && !this._immediate) {
         this._endLater = true;
       } else {
-        this._send('end');
+        this._send(END);
       }
     }
   },
@@ -1852,11 +1857,11 @@ withOneSource('debounce', {
     } else {
       this._timeoutId = null;
       if (!this._immediate) {
-        this._send('value', this._laterValue);
+        this._send(VALUE, this._laterValue);
         this._laterValue = null;
       }
       if (this._endLater) {
-        this._send('end');
+        this._send(END);
       }
     }
   }
@@ -1886,7 +1891,7 @@ withOneSource('throttle', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       var curTime = now();
       if (this._lastCallTime === 0 && !this._leading) {
@@ -1896,7 +1901,7 @@ withOneSource('throttle', {
       if (remaining <= 0) {
         this._cancelTraling();
         this._lastCallTime = curTime;
-        this._send('value', x);
+        this._send(VALUE, x);
       } else if (this._trailing) {
         this._cancelTraling();
         this._trailingValue = x;
@@ -1906,12 +1911,12 @@ withOneSource('throttle', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       if (this._timeoutId) {
         this._endLater = true;
       } else {
-        this._send('end');
+        this._send(END);
       }
     }
   },
@@ -1922,12 +1927,12 @@ withOneSource('throttle', {
     }
   },
   _trailingCall: function() {
-    this._send('value', this._trailingValue);
+    this._send(VALUE, this._trailingValue);
     this._timeoutId = null;
     this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
     if (this._endLater) {
-      this._send('end');
+      this._send(END);
     }
   }
 });
@@ -1943,7 +1948,7 @@ withOneSource('delay', {
     this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._$shiftBuff = function() {  $._send('value', $._buff.shift())  }
+    this._$shiftBuff = function() {  $._send(VALUE, $._buff.shift())  }
   },
   _free: function() {
     this._buff = null;
@@ -1951,7 +1956,7 @@ withOneSource('delay', {
   },
   _handleValue: function(x, isCurrent) {
     if (isCurrent) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     } else {
       this._buff.push(x);
       setTimeout(this._$shiftBuff, this._wait);
@@ -1959,10 +1964,10 @@ withOneSource('delay', {
   },
   _handleEnd: function(__, isCurrent) {
     if (isCurrent) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     } else {
       var $ = this;
-      setTimeout(function() {  $._send('end')  }, this._wait);
+      setTimeout(function() {  $._send(END)  }, this._wait);
     }
   }
 });
@@ -1984,8 +1989,8 @@ inherit(FromBinder, Stream, {
       , unsub
       , isCurrent = true
       , emitter = {
-        emit: function(x) {  $._send('value', x, isCurrent)  },
-        end: function() {  $._send('end', null, isCurrent)  }
+        emit: function(x) {  $._send(VALUE, x, isCurrent)  },
+        end: function() {  $._send(END, null, isCurrent)  }
       };
     unsub = this._fn(emitter);
     isCurrent = false;
@@ -2025,11 +2030,11 @@ function Emitter() {
 inherit(Emitter, Stream, {
   _name: 'emitter',
   emit: function(x) {
-    this._send('value', x);
+    this._send(VALUE, x);
     return this;
   },
   end: function() {
-    this._send('end');
+    this._send(END);
     return this;
   }
 });
@@ -2047,7 +2052,7 @@ Kefir.emitter = function() {
 // Kefir.never()
 
 var neverObj = new Stream();
-neverObj._send('end');
+neverObj._send(END);
 neverObj._name = 'never';
 Kefir.never = function() {  return neverObj  }
 
@@ -2059,8 +2064,8 @@ Kefir.never = function() {  return neverObj  }
 
 function Constant(x) {
   Property.call(this);
-  this._send('value', x);
-  this._send('end');
+  this._send(VALUE, x);
+  this._send(END);
 }
 
 inherit(Constant, Property, {
@@ -2160,7 +2165,7 @@ Observable.prototype.or = function(other) {
 // .not
 
 Observable.prototype.not = function() {
-  return this.map(function(x) {  return !x  }).setName(this, 'not');
+  return this.map(not).setName(this, 'not');
 }
 
 
@@ -2198,19 +2203,40 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 // .fromEvent
 
+var subUnsubPairs = [
+  ['addEventListener', 'removeEventListener'],
+  ['addListener', 'removeListener'],
+  ['on', 'off']
+];
+
+function wrapEmitter(emitter, transformer) {
+  return function() {
+    emitter.emit(transformer.applyWithContext(this, arguments));
+  }
+}
+
 Kefir.fromEvent = function(target, eventName, transformer) {
+  var pair, sub, unsub;
+
   transformer = transformer && Fn(transformer);
-  var sub = target.addEventListener || target.addListener || target.bind;
-  var unsub = target.removeEventListener || target.removeListener || target.unbind;
-  return Kefir.fromBinder(function(emitter) {
-    var handler = transformer ?
-      function() {
-        emitter.emit(transformer.applyWithContext(this, arguments));
-      } : emitter.emit;
-    sub.call(target, eventName, handler);
-    return function() {
-      unsub.call(target, eventName, handler);
+
+  for (var i = 0; i < subUnsubPairs.length; i++) {
+    pair = subUnsubPairs[i];
+    if (isFn(target[pair[0]]) && isFn(target[pair[1]])) {
+      sub = pair[0];
+      unsub = pair[1];
+      break;
     }
+  }
+
+  if (sub === undefined) {
+    throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
+  }
+
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
+    target[sub](eventName, handler);
+    return [unsub, target, eventName, handler];
   }).setName('fromEvent');
 }
 
@@ -2218,13 +2244,13 @@ withTwoSources('filterBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && this._lastSecondary) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -2232,11 +2258,11 @@ withTwoSources('filterBy', {
 
 
 
-withTwoSources('waitFor', {
+withTwoSources('skipUntilBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
@@ -2247,8 +2273,18 @@ withTwoSources('waitFor', {
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
+  }
+
+});
+
+
+
+withTwoSources('takeUntilBy', {
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._send(END, null, isCurrent);
   }
 
 });
@@ -2259,20 +2295,20 @@ withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryValue: function(x, isCurrent) {
     this._lastSecondary = x;
     if (!this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -2285,7 +2321,7 @@ withTwoSources('skipWhileBy', {
 
   _handlePrimaryValue: function(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
-      this._send('value', x, isCurrent);
+      this._send(VALUE, x, isCurrent);
     }
   },
 
@@ -2298,7 +2334,7 @@ withTwoSources('skipWhileBy', {
 
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING || this._lastSecondary) {
-      this._send('end', null, isCurrent);
+      this._send(END, null, isCurrent);
     }
   }
 
@@ -21809,7 +21845,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":84}],34:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],34:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -21844,7 +21880,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":84}],35:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],35:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -21958,7 +21994,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":84}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22051,8 +22087,8 @@ describe('concat', function() {
       }
     ]);
   });
-  it('if made of ended properties, should emit all currents then end', function() {
-    return expect(Kefir.concat(send(prop(), [0, '<end>']), send(prop(), [1, '<end>']), send(prop(), [2, '<end>']))).toEmit([
+  return it('if made of ended properties, should emit all currents then end', function() {
+    return expect(Kefir.concat([send(prop(), [0, '<end>']), send(prop(), [1, '<end>']), send(prop(), [2, '<end>'])])).toEmit([
       {
         current: 0
       }, {
@@ -22062,31 +22098,11 @@ describe('concat', function() {
       }, '<end:current>'
     ]);
   });
-  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
-    var a, b, c;
-    a = send(prop(), [0]);
-    b = prop();
-    c = stream();
-    return expect(Kefir.concat(a, b, c)).toEmit([
-      {
-        current: 0
-      }, 1, 4, 2, 5, 7, 8, '<end>'
-    ], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(c, [3]);
-      send(a, [4, '<end>']);
-      send(b, [5]);
-      send(c, [6]);
-      send(b, ['<end>']);
-      return send(c, [7, 8, '<end>']);
-    });
-  });
 });
 
 
 
-},{"../test-helpers.coffee":84}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],37:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22106,7 +22122,7 @@ describe('constant', function() {
 
 
 
-},{"kefir":86}],38:[function(require,module,exports){
+},{"kefir":87}],38:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22297,7 +22313,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":84}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],39:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22361,59 +22377,61 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":84}],40:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref;
+},{"../test-helpers.coffee":85}],40:[function(require,module,exports){
+var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+noop = function() {};
+
+minus = function(prev, next) {
+  return prev - next;
+};
 
 describe('diff', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().diff(0, function() {})).toBeStream();
+      return expect(stream().diff(noop, 0)).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.diff(0, function() {})).toActivate(a);
+      return expect(a.diff(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).diff(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(stream(), ['<end>']).diff(noop, 0)).toEmit(['<end:current>']);
     });
     it('should handle events', function() {
       var a;
       a = stream();
-      return expect(a.diff(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([-1, -2, '<end>'], function() {
+      return expect(a.diff(minus, 0)).toEmit([-1, -2, '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
     return it('works without fn argument', function() {
       var a;
       a = stream();
-      return expect(a.diff(0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
+      return expect(a.diff(null, 0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().diff(0, function() {})).toBeProperty();
+      return expect(prop().diff(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.diff(0, function() {})).toActivate(a);
+      return expect(a.diff(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).diff(0, function() {})).toEmit(['<end:current>']);
+      return expect(send(prop(), ['<end>']).diff(noop, 0)).toEmit(['<end:current>']);
     });
     it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.diff(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([
+      return expect(a.diff(minus, 0)).toEmit([
         {
           current: -1
         }, -2, -3, '<end>'
@@ -22424,7 +22442,7 @@ describe('diff', function() {
     return it('works without fn argument', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.diff(0)).toEmit([
+      return expect(a.diff(null, 0)).toEmit([
         {
           current: [0, 1]
         }, [1, 3], [3, 6], '<end>'
@@ -22437,7 +22455,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":84}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],41:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22463,7 +22481,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":86}],42:[function(require,module,exports){
+},{"kefir":87}],42:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22712,7 +22730,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":84}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],43:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22777,7 +22795,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":84}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],44:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22912,7 +22930,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":84}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],45:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22998,7 +23016,7 @@ describe('flatMapFirst', function() {
         return send(a, [b, c, d]);
       });
     });
-    return it('should work nicely with Kefir.constant and Kefir.never', function() {
+    it('should work nicely with Kefir.constant and Kefir.never', function() {
       var a;
       a = stream();
       return expect(a.flatMapFirst(function(x) {
@@ -23010,6 +23028,27 @@ describe('flatMapFirst', function() {
       })).toEmit([3, 4, 5], function() {
         return send(a, [1, 2, 3, 4, 5]);
       });
+    });
+    return it('should not call transformer function when skiping values', function() {
+      var a, b, c, count, result;
+      count = 0;
+      a = stream();
+      b = stream();
+      c = stream();
+      result = a.flatMapFirst(function(x) {
+        count++;
+        return x;
+      });
+      activate(result);
+      expect(count).toBe(0);
+      send(a, [b]);
+      expect(count).toBe(1);
+      send(a, [c]);
+      expect(count).toBe(1);
+      send(b, ['<end>']);
+      expect(count).toBe(1);
+      send(a, [c]);
+      return expect(count).toBe(2);
     });
   });
   return describe('property', function() {
@@ -23046,7 +23085,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":84}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],46:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23180,7 +23219,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":84}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],47:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23311,7 +23350,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":84}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],48:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23474,7 +23513,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":84}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],49:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23592,7 +23631,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":84}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],50:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23674,7 +23713,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":84}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],51:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23751,13 +23790,13 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":84}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],52:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
 
 describe('fromEvent', function() {
-  var bindTarget, domTarget, nodeTarget;
+  var domTarget, nodeTarget, onOffTarget;
   domTarget = function() {
     return {
       addEventListener: function(name, fn) {
@@ -23782,12 +23821,12 @@ describe('fromEvent', function() {
       }
     };
   };
-  bindTarget = function() {
+  onOffTarget = function() {
     return {
-      bind: function(name, fn) {
+      on: function(name, fn) {
         return this[name + 'Listener'] = fn;
       },
-      unbind: function(name, fn) {
+      off: function(name, fn) {
         if (this[name + 'Listener'] === fn) {
           return delete this[name + 'Listener'];
         }
@@ -23809,7 +23848,7 @@ describe('fromEvent', function() {
     expect(target.fooListener).toEqual(jasmine.any(Function));
     deactivate(a);
     expect(target.fooListener).toBeUndefined();
-    target = bindTarget();
+    target = onOffTarget();
     a = Kefir.fromEvent(target, 'foo');
     expect(target.fooListener).toBeUndefined();
     activate(a);
@@ -23840,7 +23879,7 @@ describe('fromEvent', function() {
       target.fooListener(2);
       return target.fooListener(3);
     });
-    target = bindTarget();
+    target = onOffTarget();
     a = Kefir.fromEvent(target, 'foo');
     return expect(a).toEmit([1, 2, 3], function() {
       target.fooListener(1);
@@ -23954,7 +23993,7 @@ describe('fromEvent', function() {
 
 
 
-},{"../test-helpers.coffee":84}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],53:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -23974,7 +24013,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":86}],54:[function(require,module,exports){
+},{"kefir":87}],54:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -23990,7 +24029,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":86}],55:[function(require,module,exports){
+},{"kefir":87}],55:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 _ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser, Kefir = _ref.Kefir;
@@ -24326,7 +24365,7 @@ if (!inBrowser) {
 
 
 
-},{"../test-helpers.coffee":84,"addons/kefir-jquery":85,"jquery":6}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":85,"addons/kefir-jquery":86,"jquery":6}],56:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24342,7 +24381,7 @@ describe('later', function() {
 
 
 
-},{"kefir":86}],57:[function(require,module,exports){
+},{"kefir":87}],57:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24400,7 +24439,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":84}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],58:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -24461,7 +24500,7 @@ describe('merge', function() {
       return send(b, [3, '<end>']);
     });
   });
-  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
+  return it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
     var a, b, c, merge;
     a = send(prop(), [0]);
     b = send(prop(), [1]);
@@ -24492,29 +24531,11 @@ describe('merge', function() {
       }
     ]);
   });
-  return it('also allows to not wrap sources to array, but pass it as arguments', function() {
-    var a, b, c;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    return expect(Kefir.merge(a, b, c)).toEmit([
-      {
-        current: 0
-      }, 1, 2, 3, 4, 5, 6, '<end>'
-    ], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(c, [3]);
-      send(a, ['<end>']);
-      send(b, [4, '<end>']);
-      return send(c, [5, 6, '<end>']);
-    });
-  });
 });
 
 
 
-},{"../test-helpers.coffee":84}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],59:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24530,7 +24551,7 @@ describe('never', function() {
 
 
 
-},{"kefir":86}],60:[function(require,module,exports){
+},{"kefir":87}],60:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -24629,7 +24650,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":84}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],61:[function(require,module,exports){
 var Kefir, activate, prop, send, _ref;
 
 _ref = require('../test-helpers.coffee'), prop = _ref.prop, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -24789,23 +24810,29 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":84}],62:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref;
+},{"../test-helpers.coffee":85}],62:[function(require,module,exports){
+var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+noop = function() {};
+
+minus = function(prev, next) {
+  return prev - next;
+};
 
 describe('reduce', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().reduce(0, function() {})).toBeStream();
+      return expect(stream().reduce(noop, 0)).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.reduce(0, function() {})).toActivate(a);
+      return expect(a.reduce(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).reduce(0, function() {})).toEmit([
+      return expect(send(stream(), ['<end>']).reduce(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -24814,24 +24841,22 @@ describe('reduce', function() {
     return it('should handle events', function() {
       var a;
       a = stream();
-      return expect(a.reduce(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([-4, '<end>'], function() {
+      return expect(a.reduce(minus, 0)).toEmit([-4, '<end>'], function() {
         return send(a, [1, 3, '<end>']);
       });
     });
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().reduce(0, function() {})).toBeProperty();
+      return expect(prop().reduce(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.reduce(0, function() {})).toActivate(a);
+      return expect(a.reduce(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).reduce(0, function() {})).toEmit([
+      return expect(send(prop(), ['<end>']).reduce(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -24840,9 +24865,7 @@ describe('reduce', function() {
     return it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.reduce(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([-10, '<end>'], function() {
+      return expect(a.reduce(minus, 0)).toEmit([-10, '<end>'], function() {
         return send(a, [3, 6, '<end>']);
       });
     });
@@ -24851,7 +24874,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":84}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],63:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24870,7 +24893,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":86}],64:[function(require,module,exports){
+},{"kefir":87}],64:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -24994,23 +25017,29 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":84}],65:[function(require,module,exports){
-var Kefir, prop, send, stream, _ref;
+},{"../test-helpers.coffee":85}],65:[function(require,module,exports){
+var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+noop = function() {};
+
+minus = function(prev, next) {
+  return prev - next;
+};
 
 describe('scan', function() {
   describe('stream', function() {
     it('should return stream', function() {
-      return expect(stream().scan(0, function() {})).toBeProperty();
+      return expect(stream().scan(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.scan(0, function() {})).toActivate(a);
+      return expect(a.scan(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).scan(0, function() {})).toEmit([
+      return expect(send(stream(), ['<end>']).scan(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -25019,9 +25048,7 @@ describe('scan', function() {
     return it('should handle events', function() {
       var a;
       a = stream();
-      return expect(a.scan(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([
+      return expect(a.scan(minus, 0)).toEmit([
         {
           current: 0
         }, -1, -4, '<end>'
@@ -25032,15 +25059,15 @@ describe('scan', function() {
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().scan(0, function() {})).toBeProperty();
+      return expect(prop().scan(noop, 0)).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.scan(0, function() {})).toActivate(a);
+      return expect(a.scan(noop, 0)).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).scan(0, function() {})).toEmit([
+      return expect(send(prop(), ['<end>']).scan(noop, 0)).toEmit([
         {
           current: 0
         }, '<end:current>'
@@ -25049,9 +25076,7 @@ describe('scan', function() {
     return it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
-      return expect(a.scan(0, function(prev, next) {
-        return prev - next;
-      })).toEmit([
+      return expect(a.scan(minus, 0)).toEmit([
         {
           current: -1
         }, -4, -10, '<end>'
@@ -25064,7 +25089,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":84}],66:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],66:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -25083,7 +25108,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":86}],67:[function(require,module,exports){
+},{"kefir":87}],67:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25159,7 +25184,261 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":84}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],68:[function(require,module,exports){
+var Kefir, activate, deactivate, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
+
+describe('skipUntilBy', function() {
+  describe('stream, stream', function() {
+    it('should return a stream', function() {
+      return expect(stream().skipUntilBy(stream())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = stream();
+      b = stream();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).skipUntilBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(stream().skipUntilBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [0, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should emit all values from primary after first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [0]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  describe('stream, property', function() {
+    it('should return a stream', function() {
+      return expect(stream().skipUntilBy(prop())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = stream();
+      b = prop();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).skipUntilBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(stream().skipUntilBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has any current', function() {
+      return expect(stream().skipUntilBy(send(prop(), [0, '<end>']))).toEmit([]);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should filter values as expected', function() {
+      var a, b;
+      a = stream();
+      b = send(prop(), [0]);
+      return expect(a.skipUntilBy(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
+        send(a, [3, 4]);
+        send(b, [2]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  describe('property, stream', function() {
+    it('should return a property', function() {
+      return expect(prop().skipUntilBy(stream())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = prop();
+      b = stream();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).skipUntilBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended', function() {
+      return expect(prop().skipUntilBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [0, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should filter values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = stream();
+      return expect(a.skipUntilBy(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
+        send(b, [true]);
+        send(a, [3, 4]);
+        send(b, [0]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+  return describe('property, property', function() {
+    it('should return a property', function() {
+      return expect(prop().skipUntilBy(prop())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toActivate(a, b);
+    });
+    it('should not activate secondary after first value from it', function() {
+      var a, b, res;
+      a = prop();
+      b = prop();
+      res = a.skipUntilBy(b);
+      activate(res);
+      send(b, [1]);
+      deactivate(res);
+      expect(res).toActivate(a);
+      return expect(res).not.toActivate(b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).skipUntilBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should be ended if secondary was ended and has no current', function() {
+      return expect(prop().skipUntilBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended but has any current', function() {
+      return expect(prop().skipUntilBy(send(prop(), [0, '<end>']))).toEmit([]);
+    });
+    it('should not end when secondary ends if it produced at least one value', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(b, [true, '<end>']);
+      });
+    });
+    it('should ignore values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.skipUntilBy(b)).toEmit([], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should filter values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = send(prop(), [0]);
+      return expect(a.skipUntilBy(b)).toEmit([
+        {
+          current: 0
+        }, 3, 4, 5, 6, 7, 8, 9, '<end>'
+      ], function() {
+        send(a, [3, 4]);
+        send(b, [2]);
+        send(a, [5, 6]);
+        send(b, [1]);
+        send(a, [7, 8]);
+        send(b, [false]);
+        return send(a, [9, '<end>']);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":85}],69:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, deactivate = _ref.deactivate, activate = _ref.activate;
@@ -25179,7 +25458,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = stream();
       b = stream();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25238,7 +25517,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = stream();
       b = prop();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25303,7 +25582,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = prop();
       b = stream();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25362,7 +25641,7 @@ describe('skipWhileBy', function() {
       var a, b, res;
       a = prop();
       b = prop();
-      res = a.waitFor(b);
+      res = a.skipWhileBy(b);
       activate(res);
       send(b, [true, false]);
       deactivate(res);
@@ -25416,7 +25695,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":84}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],70:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25522,7 +25801,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":84}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],71:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25622,7 +25901,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":84}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],72:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25718,7 +25997,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":84}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],73:[function(require,module,exports){
 var Kefir, activate, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -25953,7 +26232,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":84}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],74:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26205,7 +26484,251 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":84}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],75:[function(require,module,exports){
+var Kefir, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+describe('takeUntilBy', function() {
+  describe('stream, stream', function() {
+    it('should return a stream', function() {
+      return expect(stream().takeUntilBy(stream())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).takeUntilBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended', function() {
+      return expect(stream().takeUntilBy(send(stream(), ['<end>']))).toEmit([]);
+    });
+    it('should not end when secondary ends if there was no values from it', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit([], function() {
+        return send(b, ['<end>']);
+      });
+    });
+    it('should end on first any value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit(['<end>'], function() {
+        return send(b, [0]);
+      });
+    });
+    it('should emit values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit([1, 2], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = stream();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit([3, 4, '<end>'], function() {
+        send(a, [3, 4]);
+        send(b, [0]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+  describe('stream, property', function() {
+    it('should return a stream', function() {
+      return expect(stream().takeUntilBy(prop())).toBeStream();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(stream(), ['<end>']).takeUntilBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended and has no current', function() {
+      return expect(stream().takeUntilBy(send(prop(), ['<end>']))).toEmit([]);
+    });
+    it('should be ended if secondary was ended and has any current', function() {
+      return expect(stream().takeUntilBy(send(prop(), [0, '<end>']))).toEmit(['<end:current>']);
+    });
+    it('should end on first any value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit(['<end>'], function() {
+        return send(b, [0]);
+      });
+    });
+    it('should not end when secondary ends there was no values from it', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit([], function() {
+        return send(b, ['<end>']);
+      });
+    });
+    it('should emit values from primary until first value from secondary', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit([1, 2], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = stream();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit([3, 4, '<end>'], function() {
+        send(a, [3, 4]);
+        send(b, [0]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+  describe('property, stream', function() {
+    it('should return a property', function() {
+      return expect(prop().takeUntilBy(stream())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).takeUntilBy(stream())).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended', function() {
+      return expect(prop().takeUntilBy(send(stream(), ['<end>']))).toEmit([]);
+    });
+    it('should not end when secondary ends if there was no values from it', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit([], function() {
+        return send(b, ['<end>']);
+      });
+    });
+    it('should end on first any value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit(['<end>'], function() {
+        return send(b, [0]);
+      });
+    });
+    it('should emit values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit([1, 2], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = stream();
+      return expect(a.takeUntilBy(b)).toEmit([
+        {
+          current: 0
+        }, 3, 4, '<end>'
+      ], function() {
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+  return describe('property, property', function() {
+    it('should return a property', function() {
+      return expect(prop().takeUntilBy(prop())).toBeProperty();
+    });
+    it('should activate/deactivate sources', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toActivate(a, b);
+    });
+    it('should be ended if primary was ended', function() {
+      return expect(send(prop(), ['<end>']).takeUntilBy(prop())).toEmit(['<end:current>']);
+    });
+    it('should not be ended if secondary was ended and has no current', function() {
+      return expect(prop().takeUntilBy(send(prop(), ['<end>']))).toEmit([]);
+    });
+    it('should be ended if secondary was ended and has any current', function() {
+      return expect(prop().takeUntilBy(send(prop(), [0, '<end>']))).toEmit(['<end:current>']);
+    });
+    it('should end on first any value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit(['<end>'], function() {
+        return send(b, [0]);
+      });
+    });
+    it('should not end when secondary ends if there was no values from it', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit([], function() {
+        return send(b, ['<end>']);
+      });
+    });
+    it('should emit values from primary until first value from secondary', function() {
+      var a, b;
+      a = prop();
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit([1, 2], function() {
+        return send(a, [1, 2]);
+      });
+    });
+    return it('should take values as expected', function() {
+      var a, b;
+      a = send(prop(), [0]);
+      b = prop();
+      return expect(a.takeUntilBy(b)).toEmit([
+        {
+          current: 0
+        }, 3, 4, '<end>'
+      ], function() {
+        send(a, [3, 4]);
+        send(b, [1]);
+        send(a, [5, 6]);
+        send(b, [false]);
+        send(a, [7, 8]);
+        send(b, [true]);
+        return send(a, [9]);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":85}],76:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26454,7 +26977,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":84}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],77:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26569,7 +27092,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":84}],76:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],78:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26654,7 +27177,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":84}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],79:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26928,7 +27451,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":84}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],80:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27017,7 +27540,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":84}],79:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],81:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27063,7 +27586,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":84}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],82:[function(require,module,exports){
 var Kefir, comp, noop, prop, send, stream, testWithLib, _ref,
   __slice = [].slice;
 
@@ -27313,261 +27836,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":84,"transducers-js":31,"transducers.js":32}],81:[function(require,module,exports){
-var Kefir, activate, deactivate, prop, send, stream, _ref;
-
-_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
-
-describe('waitFor', function() {
-  describe('stream, stream', function() {
-    it('should return a stream', function() {
-      return expect(stream().waitFor(stream())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = stream();
-      b = stream();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).waitFor(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(stream().waitFor(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [0, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should emit all values from primary after first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [0]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  describe('stream, property', function() {
-    it('should return a stream', function() {
-      return expect(stream().waitFor(prop())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = stream();
-      b = prop();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).waitFor(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(stream().waitFor(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has any current', function() {
-      return expect(stream().waitFor(send(prop(), [0, '<end>']))).toEmit([]);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should filter values as expected', function() {
-      var a, b;
-      a = stream();
-      b = send(prop(), [0]);
-      return expect(a.waitFor(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
-        send(a, [3, 4]);
-        send(b, [2]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  describe('property, stream', function() {
-    it('should return a property', function() {
-      return expect(prop().waitFor(stream())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = prop();
-      b = stream();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).waitFor(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(prop().waitFor(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [0, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should filter values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = stream();
-      return expect(a.waitFor(b)).toEmit([3, 4, 5, 6, 7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [0]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  return describe('property, property', function() {
-    it('should return a property', function() {
-      return expect(prop().waitFor(prop())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.waitFor(b)).toActivate(a, b);
-    });
-    it('should not activate secondary after first value from it', function() {
-      var a, b, res;
-      a = prop();
-      b = prop();
-      res = a.waitFor(b);
-      activate(res);
-      send(b, [1]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).not.toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).waitFor(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(prop().waitFor(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has any current', function() {
-      return expect(prop().waitFor(send(prop(), [0, '<end>']))).toEmit([]);
-    });
-    it('should not end when secondary ends if it produced at least one value', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.waitFor(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should filter values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = send(prop(), [0]);
-      return expect(a.waitFor(b)).toEmit([
-        {
-          current: 0
-        }, 3, 4, 5, 6, 7, 8, 9, '<end>'
-      ], function() {
-        send(a, [3, 4]);
-        send(b, [2]);
-        send(a, [5, 6]);
-        send(b, [1]);
-        send(a, [7, 8]);
-        send(b, [false]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-});
-
-
-
-},{"../test-helpers.coffee":84}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":85,"transducers-js":31,"transducers.js":32}],83:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27684,7 +27953,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":84}],83:[function(require,module,exports){
+},{"../test-helpers.coffee":85}],84:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -27710,7 +27979,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":86}],84:[function(require,module,exports){
+},{"kefir":87}],85:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -27959,8 +28228,8 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],85:[function(require,module,exports){
-/*! An addon for Kefir.js v0.2.11
+},{"../dist/kefir":1,"sinon":7}],86:[function(require,module,exports){
+/*! An addon for Kefir.js v0.3.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -28023,6 +28292,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":86}],86:[function(require,module,exports){
+},{"jquery":6,"kefir":87}],87:[function(require,module,exports){
 module.exports=require(1)
-},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84]);

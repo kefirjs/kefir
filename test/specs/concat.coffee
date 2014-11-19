@@ -73,25 +73,13 @@ describe 'concat', ->
 
   it 'if made of ended properties, should emit all currents then end', ->
     expect(
-      Kefir.concat(
+      Kefir.concat([
         send(prop(), [0, '<end>']),
         send(prop(), [1, '<end>']),
         send(prop(), [2, '<end>'])
-      )
+      ])
     ).toEmit [{current: 0}, {current: 1}, {current: 2}, '<end:current>']
 
-  it 'also allows to not wrap sources to array, but pass it as arguments', ->
-    a = send(prop(), [0])
-    b = prop()
-    c = stream()
-    expect(Kefir.concat(a, b, c)).toEmit [{current: 0}, 1, 4, 2, 5, 7, 8, '<end>'], ->
-      send(a, [1])
-      send(b, [2])
-      send(c, [3])
-      send(a, [4, '<end>'])
-      send(b, [5])
-      send(c, [6])
-      send(b, ['<end>'])
-      send(c, [7, 8, '<end>'])
+
 
 

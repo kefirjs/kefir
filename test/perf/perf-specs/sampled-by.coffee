@@ -16,6 +16,7 @@ require('../perf-helper.coffee').setupTest 'constant.sampledBy(stream, f)', {
     Kefir.constant(1).sampledBy(stream, (a, b) -> a + b)
   bacon: (stream) ->
     Bacon.constant(1).sampledBy(stream, (a, b) -> a + b)
+  getVal: -> 1
 }
 
 
