@@ -31,11 +31,11 @@ function not(x) {
 }
 
 function concat(a, b) {
-  var result = new Array(a.length + b.length)
-    , j = 0
-    , length, i;
+  var result, length, i, j;
   if (a.length === 0) {  return b  }
   if (b.length === 0) {  return a  }
+  j = 0;
+  result = new Array(a.length + b.length);
   length = a.length;
   for (i = 0; i < length; i++, j++) {
     result[j] = a[i];
