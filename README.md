@@ -2,7 +2,7 @@
 
 
 
-Kefir — is an FRP (functional reactive programming) library for JavaScript
+Kefir — is an Reactive Programming library for JavaScript
 inspired by [Bacon.js](https://github.com/baconjs/bacon.js)
 and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
