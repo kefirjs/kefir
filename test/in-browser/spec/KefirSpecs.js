@@ -1040,15 +1040,16 @@ inherit(_AbstractPool, Stream, {
 
   _name: 'abstractPool',
 
-  _add: function(obs) {
+  _add: function(obj, toObs) {
+    toObs = toObs || id;
     if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
-      this._addToCur(obs);
+      this._addToCur(toObs(obj));
     } else {
       if (this._queueLim === -1 || this._queue.length < this._queueLim) {
-        this._addToQueue(obs);
+        this._addToQueue(toObs(obj));
       } else if (this._drop === 'old') {
         this._removeOldest();
-        this._add(obs);
+        this._add(toObs(obj));
       }
     }
   },
@@ -1283,7 +1284,7 @@ inherit(FlatMap, _AbstractPool, {
   _handleMainSource: function(event) {
     if (event.type === VALUE) {
       if (!event.current || this._lastCurrent !== event.value) {
-        this._add(this._fn(event.value));
+        this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
     } else {
@@ -23015,7 +23016,7 @@ describe('flatMapFirst', function() {
         return send(a, [b, c, d]);
       });
     });
-    return it('should work nicely with Kefir.constant and Kefir.never', function() {
+    it('should work nicely with Kefir.constant and Kefir.never', function() {
       var a;
       a = stream();
       return expect(a.flatMapFirst(function(x) {
@@ -23027,6 +23028,27 @@ describe('flatMapFirst', function() {
       })).toEmit([3, 4, 5], function() {
         return send(a, [1, 2, 3, 4, 5]);
       });
+    });
+    return it('should not call transformer function when skiping values', function() {
+      var a, b, c, count, result;
+      count = 0;
+      a = stream();
+      b = stream();
+      c = stream();
+      result = a.flatMapFirst(function(x) {
+        count++;
+        return x;
+      });
+      activate(result);
+      expect(count).toBe(0);
+      send(a, [b]);
+      expect(count).toBe(1);
+      send(a, [c]);
+      expect(count).toBe(1);
+      send(b, ['<end>']);
+      expect(count).toBe(1);
+      send(a, [c]);
+      return expect(count).toBe(2);
     });
   });
   return describe('property', function() {

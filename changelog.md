@@ -6,6 +6,7 @@
  - Removed undocumented support of bind/unbind pair from `.fromEvent`
  - Method `.waitFor` renamed to `.skipUntilBy`
  - New method `.takeUntilBy`
+ - Method `source.flatMapFirst(fn)` now won't call `fn` when skiping values from `source`
 
 ## 0.2.11
 
