@@ -317,6 +317,20 @@ function buildFn(fnMeta, length) {
   return bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
 }
 
+function buildFnSpread(fnMeta, length) {
+  fnMeta = normFnMeta(fnMeta);
+  // TODO inline `bind`?
+  var fn = bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
+  switch (length) {
+    case 0: return function(xs) {return fn()};
+    case 1: return function(xs) {return fn(xs[0])};
+    case 2: return function(xs) {return fn(xs[0], xs[1])};
+    case 3: return function(xs) {return fn(xs[0], xs[1], xs[2])};
+    case 4: return function(xs) {return fn(xs[0], xs[1], xs[2], xs[3])};
+    default: return function(xs) {return fn.apply(null, xs)};
+  }
+}
+
 
 
 
@@ -1351,8 +1365,8 @@ function SampledBy(passive, active, combinator) {
     this._send(END);
   } else {
     this._passiveCount = passive.length;
-    this._combinator = combinator ? Fn(combinator) : null;
     this._sources = concat(passive, active);
+    this._combinator = combinator ? buildFnSpread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
@@ -1395,9 +1409,7 @@ inherit(SampledBy, Stream, {
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator !== null) {
-        combined = this._combinator.apply(this._currents);
-      }
+      combined = this._combinator(combined);
       this._send(VALUE, combined, isCurrent);
     }
   },
@@ -1430,6 +1442,7 @@ inherit(SampledBy, Stream, {
     Stream.prototype._clear.call(this);
     this._sources = null;
     this._currents = null;
+    this._combinator = null;
   }
 
 });

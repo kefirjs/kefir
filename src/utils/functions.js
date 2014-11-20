@@ -149,6 +149,20 @@ function buildFn(fnMeta, length) {
   return bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
 }
 
+function buildFnSpread(fnMeta, length) {
+  fnMeta = normFnMeta(fnMeta);
+  // TODO inline `bind`?
+  var fn = bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
+  switch (length) {
+    case 0: return function(xs) {return fn()};
+    case 1: return function(xs) {return fn(xs[0])};
+    case 2: return function(xs) {return fn(xs[0], xs[1])};
+    case 3: return function(xs) {return fn(xs[0], xs[1], xs[2])};
+    case 4: return function(xs) {return fn(xs[0], xs[1], xs[2], xs[3])};
+    default: return function(xs) {return fn.apply(null, xs)};
+  }
+}
+
 
 
 

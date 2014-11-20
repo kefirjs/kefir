@@ -328,8 +328,8 @@ function SampledBy(passive, active, combinator) {
     this._send(END);
   } else {
     this._passiveCount = passive.length;
-    this._combinator = combinator ? Fn(combinator) : null;
     this._sources = concat(passive, active);
+    this._combinator = combinator ? buildFnSpread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
@@ -372,9 +372,7 @@ inherit(SampledBy, Stream, {
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator !== null) {
-        combined = this._combinator.apply(this._currents);
-      }
+      combined = this._combinator(combined);
       this._send(VALUE, combined, isCurrent);
     }
   },
@@ -407,6 +405,7 @@ inherit(SampledBy, Stream, {
     Stream.prototype._clear.call(this);
     this._sources = null;
     this._currents = null;
+    this._combinator = null;
   }
 
 });
