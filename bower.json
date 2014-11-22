@@ -34,7 +34,7 @@
     "!LICENSE.txt"
   ],
   "devDependencies": {
-    "bacon": "~0.7.30",
+    "bacon": "~0.7.35",
     "jquery": "~1.11.1",
     "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#~0.4.1",
     "coffeescript": "git@github.com:jashkenas/coffeescript.git#~1.7.1",

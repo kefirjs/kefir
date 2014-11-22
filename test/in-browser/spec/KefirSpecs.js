@@ -16884,7 +16884,7 @@ if (typeof sinon == "undefined") {
                     }
 
                     if (request.readyState != 4) {
-                        sinon.fakeServer.log(response, request);
+                        this.log(response, request);
 
                         request.respond(response[0], response[1], response[2]);
                     }
@@ -16920,6 +16920,8 @@ if (typeof sinon == "undefined") {
 
 },{"./core":24,"./fake_xml_http_request":28}],27:[function(require,module,exports){
 (function (global){
+/*global lolex */
+
 /**
  * Fake timer API
  * setTimeout
@@ -16944,372 +16946,27 @@ if (typeof sinon == "undefined") {
 }
 
 (function (global) {
-    // node expects setTimeout/setInterval to return a fn object w/ .ref()/.unref()
-    // browsers, a number.
-    // see https://github.com/cjohansen/Sinon.JS/pull/436
-    var timeoutResult = setTimeout(function () {}, 0);
-    var addTimerReturnsObject = typeof timeoutResult === "object";
-    clearTimeout(timeoutResult);
+    function makeApi(sinon, lol) {
+        var _lolex = typeof lolex !== "undefined" ? lolex : lol;
 
-    var id = 1;
+        sinon.useFakeTimers = function () {
+            var now, methods = Array.prototype.slice.call(arguments);
 
-    function addTimer(args, recurring) {
-        if (args.length === 0) {
-            throw new Error("Function requires at least 1 parameter");
-        }
-
-        if (typeof args[0] === "undefined") {
-            throw new Error("Callback must be provided to timer calls");
-        }
-
-        var toId = id++;
-        var delay = args[1] || 0;
-
-        if (!this.timeouts) {
-            this.timeouts = {};
-        }
-
-        this.timeouts[toId] = {
-            id: toId,
-            func: args[0],
-            callAt: this.now + delay,
-            invokeArgs: Array.prototype.slice.call(args, 2)
-        };
-
-        if (recurring === true) {
-            this.timeouts[toId].interval = delay;
-        }
-
-        if (addTimerReturnsObject) {
-            return {
-                id: toId,
-                ref: function () {},
-                unref: function () {}
-            };
-        } else {
-            return toId;
-        }
-    }
-
-    function parseTime(str) {
-        if (!str) {
-            return 0;
-        }
-
-        var strings = str.split(":");
-        var l = strings.length, i = l;
-        var ms = 0, parsed;
-
-        if (l > 3 || !/^(\d\d:){0,2}\d\d?$/.test(str)) {
-            throw new Error("tick only understands numbers and 'h:m:s'");
-        }
-
-        while (i--) {
-            parsed = parseInt(strings[i], 10);
-
-            if (parsed >= 60) {
-                throw new Error("Invalid time " + str);
-            }
-
-            ms += parsed * Math.pow(60, (l - i - 1));
-        }
-
-        return ms * 1000;
-    }
-
-    function createObject(object) {
-        var newObject;
-
-        if (Object.create) {
-            newObject = Object.create(object);
-        } else {
-            var F = function () {};
-            F.prototype = object;
-            newObject = new F();
-        }
-
-        newObject.Date.clock = newObject;
-        return newObject;
-    }
-
-    function mirrorDateProperties(target, source) {
-        if (source.now) {
-            target.now = function now() {
-                return target.clock.now;
-            };
-        } else {
-            delete target.now;
-        }
-
-        if (source.toSource) {
-            target.toSource = function toSource() {
-                return source.toSource();
-            };
-        } else {
-            delete target.toSource;
-        }
-
-        target.toString = function toString() {
-            return source.toString();
-        };
-
-        target.prototype = source.prototype;
-        target.parse = source.parse;
-        target.UTC = source.UTC;
-        target.prototype.toUTCString = source.prototype.toUTCString;
-
-        for (var prop in source) {
-            if (source.hasOwnProperty(prop)) {
-                target[prop] = source[prop];
-            }
-        }
-
-        return target;
-    }
-
-    var methods = ["Date", "setTimeout", "setInterval",
-                   "clearTimeout", "clearInterval"];
-
-    if (typeof global.setImmediate !== "undefined") {
-        methods.push("setImmediate");
-    }
-
-    if (typeof global.clearImmediate !== "undefined") {
-        methods.push("clearImmediate");
-    }
-
-    function restore() {
-        var method;
-
-        for (var i = 0, l = this.methods.length; i < l; i++) {
-            method = this.methods[i];
-
-            if (global[method].hadOwnProperty) {
-                global[method] = this["_" + method];
+            if (typeof methods[0] === "string") {
+                now = 0;
             } else {
-                try {
-                    delete global[method];
-                } catch (e) {}
+                now = methods.shift();
             }
-        }
 
-        // Prevent multiple executions which will completely remove these props
-        this.methods = [];
-    }
-
-    function stubGlobal(method, clock) {
-        clock[method].hadOwnProperty = Object.prototype.hasOwnProperty.call(global, method);
-        clock["_" + method] = global[method];
-
-        if (method == "Date") {
-            var date = mirrorDateProperties(clock[method], global[method]);
-            global[method] = date;
-        } else {
-            global[method] = function () {
-                return clock[method].apply(clock, arguments);
-            };
-
-            for (var prop in clock[method]) {
-                if (clock[method].hasOwnProperty(prop)) {
-                    global[method][prop] = clock[method][prop];
-                }
-            }
-        }
-
-        global[method].clock = clock;
-    }
-    function makeApi(sinon) {
-        sinon.clock = {
-            now: 0,
-
-            create: function create(now) {
-                var clock = createObject(this);
-
-                if (typeof now == "number") {
-                    clock.now = now;
-                }
-
-                if (!!now && typeof now == "object") {
-                    throw new TypeError("now should be milliseconds since UNIX epoch");
-                }
-
-                return clock;
-            },
-
-            setTimeout: function setTimeout(callback, timeout) {
-                return addTimer.call(this, arguments, false);
-            },
-
-            clearTimeout: function clearTimeout(timerId) {
-                if (!timerId) {
-                    // null appears to be allowed in most browsers, and appears to be relied upon by some libraries, like Bootstrap carousel
-                    return;
-                }
-                if (!this.timeouts) {
-                    this.timeouts = [];
-                }
-                // in Node, timerId is an object with .ref()/.unref(), and
-                // its .id field is the actual timer id.
-                if (typeof timerId === "object") {
-                    timerId = timerId.id
-                }
-                if (timerId in this.timeouts) {
-                    delete this.timeouts[timerId];
-                }
-            },
-
-            setInterval: function setInterval(callback, timeout) {
-                return addTimer.call(this, arguments, true);
-            },
-
-            clearInterval: function clearInterval(timerId) {
-                this.clearTimeout(timerId);
-            },
-
-            setImmediate: function setImmediate(callback) {
-                var passThruArgs = Array.prototype.slice.call(arguments, 1);
-
-                return addTimer.call(this, [callback, 0].concat(passThruArgs), false);
-            },
-
-            clearImmediate: function clearImmediate(timerId) {
-                this.clearTimeout(timerId);
-            },
-
-            tick: function tick(ms) {
-                ms = typeof ms == "number" ? ms : parseTime(ms);
-                var tickFrom = this.now, tickTo = this.now + ms, previous = this.now;
-                var timer = this.firstTimerInRange(tickFrom, tickTo);
-
-                var firstException;
-                while (timer && tickFrom <= tickTo) {
-                    if (this.timeouts[timer.id]) {
-                        tickFrom = this.now = timer.callAt;
-                        try {
-                            this.callTimer(timer);
-                        } catch (e) {
-                            firstException = firstException || e;
-                        }
-                    }
-
-                    timer = this.firstTimerInRange(previous, tickTo);
-                    previous = tickFrom;
-                }
-
-                this.now = tickTo;
-
-                if (firstException) {
-                    throw firstException;
-                }
-
-                return this.now;
-            },
-
-            firstTimerInRange: function (from, to) {
-                var timer, smallest = null, originalTimer;
-
-                for (var id in this.timeouts) {
-                    if (this.timeouts.hasOwnProperty(id)) {
-                        if (this.timeouts[id].callAt < from || this.timeouts[id].callAt > to) {
-                            continue;
-                        }
-
-                        if (smallest === null || this.timeouts[id].callAt < smallest) {
-                            originalTimer = this.timeouts[id];
-                            smallest = this.timeouts[id].callAt;
-
-                            timer = {
-                                func: this.timeouts[id].func,
-                                callAt: this.timeouts[id].callAt,
-                                interval: this.timeouts[id].interval,
-                                id: this.timeouts[id].id,
-                                invokeArgs: this.timeouts[id].invokeArgs
-                            };
-                        }
-                    }
-                }
-
-                return timer || null;
-            },
-
-            callTimer: function (timer) {
-                if (typeof timer.interval == "number") {
-                    this.timeouts[timer.id].callAt += timer.interval;
-                } else {
-                    delete this.timeouts[timer.id];
-                }
-
-                try {
-                    if (typeof timer.func == "function") {
-                        timer.func.apply(null, timer.invokeArgs);
-                    } else {
-                        eval(timer.func);
-                    }
-                } catch (e) {
-                    var exception = e;
-                }
-
-                if (!this.timeouts[timer.id]) {
-                    if (exception) {
-                        throw exception;
-                    }
-                    return;
-                }
-
-                if (exception) {
-                    throw exception;
-                }
-            },
-
-            reset: function reset() {
-                this.timeouts = {};
-            },
-
-            Date: (function () {
-                var NativeDate = Date;
-
-                function ClockDate(year, month, date, hour, minute, second, ms) {
-                    // Defensive and verbose to avoid potential harm in passing
-                    // explicit undefined when user does not pass argument
-                    switch (arguments.length) {
-                    case 0:
-                        return new NativeDate(ClockDate.clock.now);
-                    case 1:
-                        return new NativeDate(year);
-                    case 2:
-                        return new NativeDate(year, month);
-                    case 3:
-                        return new NativeDate(year, month, date);
-                    case 4:
-                        return new NativeDate(year, month, date, hour);
-                    case 5:
-                        return new NativeDate(year, month, date, hour, minute);
-                    case 6:
-                        return new NativeDate(year, month, date, hour, minute, second);
-                    default:
-                        return new NativeDate(year, month, date, hour, minute, second, ms);
-                    }
-                }
-
-                return mirrorDateProperties(ClockDate, NativeDate);
-            }())
+            var clock = _lolex.install(now || 0, methods);
+            clock.restore = clock.uninstall;
+            return clock;
         };
 
-        sinon.useFakeTimers = function useFakeTimers(now) {
-            var clock = sinon.clock.create(now);
-            clock.restore = restore;
-            clock.methods = Array.prototype.slice.call(arguments,
-                                                    typeof now == "number" ? 1 : 0);
-
-            if (clock.methods.length === 0) {
-                clock.methods = methods;
+        sinon.clock = {
+            create: function (now) {
+                return _lolex.createClock(now);
             }
-
-            for (var i = 0, l = clock.methods.length; i < l; i++) {
-                stubGlobal(clock.methods[i], clock);
-            }
-
-            return clock;
         };
 
         sinon.timers = {
@@ -17328,7 +16985,7 @@ if (typeof sinon == "undefined") {
 
     function loadDependencies(require, epxorts, module) {
         var sinon = require("./core");
-        makeApi(sinon);
+        makeApi(sinon, require("lolex"));
         module.exports = sinon;
     }
 
@@ -17342,7 +16999,7 @@ if (typeof sinon == "undefined") {
 }(typeof global != "undefined" && typeof global !== "function" ? global : this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core":24}],28:[function(require,module,exports){
+},{"./core":24,"lolex":31}],28:[function(require,module,exports){
 /**
  * @depend core.js
  * @depend ../extend.js
@@ -18558,6 +18215,432 @@ if (typeof sinon == "undefined") {
 });
 
 },{}],31:[function(require,module,exports){
+(function (global){
+/*jslint eqeqeq: false, plusplus: false, evil: true, onevar: false, browser: true, forin: false*/
+/*global global*/
+/**
+ * @author Christian Johansen (christian@cjohansen.no) and contributors
+ * @license BSD
+ *
+ * Copyright (c) 2010-2014 Christian Johansen
+ */
+"use strict";
+
+// node expects setTimeout/setInterval to return a fn object w/ .ref()/.unref()
+// browsers, a number.
+// see https://github.com/cjohansen/Sinon.JS/pull/436
+var timeoutResult = setTimeout(function() {}, 0);
+var addTimerReturnsObject = typeof timeoutResult === "object";
+clearTimeout(timeoutResult);
+
+var NativeDate = Date;
+var id = 1;
+
+/**
+ * Parse strings like "01:10:00" (meaning 1 hour, 10 minutes, 0 seconds) into
+ * number of milliseconds. This is used to support human-readable strings passed
+ * to clock.tick()
+ */
+function parseTime(str) {
+    if (!str) {
+        return 0;
+    }
+
+    var strings = str.split(":");
+    var l = strings.length, i = l;
+    var ms = 0, parsed;
+
+    if (l > 3 || !/^(\d\d:){0,2}\d\d?$/.test(str)) {
+        throw new Error("tick only understands numbers and 'h:m:s'");
+    }
+
+    while (i--) {
+        parsed = parseInt(strings[i], 10);
+
+        if (parsed >= 60) {
+            throw new Error("Invalid time " + str);
+        }
+
+        ms += parsed * Math.pow(60, (l - i - 1));
+    }
+
+    return ms * 1000;
+}
+
+/**
+ * Used to grok the `now` parameter to createClock.
+ */
+function getEpoch(epoch) {
+    if (!epoch) { return 0; }
+    if (typeof epoch.getTime === "function") { return epoch.getTime(); }
+    if (typeof epoch === "number") { return epoch; }
+    throw new TypeError("now should be milliseconds since UNIX epoch");
+}
+
+function inRange(from, to, timer) {
+    return timer && timer.callAt >= from && timer.callAt <= to;
+}
+
+function mirrorDateProperties(target, source) {
+    if (source.now) {
+        target.now = function now() {
+            return target.clock.now;
+        };
+    } else {
+        delete target.now;
+    }
+
+    if (source.toSource) {
+        target.toSource = function toSource() {
+            return source.toSource();
+        };
+    } else {
+        delete target.toSource;
+    }
+
+    target.toString = function toString() {
+        return source.toString();
+    };
+
+    target.prototype = source.prototype;
+    target.parse = source.parse;
+    target.UTC = source.UTC;
+    target.prototype.toUTCString = source.prototype.toUTCString;
+
+    for (var prop in source) {
+        if (source.hasOwnProperty(prop)) {
+            target[prop] = source[prop];
+        }
+    }
+
+    return target;
+}
+
+function createDate() {
+    function ClockDate(year, month, date, hour, minute, second, ms) {
+        // Defensive and verbose to avoid potential harm in passing
+        // explicit undefined when user does not pass argument
+        switch (arguments.length) {
+        case 0:
+            return new NativeDate(ClockDate.clock.now);
+        case 1:
+            return new NativeDate(year);
+        case 2:
+            return new NativeDate(year, month);
+        case 3:
+            return new NativeDate(year, month, date);
+        case 4:
+            return new NativeDate(year, month, date, hour);
+        case 5:
+            return new NativeDate(year, month, date, hour, minute);
+        case 6:
+            return new NativeDate(year, month, date, hour, minute, second);
+        default:
+            return new NativeDate(year, month, date, hour, minute, second, ms);
+        }
+    }
+
+    return mirrorDateProperties(ClockDate, NativeDate);
+}
+
+function addTimer(clock, timer) {
+    if (typeof timer.func === "undefined") {
+        throw new Error("Callback must be provided to timer calls");
+    }
+
+    if (!clock.timers) {
+        clock.timers = {};
+    }
+
+    timer.id = id++;
+    timer.createdAt = clock.now;
+    timer.callAt = clock.now + (timer.delay || 0);
+
+    clock.timers[timer.id] = timer;
+
+    if (addTimerReturnsObject) {
+        return {
+            id: timer.id,
+            ref: function() {},
+            unref: function() {}
+        };
+    }
+    else {
+        return timer.id;
+    }
+}
+
+function firstTimerInRange(clock, from, to) {
+    var timers = clock.timers, timer = null;
+
+    for (var id in timers) {
+        if (!inRange(from, to, timers[id])) {
+            continue;
+        }
+
+        if (!timer || ~compareTimers(timer, timers[id])) {
+            timer = timers[id];
+        }
+    }
+
+    return timer;
+}
+
+function compareTimers(a, b) {
+    // Sort first by absolute timing
+    if (a.callAt < b.callAt) {
+        return -1;
+    }
+    if (a.callAt > b.callAt) {
+        return 1;
+    }
+
+    // Sort next by immediate, immediate timers take precedence
+    if (a.immediate && !b.immediate) {
+        return -1;
+    }
+    if (!a.immediate && b.immediate) {
+        return 1;
+    }
+
+    // Sort next by creation time, earlier-created timers take precedence
+    if (a.createdAt < b.createdAt) {
+        return -1;
+    }
+    if (a.createdAt > b.createdAt) {
+        return 1;
+    }
+
+    // Sort next by id, lower-id timers take precedence
+    if (a.id < b.id) {
+        return -1;
+    }
+    if (a.id > b.id) {
+        return 1;
+    }
+
+    // As timer ids are unique, no fallback `0` is necessary
+}
+
+function callTimer(clock, timer) {
+    if (typeof timer.interval == "number") {
+        clock.timers[timer.id].callAt += timer.interval;
+    } else {
+        delete clock.timers[timer.id];
+    }
+
+    try {
+        if (typeof timer.func == "function") {
+            timer.func.apply(null, timer.args);
+        } else {
+            eval(timer.func);
+        }
+    } catch (e) {
+        var exception = e;
+    }
+
+    if (!clock.timers[timer.id]) {
+        if (exception) {
+            throw exception;
+        }
+        return;
+    }
+
+    if (exception) {
+        throw exception;
+    }
+}
+
+function uninstall(clock, target) {
+    var method;
+
+    for (var i = 0, l = clock.methods.length; i < l; i++) {
+        method = clock.methods[i];
+
+        if (target[method].hadOwnProperty) {
+            target[method] = clock["_" + method];
+        } else {
+            try {
+                delete target[method];
+            } catch (e) {}
+        }
+    }
+
+    // Prevent multiple executions which will completely remove these props
+    clock.methods = [];
+}
+
+function hijackMethod(target, method, clock) {
+    clock[method].hadOwnProperty = Object.prototype.hasOwnProperty.call(target, method);
+    clock["_" + method] = target[method];
+
+    if (method == "Date") {
+        var date = mirrorDateProperties(clock[method], target[method]);
+        target[method] = date;
+    } else {
+        target[method] = function () {
+            return clock[method].apply(clock, arguments);
+        };
+
+        for (var prop in clock[method]) {
+            if (clock[method].hasOwnProperty(prop)) {
+                target[method][prop] = clock[method][prop];
+            }
+        }
+    }
+
+    target[method].clock = clock;
+}
+
+var timers = {
+    setTimeout: setTimeout,
+    clearTimeout: clearTimeout,
+    setImmediate: (typeof setImmediate !== "undefined" ? setImmediate : undefined),
+    clearImmediate: (typeof clearImmediate !== "undefined" ? clearImmediate: undefined),
+    setInterval: setInterval,
+    clearInterval: clearInterval,
+    Date: Date
+};
+
+var keys = Object.keys || function (obj) {
+    var ks = [];
+    for (var key in obj) {
+        ks.push(key);
+    }
+    return ks;
+};
+
+exports.timers = timers;
+
+var createClock = exports.createClock = function (now) {
+    var clock = {
+        now: getEpoch(now),
+        timeouts: {},
+        Date: createDate()
+    };
+
+    clock.Date.clock = clock;
+
+    clock.setTimeout = function setTimeout(func, timeout) {
+        return addTimer(clock, {
+            func: func,
+            args: Array.prototype.slice.call(arguments, 2),
+            delay: timeout
+        });
+    };
+
+    clock.clearTimeout = function clearTimeout(timerId) {
+        if (!timerId) {
+            // null appears to be allowed in most browsers, and appears to be
+            // relied upon by some libraries, like Bootstrap carousel
+            return;
+        }
+        if (!clock.timers) {
+            clock.timers = [];
+        }
+        // in Node, timerId is an object with .ref()/.unref(), and
+        // its .id field is the actual timer id.
+        if (typeof timerId === "object") {
+            timerId = timerId.id
+        }
+        if (timerId in clock.timers) {
+            delete clock.timers[timerId];
+        }
+    };
+
+    clock.setInterval = function setInterval(func, timeout) {
+        return addTimer(clock, {
+            func: func,
+            args: Array.prototype.slice.call(arguments, 2),
+            delay: timeout,
+            interval: timeout
+        });
+    };
+
+    clock.clearInterval = function clearInterval(timerId) {
+        clock.clearTimeout(timerId);
+    };
+
+    clock.setImmediate = function setImmediate(func) {
+        return addTimer(clock, {
+            func: func,
+            args: Array.prototype.slice.call(arguments, 1),
+            immediate: true
+        });
+    };
+
+    clock.clearImmediate = function clearImmediate(timerId) {
+        clock.clearTimeout(timerId);
+    };
+
+    clock.tick = function tick(ms) {
+        ms = typeof ms == "number" ? ms : parseTime(ms);
+        var tickFrom = clock.now, tickTo = clock.now + ms, previous = clock.now;
+        var timer = firstTimerInRange(clock, tickFrom, tickTo);
+
+        var firstException;
+        while (timer && tickFrom <= tickTo) {
+            if (clock.timers[timer.id]) {
+                tickFrom = clock.now = timer.callAt;
+                try {
+                    callTimer(clock, timer);
+                } catch (e) {
+                    firstException = firstException || e;
+                }
+            }
+
+            timer = firstTimerInRange(clock, previous, tickTo);
+            previous = tickFrom;
+        }
+
+        clock.now = tickTo;
+
+        if (firstException) {
+            throw firstException;
+        }
+
+        return clock.now;
+    };
+
+    clock.reset = function reset() {
+        clock.timers = {};
+    };
+
+    return clock;
+};
+
+exports.install = function install(target, now, toFake) {
+    if (typeof target === "number") {
+        toFake = now;
+        now = target;
+        target = null;
+    }
+
+    if (!target) {
+        target = global;
+    }
+
+    var clock = createClock(now);
+
+    clock.uninstall = function () {
+        uninstall(clock, target);
+    };
+
+    clock.methods = toFake || [];
+
+    if (clock.methods.length === 0) {
+        clock.methods = keys(timers);
+    }
+
+    for (var i = 0, l = clock.methods.length; i < l; i++) {
+        hijackMethod(target, clock.methods[i], clock);
+    }
+
+    return clock;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],32:[function(require,module,exports){
 // transducers-js 0.4.136
 // http://github.com/cognitect-labs/transducers-js
 // 
@@ -20710,7 +20793,7 @@ partitionBy:com.cognitect.transducers.partitionBy, PartitionBy:com.cognitect.tra
 reduce:com.cognitect.transducers.reduce, into:com.cognitect.transducers.into, toFn:com.cognitect.transducers.toFn, first:com.cognitect.transducers.first, ensureReduced:com.cognitect.transducers.ensureReduced, unreduced:com.cognitect.transducers.unreduced, deref:com.cognitect.transducers.deref});
 
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 
 // basic protocol helpers
 
@@ -21568,7 +21651,7 @@ module.exports = {
   LazyTransformer: LazyTransformer
 };
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21704,7 +21787,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":85}],34:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],35:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -21739,7 +21822,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":85}],35:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -21853,7 +21936,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":85}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21961,7 +22044,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":85}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],38:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -21981,7 +22064,7 @@ describe('constant', function() {
 
 
 
-},{"kefir":87}],38:[function(require,module,exports){
+},{"kefir":88}],39:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22172,7 +22255,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":85}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],40:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22236,7 +22319,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":85}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],41:[function(require,module,exports){
 var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22336,7 +22419,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":85}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],42:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22362,7 +22445,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":87}],42:[function(require,module,exports){
+},{"kefir":88}],43:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22611,7 +22694,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],44:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22676,7 +22759,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":85}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],45:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22811,7 +22894,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":85}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],46:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22966,7 +23049,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":85}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],47:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23100,7 +23183,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":85}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],48:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23231,7 +23314,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":85}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],49:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23394,7 +23477,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":85}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],50:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23512,7 +23595,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":85}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],51:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23594,7 +23677,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":85}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],52:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23657,7 +23740,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":85}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],53:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23790,7 +23873,7 @@ describe('fromEvent', function() {
 
 
 
-},{"../test-helpers.coffee":85}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],54:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -23810,7 +23893,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":87}],54:[function(require,module,exports){
+},{"kefir":88}],55:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -23826,7 +23909,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":87}],55:[function(require,module,exports){
+},{"kefir":88}],56:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 _ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser, Kefir = _ref.Kefir;
@@ -24136,7 +24219,7 @@ if (!inBrowser) {
 
 
 
-},{"../test-helpers.coffee":85,"addons/kefir-jquery":86,"jquery":6}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":86,"addons/kefir-jquery":87,"jquery":6}],57:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24152,7 +24235,7 @@ describe('later', function() {
 
 
 
-},{"kefir":87}],57:[function(require,module,exports){
+},{"kefir":88}],58:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24210,7 +24293,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":85}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],59:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -24306,7 +24389,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":85}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],60:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24322,7 +24405,7 @@ describe('never', function() {
 
 
 
-},{"kefir":87}],60:[function(require,module,exports){
+},{"kefir":88}],61:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -24421,7 +24504,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":85}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],62:[function(require,module,exports){
 var Kefir, activate, prop, send, _ref;
 
 _ref = require('../test-helpers.coffee'), prop = _ref.prop, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -24581,7 +24664,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":85}],62:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],63:[function(require,module,exports){
 var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24677,7 +24760,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":85}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],64:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24696,7 +24779,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":87}],64:[function(require,module,exports){
+},{"kefir":88}],65:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -24820,7 +24903,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],65:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],66:[function(require,module,exports){
 var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24910,7 +24993,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":85}],66:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],67:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24929,7 +25012,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":87}],67:[function(require,module,exports){
+},{"kefir":88}],68:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25005,7 +25088,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":85}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],69:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
@@ -25259,7 +25342,7 @@ describe('skipUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],70:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, deactivate = _ref.deactivate, activate = _ref.activate;
@@ -25516,7 +25599,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],71:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25622,7 +25705,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":85}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],72:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25722,7 +25805,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":85}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],73:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25818,7 +25901,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":85}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],74:[function(require,module,exports){
 var Kefir, activate, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -26009,7 +26092,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":85}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],75:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26261,7 +26344,7 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":85}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],76:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26505,7 +26588,7 @@ describe('takeUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],76:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],77:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26754,7 +26837,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],78:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26869,7 +26952,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":85}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],79:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26954,7 +27037,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":85}],79:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],80:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27228,7 +27311,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":85}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],81:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27317,7 +27400,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":85}],81:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],82:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27363,7 +27446,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":85}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],83:[function(require,module,exports){
 var Kefir, comp, noop, prop, send, stream, testWithLib, _ref,
   __slice = [].slice;
 
@@ -27613,7 +27696,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":85,"transducers-js":31,"transducers.js":32}],83:[function(require,module,exports){
+},{"../test-helpers.coffee":86,"transducers-js":32,"transducers.js":33}],84:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27730,7 +27813,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":85}],84:[function(require,module,exports){
+},{"../test-helpers.coffee":86}],85:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -27756,7 +27839,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":87}],85:[function(require,module,exports){
+},{"kefir":88}],86:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -28005,7 +28088,7 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],86:[function(require,module,exports){
+},{"../dist/kefir":1,"sinon":7}],87:[function(require,module,exports){
 /*! An addon for Kefir.js v0.3.0
  *  https://github.com/pozadi/kefir
  */
@@ -28062,6 +28145,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":87}],87:[function(require,module,exports){
+},{"jquery":6,"kefir":88}],88:[function(require,module,exports){
 module.exports=require(1)
-},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85]);
