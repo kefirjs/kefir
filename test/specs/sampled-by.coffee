@@ -89,3 +89,14 @@ describe 'sampledBy', ->
     activate(sb)
     deactivate(sb)
     expect(sb).toEmit [{current: [0, 1, 2]}]
+
+  it 'one sampledBy should remove listeners of another', ->
+    a = send(prop(), [0])
+    b = stream()
+    s1 = a.sampledBy(b)
+    s2 = a.sampledBy(b)
+    activate(s1)
+    activate(s2)
+    deactivate(s2)
+    expect(s1).toEmit [0], ->
+      send(b, [1])

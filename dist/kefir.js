@@ -546,7 +546,8 @@ extend(Subscribers.prototype, {
   },
   remove: function(type, fn, _key) {
     this._items = removeByPred(this._items, function(fnData) {
-      return fnData.type === type && (fnData.key === _key || fnData.fn === fn);
+      return fnData.type === type &&
+        (fnData.fn === fn || isEqualArrays(fnData.key, _key));
     });
   },
   callAll: function(event) {
@@ -918,11 +919,11 @@ inherit(_AbstractPool, Stream, {
   _sub: function(obs) {
     var $ = this;
     obs.onAny(this._$handleSubAny);
-    obs.onEnd(function() {  $._removeCur(obs)  }, obs);
+    obs.onEnd(function() {  $._removeCur(obs)  }, [this, obs]);
   },
   _unsub: function(obs) {
     obs.offAny(this._$handleSubAny);
-    obs.offEnd(null, obs);
+    obs.offEnd(null, [this, obs]);
   },
   _handleSubAny: function(event) {
     if (event.type === VALUE) {
@@ -1228,7 +1229,7 @@ inherit(SampledBy, Stream, {
     this._aliveCount = length - this._passiveCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny(bind_SampledBy_handleAny(this, i), this._sources[i]);
+      this._sources[i].onAny(bind_SampledBy_handleAny(this, i), [this, i]);
     }
     this._activating = false;
     if (this._emitAfterActivation) {
@@ -1244,7 +1245,7 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].offAny(null, this._sources[i]);
+      this._sources[i].offAny(null, [this, i]);
     }
   },
 

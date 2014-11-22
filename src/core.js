@@ -39,7 +39,8 @@ extend(Subscribers.prototype, {
   },
   remove: function(type, fn, _key) {
     this._items = removeByPred(this._items, function(fnData) {
-      return fnData.type === type && (fnData.key === _key || fnData.fn === fn);
+      return fnData.type === type &&
+        (fnData.fn === fn || isEqualArrays(fnData.key, _key));
     });
   },
   callAll: function(event) {
