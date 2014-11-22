@@ -15,18 +15,12 @@
         transformer = selector;
         selector = null;
       }
-      transformer = transformer && Kefir.Fn(transformer);
       return Kefir.fromBinder(function(emitter) {
-        var onEvent;
-        if (transformer) {
-          onEvent = function() {
-            emitter.emit(transformer.applyWithContext(this, arguments));
-          };
-        } else {
-          onEvent = emitter.emit;
-        }
+        var onEvent = transformer ?
+          function() {  emitter.emit(transformer.apply(this, arguments))  } :
+          emitter.emit;
         $el.on(eventName, selector, onEvent);
-        return ['off', $el, eventName, selector, onEvent];
+        return function() {  $el.off(eventName, selector, onEvent)  };
       }).setName('asKefirStream');
     }
 
@@ -38,9 +32,8 @@
         getter = selector;
         selector = null;
       }
-      getter = Kefir.Fn(getter);
       return this.asKefirStream(eventName, selector, getter)
-        .toProperty(getter.invoke())
+        .toProperty(getter())
         .setName('asKefirProperty');
     }
 

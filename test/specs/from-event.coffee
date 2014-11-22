@@ -89,27 +89,3 @@ describe 'fromEvent', ->
       target.fooListener.call({a:1})
       target.fooListener.call({b:1}, 1)
       target.fooListener.call({c:1}, 1, 2)
-
-  it 'should accept optional transformer and call it properly (array fn)', ->
-    target = domTarget()
-    a = Kefir.fromEvent(target, 'foo', [((a, b) -> [this, a, b]), null, 0])
-    expect(a).toEmit [
-      [{a: 1}, 0, undefined]
-      [{b: 1}, 0, 1]
-      [{c: 1}, 0, 1]
-    ], ->
-      target.fooListener.call({a:1})
-      target.fooListener.call({b:1}, 1)
-      target.fooListener.call({c:1}, 1, 2)
-
-  it 'should accept optional transformer and call it properly (array fn + context)', ->
-    target = domTarget()
-    a = Kefir.fromEvent(target, 'foo', [((a, b) -> [this, a, b]), {x:1}, 0])
-    expect(a).toEmit [
-      [{x: 1}, 0, undefined]
-      [{x: 1}, 0, 1]
-      [{x: 1}, 0, 1]
-    ], ->
-      target.fooListener.call({a:1})
-      target.fooListener.call({b:1}, 1)
-      target.fooListener.call({c:1}, 1, 2)

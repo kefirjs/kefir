@@ -42,10 +42,3 @@ describe 'fromCallback', ->
     expect(
       Kefir.fromCallback (cb) -> cb(1)
     ).toEmit [{current: 1}, '<end:current>']
-
-  it 'should accept an array form of function', ->
-    obj = {a: 'a'}
-    fn = (b, cb) -> cb(@a + b)
-    expect(
-      Kefir.fromCallback [fn, obj, 'b']
-    ).toEmit [{current: 'ab'}, '<end:current>']
