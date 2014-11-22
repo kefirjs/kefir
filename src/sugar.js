@@ -120,6 +120,22 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 
 
+
+// ._fromEvent
+
+Kefir._fromEvent = function(sub, unsub, transformer) {
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ? function() {
+      emitter.emit(apply(transformer, this, arguments));
+    } : emitter.emit;
+    sub(handler);
+    return function() {  unsub(handler)  };
+  });
+}
+
+
+
+
 // .fromEvent
 
 var subUnsubPairs = [
@@ -127,12 +143,6 @@ var subUnsubPairs = [
   ['addListener', 'removeListener'],
   ['on', 'off']
 ];
-
-function wrapEmitter(emitter, transformer) {
-  return function() {
-    emitter.emit(transformer.apply(this, arguments));
-  }
-}
 
 Kefir.fromEvent = function(target, eventName, transformer) {
   var pair, sub, unsub;
@@ -150,11 +160,9 @@ Kefir.fromEvent = function(target, eventName, transformer) {
     throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir.fromBinder(function(emitter) {
-    var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
-    target[sub](eventName, handler);
-    return function() {
-      target[unsub](eventName, handler)
-    };
-  }).setName('fromEvent');
+  return Kefir._fromEvent(
+    function(handler) {  target[sub](eventName, handler)  },
+    function(handler) {  target[unsub](eventName, handler)  },
+    transformer
+  ).setName('fromEvent');
 }
