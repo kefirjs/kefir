@@ -1,3 +1,9 @@
+## next
+
+ - The `seed` argument in `.scan`, `.reduce`, and `.diff` is now optional
+
+
+
 ## 0.3.0
 
  - Removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass them as individual arguments

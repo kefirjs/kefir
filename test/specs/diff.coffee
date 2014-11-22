@@ -29,6 +29,15 @@ describe 'diff', ->
       expect(a.diff null, 0).toEmit [[0,1], [1,3], '<end>'], ->
         send(a, [1, 3, '<end>'])
 
+    it 'if no seed provided uses first value as seed', ->
+      a = stream()
+      expect(a.diff minus).toEmit [-1, -2, '<end>'], ->
+        send(a, [0, 1, 3, '<end>'])
+      a = stream()
+      expect(a.diff()).toEmit [[0,1], [1,3], '<end>'], ->
+        send(a, [0, 1, 3, '<end>'])
+
+
 
 
   describe 'property', ->
@@ -52,5 +61,14 @@ describe 'diff', ->
       a = send(prop(), [1])
       expect(a.diff null, 0).toEmit [{current: [0,1]}, [1,3], [3,6], '<end>'], ->
         send(a, [3, 6, '<end>'])
+
+
+    it 'if no seed provided uses first value as seed', ->
+      a = send(prop(), [0])
+      expect(a.diff minus).toEmit [-1, -2, '<end>'], ->
+        send(a, [1, 3, '<end>'])
+      a = send(prop(), [0])
+      expect(a.diff()).toEmit [[0,1], [1,3], '<end>'], ->
+        send(a, [1, 3, '<end>'])
 
 

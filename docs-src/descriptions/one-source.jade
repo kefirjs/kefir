@@ -360,11 +360,15 @@ div
 
 
 
-+descr-method('diff', 'diff', 'obs.diff([fn], seed)').
++descr-method('diff', 'diff', 'obs.diff([fn], [seed])').
   On each value from original observable calls <b>fn</b>
   function with previous and current value as arguments.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns.
+
+p.
+  If no #[b seed] provided the first value will be used as a seed,
+  and result observable won't emit on first value.
 
 p.
   If you want to omit <b>fn</b> place <tt>null</tt> in its place.
@@ -394,13 +398,17 @@ div
 
 
 
-+descr-method('scan', 'scan', 'obs.scan(fn, seed)').
++descr-method('scan', 'scan', 'obs.scan(fn, [seed])').
   On each value from original
   observable calls <b>fn</b> function with
   previous result returned by <b>fn</b> and
   current value emitted by original observable.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns. Always creates a property.
+
+p.
+  If no #[b seed] provided the first value will be used as a seed,
+  and result observable won't emit on first value.
 
 pre(title='example')
   :escapehtml
@@ -426,8 +434,11 @@ div
 
 
 
-+descr-method('reduce', 'reduce', 'obs.reduce(fn, seed)').
++descr-method('reduce', 'reduce', 'obs.reduce(fn, [seed])').
   Similar to <b>.scan</b>, but emits only last result just before end.
+
+p.
+  If no #[b seed] provided the first value will be used as a seed.
 
 pre(title='example')
   :escapehtml

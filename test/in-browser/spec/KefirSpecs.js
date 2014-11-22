@@ -1738,14 +1738,16 @@ withOneSource('skipWhile', {
 withOneSource('diff', {
   _init: function(args) {
     this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
-    this._prev = args[1];
+    this._prev = args.length > 1 ? args[1] : NOTHING;
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send(VALUE, this._fn(this._prev, x), isCurrent);
+    if (this._prev !== NOTHING) {
+      this._send(VALUE, this._fn(this._prev, x), isCurrent);
+    }
     this._prev = x;
   }
 });
@@ -1759,13 +1761,18 @@ withOneSource('diff', {
 withOneSource('scan', {
   _init: function(args) {
     this._fn = buildFn(args[0], 2);
-    this._send(VALUE, args[1], true);
+    if (args.length > 1) {
+      this._send(VALUE, args[1], true);
+    }
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send(VALUE, this._fn(this._current, x), isCurrent);
+    if (this._current !== NOTHING) {
+      x = this._fn(this._current, x);
+    }
+    this._send(VALUE, x, isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1778,17 +1785,19 @@ withOneSource('scan', {
 withOneSource('reduce', {
   _init: function(args) {
     this._fn = buildFn(args[0], 2);
-    this._result = args[1];
+    this._result = args.length > 1 ? args[1] : NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = this._fn(this._result, x);
+    this._result = (this._result === NOTHING) ? x : this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
-    this._send(VALUE, this._result, isCurrent);
+    if (this._result !== NOTHING) {
+      this._send(VALUE, this._result, isCurrent);
+    }
     this._send(END, null, isCurrent);
   }
 });
@@ -22421,11 +22430,22 @@ describe('diff', function() {
         return send(a, [1, 3, '<end>']);
       });
     });
-    return it('works without fn argument', function() {
+    it('works without fn argument', function() {
       var a;
       a = stream();
       return expect(a.diff(null, 0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
         return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = stream();
+      expect(a.diff(minus)).toEmit([-1, -2, '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
+      });
+      a = stream();
+      return expect(a.diff()).toEmit([[0, 1], [1, 3], '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
       });
     });
   });
@@ -22452,7 +22472,7 @@ describe('diff', function() {
         return send(a, [3, 6, '<end>']);
       });
     });
-    return it('works without fn argument', function() {
+    it('works without fn argument', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.diff(null, 0)).toEmit([
@@ -22461,6 +22481,17 @@ describe('diff', function() {
         }, [1, 3], [3, 6], '<end>'
       ], function() {
         return send(a, [3, 6, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = send(prop(), [0]);
+      expect(a.diff(minus)).toEmit([-1, -2, '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+      a = send(prop(), [0]);
+      return expect(a.diff()).toEmit([[0, 1], [1, 3], '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
       });
     });
   });
@@ -24851,11 +24882,26 @@ describe('reduce', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.reduce(minus, 0)).toEmit([-4, '<end>'], function() {
         return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = stream();
+      expect(a.reduce(minus)).toEmit([-4, '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
+      });
+      a = stream();
+      expect(a.reduce(minus)).toEmit([0, '<end>'], function() {
+        return send(a, [0, '<end>']);
+      });
+      a = stream();
+      return expect(a.reduce(minus)).toEmit(['<end>'], function() {
+        return send(a, ['<end>']);
       });
     });
   });
@@ -24875,12 +24921,29 @@ describe('reduce', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events and current', function() {
+    it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.reduce(minus, 0)).toEmit([-10, '<end>'], function() {
         return send(a, [3, 6, '<end>']);
       });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = send(prop(), [0]);
+      expect(a.reduce(minus)).toEmit([-4, '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+      a = send(prop(), [0]);
+      expect(a.reduce(minus)).toEmit([0, '<end>'], function() {
+        return send(a, ['<end>']);
+      });
+      a = send(prop(), [0, '<end>']);
+      return expect(a.reduce(minus)).toEmit([
+        {
+          current: 0
+        }, '<end:current>'
+      ]);
     });
   });
 });
@@ -25058,7 +25121,7 @@ describe('scan', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.scan(minus, 0)).toEmit([
@@ -25067,6 +25130,13 @@ describe('scan', function() {
         }, -1, -4, '<end>'
       ], function() {
         return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = stream();
+      return expect(a.scan(minus)).toEmit([0, -1, -4, '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
       });
     });
   });
@@ -25086,7 +25156,7 @@ describe('scan', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events and current', function() {
+    it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.scan(minus, 0)).toEmit([
@@ -25095,6 +25165,17 @@ describe('scan', function() {
         }, -4, -10, '<end>'
       ], function() {
         return send(a, [3, 6, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = send(prop(), [0]);
+      return expect(a.scan(minus)).toEmit([
+        {
+          current: 0
+        }, -1, -4, '<end>'
+      ], function() {
+        return send(a, [1, 3, '<end>']);
       });
     });
   });
