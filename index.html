@@ -506,8 +506,7 @@ previous result returned by <b>fn</b> and
 current value emitted by original observable.
 At first time calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns. Always creates a property.
-</p><p>If no <b>seed</b> provided the first value will be used as a seed,
-and result observable won't emit on first value.
+</p><p>If no <b>seed</b> provided the first value will be used as a seed.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
 var result = source.scan(function(prev, next) {
   return next + prev;
