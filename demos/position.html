@@ -107,7 +107,7 @@
     };
   });
 
-  pos.onValue(['css', $('#pos-marker')]);
+  pos.onValue(function(css) {  $('#pos-marker').css(css)  });
 
 &lt;/script&gt;
 
@@ -138,7 +138,7 @@
           };
         });
 
-        pos.onValue(['css', $('#pos-marker')]);
+        pos.onValue(function(css) {  $('#pos-marker').css(css)  });
 
       </script>
 

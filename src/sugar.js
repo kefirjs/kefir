@@ -50,7 +50,6 @@ Observable.prototype.timestamp = function() {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = buildFn(fn, 1);
   return this.map(function(x) {
     fn(x);
     return x;
@@ -106,7 +105,6 @@ Observable.prototype.awaiting = function(other) {
 // .fromCallback
 
 Kefir.fromCallback = function(callbackConsumer) {
-  callbackConsumer = buildFn(callbackConsumer, 1);
   var called = false;
   return Kefir.fromBinder(function(emitter) {
     if (!called) {
@@ -132,14 +130,12 @@ var subUnsubPairs = [
 
 function wrapEmitter(emitter, transformer) {
   return function() {
-    emitter.emit(transformer.applyWithContext(this, arguments));
+    emitter.emit(transformer.apply(this, arguments));
   }
 }
 
 Kefir.fromEvent = function(target, eventName, transformer) {
   var pair, sub, unsub;
-
-  transformer = transformer && Fn(transformer);
 
   for (var i = 0; i < subUnsubPairs.length; i++) {
     pair = subUnsubPairs[i];
@@ -157,6 +153,8 @@ Kefir.fromEvent = function(target, eventName, transformer) {
   return Kefir.fromBinder(function(emitter) {
     var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
     target[sub](eventName, handler);
-    return [unsub, target, eventName, handler];
+    return function() {
+      target[unsub](eventName, handler)
+    };
   }).setName('fromEvent');
 }

@@ -4,7 +4,7 @@
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 1);
+    this._fn = args[0];
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x)  },
@@ -28,7 +28,7 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 0);
+    this._fn = args[0];
   },
   _free: function() {
     this._fn = null;
