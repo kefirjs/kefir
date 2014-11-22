@@ -1294,7 +1294,7 @@ Kefir.sampledBy = function(passive, active, combinator) {
 }
 
 Observable.prototype.sampledBy = function(other, combinator) {
-  return Kefir.sampledBy([this], [other], combinator);
+  return Kefir.sampledBy([this], [other], combinator || id);
 }
 
 

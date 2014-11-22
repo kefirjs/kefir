@@ -778,6 +778,8 @@ from <b>active sources</b>, and only when it has at least one value from each so
 Also it not waits for <b>passive sources</b> to end, only for active.
 </p><p>You can also sample one observable by another like this <tt>a.sampledBy(b, fn)</tt>,
 it is an equivalent of <tt>Kefir.sampledBy([a], [b], fn)</tt>.
+If you omit <b>fn</b>, <tt>function(a, b) {return a}</tt> will be used in
+<tt>a.sampledBy(b)</tt>.
 
 </p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(obss)</code><code class="alias">obs.merge(otherObs)</code>Merges several <b>obss</b> observables into single stream,
 i.e. simply repeats values from each source observable.

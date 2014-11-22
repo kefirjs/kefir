@@ -164,6 +164,8 @@ p.
 p.
   You can also sample one observable by another like this <tt>a.sampledBy(b, fn)</tt>,
   it is an equivalent of <tt>Kefir.sampledBy([a], [b], fn)</tt>.
+  If you omit #[b fn], #[tt function(a, b) {return a}] will be used in
+  <tt>a.sampledBy(b)</tt>.
 
 
 +descr-method('merge', 'merge', 'Kefir.merge(obss)', 'obs.merge(otherObs)').

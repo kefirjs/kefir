@@ -1295,7 +1295,7 @@ Kefir.sampledBy = function(passive, active, combinator) {
 }
 
 Observable.prototype.sampledBy = function(other, combinator) {
-  return Kefir.sampledBy([this], [other], combinator);
+  return Kefir.sampledBy([this], [other], combinator || id);
 }
 
 
@@ -24826,7 +24826,7 @@ describe('sampledBy', function() {
     ]);
     expect(s2).toEmit([
       {
-        current: [1, 2]
+        current: 1
       }, '<end:current>'
     ]);
     expect(s1).toEmit(['<end:current>']);
@@ -24856,7 +24856,7 @@ describe('sampledBy', function() {
     });
     a = stream();
     b = send(prop(), [0]);
-    return expect(a.sampledBy(b)).toEmit([[2, 3], [4, 5], [4, 6], '<end>'], function() {
+    return expect(a.sampledBy(b)).toEmit([2, 4, 4, '<end>'], function() {
       send(b, [1]);
       send(a, [2]);
       send(b, [3]);

@@ -27,7 +27,7 @@ describe 'sampledBy', ->
     s1 = Kefir.sampledBy([a], [b, c])
     s2 = a.sampledBy(b)
     expect(s1).toEmit [{current: [1, 2, 3]}, '<end:current>']
-    expect(s2).toEmit [{current: [1, 2]}, '<end:current>']
+    expect(s2).toEmit [{current: 1}, '<end:current>']
     expect(s1).toEmit ['<end:current>']
     expect(s2).toEmit ['<end:current>']
 
@@ -52,7 +52,7 @@ describe 'sampledBy', ->
       send(d, [7, '<end>'])
     a = stream()
     b = send(prop(), [0])
-    expect(a.sampledBy(b)).toEmit [[2, 3], [4, 5], [4, 6], '<end>'], ->
+    expect(a.sampledBy(b)).toEmit [2, 4, 4, '<end>'], ->
       send(b, [1])
       send(a, [2])
       send(b, [3])
