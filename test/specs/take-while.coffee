@@ -32,6 +32,11 @@ describe 'takeWhile', ->
       expect(a.takeWhile(-> false)).toEmit ['<end>'], ->
         send(a, [1, 2, '<end>'])
 
+    it 'shoud use id as default predicate', ->
+      a = stream()
+      expect(a.takeWhile()).toEmit [1, 2, '<end>'], ->
+        send(a, [1, 2, 0, 5, '<end>'])
+
 
 
 
@@ -64,3 +69,12 @@ describe 'takeWhile', ->
       a = prop()
       expect(a.takeWhile(-> false)).toEmit ['<end>'], ->
         send(a, [1, 2, '<end>'])
+
+    it 'shoud use id as default predicate', ->
+      a = send(prop(), [1])
+      expect(a.takeWhile()).toEmit [{current: 1}, 2, '<end>'], ->
+        send(a, [2, 0, 5, '<end>'])
+      a = send(prop(), [0])
+      expect(a.takeWhile()).toEmit ['<end:current>'], ->
+        send(a, [2, 0, 5, '<end>'])
+

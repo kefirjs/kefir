@@ -107,7 +107,7 @@
 
   var clickPositions = clicks.map(getPosition);
 
-  clickPositions.onValue(['css', $('#pos-marker')]);
+  clickPositions.onValue(function(css) {  $('#pos-marker').css(css)  });
 
 &lt;/script&gt;
 
@@ -140,7 +140,7 @@
 
         var clickPositions = clicks.map(getPosition);
 
-        clickPositions.onValue(['css', $('#pos-marker')]);
+        clickPositions.onValue(function(css) {  $('#pos-marker').css(css)  });
 
       </script>
 

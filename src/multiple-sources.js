@@ -8,6 +8,9 @@ function _AbstractPool(options) {
     throw new Error('options.concurLim can\'t be 0');
   }
 
+  var $ = this;
+  this._$handleSubAny = function(event) {  $._handleSubAny(event)  };
+
   this._queue = [];
   this._curSources = [];
   this._activating = false;
@@ -48,12 +51,13 @@ inherit(_AbstractPool, Stream, {
     if (this._active) {  this._sub(obs)  }
   },
   _sub: function(obs) {
-    obs.onAny([this._handleSubAny, this]);
-    obs.onEnd([this._removeCur, this, obs]);
+    var $ = this;
+    obs.onAny(this._$handleSubAny);
+    obs.onEnd(function() {  $._removeCur(obs)  }, [this, obs]);
   },
   _unsub: function(obs) {
-    obs.offAny([this._handleSubAny, this]);
-    obs.offEnd([this._removeCur, this, obs]);
+    obs.offAny(this._$handleSubAny);
+    obs.offEnd(null, [this, obs]);
   },
   _handleSubAny: function(event) {
     if (event.type === VALUE) {
@@ -110,6 +114,7 @@ inherit(_AbstractPool, Stream, {
     Stream.prototype._clear.call(this);
     this._queue = null;
     this._curSources = null;
+    this._$handleSubAny = null;
   }
 
 });
@@ -240,9 +245,12 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? buildFn(fn, 1) : id;
+  this._fn = fn || id;
   this._mainEnded = false;
   this._lastCurrent = null;
+
+  var $ = this;
+  this._$handleMainSource = function(event) {  $._handleMainSource(event)  };
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -250,12 +258,12 @@ inherit(FlatMap, _AbstractPool, {
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
     this._activating = true;
-    this._source.onAny([this._handleMainSource, this]);
+    this._source.onAny(this._$handleMainSource);
     this._activating = false;
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
-    this._source.offAny([this._handleMainSource, this]);
+    this._source.offAny(this._$handleMainSource);
   },
 
   _handleMainSource: function(event) {
@@ -281,6 +289,7 @@ inherit(FlatMap, _AbstractPool, {
     _AbstractPool.prototype._clear.call(this);
     this._source = null;
     this._lastCurrent = null;
+    this._$handleMainSource = null;
   }
 
 });
@@ -328,8 +337,8 @@ function SampledBy(passive, active, combinator) {
     this._send(END);
   } else {
     this._passiveCount = passive.length;
-    this._combinator = combinator ? Fn(combinator) : null;
     this._sources = concat(passive, active);
+    this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
@@ -337,6 +346,11 @@ function SampledBy(passive, active, combinator) {
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
   }
+}
+
+
+function bind_SampledBy_handleAny($, i) {
+  return function(event) {  $._handleAny(i, event)  };
 }
 
 inherit(SampledBy, Stream, {
@@ -349,7 +363,7 @@ inherit(SampledBy, Stream, {
     this._aliveCount = length - this._passiveCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny([this._handleAny, this, i]);
+      this._sources[i].onAny(bind_SampledBy_handleAny(this, i), [this, i]);
     }
     this._activating = false;
     if (this._emitAfterActivation) {
@@ -365,16 +379,14 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].offAny([this._handleAny, this, i]);
+      this._sources[i].offAny(null, [this, i]);
     }
   },
 
   _emitIfFull: function(isCurrent) {
     if (!contains(this._currents, NOTHING)) {
       var combined = cloneArray(this._currents);
-      if (this._combinator !== null) {
-        combined = this._combinator.apply(this._currents);
-      }
+      combined = this._combinator(combined);
       this._send(VALUE, combined, isCurrent);
     }
   },
@@ -407,6 +419,7 @@ inherit(SampledBy, Stream, {
     Stream.prototype._clear.call(this);
     this._sources = null;
     this._currents = null;
+    this._combinator = null;
   }
 
 });
@@ -416,7 +429,7 @@ Kefir.sampledBy = function(passive, active, combinator) {
 }
 
 Observable.prototype.sampledBy = function(other, combinator) {
-  return Kefir.sampledBy([this], [other], combinator);
+  return Kefir.sampledBy([this], [other], combinator || id);
 }
 
 

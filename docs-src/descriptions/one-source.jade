@@ -136,6 +136,9 @@ pre(title='events in time').
   result: ---f---t---fX
 div
 
+p.
+  See also #[a(href="#and") and], #[a(href="#or") or].
+
 
 
 +descr-method('timestamp', 'timestamp', 'obs.timestamp()', null, 'obs.map(function(x) {return {value: x, time: new Date().getTime()}})').
@@ -189,9 +192,12 @@ div
 
 
 
-+descr-method('filter', 'filter', 'obs.filter(predicate)').
++descr-method('filter', 'filter', 'obs.filter([predicate])').
   Filters values from original observable
   using given <b>predicate</b> function.
+
+p.
+  If no #[b predicate] provided #[tt function(x) {return x}] will be used.
 
 pre(title='example')
   :escapehtml
@@ -237,10 +243,13 @@ div
 
 
 
-+descr-method('take-while', 'takeWhile', 'obs.takeWhile(predicate)').
++descr-method('take-while', 'takeWhile', 'obs.takeWhile([predicate])').
   Emits values from original observable until given <b>predicate</b>
   function applied to a value returns false.
   Ends when <b>predicate</b> returns false.
+
+p.
+  If no #[b predicate] provided #[tt function(x) {return x}] will be used.
 
 pre(title='example')
   :escapehtml
@@ -284,10 +293,13 @@ div
 
 
 
-+descr-method('skip-while', 'skipWhile', 'obs.skipWhile(predicate)').
++descr-method('skip-while', 'skipWhile', 'obs.skipWhile([predicate])').
   Skips values from original observable until given <b>predicate</b>
   function applied to a value returns false,
   then stops applying <b>predicate</b> to values and emits all of them.
+
+p.
+  If no #[b predicate] provided #[tt function(x) {return x}] will be used.
 
 pre(title='example')
   :escapehtml
@@ -360,11 +372,15 @@ div
 
 
 
-+descr-method('diff', 'diff', 'obs.diff([fn], seed)').
++descr-method('diff', 'diff', 'obs.diff([fn], [seed])').
   On each value from original observable calls <b>fn</b>
   function with previous and current value as arguments.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns.
+
+p.
+  If no #[b seed] provided the first value will be used as a seed,
+  and result observable won't emit on first value.
 
 p.
   If you want to omit <b>fn</b> place <tt>null</tt> in its place.
@@ -394,13 +410,16 @@ div
 
 
 
-+descr-method('scan', 'scan', 'obs.scan(fn, seed)').
++descr-method('scan', 'scan', 'obs.scan(fn, [seed])').
   On each value from original
   observable calls <b>fn</b> function with
   previous result returned by <b>fn</b> and
   current value emitted by original observable.
   At first time calls <b>fn</b> with <b>seed</b> and current value.
   Emits whatever <b>fn</b> returns. Always creates a property.
+
+p.
+  If no #[b seed] provided the first value will be used as a seed.
 
 pre(title='example')
   :escapehtml
@@ -426,8 +445,11 @@ div
 
 
 
-+descr-method('reduce', 'reduce', 'obs.reduce(fn, seed)').
++descr-method('reduce', 'reduce', 'obs.reduce(fn, [seed])').
   Similar to <b>.scan</b>, but emits only last result just before end.
+
+p.
+  If no #[b seed] provided the first value will be used as a seed.
 
 pre(title='example')
   :escapehtml
@@ -445,6 +467,57 @@ pre(title='console output')
 pre(title='events in time').
   source:  ---1---2---2---3 X
   result:  ----------------8X
+div
+
+
+
+
+
++descr-method('map-end', 'mapEnd', 'obs.mapEnd(fn)').
+  Allows you to insert additional value just before observable end.
+  #[b fn] will be called on #[b obs] end with no arguments,
+  and whatever it return will be emitted in result stream before end.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.mapEnd(function() {  return 0  });
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.mapEnd] <value> 1
+    > [sequentially.mapEnd] <value> 2
+    > [sequentially.mapEnd] <value> 3
+    > [sequentially.mapEnd] <value> 0
+    > [sequentially.mapEnd] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3 X
+  result:  ---1---3---30X
+div
+
+
+
+
++descr-method('skip-end', 'skipEnd', 'obs.skipEnd()').
+  Ignores end of source observable.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.skipEnd();
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.skipEnd] <value> 1
+    > [sequentially.skipEnd] <value> 2
+    > [sequentially.skipEnd] <value> 3
+
+pre(title='events in time').
+  source:  ---1---2---3X
+  result:  ---1---3---3---
 div
 
 

@@ -231,25 +231,6 @@ pre(title='events in time').
 div
 
 
-p Another example where we use <a href="#callbacks">an array form of function</a>:
-
-pre(title='example')
-  :escapehtml
-    var url = 'http://pozadi.github.io/kefir/';
-    var stream = Kefir.fromCallback([jQuery.get, null, url]);
-    stream.log();
-
-pre(title='console output')
-  :escapehtml
-    > [fromCallback] <value> <!DOCTYPE html><html...
-    > [fromCallback] <end>
-div
-
-pre(title='events in time')
-  :escapehtml
-    stream:  ----("<!DOCTYPE html><html...")X
-div
-
 
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
   Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter

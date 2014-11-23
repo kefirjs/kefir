@@ -1,54 +1,56 @@
 // Subscribers
 
 function Subscribers() {
-  this._fns = [];
+  this._items = [];
 }
 
 extend(Subscribers, {
-  callOne: function(fn, event) {
-    if (fn.type === ANY) {
-      fn.invoke(event);
-    } else if (fn.type === event.type) {
-      if (fn.type === VALUE) {
-        fn.invoke(event.value);
+  callOne: function(fnData, event) {
+    if (fnData.type === ANY) {
+      fnData.fn(event);
+    } else if (fnData.type === event.type) {
+      if (fnData.type === VALUE) {
+        fnData.fn(event.value);
       } else {
-        fn.invoke();
+        fnData.fn();
       }
     }
   },
-  callOnce: function(type, fnMeta, event) {
+  callOnce: function(type, fn, event) {
     if (type === ANY) {
-      applyFnMeta(fnMeta, [event]);
+      fn(event);
     } else if (type === event.type) {
       if (type === VALUE) {
-        applyFnMeta(fnMeta, [event.value]);
+        fn(event.value);
       } else {
-        applyFnMeta(fnMeta, []);
+        fn();
       }
     }
   }
 });
 
 extend(Subscribers.prototype, {
-  add: function(type, fn) {
-    fn = Fn(fn, type === END ? 0 : 1);
-    fn.type = type;
-    this._fns = concat(this._fns, [fn]);
+  add: function(type, fn, _key) {
+    this._items = concat(this._items, [{
+      type: type,
+      fn: fn,
+      key: _key || NOTHING
+    }]);
   },
-  remove: function(type, fn) {
-    fn = Fn(fn);
-    this._fns = removeByPred(this._fns, function(x) {
-      return x.type === type && Fn.isEqual(x, fn);
+  remove: function(type, fn, _key) {
+    this._items = removeByPred(this._items, function(fnData) {
+      return fnData.type === type &&
+        (fnData.fn === fn || isEqualArrays(fnData.key, _key));
     });
   },
   callAll: function(event) {
-    var fns = this._fns;
-    for (var i = 0; i < fns.length; i++) {
-      Subscribers.callOne(fns[i], event);
+    var items = this._items;
+    for (var i = 0; i < items.length; i++) {
+      Subscribers.callOne(items[i], event);
     }
   },
   isEmpty: function() {
-    return this._fns.length === 0;
+    return this._items.length === 0;
   }
 });
 
@@ -108,9 +110,9 @@ extend(Observable.prototype, {
     }
   },
 
-  on: function(type, fn) {
+  on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn);
+      this._subscribers.add(type, fn, _key);
       this._setActive(true);
     } else {
       Subscribers.callOnce(type, fn, CURRENT_END);
@@ -118,9 +120,9 @@ extend(Observable.prototype, {
     return this;
   },
 
-  off: function(type, fn) {
+  off: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.remove(type, fn);
+      this._subscribers.remove(type, fn, _key);
       if (this._subscribers.isEmpty()) {
         this._setActive(false);
       }
@@ -128,13 +130,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  return this.on(VALUE, fn)   },
-  onEnd:    function(fn) {  return this.on(END, fn)     },
-  onAny:    function(fn) {  return this.on(ANY, fn)     },
+  onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
+  onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
+  onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
 
-  offValue: function(fn) {  return this.off(VALUE, fn)  },
-  offEnd:   function(fn) {  return this.off(END, fn)    },
-  offAny:   function(fn) {  return this.off(ANY, fn)    }
+  offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
+  offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
+  offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
 
 });
 
@@ -191,9 +193,9 @@ inherit(Property, Observable, {
     }
   },
 
-  on: function(type, fn) {
+  on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn);
+      this._subscribers.add(type, fn, _key);
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
@@ -214,21 +216,21 @@ inherit(Property, Observable, {
 
 // Log
 
-function logCb(name, event) {
-  var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-  if (event.type === VALUE) {
-    console.log(name, typeStr, event.value);
-  } else {
-    console.log(name, typeStr);
-  }
-}
-
 Observable.prototype.log = function(name) {
-  this.onAny([logCb, null, name || this.toString()]);
+  name = name || this.toString();
+  this.onAny(function(event) {
+    var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
+    if (event.type === VALUE) {
+      console.log(name, typeStr, event.value);
+    } else {
+      console.log(name, typeStr);
+    }
+  }, '__logKey__' + name);
   return this;
 }
 
 Observable.prototype.offLog = function(name) {
-  this.offAny([logCb, null, name || this.toString()]);
+  name = name || this.toString();
+  this.offAny(null, '__logKey__' + name);
   return this;
 }

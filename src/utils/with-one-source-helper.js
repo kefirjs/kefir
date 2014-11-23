@@ -31,11 +31,11 @@ function withOneSource(name, mixin, options) {
 
     _onActivation: function() {
       this._onActivationHook();
-      this._source.onAny([this._handleAny, this]);
+      this._source.onAny(this._$handleAny);
     },
     _onDeactivation: function() {
       this._onDeactivationHook();
-      this._source.offAny([this._handleAny, this]);
+      this._source.offAny(this._$handleAny);
     }
   }, mixin || {});
 
@@ -47,12 +47,15 @@ function withOneSource(name, mixin, options) {
       this._source = source;
       this._name = source._name + '.' + name;
       this._init(args);
+      var $ = this;
+      this._$handleAny = function(event) {  $._handleAny(event)  }
     }
 
     inherit(AnonymousObservable, BaseClass, {
       _clear: function() {
         BaseClass.prototype._clear.call(this);
         this._source = null;
+        this._$handleAny = null;
         this._free();
       }
     }, mixin);
