@@ -459,6 +459,57 @@ div
 
 
 
+
+
++descr-method('map-end', 'mapEnd', 'obs.mapEnd(fn)').
+  Allows you to insert additional value just before observable end.
+  #[b fn] will be called on #[b obs] end with no arguments,
+  and whatever it return will be emitted in result stream before end.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.mapEnd(function() {  return 0  });
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.mapEnd] <value> 1
+    > [sequentially.mapEnd] <value> 2
+    > [sequentially.mapEnd] <value> 3
+    > [sequentially.mapEnd] <value> 0
+    > [sequentially.mapEnd] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3--- X
+  result:  ---1---3---3---0X
+div
+
+
+
+
++descr-method('skip-end', 'skipEnd', 'obs.skipEnd()').
+  Ignores end of source observable.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.skipEnd();
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.skipEnd] <value> 1
+    > [sequentially.skipEnd] <value> 2
+    > [sequentially.skipEnd] <value> 3
+
+pre(title='events in time').
+  source:  ---1---2---3--- X
+  result:  ---1---3---3------
+div
+
+
+
 +descr-method('sliding-window', 'slidingWindow', 'obs.slidingWindow(max, [min])').
   Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
   where <b>n</b> is between <b>max</b> and <b>min</b> arguments.

@@ -333,6 +333,33 @@ withOneSource('reduce', {
 
 
 
+// .mapEnd(fn)
+
+withOneSource('mapEnd', {
+  _init: function(args) {
+    this._fn = args[0];
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleEnd: function(__, isCurrent) {
+    this._send(VALUE, this._fn(), isCurrent);
+    this._send(END, null, isCurrent);
+  }
+});
+
+
+
+
+// .skipEnd()
+
+withOneSource('skipEnd', {
+  _handleEnd: function(__, isCurrent) {}
+});
+
+
+
+
 // .slidingWindow(max[, min])
 
 withOneSource('slidingWindow', {

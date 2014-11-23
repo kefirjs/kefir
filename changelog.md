@@ -3,7 +3,8 @@
  - The `seed` argument in `.scan`, `.reduce`, and `.diff` is now optional
  - Removed support of ["array functions"](https://github.com/pozadi/kefir/blob/2edf32a82d5b24ecb6ed99c9bcbd2391b91c8715/docs-src/descriptions/about-callbacks.jade)
  - The default `fn` in `obs.sampledBy(other, fn)` changed from `function(a, b) {return [a, b]}` to `function(a, b) {return a}`. The default `fn` for `Kefir.sampledBy` hasn't changed.
-
+ - New method `.mapEnd(fn)`
+ - New method `.skipEnd()`
 
 
 ## 0.3.0
