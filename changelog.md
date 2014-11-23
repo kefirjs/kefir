@@ -1,4 +1,4 @@
-## next
+## 0.4.0
 
  - The `seed` argument in `.scan`, `.reduce`, and `.diff` is now optional
  - Removed support of ["array functions"](https://github.com/pozadi/kefir/blob/2edf32a82d5b24ecb6ed99c9bcbd2391b91c8715/docs-src/descriptions/about-callbacks.jade)
