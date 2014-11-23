@@ -46,5 +46,5 @@ To run performance tests:
 Kefir follows [Semantic Versioning](http://semver.org/).
 But it still before `1.0.0`, and for now version number follows this rules:
 
-* If major breaking changes introduced, MINOR (middle) number is incremented
-* If there no breaking changes, or only minor, which probably won't affect anybody, PATCH (last) number is incremented
+* If major breaking changes introduced, then MINOR (middle) number is incremented
+* If there are no breaking changes, or only minor, which probably won't affect anybody, then PATCH (last) number is incremented
