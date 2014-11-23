@@ -5,6 +5,7 @@
  - The default `fn` in `obs.sampledBy(other, fn)` changed from `function(a, b) {return [a, b]}` to `function(a, b) {return a}`. The default `fn` for `Kefir.sampledBy` hasn't changed.
  - New method `.mapEnd(fn)`
  - New method `.skipEnd()`
+ - The `fn` argument in `.filter`, `.takeWhile`, and `.skipWhile` is now optional
 
 
 ## 0.3.0

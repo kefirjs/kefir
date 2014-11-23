@@ -1439,7 +1439,7 @@ withOneSource('transduce', {
 
 
 var withFnArgMixin = {
-  _init: function(args) {  this._fn = args[0]  },
+  _init: function(args) {  this._fn = args[0] || id  },
   _free: function() {  this._fn = null  }
 };
 
@@ -1554,7 +1554,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = args[0];
+    this._fn = args[0] || id;
     this._skip = true;
   },
   _free: function() {
@@ -22748,13 +22748,20 @@ describe('filter', function() {
     it('should be ended if source was ended', function() {
       return expect(send(stream(), ['<end>']).filter(function() {})).toEmit(['<end:current>']);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.filter(function(x) {
         return x > 3;
       })).toEmit([4, 5, 6, '<end>'], function() {
         return send(a, [1, 2, 4, 5, 0, 6, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = stream();
+      return expect(a.filter()).toEmit([4, 5, 6, '<end>'], function() {
+        return send(a, [0, 0, 4, 5, 0, 6, '<end>']);
       });
     });
   });
@@ -22783,12 +22790,27 @@ describe('filter', function() {
         return send(a, [4, 3, 2, 1, '<end>']);
       });
     });
-    return it('should handle current (not pass)', function() {
+    it('should handle current (not pass)', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.filter(function(x) {
         return x > 2;
       })).toEmit([]);
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = send(prop(), [0]);
+      expect(a.filter()).toEmit([4, 5, 6, '<end>'], function() {
+        return send(a, [0, 4, 5, 0, 6, '<end>']);
+      });
+      a = send(prop(), [1]);
+      return expect(a.filter()).toEmit([
+        {
+          current: 1
+        }, 4, 5, 6, '<end>'
+      ], function() {
+        return send(a, [0, 4, 5, 0, 6, '<end>']);
+      });
     });
   });
 });
@@ -25826,13 +25848,20 @@ describe('skipWhile', function() {
         return send(a, [1, 2, 3, '<end>']);
       });
     });
-    return it('should handle events (`(x) -> x < 3`)', function() {
+    it('should handle events (`(x) -> x < 3`)', function() {
       var a;
       a = stream();
       return expect(a.skipWhile(function(x) {
         return x < 3;
       })).toEmit([3, 4, 5, '<end>'], function() {
         return send(a, [1, 2, 3, 4, 5, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = stream();
+      return expect(a.skipWhile()).toEmit([0, 4, 5, '<end>'], function() {
+        return send(a, [1, 2, 0, 4, 5, '<end>']);
       });
     });
   });
@@ -25876,13 +25905,28 @@ describe('skipWhile', function() {
         return send(a, [2, 3, '<end>']);
       });
     });
-    return it('should handle events and current (`(x) -> x < 3`)', function() {
+    it('should handle events and current (`(x) -> x < 3`)', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.skipWhile(function(x) {
         return x < 3;
       })).toEmit([3, 4, 5, '<end>'], function() {
         return send(a, [2, 3, 4, 5, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = send(prop(), [1]);
+      expect(a.skipWhile()).toEmit([0, 4, 5, '<end>'], function() {
+        return send(a, [2, 0, 4, 5, '<end>']);
+      });
+      a = send(prop(), [0]);
+      return expect(a.skipWhile()).toEmit([
+        {
+          current: 0
+        }, 2, 0, 4, 5, '<end>'
+      ], function() {
+        return send(a, [2, 0, 4, 5, '<end>']);
       });
     });
   });
@@ -27064,13 +27108,20 @@ describe('takeWhile', function() {
         return send(a, [1, 2, '<end>']);
       });
     });
-    return it('should handle events (with `-> false`)', function() {
+    it('should handle events (with `-> false`)', function() {
       var a;
       a = stream();
       return expect(a.takeWhile(function() {
         return false;
       })).toEmit(['<end>'], function() {
         return send(a, [1, 2, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = stream();
+      return expect(a.takeWhile()).toEmit([1, 2, '<end>'], function() {
+        return send(a, [1, 2, 0, 5, '<end>']);
       });
     });
   });
@@ -27123,13 +27174,28 @@ describe('takeWhile', function() {
         return send(a, [2, '<end>']);
       });
     });
-    return it('should handle events (with `-> false`)', function() {
+    it('should handle events (with `-> false`)', function() {
       var a;
       a = prop();
       return expect(a.takeWhile(function() {
         return false;
       })).toEmit(['<end>'], function() {
         return send(a, [1, 2, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = send(prop(), [1]);
+      expect(a.takeWhile()).toEmit([
+        {
+          current: 1
+        }, 2, '<end>'
+      ], function() {
+        return send(a, [2, 0, 5, '<end>']);
+      });
+      a = send(prop(), [0]);
+      return expect(a.takeWhile()).toEmit(['<end:current>'], function() {
+        return send(a, [2, 0, 5, '<end>']);
       });
     });
   });

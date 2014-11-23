@@ -22,6 +22,10 @@ describe 'filter', ->
       expect(a.filter (x) -> x > 3).toEmit [4, 5, 6, '<end>'], ->
         send(a, [1, 2, 4, 5, 0, 6, '<end>'])
 
+    it 'shoud use id as default predicate', ->
+      a = stream()
+      expect(a.filter()).toEmit [4, 5, 6, '<end>'], ->
+        send(a, [0, 0, 4, 5, 0, 6, '<end>'])
 
 
   describe 'property', ->
@@ -44,5 +48,13 @@ describe 'filter', ->
     it 'should handle current (not pass)', ->
       a = send(prop(), [1])
       expect(a.filter (x) -> x > 2).toEmit []
+
+    it 'shoud use id as default predicate', ->
+      a = send(prop(), [0])
+      expect(a.filter()).toEmit [4, 5, 6, '<end>'], ->
+        send(a, [0, 4, 5, 0, 6, '<end>'])
+      a = send(prop(), [1])
+      expect(a.filter()).toEmit [{current: 1}, 4, 5, 6, '<end>'], ->
+        send(a, [0, 4, 5, 0, 6, '<end>'])
 
 

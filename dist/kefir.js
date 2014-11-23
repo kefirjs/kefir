@@ -1438,7 +1438,7 @@ withOneSource('transduce', {
 
 
 var withFnArgMixin = {
-  _init: function(args) {  this._fn = args[0]  },
+  _init: function(args) {  this._fn = args[0] || id  },
   _free: function() {  this._fn = null  }
 };
 
@@ -1553,7 +1553,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = args[0];
+    this._fn = args[0] || id;
     this._skip = true;
   },
   _free: function() {
