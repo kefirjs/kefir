@@ -32,6 +32,11 @@ describe 'skipWhile', ->
       expect(a.skipWhile((x) -> x < 3)).toEmit [3, 4, 5, '<end>'], ->
         send(a, [1, 2, 3, 4, 5, '<end>'])
 
+    it 'shoud use id as default predicate', ->
+      a = stream()
+      expect(a.skipWhile()).toEmit [0, 4, 5, '<end>'], ->
+        send(a, [1, 2, 0, 4, 5, '<end>'])
+
 
 
 
@@ -62,3 +67,11 @@ describe 'skipWhile', ->
       a = send(prop(), [1])
       expect(a.skipWhile((x) -> x < 3)).toEmit [3, 4, 5, '<end>'], ->
         send(a, [2, 3, 4, 5, '<end>'])
+
+    it 'shoud use id as default predicate', ->
+      a = send(prop(), [1])
+      expect(a.skipWhile()).toEmit [0, 4, 5, '<end>'], ->
+        send(a, [2, 0, 4, 5, '<end>'])
+      a = send(prop(), [0])
+      expect(a.skipWhile()).toEmit [{current: 0}, 2, 0, 4, 5, '<end>'], ->
+        send(a, [2, 0, 4, 5, '<end>'])

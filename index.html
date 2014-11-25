@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Kefir.js — fast and light Reactive Programming library for JavaScript inspired by Bacon.js and RxJS</title><meta name="viewport" content="width=device-width, initial-scale=1"><style type="text/css">html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}body{font-size:14px;line-height:22px;background:#f4f4f4;color:#000;min-width:700px}a{color:#476cff;text-decoration:none}a:hover{text-decoration:underline}p{margin:20px 0}h2{padding-top:1em}h2{font-size:20px}h2 small,h2 sup,h2 sub{font-weight:normal}h1 small{color:#b1b1b1;line-height:2}h1 sup{font-weight:normal}table,tr,td{margin:0;padding:0}td,th{padding:2px 14px 2px 0}th{text-align:left}table .rule{padding:5px 0}table .rule:after{content:'';display:block;border-bottom:solid 1px #ddd}ul{list-style-type:square;padding:0 0 0 20px}li{margin-bottom:10px}code,pre,tt{font-family:Monaco, Consolas, "Lucida Console", monospace;font-size:12px;line-height:18px;font-style:normal}tt{padding:0px 3px;background:#fbfbfb;border:1px solid #ddd;zoom:1;font-size:.8em}code{margin-left:20px}pre{font-size:12px;padding:2px 2px 2px 12px;border-left:2px solid #DFDFDF;margin:0 0 30px;overflow:auto;background:#fbfbfb;position:relative}pre[title]:after{content:attr(title);position:absolute;top:0;right:0;padding:0 .5em;font-size:.8em;color:#8b8b8b;background:rgba(251, 251, 251, 0.9)}pre + pre{margin-top:-10px}.sidebar{background:#fff;position:fixed;top:0;left:0;bottom:0;width:240px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:15px 30px 30px;border-right:1px solid #bbb;box-shadow:0 0 20px #ccc;font-family:"Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif}@media (max-width: 1200px){.sidebar{width:170px}}.sidebar a{color:inherit}.toc-title{display:block;font-weight:bold;margin-top:20px;line-height:1.2;margin-bottom:10px}.toc-section{font-size:11px;line-height:14px;margin:5px 0 0 0;padding-left:0px;list-style-type:none}.toc-section li{margin:0 0 3px 0}.toc-section a{text-decoration:none}.toc-section a:hover{text-decoration:underline}.container{max-width:680px;margin:40px 10px 50px 330px;font-family:Helvetica, Arial, sans-serif}@media (max-width: 1200px){.container{margin-left:260px}}.header{font-size:16px;line-height:30px;font-weight:bold;color:inherit}.alias,.shorthand{display:block;margin-left:1em;margin-bottom:.4em}.alias:before,.shorthand:before{content:'Alias:';font-family:Helvetica, Arial, sans-serif;font-style:italic;font-size:1.1em;font-weight:bold;margin-right:.5em}.shorthand:before{content:'Shorthand for:'}p[id]{margin-top:4em}h2[id]:not(.no-extra-padding){margin-top:3em}h2[id] + p[id]{margin-top:3em}.logo-img{width:60px;height:60px;vertical-align:bottom;margin-bottom:-4px}[data-emoji]{width:20px;height:20px;visibility:hidden}[data-emoji][src]{visibility:visible}</style></head><body><div class="sidebar"><a href="#" class="toc-title">Kefir.js</a><ul class="toc-section"><li><a href="#downloads">Downloads</a></li><li><a href="#npm-bower">Install via NPM or Bower</a></li><li><a href="#demos">Demos and examples</a></li></ul><a href="#create-stream" class="toc-title">Create a stream</a><ul class="toc-section"><li>- <a href="#emitter">emitter</a></li><li>- <a href="#never">never</a></li><li>- <a href="#later">later</a></li><li>- <a href="#interval">interval</a></li><li>- <a href="#sequentially">sequentially</a></li><li>- <a href="#repeatedly">repeatedly</a></li><li>- <a href="#from-poll">fromPoll</a></li><li>- <a href="#with-interval">withInterval</a></li><li>- <a href="#from-callback">fromCallback</a></li><li>- <a href="#from-event">fromEvent</a></li><li>- <a href="#from-binder">fromBinder</a></li></ul><a href="#create-property" class="toc-title">Create a property</a><ul class="toc-section"><li>- <a href="#constant">constant</a></li></ul><a href="#jquery" class="toc-title">jQuery addon</a><ul class="toc-section"><li>- <a href="#as-kefir-stream">asKefirStream</a></li><li>- <a href="#as-kefir-property">asKefirProperty</a></li></ul><a href="#convert" class="toc-title">Convert observables</a><ul class="toc-section"><li>- <a href="#to-property">toProperty</a></li><li>- <a href="#changes">changes</a></li></ul><a href="#main-methods" class="toc-title">Main observable methods</a><ul class="toc-section"><li>- <a href="#on-value">onValue</a></li><li>- <a href="#off-value">offValue</a></li><li>- <a href="#on-end">onEnd</a></li><li>- <a href="#off-end">offEnd</a></li><li>- <a href="#on-any">onAny</a></li><li>- <a href="#off-any">offAny</a></li><li>- <a href="#log">log</a></li><li>- <a href="#off-log">offLog</a></li></ul><a href="#modify" class="toc-title">Modify an observable</a><ul class="toc-section"><li>- <a href="#map">map</a></li><li>- <a href="#map-to">mapTo</a></li><li>- <a href="#pluck">pluck</a></li><li>- <a href="#invoke">invoke</a></li><li>- <a href="#not">not</a></li><li>- <a href="#timestamp">timestamp</a></li><li>- <a href="#tap">tap</a></li><li>- <a href="#filter">filter</a></li><li>- <a href="#take">take</a></li><li>- <a href="#take-while">takeWhile</a></li><li>- <a href="#skip">skip</a></li><li>- <a href="#skip-while">skipWhile</a></li><li>- <a href="#skip-duplicates">skipDuplicates</a></li><li>- <a href="#diff">diff</a></li><li>- <a href="#scan">scan</a></li><li>- <a href="#reduce">reduce</a></li><li>- <a href="#sliding-window">slidingWindow</a></li><li>- <a href="#delay">delay</a></li><li>- <a href="#throttle">throttle</a></li><li>- <a href="#debounce">debounce</a></li><li>- <a href="#flatten">flatten</a></li><li>- <a href="#transduce">transduce</a></li><li>- <a href="#with-handler">withHandler</a></li></ul><a href="#combine-observables" class="toc-title">Combine observables</a><ul class="toc-section"><li>- <a href="#combine">combine</a></li><li>- <a href="#and">and</a></li><li>- <a href="#or">or</a></li><li>- <a href="#sampled-by">sampledBy</a></li><li>- <a href="#merge">merge</a></li><li>- <a href="#concat">concat</a></li><li>- <a href="#pool">pool</a></li><li>- <a href="#bus">bus</a></li><li>- <a href="#flat-map">flatMap</a></li><li>- <a href="#flat-map-latest">flatMapLatest</a></li><li>- <a href="#flat-map-first">flatMapFirst</a></li><li>- <a href="#flat-map-concat">flatMapConcat</a></li><li>- <a href="#flat-map-with-concurrency-limit">flatMapConcurLimit</a></li></ul><a href="#combine-two" class="toc-title">Combine two observables</a><ul class="toc-section"><li>- <a href="#filter-by">filterBy</a></li><li>- <a href="#take-while-by">takeWhileBy</a></li><li>- <a href="#skip-while-by">skipWhileBy</a></li><li>- <a href="#skip-until-by">skipUntilBy</a></li><li>- <a href="#take-until-by">takeUntilBy</a></li><li>- <a href="#awaiting">awaiting</a></li></ul><a href="#active-state" class="toc-title">Active state</a><a href="#callbacks" class="toc-title">About callbacks</a><a href="#emitter-object" class="toc-title">Emitter object</a></div><div class="container"><h1><img src="Kefir.svg" class="logo-img"> Kefir.js <sup>0.3.0 (<a href="https://github.com/pozadi/kefir/blob/master/changelog.md">changelog</a>)</sup></h1><p>Kefir &mdash; is an Reactive Programming
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Kefir.js — fast and light Reactive Programming library for JavaScript inspired by Bacon.js and RxJS</title><meta name="viewport" content="width=device-width, initial-scale=1"><style type="text/css">html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}body{font-size:14px;line-height:22px;background:#f4f4f4;color:#000;min-width:700px}a{color:#476cff;text-decoration:none}a:hover{text-decoration:underline}p{margin:20px 0}h2{padding-top:1em}h2{font-size:20px}h2 small,h2 sup,h2 sub{font-weight:normal}h1 small{color:#b1b1b1;line-height:2}h1 sup{font-weight:normal}table,tr,td{margin:0;padding:0}td,th{padding:2px 14px 2px 0}th{text-align:left}table .rule{padding:5px 0}table .rule:after{content:'';display:block;border-bottom:solid 1px #ddd}ul{list-style-type:square;padding:0 0 0 20px}li{margin-bottom:10px}code,pre,tt{font-family:Monaco, Consolas, "Lucida Console", monospace;font-size:12px;line-height:18px;font-style:normal}tt{padding:0px 3px;background:#fbfbfb;border:1px solid #ddd;zoom:1;font-size:.8em}code{margin-left:20px}pre{font-size:12px;padding:2px 2px 2px 12px;border-left:2px solid #DFDFDF;margin:0 0 30px;overflow:auto;background:#fbfbfb;position:relative}pre[title]:after{content:attr(title);position:absolute;top:0;right:0;padding:0 .5em;font-size:.8em;color:#8b8b8b;background:rgba(251, 251, 251, 0.9)}pre + pre{margin-top:-10px}.sidebar{background:#fff;position:fixed;top:0;left:0;bottom:0;width:240px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:15px 30px 30px;border-right:1px solid #bbb;box-shadow:0 0 20px #ccc;font-family:"Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif}@media (max-width: 1200px){.sidebar{width:170px}}.sidebar a{color:inherit}.toc-title{display:block;font-weight:bold;margin-top:20px;line-height:1.2;margin-bottom:10px}.toc-section{font-size:11px;line-height:14px;margin:5px 0 0 0;padding-left:0px;list-style-type:none}.toc-section li{margin:0 0 3px 0}.toc-section a{text-decoration:none}.toc-section a:hover{text-decoration:underline}.container{max-width:680px;margin:40px 10px 50px 330px;font-family:Helvetica, Arial, sans-serif}@media (max-width: 1200px){.container{margin-left:260px}}.header{font-size:16px;line-height:30px;font-weight:bold;color:inherit}.alias,.shorthand{display:block;margin-left:1em;margin-bottom:.4em}.alias:before,.shorthand:before{content:'Alias:';font-family:Helvetica, Arial, sans-serif;font-style:italic;font-size:1.1em;font-weight:bold;margin-right:.5em}.shorthand:before{content:'Shorthand for:'}p[id]{margin-top:4em}h2[id]:not(.no-extra-padding){margin-top:3em}h2[id] + p[id]{margin-top:3em}.logo-img{width:60px;height:60px;vertical-align:bottom;margin-bottom:-4px}[data-emoji]{width:20px;height:20px;visibility:hidden}[data-emoji][src]{visibility:visible}</style></head><body><div class="sidebar"><a href="#" class="toc-title">Kefir.js</a><ul class="toc-section"><li><a href="#downloads">Downloads</a></li><li><a href="#npm-bower">Install via NPM or Bower</a></li><li><a href="#demos">Demos and examples</a></li></ul><a href="#create-stream" class="toc-title">Create a stream</a><ul class="toc-section"><li>- <a href="#emitter">emitter</a></li><li>- <a href="#never">never</a></li><li>- <a href="#later">later</a></li><li>- <a href="#interval">interval</a></li><li>- <a href="#sequentially">sequentially</a></li><li>- <a href="#repeatedly">repeatedly</a></li><li>- <a href="#from-poll">fromPoll</a></li><li>- <a href="#with-interval">withInterval</a></li><li>- <a href="#from-callback">fromCallback</a></li><li>- <a href="#from-event">fromEvent</a></li><li>- <a href="#from-binder">fromBinder</a></li></ul><a href="#create-property" class="toc-title">Create a property</a><ul class="toc-section"><li>- <a href="#constant">constant</a></li></ul><a href="#jquery" class="toc-title">jQuery addon</a><ul class="toc-section"><li>- <a href="#as-kefir-stream">asKefirStream</a></li><li>- <a href="#as-kefir-property">asKefirProperty</a></li></ul><a href="#convert" class="toc-title">Convert observables</a><ul class="toc-section"><li>- <a href="#to-property">toProperty</a></li><li>- <a href="#changes">changes</a></li></ul><a href="#main-methods" class="toc-title">Main observable methods</a><ul class="toc-section"><li>- <a href="#on-value">onValue</a></li><li>- <a href="#off-value">offValue</a></li><li>- <a href="#on-end">onEnd</a></li><li>- <a href="#off-end">offEnd</a></li><li>- <a href="#on-any">onAny</a></li><li>- <a href="#off-any">offAny</a></li><li>- <a href="#log">log</a></li><li>- <a href="#off-log">offLog</a></li></ul><a href="#modify" class="toc-title">Modify an observable</a><ul class="toc-section"><li>- <a href="#map">map</a></li><li>- <a href="#map-to">mapTo</a></li><li>- <a href="#pluck">pluck</a></li><li>- <a href="#invoke">invoke</a></li><li>- <a href="#not">not</a></li><li>- <a href="#timestamp">timestamp</a></li><li>- <a href="#tap">tap</a></li><li>- <a href="#filter">filter</a></li><li>- <a href="#take">take</a></li><li>- <a href="#take-while">takeWhile</a></li><li>- <a href="#skip">skip</a></li><li>- <a href="#skip-while">skipWhile</a></li><li>- <a href="#skip-duplicates">skipDuplicates</a></li><li>- <a href="#diff">diff</a></li><li>- <a href="#scan">scan</a></li><li>- <a href="#reduce">reduce</a></li><li>- <a href="#map-end">mapEnd</a></li><li>- <a href="#skip-end">skipEnd</a></li><li>- <a href="#sliding-window">slidingWindow</a></li><li>- <a href="#delay">delay</a></li><li>- <a href="#throttle">throttle</a></li><li>- <a href="#debounce">debounce</a></li><li>- <a href="#flatten">flatten</a></li><li>- <a href="#transduce">transduce</a></li><li>- <a href="#with-handler">withHandler</a></li></ul><a href="#combine-observables" class="toc-title">Combine observables</a><ul class="toc-section"><li>- <a href="#combine">combine</a></li><li>- <a href="#and">and</a></li><li>- <a href="#or">or</a></li><li>- <a href="#sampled-by">sampledBy</a></li><li>- <a href="#merge">merge</a></li><li>- <a href="#concat">concat</a></li><li>- <a href="#pool">pool</a></li><li>- <a href="#bus">bus</a></li><li>- <a href="#flat-map">flatMap</a></li><li>- <a href="#flat-map-latest">flatMapLatest</a></li><li>- <a href="#flat-map-first">flatMapFirst</a></li><li>- <a href="#flat-map-concat">flatMapConcat</a></li><li>- <a href="#flat-map-with-concurrency-limit">flatMapConcurLimit</a></li></ul><a href="#combine-two" class="toc-title">Combine two observables</a><ul class="toc-section"><li>- <a href="#filter-by">filterBy</a></li><li>- <a href="#take-while-by">takeWhileBy</a></li><li>- <a href="#skip-while-by">skipWhileBy</a></li><li>- <a href="#skip-until-by">skipUntilBy</a></li><li>- <a href="#take-until-by">takeUntilBy</a></li><li>- <a href="#awaiting">awaiting</a></li></ul><a href="#active-state" class="toc-title">Active state</a><a href="#emitter-object" class="toc-title">Emitter object</a></div><div class="container"><h1><img src="Kefir.svg" class="logo-img"> Kefir.js <sup>0.4.0 (<a href="https://github.com/pozadi/kefir/blob/master/changelog.md">changelog</a>)</sup></h1><p>Kefir &mdash; is an Reactive Programming
 library for JavaScript inspired by
 <a href="https://github.com/baconjs/bacon.js">Bacon.js</a>
 and
@@ -16,7 +16,7 @@ and have fun reading
 please help the project by
 <a href="https://github.com/pozadi/kefir/issues/new">filing an issue</a>
 or sending a pull request.
-</p><h2 id="downloads">Downloads <sup>(0.3.0)</sup></h2><table><tr><th rowspan="2" valign="top">Main file</th><td><a href="dist/kefir.js">kefir.js</a></td><td><i>~ 50 kb</i></td></tr><tr><td><a href="dist/kefir.min.js">kefir.min.js</a></td><td><i>~ 7 kb (when gzipped)</i></td></tr><tr id="jquery-addon-download"><th rowspan="2" valign="top">jQuery addon</th><td><a href="dist/addons/kefir-jquery.js">kefir-jquery.js</a></td><td><i>~ 1 kb</i></td></tr><tr><td><a href="dist/addons/kefir-jquery.min.js">kefir-jquery.min.js</a></td><td><i>&lt; 1 kb</i></td></tr><tr><td colspan="3" class="rule"></td></tr><tr><th>All files</th><td><a href="https://github.com/pozadi/kefir/archive/0.3.0.zip">kefir-0.3.0.zip</a></td><td>... including documentation, demos, tests, source maps, etc.</td></tr></table><p>You can also
+</p><h2 id="downloads">Downloads <sup>(0.4.0)</sup></h2><table><tr><th rowspan="2" valign="top">Main file</th><td><a href="dist/kefir.js">kefir.js</a></td><td><i>~ 50 kb</i></td></tr><tr><td><a href="dist/kefir.min.js">kefir.min.js</a></td><td><i>~ 7 kb (when gzipped)</i></td></tr><tr id="jquery-addon-download"><th rowspan="2" valign="top">jQuery addon</th><td><a href="dist/addons/kefir-jquery.js">kefir-jquery.js</a></td><td><i>~ 1 kb</i></td></tr><tr><td><a href="dist/addons/kefir-jquery.min.js">kefir-jquery.min.js</a></td><td><i>&lt; 1 kb</i></td></tr><tr><td colspan="3" class="rule"></td></tr><tr><th>All files</th><td><a href="https://github.com/pozadi/kefir/archive/0.4.0.zip">kefir-0.4.0.zip</a></td><td>... including documentation, demos, tests, source maps, etc.</td></tr></table><p>You can also
 <a href="https://github.com/pozadi/kefir/tree/master/dist">
   get edge versions from GitHub</a>
 (<a href="https://github.com/pozadi/kefir/archive/master.zip">.zip</a>),
@@ -139,11 +139,7 @@ once on first <a href="#active-state">activation</a> of a stream
 stream.log();
 </pre><pre title="console output">&gt; [fromCallback] &lt;value&gt; 1
 &gt; [fromCallback] &lt;end&gt;
-</pre><pre title="events in time">stream:  ----1X</pre><div></div><p>Another example where we use <a href="#callbacks">an array form of function</a>:</p><pre title="example">var url = &#x27;http://pozadi.github.io/kefir/&#x27;;
-var stream = Kefir.fromCallback([jQuery.get, null, url]);
-stream.log();
-</pre><pre title="console output">&gt; [fromCallback] &lt;value&gt; &lt;!DOCTYPE html&gt;&lt;html...
-&gt; [fromCallback] &lt;end&gt;</pre><div></div><pre title="events in time">stream:  ----(&quot;&lt;!DOCTYPE html&gt;&lt;html...&quot;)X</pre><div></div><p id="from-event"><a href="#from-event" class="header">fromEvent</a><code>Kefir.fromEvent(target, eventName, [transform])</code><br/>Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter
+</pre><pre title="events in time">stream:  ----1X</pre><div></div><p id="from-event"><a href="#from-event" class="header">fromEvent</a><code>Kefir.fromEvent(target, eventName, [transform])</code><br/>Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter
 object, or an object that supports event listeners using <tt>on/off</tt> methods.
 You can also pass optional transformation function like in
 <a href="#as-kefir-stream">asKefirStream</a> method.
@@ -380,7 +376,10 @@ result.log();
 &gt; [sequentially.not] &lt;value&gt; false
 &gt; [sequentially.not] &lt;end&gt;
 </pre><pre title="events in time">source: ---t---f---tX
-result: ---f---t---fX</pre><div></div><p id="timestamp"><a href="#timestamp" class="header">timestamp</a><code>obs.timestamp()</code><code class="shorthand">obs.map(function(x) {return {value: x, time: new Date().getTime()}})</code>Wraps each value to object with timestamp of the event.
+result: ---f---t---fX</pre><div></div><p>See also <a href="#and">and</a>, <a href="#or">or</a>.
+
+
+</p><p id="timestamp"><a href="#timestamp" class="header">timestamp</a><code>obs.timestamp()</code><code class="shorthand">obs.map(function(x) {return {value: x, time: new Date().getTime()}})</code>Wraps each value to object with timestamp of the event.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2]);
 var result = source.timestamp();
 result.log();
@@ -405,8 +404,9 @@ result.log();
 &gt; [sequentially.tap] &lt;value&gt; 3
 &gt; [sequentially.tap] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---3X
-result: ---1---2---3X</pre><div></div><p id="filter"><a href="#filter" class="header">filter</a><code>obs.filter(predicate)</code><br/>Filters values from original observable
+result: ---1---2---3X</pre><div></div><p id="filter"><a href="#filter" class="header">filter</a><code>obs.filter([predicate])</code><br/>Filters values from original observable
 using given <b>predicate</b> function.
+</p><p>If no <b>predicate</b> provided <tt>function(x) {return x}</tt> will be used.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.filter(function(x) {  return x &gt; 1  });
 result.log();
@@ -425,9 +425,10 @@ result.log();
 &gt; [sequentially.take] &lt;value&gt; 2
 &gt; [sequentially.take] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---3X
-result: ---1---2X</pre><div></div><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>obs.takeWhile(predicate)</code><br/>Emits values from original observable until given <b>predicate</b>
+result: ---1---2X</pre><div></div><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>obs.takeWhile([predicate])</code><br/>Emits values from original observable until given <b>predicate</b>
 function applied to a value returns false.
 Ends when <b>predicate</b> returns false.
+</p><p>If no <b>predicate</b> provided <tt>function(x) {return x}</tt> will be used.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.takeWhile(function(x) {  return x &lt; 3  });
 result.log();
@@ -444,9 +445,10 @@ result.log();
 </pre><pre title="console output">&gt; [sequentially.skip] &lt;value&gt; 3
 &gt; [sequentially.skip] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---3X
-result: -----------3X</pre><div></div><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>obs.skipWhile(predicate)</code><br/>Skips values from original observable until given <b>predicate</b>
+result: -----------3X</pre><div></div><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>obs.skipWhile([predicate])</code><br/>Skips values from original observable until given <b>predicate</b>
 function applied to a value returns false,
 then stops applying <b>predicate</b> to values and emits all of them.
+</p><p>If no <b>predicate</b> provided <tt>function(x) {return x}</tt> will be used.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 3, 2]);
 var result = source.skipWhile(function(x) {  return x &lt; 3  });
 result.log();
@@ -480,10 +482,12 @@ result.log();
 &gt; [sequentially.skipDuplicates] &lt;value&gt; 1
 &gt; [sequentially.skipDuplicates] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---(2.1)---3---1X
-result: ---1---2-----------3---1X</pre><div></div><p id="diff"><a href="#diff" class="header">diff</a><code>obs.diff([fn], seed)</code><br/>On each value from original observable calls <b>fn</b>
+result: ---1---2-----------3---1X</pre><div></div><p id="diff"><a href="#diff" class="header">diff</a><code>obs.diff([fn], [seed])</code><br/>On each value from original observable calls <b>fn</b>
 function with previous and current value as arguments.
 At first time calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns.
+</p><p>If no <b>seed</b> provided the first value will be used as a seed,
+and result observable won't emit on first value.
 </p><p>If you want to omit <b>fn</b> place <tt>null</tt> in its place.
 If no <b>fn</b> function provided,
 <tt>function(a, b) {return [a, b]}</tt> will be used as default.
@@ -498,12 +502,13 @@ result.log();
 &gt; [sequentially.diff] &lt;value&gt; 1
 &gt; [sequentially.diff] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---2---3X
-result: ---1---1---0---1X</pre><div></div><p id="scan"><a href="#scan" class="header">scan</a><code>obs.scan(fn, seed)</code><br/>On each value from original
+result: ---1---1---0---1X</pre><div></div><p id="scan"><a href="#scan" class="header">scan</a><code>obs.scan(fn, [seed])</code><br/>On each value from original
 observable calls <b>fn</b> function with
 previous result returned by <b>fn</b> and
 current value emitted by original observable.
 At first time calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns. Always creates a property.
+</p><p>If no <b>seed</b> provided the first value will be used as a seed.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
 var result = source.scan(function(prev, next) {
   return next + prev;
@@ -516,7 +521,8 @@ result.log();
 &gt; [sequentially.scan] &lt;value&gt; 8
 &gt; [sequentially.scan] &lt;end&gt;
 </pre><pre title="events in time">source:  ---1---2---2---3X
-result: 0---1---3---5---8X</pre><div></div><p id="reduce"><a href="#reduce" class="header">reduce</a><code>obs.reduce(fn, seed)</code><br/>Similar to <b>.scan</b>, but emits only last result just before end.
+result: 0---1---3---5---8X</pre><div></div><p id="reduce"><a href="#reduce" class="header">reduce</a><code>obs.reduce(fn, [seed])</code><br/>Similar to <b>.scan</b>, but emits only last result just before end.
+</p><p>If no <b>seed</b> provided the first value will be used as a seed.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
 var result = source.reduce(function(prev, next) {
   return next + prev;
@@ -525,7 +531,27 @@ result.log();
 </pre><pre title="console output">&gt; [sequentially.reduce] &lt;value&gt; 8
 &gt; [sequentially.reduce] &lt;end&gt;
 </pre><pre title="events in time">source:  ---1---2---2---3 X
-result:  ----------------8X</pre><div></div><p id="sliding-window"><a href="#sliding-window" class="header">slidingWindow</a><code>obs.slidingWindow(max, [min])</code><br/>Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
+result:  ----------------8X</pre><div></div><p id="map-end"><a href="#map-end" class="header">mapEnd</a><code>obs.mapEnd(fn)</code><br/>Allows you to insert additional value just before observable end.
+<b>fn</b> will be called on <b>obs</b> end with no arguments,
+and whatever it return will be emitted in result stream before end.
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
+var result = source.mapEnd(function() {  return 0  });
+result.log();
+</pre><pre title="console output">&gt; [sequentially.mapEnd] &lt;value&gt; 1
+&gt; [sequentially.mapEnd] &lt;value&gt; 2
+&gt; [sequentially.mapEnd] &lt;value&gt; 3
+&gt; [sequentially.mapEnd] &lt;value&gt; 0
+&gt; [sequentially.mapEnd] &lt;end&gt;
+</pre><pre title="events in time">source:  ---1---2---3 X
+result:  ---1---3---30X</pre><div></div><p id="skip-end"><a href="#skip-end" class="header">skipEnd</a><code>obs.skipEnd()</code><br/>Ignores end of source observable.
+</p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
+var result = source.skipEnd();
+result.log();
+</pre><pre title="console output">&gt; [sequentially.skipEnd] &lt;value&gt; 1
+&gt; [sequentially.skipEnd] &lt;value&gt; 2
+&gt; [sequentially.skipEnd] &lt;value&gt; 3
+</pre><pre title="events in time">source:  ---1---2---3X
+result:  ---1---3---3---</pre><div></div><p id="sliding-window"><a href="#sliding-window" class="header">slidingWindow</a><code>obs.slidingWindow(max, [min])</code><br/>Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
 where <b>n</b> is between <b>max</b> and <b>min</b> arguments.
 By default <b>min</b> equals <tt>0</tt>.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
@@ -725,7 +751,9 @@ a.emit(false);
 b:          -----f-----t-----
 c:          --------t--------
 
-isAllTrue:  --------f--t--f--</pre><div></div><p id="or"><a href="#or" class="header">or</a><code>Kefir.or(obss)</code><code class="alias">obs.or(otherObs)</code>Combines <b>obss</b> observables using <tt>||</tt> (logical or) operator.
+isAllTrue:  --------f--t--f--</pre><div></div><p>See also <a href="#not">not</a>.
+
+</p><p id="or"><a href="#or" class="header">or</a><code>Kefir.or(obss)</code><code class="alias">obs.or(otherObs)</code>Combines <b>obss</b> observables using <tt>||</tt> (logical or) operator.
 </p><pre title="example">var a = Kefir.emitter();
 var b = Kefir.emitter();
 var c = Kefir.emitter();
@@ -744,7 +772,9 @@ a.emit(false);
 b:          -----f-----t-----
 c:          --------t--------
 
-isAnyTrue:  --------t--t--t--</pre><div></div><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObss, activeObss, [fn])</code><code class="alias">obs.sampledBy(otherObs, [fn])</code>Like <a href="#combine">combine</a>, but instead of one array of source
+isAnyTrue:  --------t--t--t--</pre><div></div><p>See also <a href="#not">not</a>.
+
+</p><p id="sampled-by"><a href="#sampled-by" class="header">sampledBy</a><code>Kefir.sampledBy(passiveObss, activeObss, [fn])</code><code class="alias">obs.sampledBy(otherObs, [fn])</code>Like <a href="#combine">combine</a>, but instead of one array of source
 observables it accepts two — <b>passiveObss</b> and <b>activeObss</b>,
 then works just like <b>combine</b> except emits values only on values
 from <b>activeObss</b>. But in <b>fn</b>
@@ -778,6 +808,8 @@ from <b>active sources</b>, and only when it has at least one value from each so
 Also it not waits for <b>passive sources</b> to end, only for active.
 </p><p>You can also sample one observable by another like this <tt>a.sampledBy(b, fn)</tt>,
 it is an equivalent of <tt>Kefir.sampledBy([a], [b], fn)</tt>.
+If you omit <b>fn</b>, <tt>function(a, b) {return a}</tt> will be used in
+<tt>a.sampledBy(b)</tt>.
 
 </p><p id="merge"><a href="#merge" class="header">merge</a><code>Kefir.merge(obss)</code><code class="alias">obs.merge(otherObs)</code>Merges several <b>obss</b> observables into single stream,
 i.e. simply repeats values from each source observable.
@@ -1171,37 +1203,7 @@ For example you can create your own jQuery <tt>.asKefirStream()</tt>
 plugin using <b>emitter</b> and always subscribe to DOM event, even when
 stream has no subscribers. Or you can create your own <tt>.map()</tt>
 combinator that always keeps subscription to its source observable
-(i.e keeps it in active state).</p><h2 id="callbacks">About callbacks</h2><p>In Kefir wherever you pass functions as arguments, you can as well pass
-an array containing <b>this context</b> and <b>additional arguments</b>
-with which function will be called.
-</p><p>It works everywhere in Kefir where function passes as argument,
-for example in <tt>.map(fn)</tt>, <tt>.filter(fn)</tt>,
-<tt>.fromPoll(wait, fn)</tt> — everywhere.
-</p><p>All following code snippets are equivalent.
-</p><pre>someStream.onValue(function(x) {
-  someObj.someMethod(1, 2, x);
-});
-</pre><pre title="equivalent to above">someStream.onValue([someObj.someMethod, someObj, 1, 2]);
-</pre><pre title="equivalent to above">someStream.onValue([&#x27;someMethod&#x27;, someObj, 1, 2]);
-</pre><pre title="also equivalent but slower and consumes more memory than all above">&nbsp;
-someStream.onValue(someObj.someMethod.bind(someObj, 1, 2));
-</pre><p>You can pass method name as a string instead
-of method itself in first position of array.
-Here some real world example where it can be useful:
-</p><pre>isVisibleProperty.onValue(function(x) {
-  $(&#x27;.foo&#x27;).toggleClass(&#x27;is-visible&#x27;, x);
-});
-</pre><pre title="equivalent to above">isVisibleProperty.onValue([&#x27;toggleClass&#x27;, $(&#x27;.foo&#x27;), &#x27;is-visible&#x27;]);
-</pre><p>If you don't need aditional arguments, but only <tt>this</tt> context,
-just don't add them to array: <tt>[foo.bar, foo]</tt>.
-And if you don't need context, pass <tt>null</tt>
-in its place: <tt>[foo, null, 1, 2, 3]</tt>.
-</p><p><img data-emoji="point_up"> In order to unsubscribe from observable,
-you must call <tt>.offValue(fn)</tt> or <tt>.offEnd(fn)</tt>
-with exact same array with which you called
-<tt>.onValue(fn)</tt> or <tt>.onEnd(fn)</tt>.
-</p><pre title="unsubscribe example">someStream.onValue([&#x27;someMethod&#x27;, someObj, 1, 2]);
-someStream.offValue([&#x27;someMethod&#x27;, someObj, 1, 2]);</pre><h2 id="emitter-object">Emitter object</h2><p>Emitter object is an object, that has two methods <b>emit</b> and <b>end</b>.
+(i.e keeps it in active state).</p><h2 id="emitter-object">Emitter object</h2><p>Emitter object is an object, that has two methods <b>emit</b> and <b>end</b>.
 It is used in several places in Kefir as a proxy to emit events to some stream.
 </p><p><b>emiter.emit</b> accepts one argument (any value).<br>
 <b>emiter.end</b> accepts no arguments.<br>
@@ -1241,5 +1243,5 @@ var docWidth = $window.asKefirProperty('resize', function() {
 });
 Kefir.combine([scrollLeft, winWidth, docWidth], function(scrollLeft, winWidth, docWidth) {
   return -Math.min(docWidth - winWidth, Math.max(0, scrollLeft));
-}).skipDuplicates().onValue(['css', $('.sidebar'), 'left']);
+}).skipDuplicates().onValue(function(x) {$('.sidebar').css('left', x)});
 </script><!-- Yandex.Metrika counter --><script type="text/javascript">(function (d, w, c) { (w[c] = w[c] || []).push(function() { try { w.yaCounter26158662 = new Ya.Metrika({id:26158662}); } catch(e) { } }); var n = d.getElementsByTagName("script")[0], s = d.createElement("script"), f = function () { n.parentNode.insertBefore(s, n); }; s.type = "text/javascript"; s.async = true; s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js"; if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); } })(document, window, "yandex_metrika_callbacks");</script><noscript><div><img src="//mc.yandex.ru/watch/26158662" style="position:absolute; left:-9999px;" alt="" /></div></noscript><!-- /Yandex.Metrika counter --></body></html>

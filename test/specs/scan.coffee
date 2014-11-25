@@ -23,6 +23,11 @@ describe 'scan', ->
       expect(a.scan minus, 0).toEmit [{current: 0}, -1, -4, '<end>'], ->
         send(a, [1, 3, '<end>'])
 
+    it 'if no seed provided uses first value as seed', ->
+      a = stream()
+      expect(a.scan minus).toEmit [0, -1, -4, '<end>'], ->
+        send(a, [0, 1, 3, '<end>'])
+
 
 
   describe 'property', ->
@@ -41,5 +46,10 @@ describe 'scan', ->
       a = send(prop(), [1])
       expect(a.scan minus, 0).toEmit [{current: -1}, -4, -10, '<end>'], ->
         send(a, [3, 6, '<end>'])
+
+    it 'if no seed provided uses first value as seed', ->
+      a = send(prop(), [0])
+      expect(a.scan minus).toEmit [{current: 0}, -1, -4, '<end>'], ->
+        send(a, [1, 3, '<end>'])
 
 

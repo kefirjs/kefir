@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v0.3.0
+/*! Kefir.js v0.4.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -166,6 +166,17 @@ function isEqualArrays(a, b) {
   return true;
 }
 
+function spread(fn, length) {
+  switch(length) {
+    case 0:  return function(a) {  return fn()  };
+    case 1:  return function(a) {  return fn(a[0])  };
+    case 2:  return function(a) {  return fn(a[0], a[1])  };
+    case 3:  return function(a) {  return fn(a[0], a[1], a[2])  };
+    case 4:  return function(a) {  return fn(a[0], a[1], a[2], a[3])  };
+    default: return function(a) {  return fn.apply(null, a)  };
+  }
+}
+
 function apply(fn, c, a) {
   var aLength = a ? a.length : 0;
   if (c == null) {
@@ -184,198 +195,6 @@ function apply(fn, c, a) {
     }
   }
 }
-
-function bindWithoutContext(fn, a, length) {
-  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
-  switch (length) {
-    case 0:
-      switch (a.length) {
-        case 0:  return fn;
-        case 1:  return function() {return fn(a0)}
-        case 2:  return function() {return fn(a0, a1)}
-        case 3:  return function() {return fn(a0, a1, a2)}
-        case 4:  return function() {return fn(a0, a1, a2, a3)}
-        default: return function() {return fn.apply(null, a)}
-      }
-      break;
-    case 1:
-      switch (a.length) {
-        case 0:  return fn;
-        case 1:  return function(b0) {return fn(a0, b0)}
-        case 2:  return function(b0) {return fn(a0, a1, b0)}
-        case 3:  return function(b0) {return fn(a0, a1, a2, b0)}
-        case 4:  return function(b0) {return fn(a0, a1, a2, a3, b0)}
-        default: return function(b0) {return fn.apply(null, concat(a, [b0]))}
-      }
-      break;
-    case 2:
-      switch (a.length) {
-        case 0:  return fn;
-        case 1:  return function(b0, b1) {return fn(a0, b0, b1)}
-        case 2:  return function(b0, b1) {return fn(a0, a1, b0, b1)}
-        case 3:  return function(b0, b1) {return fn(a0, a1, a2, b0, b1)}
-        case 4:  return function(b0, b1) {return fn(a0, a1, a2, a3, b0, b1)}
-        default: return function(b0, b1) {return fn.apply(null, concat(a, [b0, b1]))}
-      }
-      break;
-    default:
-      switch (a.length) {
-        case 0:  return fn;
-        default: return function() {return apply(fn, null, concat(a, arguments))}
-      }
-  }
-}
-
-function bindWithContext(fn, c, a, length) {
-  var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
-  switch (length) {
-    case 0:
-      switch (a.length) {
-        case 0:  return function() {return fn.call(c)}
-        default: return function() {return fn.apply(c, a)}
-      }
-      break;
-    case 1:
-      switch (a.length) {
-        case 0:  return function(b0) {return fn.call(c, b0)}
-        case 1:  return function(b0) {return fn.call(c, a0, b0)}
-        case 2:  return function(b0) {return fn.call(c, a0, a1, b0)}
-        case 3:  return function(b0) {return fn.call(c, a0, a1, a2, b0)}
-        case 4:  return function(b0) {return fn.call(c, a0, a1, a2, a3, b0)}
-        default: return function(b0) {return fn.apply(c, concat(a, [b0]))}
-      }
-      break;
-    case 2:
-      switch (a.length) {
-        case 0:  return function(b0, b1) {return fn.call(c, b0, b1)}
-        case 1:  return function(b0, b1) {return fn.call(c, a0, b0, b1)}
-        case 2:  return function(b0, b1) {return fn.call(c, a0, a1, b0, b1)}
-        case 3:  return function(b0, b1) {return fn.call(c, a0, a1, a2, b0, b1)}
-        case 4:  return function(b0, b1) {return fn.call(c, a0, a1, a2, a3, b0, b1)}
-        default: return function(b0, b1) {return fn.apply(c, concat(a, [b0, b1]))}
-      }
-      break;
-    default:
-      switch (a.length) {
-        case 0: return function() {return fn.apply(c, arguments)}
-        default: return function() {return fn.apply(c, concat(a, arguments))}
-      }
-  }
-}
-
-function bind(fn, context, args, boundFunctionLength) {
-  if (context == null) {
-    return bindWithoutContext(fn, args, boundFunctionLength);
-  } else {
-    return bindWithContext(fn, context, args, boundFunctionLength);
-  }
-}
-
-
-
-
-
-
-
-
-// array functions (a.k.a fnMeta) helpers
-
-function normFnMeta(fnMeta) {
-  var fn, context, args;
-  if (fnMeta instanceof _Fn) {
-    return fnMeta;
-  } else {
-    if (isFn(fnMeta)) {
-      return {fn: fnMeta, context: null, args: []};
-    } else {
-      if (isArrayLike(fnMeta)) {
-        context = (fnMeta[1] == null ? null : fnMeta[1]);
-        fn = fnMeta[0];
-        args = rest(fnMeta, 2, []);
-        if (!isFn(fn)) {
-          if (context !== null && isFn(context[fn])) {
-            fn = context[fn];
-          } else {
-            throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
-          }
-        }
-        return {fn: fn, context: context, args: args};
-      } else {
-        throw new Error('Object isn\'t a function, and can\'t be converted to it: ' + fnMeta);
-      }
-    }
-  }
-}
-
-function applyFnMeta(fnMeta, args) {
-  fnMeta = normFnMeta(fnMeta);
-  return apply(fnMeta.fn, fnMeta.context, concat(fnMeta.args, args));
-}
-
-function buildFn(fnMeta, length) {
-  fnMeta = normFnMeta(fnMeta);
-  return bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
-}
-
-function buildFnSpread(fnMeta, length) {
-  fnMeta = normFnMeta(fnMeta);
-  // TODO inline `bind`?
-  var fn = bind(fnMeta.fn, fnMeta.context, fnMeta.args, length);
-  switch (length) {
-    case 0: return function(xs) {return fn()};
-    case 1: return function(xs) {return fn(xs[0])};
-    case 2: return function(xs) {return fn(xs[0], xs[1])};
-    case 3: return function(xs) {return fn(xs[0], xs[1], xs[2])};
-    case 4: return function(xs) {return fn(xs[0], xs[1], xs[2], xs[3])};
-    default: return function(xs) {return fn.apply(null, xs)};
-  }
-}
-
-
-
-
-
-// Fn class
-
-function _Fn(fnMeta, length) {
-  this.context = fnMeta.context;
-  this.fn = fnMeta.fn;
-  this.args = fnMeta.args;
-  this.invoke = bind(this.fn, this.context, this.args, length);
-}
-
-_Fn.prototype.apply = function(args) {
-  return apply(this.invoke, null, args);
-}
-
-_Fn.prototype.applyWithContext = function(context, args) {
-  if (this.context === null) {
-    return apply(this.fn, context, concat(this.args, args));
-  } else {
-    return this.apply(args);
-  }
-}
-
-function Fn(fnMeta, length) {
-  if (fnMeta instanceof _Fn) {
-    return fnMeta;
-  } else {
-    return new _Fn(normFnMeta(fnMeta), length == null ? 100 : length);
-  }
-}
-
-Fn.isEqual = function(a, b) {
-  if (a === b) {
-    return true;
-  }
-  a = Fn(a);
-  b = Fn(b);
-  return a.fn === b.fn &&
-    a.context === b.context &&
-    isEqualArrays(a.args, b.args);
-}
-
-Kefir.Fn = Fn;
 
 function get(map, key, notFound) {
   if (map && key in map) {
@@ -543,11 +362,11 @@ function withOneSource(name, mixin, options) {
 
     _onActivation: function() {
       this._onActivationHook();
-      this._source.onAny([this._handleAny, this]);
+      this._source.onAny(this._$handleAny);
     },
     _onDeactivation: function() {
       this._onDeactivationHook();
-      this._source.offAny([this._handleAny, this]);
+      this._source.offAny(this._$handleAny);
     }
   }, mixin || {});
 
@@ -559,12 +378,15 @@ function withOneSource(name, mixin, options) {
       this._source = source;
       this._name = source._name + '.' + name;
       this._init(args);
+      var $ = this;
+      this._$handleAny = function(event) {  $._handleAny(event)  }
     }
 
     inherit(AnonymousObservable, BaseClass, {
       _clear: function() {
         BaseClass.prototype._clear.call(this);
         this._source = null;
+        this._$handleAny = null;
         this._free();
       }
     }, mixin);
@@ -618,24 +440,25 @@ function withTwoSources(name, mixin /*, options*/) {
 
     _removeSecondary: function() {
       if (this._secondary !== null) {
-        this._secondary.offAny([this._handleSecondaryAny, this]);
+        this._secondary.offAny(this._$handleSecondaryAny);
+        this._$handleSecondaryAny = null;
         this._secondary = null;
       }
     },
 
     _onActivation: function() {
       if (this._secondary !== null) {
-        this._secondary.onAny([this._handleSecondaryAny, this]);
+        this._secondary.onAny(this._$handleSecondaryAny);
       }
       if (this._alive) {
-        this._primary.onAny([this._handlePrimaryAny, this]);
+        this._primary.onAny(this._$handlePrimaryAny);
       }
     },
     _onDeactivation: function() {
       if (this._secondary !== null) {
-        this._secondary.offAny([this._handleSecondaryAny, this]);
+        this._secondary.offAny(this._$handleSecondaryAny);
       }
-      this._primary.offAny([this._handlePrimaryAny, this]);
+      this._primary.offAny(this._$handlePrimaryAny);
     }
   }, mixin || {});
 
@@ -648,6 +471,9 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
+      var $ = this;
+      this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
+      this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
       this._init();
     }
 
@@ -657,6 +483,8 @@ function withTwoSources(name, mixin /*, options*/) {
         this._primary = null;
         this._secondary = null;
         this._lastSecondary = null;
+        this._$handleSecondaryAny = null;
+        this._$handlePrimaryAny = null;
         this._free();
       }
     }, mixin);
@@ -681,54 +509,56 @@ function withTwoSources(name, mixin /*, options*/) {
 // Subscribers
 
 function Subscribers() {
-  this._fns = [];
+  this._items = [];
 }
 
 extend(Subscribers, {
-  callOne: function(fn, event) {
-    if (fn.type === ANY) {
-      fn.invoke(event);
-    } else if (fn.type === event.type) {
-      if (fn.type === VALUE) {
-        fn.invoke(event.value);
+  callOne: function(fnData, event) {
+    if (fnData.type === ANY) {
+      fnData.fn(event);
+    } else if (fnData.type === event.type) {
+      if (fnData.type === VALUE) {
+        fnData.fn(event.value);
       } else {
-        fn.invoke();
+        fnData.fn();
       }
     }
   },
-  callOnce: function(type, fnMeta, event) {
+  callOnce: function(type, fn, event) {
     if (type === ANY) {
-      applyFnMeta(fnMeta, [event]);
+      fn(event);
     } else if (type === event.type) {
       if (type === VALUE) {
-        applyFnMeta(fnMeta, [event.value]);
+        fn(event.value);
       } else {
-        applyFnMeta(fnMeta, []);
+        fn();
       }
     }
   }
 });
 
 extend(Subscribers.prototype, {
-  add: function(type, fn) {
-    fn = Fn(fn, type === END ? 0 : 1);
-    fn.type = type;
-    this._fns = concat(this._fns, [fn]);
+  add: function(type, fn, _key) {
+    this._items = concat(this._items, [{
+      type: type,
+      fn: fn,
+      key: _key || NOTHING
+    }]);
   },
-  remove: function(type, fn) {
-    fn = Fn(fn);
-    this._fns = removeByPred(this._fns, function(x) {
-      return x.type === type && Fn.isEqual(x, fn);
+  remove: function(type, fn, _key) {
+    this._items = removeByPred(this._items, function(fnData) {
+      return fnData.type === type &&
+        (fnData.fn === fn || isEqualArrays(fnData.key, _key));
     });
   },
   callAll: function(event) {
-    var fns = this._fns;
-    for (var i = 0; i < fns.length; i++) {
-      Subscribers.callOne(fns[i], event);
+    var items = this._items;
+    for (var i = 0; i < items.length; i++) {
+      Subscribers.callOne(items[i], event);
     }
   },
   isEmpty: function() {
-    return this._fns.length === 0;
+    return this._items.length === 0;
   }
 });
 
@@ -788,9 +618,9 @@ extend(Observable.prototype, {
     }
   },
 
-  on: function(type, fn) {
+  on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn);
+      this._subscribers.add(type, fn, _key);
       this._setActive(true);
     } else {
       Subscribers.callOnce(type, fn, CURRENT_END);
@@ -798,9 +628,9 @@ extend(Observable.prototype, {
     return this;
   },
 
-  off: function(type, fn) {
+  off: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.remove(type, fn);
+      this._subscribers.remove(type, fn, _key);
       if (this._subscribers.isEmpty()) {
         this._setActive(false);
       }
@@ -808,13 +638,13 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  return this.on(VALUE, fn)   },
-  onEnd:    function(fn) {  return this.on(END, fn)     },
-  onAny:    function(fn) {  return this.on(ANY, fn)     },
+  onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
+  onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
+  onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
 
-  offValue: function(fn) {  return this.off(VALUE, fn)  },
-  offEnd:   function(fn) {  return this.off(END, fn)    },
-  offAny:   function(fn) {  return this.off(ANY, fn)    }
+  offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
+  offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
+  offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
 
 });
 
@@ -871,9 +701,9 @@ inherit(Property, Observable, {
     }
   },
 
-  on: function(type, fn) {
+  on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn);
+      this._subscribers.add(type, fn, _key);
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
@@ -894,22 +724,22 @@ inherit(Property, Observable, {
 
 // Log
 
-function logCb(name, event) {
-  var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-  if (event.type === VALUE) {
-    console.log(name, typeStr, event.value);
-  } else {
-    console.log(name, typeStr);
-  }
-}
-
 Observable.prototype.log = function(name) {
-  this.onAny([logCb, null, name || this.toString()]);
+  name = name || this.toString();
+  this.onAny(function(event) {
+    var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
+    if (event.type === VALUE) {
+      console.log(name, typeStr, event.value);
+    } else {
+      console.log(name, typeStr);
+    }
+  }, '__logKey__' + name);
   return this;
 }
 
 Observable.prototype.offLog = function(name) {
-  this.offAny([logCb, null, name || this.toString()]);
+  name = name || this.toString();
+  this.offAny(null, '__logKey__' + name);
   return this;
 }
 
@@ -919,7 +749,7 @@ Observable.prototype.offLog = function(name) {
 
 withInterval('withInterval', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 1);
+    this._fn = args[0];
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x)  },
@@ -943,7 +773,7 @@ withInterval('withInterval', {
 
 withInterval('fromPoll', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 0);
+    this._fn = args[0];
   },
   _free: function() {
     this._fn = null;
@@ -1045,6 +875,9 @@ function _AbstractPool(options) {
     throw new Error('options.concurLim can\'t be 0');
   }
 
+  var $ = this;
+  this._$handleSubAny = function(event) {  $._handleSubAny(event)  };
+
   this._queue = [];
   this._curSources = [];
   this._activating = false;
@@ -1085,12 +918,13 @@ inherit(_AbstractPool, Stream, {
     if (this._active) {  this._sub(obs)  }
   },
   _sub: function(obs) {
-    obs.onAny([this._handleSubAny, this]);
-    obs.onEnd([this._removeCur, this, obs]);
+    var $ = this;
+    obs.onAny(this._$handleSubAny);
+    obs.onEnd(function() {  $._removeCur(obs)  }, [this, obs]);
   },
   _unsub: function(obs) {
-    obs.offAny([this._handleSubAny, this]);
-    obs.offEnd([this._removeCur, this, obs]);
+    obs.offAny(this._$handleSubAny);
+    obs.offEnd(null, [this, obs]);
   },
   _handleSubAny: function(event) {
     if (event.type === VALUE) {
@@ -1147,6 +981,7 @@ inherit(_AbstractPool, Stream, {
     Stream.prototype._clear.call(this);
     this._queue = null;
     this._curSources = null;
+    this._$handleSubAny = null;
   }
 
 });
@@ -1277,9 +1112,12 @@ Kefir.bus = function() {
 function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn ? buildFn(fn, 1) : id;
+  this._fn = fn || id;
   this._mainEnded = false;
   this._lastCurrent = null;
+
+  var $ = this;
+  this._$handleMainSource = function(event) {  $._handleMainSource(event)  };
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -1287,12 +1125,12 @@ inherit(FlatMap, _AbstractPool, {
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
     this._activating = true;
-    this._source.onAny([this._handleMainSource, this]);
+    this._source.onAny(this._$handleMainSource);
     this._activating = false;
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
-    this._source.offAny([this._handleMainSource, this]);
+    this._source.offAny(this._$handleMainSource);
   },
 
   _handleMainSource: function(event) {
@@ -1318,6 +1156,7 @@ inherit(FlatMap, _AbstractPool, {
     _AbstractPool.prototype._clear.call(this);
     this._source = null;
     this._lastCurrent = null;
+    this._$handleMainSource = null;
   }
 
 });
@@ -1366,7 +1205,7 @@ function SampledBy(passive, active, combinator) {
   } else {
     this._passiveCount = passive.length;
     this._sources = concat(passive, active);
-    this._combinator = combinator ? buildFnSpread(combinator, this._sources.length) : id;
+    this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
     fillArray(this._currents, NOTHING);
@@ -1374,6 +1213,11 @@ function SampledBy(passive, active, combinator) {
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
   }
+}
+
+
+function bind_SampledBy_handleAny($, i) {
+  return function(event) {  $._handleAny(i, event)  };
 }
 
 inherit(SampledBy, Stream, {
@@ -1386,7 +1230,7 @@ inherit(SampledBy, Stream, {
     this._aliveCount = length - this._passiveCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny([this._handleAny, this, i]);
+      this._sources[i].onAny(bind_SampledBy_handleAny(this, i), [this, i]);
     }
     this._activating = false;
     if (this._emitAfterActivation) {
@@ -1402,7 +1246,7 @@ inherit(SampledBy, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].offAny([this._handleAny, this, i]);
+      this._sources[i].offAny(null, [this, i]);
     }
   },
 
@@ -1452,7 +1296,7 @@ Kefir.sampledBy = function(passive, active, combinator) {
 }
 
 Observable.prototype.sampledBy = function(other, combinator) {
-  return Kefir.sampledBy([this], [other], combinator);
+  return Kefir.sampledBy([this], [other], combinator || id);
 }
 
 
@@ -1509,7 +1353,7 @@ withOneSource('changes', {
 
 withOneSource('withHandler', {
   _init: function(args) {
-    this._handler = buildFn(args[0], 2);
+    this._handler = args[0];
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
@@ -1535,7 +1379,7 @@ withOneSource('withHandler', {
 
 withOneSource('flatten', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 1) : id;
+    this._fn = args[0] ? args[0] : id;
   },
   _free: function() {
     this._fn = null;
@@ -1595,7 +1439,7 @@ withOneSource('transduce', {
 
 
 var withFnArgMixin = {
-  _init: function(args) {  this._fn = buildFn(args[0], 1)  },
+  _init: function(args) {  this._fn = args[0] || id  },
   _free: function() {  this._fn = null  }
 };
 
@@ -1687,7 +1531,7 @@ withOneSource('skip', {
 
 withOneSource('skipDuplicates', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : strictEqual;
+    this._fn = args[0] || strictEqual;
     this._prev = NOTHING;
   },
   _free: function() {
@@ -1710,7 +1554,7 @@ withOneSource('skipDuplicates', {
 
 withOneSource('skipWhile', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 1);
+    this._fn = args[0] || id;
     this._skip = true;
   },
   _free: function() {
@@ -1737,15 +1581,17 @@ withOneSource('skipWhile', {
 
 withOneSource('diff', {
   _init: function(args) {
-    this._fn = args[0] ? buildFn(args[0], 2) : defaultDiff;
-    this._prev = args[1];
+    this._fn = args[0] || defaultDiff;
+    this._prev = args.length > 1 ? args[1] : NOTHING;
   },
   _free: function() {
     this._prev = null;
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send(VALUE, this._fn(this._prev, x), isCurrent);
+    if (this._prev !== NOTHING) {
+      this._send(VALUE, this._fn(this._prev, x), isCurrent);
+    }
     this._prev = x;
   }
 });
@@ -1758,14 +1604,19 @@ withOneSource('diff', {
 
 withOneSource('scan', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 2);
-    this._send(VALUE, args[1], true);
+    this._fn = args[0];
+    if (args.length > 1) {
+      this._send(VALUE, args[1], true);
+    }
   },
   _free: function() {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._send(VALUE, this._fn(this._current, x), isCurrent);
+    if (this._current !== NOTHING) {
+      x = this._fn(this._current, x);
+    }
+    this._send(VALUE, x, isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1777,20 +1628,49 @@ withOneSource('scan', {
 
 withOneSource('reduce', {
   _init: function(args) {
-    this._fn = buildFn(args[0], 2);
-    this._result = args[1];
+    this._fn = args[0];
+    this._result = args.length > 1 ? args[1] : NOTHING;
   },
   _free: function() {
     this._fn = null;
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = this._fn(this._result, x);
+    this._result = (this._result === NOTHING) ? x : this._fn(this._result, x);
   },
   _handleEnd: function(__, isCurrent) {
-    this._send(VALUE, this._result, isCurrent);
+    if (this._result !== NOTHING) {
+      this._send(VALUE, this._result, isCurrent);
+    }
     this._send(END, null, isCurrent);
   }
+});
+
+
+
+
+// .mapEnd(fn)
+
+withOneSource('mapEnd', {
+  _init: function(args) {
+    this._fn = args[0];
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleEnd: function(__, isCurrent) {
+    this._send(VALUE, this._fn(), isCurrent);
+    this._send(END, null, isCurrent);
+  }
+});
+
+
+
+
+// .skipEnd()
+
+withOneSource('skipEnd', {
+  _handleEnd: function(__, isCurrent) {}
 });
 
 
@@ -1989,7 +1869,7 @@ withOneSource('delay', {
 
 function FromBinder(fn) {
   Stream.call(this);
-  this._fn = buildFn(fn, 1);
+  this._fn = fn;
   this._unsubscribe = null;
 }
 
@@ -1999,17 +1879,13 @@ inherit(FromBinder, Stream, {
 
   _onActivation: function() {
     var $ = this
-      , unsub
       , isCurrent = true
       , emitter = {
         emit: function(x) {  $._send(VALUE, x, isCurrent)  },
         end: function() {  $._send(END, null, isCurrent)  }
       };
-    unsub = this._fn(emitter);
+    this._unsubscribe = this._fn(emitter) || null;
     isCurrent = false;
-    if (unsub) {
-      this._unsubscribe = buildFn(unsub, 0);
-    }
   },
   _onDeactivation: function() {
     if (this._unsubscribe !== null) {
@@ -2142,7 +2018,6 @@ Observable.prototype.timestamp = function() {
 // .tap
 
 Observable.prototype.tap = function(fn) {
-  fn = buildFn(fn, 1);
   return this.map(function(x) {
     fn(x);
     return x;
@@ -2198,7 +2073,6 @@ Observable.prototype.awaiting = function(other) {
 // .fromCallback
 
 Kefir.fromCallback = function(callbackConsumer) {
-  callbackConsumer = buildFn(callbackConsumer, 1);
   var called = false;
   return Kefir.fromBinder(function(emitter) {
     if (!called) {
@@ -2214,6 +2088,22 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 
 
+
+// ._fromEvent
+
+Kefir._fromEvent = function(sub, unsub, transformer) {
+  return Kefir.fromBinder(function(emitter) {
+    var handler = transformer ? function() {
+      emitter.emit(apply(transformer, this, arguments));
+    } : emitter.emit;
+    sub(handler);
+    return function() {  unsub(handler)  };
+  });
+}
+
+
+
+
 // .fromEvent
 
 var subUnsubPairs = [
@@ -2222,16 +2112,8 @@ var subUnsubPairs = [
   ['on', 'off']
 ];
 
-function wrapEmitter(emitter, transformer) {
-  return function() {
-    emitter.emit(transformer.applyWithContext(this, arguments));
-  }
-}
-
 Kefir.fromEvent = function(target, eventName, transformer) {
   var pair, sub, unsub;
-
-  transformer = transformer && Fn(transformer);
 
   for (var i = 0; i < subUnsubPairs.length; i++) {
     pair = subUnsubPairs[i];
@@ -2246,11 +2128,11 @@ Kefir.fromEvent = function(target, eventName, transformer) {
     throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir.fromBinder(function(emitter) {
-    var handler = transformer ? wrapEmitter(emitter, transformer) : emitter.emit;
-    target[sub](eventName, handler);
-    return [unsub, target, eventName, handler];
-  }).setName('fromEvent');
+  return Kefir._fromEvent(
+    function(handler) {  target[sub](eventName, handler)  },
+    function(handler) {  target[unsub](eventName, handler)  },
+    transformer
+  ).setName('fromEvent');
 }
 
 withTwoSources('filterBy', {
@@ -17038,7 +16920,7 @@ if (typeof sinon == "undefined") {
                     }
 
                     if (request.readyState != 4) {
-                        sinon.fakeServer.log(response, request);
+                        this.log(response, request);
 
                         request.respond(response[0], response[1], response[2]);
                     }
@@ -17074,6 +16956,8 @@ if (typeof sinon == "undefined") {
 
 },{"./core":24,"./fake_xml_http_request":28}],27:[function(require,module,exports){
 (function (global){
+/*global lolex */
+
 /**
  * Fake timer API
  * setTimeout
@@ -17098,372 +16982,27 @@ if (typeof sinon == "undefined") {
 }
 
 (function (global) {
-    // node expects setTimeout/setInterval to return a fn object w/ .ref()/.unref()
-    // browsers, a number.
-    // see https://github.com/cjohansen/Sinon.JS/pull/436
-    var timeoutResult = setTimeout(function () {}, 0);
-    var addTimerReturnsObject = typeof timeoutResult === "object";
-    clearTimeout(timeoutResult);
+    function makeApi(sinon, lol) {
+        var _lolex = typeof lolex !== "undefined" ? lolex : lol;
 
-    var id = 1;
+        sinon.useFakeTimers = function () {
+            var now, methods = Array.prototype.slice.call(arguments);
 
-    function addTimer(args, recurring) {
-        if (args.length === 0) {
-            throw new Error("Function requires at least 1 parameter");
-        }
-
-        if (typeof args[0] === "undefined") {
-            throw new Error("Callback must be provided to timer calls");
-        }
-
-        var toId = id++;
-        var delay = args[1] || 0;
-
-        if (!this.timeouts) {
-            this.timeouts = {};
-        }
-
-        this.timeouts[toId] = {
-            id: toId,
-            func: args[0],
-            callAt: this.now + delay,
-            invokeArgs: Array.prototype.slice.call(args, 2)
-        };
-
-        if (recurring === true) {
-            this.timeouts[toId].interval = delay;
-        }
-
-        if (addTimerReturnsObject) {
-            return {
-                id: toId,
-                ref: function () {},
-                unref: function () {}
-            };
-        } else {
-            return toId;
-        }
-    }
-
-    function parseTime(str) {
-        if (!str) {
-            return 0;
-        }
-
-        var strings = str.split(":");
-        var l = strings.length, i = l;
-        var ms = 0, parsed;
-
-        if (l > 3 || !/^(\d\d:){0,2}\d\d?$/.test(str)) {
-            throw new Error("tick only understands numbers and 'h:m:s'");
-        }
-
-        while (i--) {
-            parsed = parseInt(strings[i], 10);
-
-            if (parsed >= 60) {
-                throw new Error("Invalid time " + str);
-            }
-
-            ms += parsed * Math.pow(60, (l - i - 1));
-        }
-
-        return ms * 1000;
-    }
-
-    function createObject(object) {
-        var newObject;
-
-        if (Object.create) {
-            newObject = Object.create(object);
-        } else {
-            var F = function () {};
-            F.prototype = object;
-            newObject = new F();
-        }
-
-        newObject.Date.clock = newObject;
-        return newObject;
-    }
-
-    function mirrorDateProperties(target, source) {
-        if (source.now) {
-            target.now = function now() {
-                return target.clock.now;
-            };
-        } else {
-            delete target.now;
-        }
-
-        if (source.toSource) {
-            target.toSource = function toSource() {
-                return source.toSource();
-            };
-        } else {
-            delete target.toSource;
-        }
-
-        target.toString = function toString() {
-            return source.toString();
-        };
-
-        target.prototype = source.prototype;
-        target.parse = source.parse;
-        target.UTC = source.UTC;
-        target.prototype.toUTCString = source.prototype.toUTCString;
-
-        for (var prop in source) {
-            if (source.hasOwnProperty(prop)) {
-                target[prop] = source[prop];
-            }
-        }
-
-        return target;
-    }
-
-    var methods = ["Date", "setTimeout", "setInterval",
-                   "clearTimeout", "clearInterval"];
-
-    if (typeof global.setImmediate !== "undefined") {
-        methods.push("setImmediate");
-    }
-
-    if (typeof global.clearImmediate !== "undefined") {
-        methods.push("clearImmediate");
-    }
-
-    function restore() {
-        var method;
-
-        for (var i = 0, l = this.methods.length; i < l; i++) {
-            method = this.methods[i];
-
-            if (global[method].hadOwnProperty) {
-                global[method] = this["_" + method];
+            if (typeof methods[0] === "string") {
+                now = 0;
             } else {
-                try {
-                    delete global[method];
-                } catch (e) {}
+                now = methods.shift();
             }
-        }
 
-        // Prevent multiple executions which will completely remove these props
-        this.methods = [];
-    }
-
-    function stubGlobal(method, clock) {
-        clock[method].hadOwnProperty = Object.prototype.hasOwnProperty.call(global, method);
-        clock["_" + method] = global[method];
-
-        if (method == "Date") {
-            var date = mirrorDateProperties(clock[method], global[method]);
-            global[method] = date;
-        } else {
-            global[method] = function () {
-                return clock[method].apply(clock, arguments);
-            };
-
-            for (var prop in clock[method]) {
-                if (clock[method].hasOwnProperty(prop)) {
-                    global[method][prop] = clock[method][prop];
-                }
-            }
-        }
-
-        global[method].clock = clock;
-    }
-    function makeApi(sinon) {
-        sinon.clock = {
-            now: 0,
-
-            create: function create(now) {
-                var clock = createObject(this);
-
-                if (typeof now == "number") {
-                    clock.now = now;
-                }
-
-                if (!!now && typeof now == "object") {
-                    throw new TypeError("now should be milliseconds since UNIX epoch");
-                }
-
-                return clock;
-            },
-
-            setTimeout: function setTimeout(callback, timeout) {
-                return addTimer.call(this, arguments, false);
-            },
-
-            clearTimeout: function clearTimeout(timerId) {
-                if (!timerId) {
-                    // null appears to be allowed in most browsers, and appears to be relied upon by some libraries, like Bootstrap carousel
-                    return;
-                }
-                if (!this.timeouts) {
-                    this.timeouts = [];
-                }
-                // in Node, timerId is an object with .ref()/.unref(), and
-                // its .id field is the actual timer id.
-                if (typeof timerId === "object") {
-                    timerId = timerId.id
-                }
-                if (timerId in this.timeouts) {
-                    delete this.timeouts[timerId];
-                }
-            },
-
-            setInterval: function setInterval(callback, timeout) {
-                return addTimer.call(this, arguments, true);
-            },
-
-            clearInterval: function clearInterval(timerId) {
-                this.clearTimeout(timerId);
-            },
-
-            setImmediate: function setImmediate(callback) {
-                var passThruArgs = Array.prototype.slice.call(arguments, 1);
-
-                return addTimer.call(this, [callback, 0].concat(passThruArgs), false);
-            },
-
-            clearImmediate: function clearImmediate(timerId) {
-                this.clearTimeout(timerId);
-            },
-
-            tick: function tick(ms) {
-                ms = typeof ms == "number" ? ms : parseTime(ms);
-                var tickFrom = this.now, tickTo = this.now + ms, previous = this.now;
-                var timer = this.firstTimerInRange(tickFrom, tickTo);
-
-                var firstException;
-                while (timer && tickFrom <= tickTo) {
-                    if (this.timeouts[timer.id]) {
-                        tickFrom = this.now = timer.callAt;
-                        try {
-                            this.callTimer(timer);
-                        } catch (e) {
-                            firstException = firstException || e;
-                        }
-                    }
-
-                    timer = this.firstTimerInRange(previous, tickTo);
-                    previous = tickFrom;
-                }
-
-                this.now = tickTo;
-
-                if (firstException) {
-                    throw firstException;
-                }
-
-                return this.now;
-            },
-
-            firstTimerInRange: function (from, to) {
-                var timer, smallest = null, originalTimer;
-
-                for (var id in this.timeouts) {
-                    if (this.timeouts.hasOwnProperty(id)) {
-                        if (this.timeouts[id].callAt < from || this.timeouts[id].callAt > to) {
-                            continue;
-                        }
-
-                        if (smallest === null || this.timeouts[id].callAt < smallest) {
-                            originalTimer = this.timeouts[id];
-                            smallest = this.timeouts[id].callAt;
-
-                            timer = {
-                                func: this.timeouts[id].func,
-                                callAt: this.timeouts[id].callAt,
-                                interval: this.timeouts[id].interval,
-                                id: this.timeouts[id].id,
-                                invokeArgs: this.timeouts[id].invokeArgs
-                            };
-                        }
-                    }
-                }
-
-                return timer || null;
-            },
-
-            callTimer: function (timer) {
-                if (typeof timer.interval == "number") {
-                    this.timeouts[timer.id].callAt += timer.interval;
-                } else {
-                    delete this.timeouts[timer.id];
-                }
-
-                try {
-                    if (typeof timer.func == "function") {
-                        timer.func.apply(null, timer.invokeArgs);
-                    } else {
-                        eval(timer.func);
-                    }
-                } catch (e) {
-                    var exception = e;
-                }
-
-                if (!this.timeouts[timer.id]) {
-                    if (exception) {
-                        throw exception;
-                    }
-                    return;
-                }
-
-                if (exception) {
-                    throw exception;
-                }
-            },
-
-            reset: function reset() {
-                this.timeouts = {};
-            },
-
-            Date: (function () {
-                var NativeDate = Date;
-
-                function ClockDate(year, month, date, hour, minute, second, ms) {
-                    // Defensive and verbose to avoid potential harm in passing
-                    // explicit undefined when user does not pass argument
-                    switch (arguments.length) {
-                    case 0:
-                        return new NativeDate(ClockDate.clock.now);
-                    case 1:
-                        return new NativeDate(year);
-                    case 2:
-                        return new NativeDate(year, month);
-                    case 3:
-                        return new NativeDate(year, month, date);
-                    case 4:
-                        return new NativeDate(year, month, date, hour);
-                    case 5:
-                        return new NativeDate(year, month, date, hour, minute);
-                    case 6:
-                        return new NativeDate(year, month, date, hour, minute, second);
-                    default:
-                        return new NativeDate(year, month, date, hour, minute, second, ms);
-                    }
-                }
-
-                return mirrorDateProperties(ClockDate, NativeDate);
-            }())
+            var clock = _lolex.install(now || 0, methods);
+            clock.restore = clock.uninstall;
+            return clock;
         };
 
-        sinon.useFakeTimers = function useFakeTimers(now) {
-            var clock = sinon.clock.create(now);
-            clock.restore = restore;
-            clock.methods = Array.prototype.slice.call(arguments,
-                                                    typeof now == "number" ? 1 : 0);
-
-            if (clock.methods.length === 0) {
-                clock.methods = methods;
+        sinon.clock = {
+            create: function (now) {
+                return _lolex.createClock(now);
             }
-
-            for (var i = 0, l = clock.methods.length; i < l; i++) {
-                stubGlobal(clock.methods[i], clock);
-            }
-
-            return clock;
         };
 
         sinon.timers = {
@@ -17482,7 +17021,7 @@ if (typeof sinon == "undefined") {
 
     function loadDependencies(require, epxorts, module) {
         var sinon = require("./core");
-        makeApi(sinon);
+        makeApi(sinon, require("lolex"));
         module.exports = sinon;
     }
 
@@ -17496,7 +17035,7 @@ if (typeof sinon == "undefined") {
 }(typeof global != "undefined" && typeof global !== "function" ? global : this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core":24}],28:[function(require,module,exports){
+},{"./core":24,"lolex":31}],28:[function(require,module,exports){
 /**
  * @depend core.js
  * @depend ../extend.js
@@ -18712,6 +18251,432 @@ if (typeof sinon == "undefined") {
 });
 
 },{}],31:[function(require,module,exports){
+(function (global){
+/*jslint eqeqeq: false, plusplus: false, evil: true, onevar: false, browser: true, forin: false*/
+/*global global*/
+/**
+ * @author Christian Johansen (christian@cjohansen.no) and contributors
+ * @license BSD
+ *
+ * Copyright (c) 2010-2014 Christian Johansen
+ */
+"use strict";
+
+// node expects setTimeout/setInterval to return a fn object w/ .ref()/.unref()
+// browsers, a number.
+// see https://github.com/cjohansen/Sinon.JS/pull/436
+var timeoutResult = setTimeout(function() {}, 0);
+var addTimerReturnsObject = typeof timeoutResult === "object";
+clearTimeout(timeoutResult);
+
+var NativeDate = Date;
+var id = 1;
+
+/**
+ * Parse strings like "01:10:00" (meaning 1 hour, 10 minutes, 0 seconds) into
+ * number of milliseconds. This is used to support human-readable strings passed
+ * to clock.tick()
+ */
+function parseTime(str) {
+    if (!str) {
+        return 0;
+    }
+
+    var strings = str.split(":");
+    var l = strings.length, i = l;
+    var ms = 0, parsed;
+
+    if (l > 3 || !/^(\d\d:){0,2}\d\d?$/.test(str)) {
+        throw new Error("tick only understands numbers and 'h:m:s'");
+    }
+
+    while (i--) {
+        parsed = parseInt(strings[i], 10);
+
+        if (parsed >= 60) {
+            throw new Error("Invalid time " + str);
+        }
+
+        ms += parsed * Math.pow(60, (l - i - 1));
+    }
+
+    return ms * 1000;
+}
+
+/**
+ * Used to grok the `now` parameter to createClock.
+ */
+function getEpoch(epoch) {
+    if (!epoch) { return 0; }
+    if (typeof epoch.getTime === "function") { return epoch.getTime(); }
+    if (typeof epoch === "number") { return epoch; }
+    throw new TypeError("now should be milliseconds since UNIX epoch");
+}
+
+function inRange(from, to, timer) {
+    return timer && timer.callAt >= from && timer.callAt <= to;
+}
+
+function mirrorDateProperties(target, source) {
+    if (source.now) {
+        target.now = function now() {
+            return target.clock.now;
+        };
+    } else {
+        delete target.now;
+    }
+
+    if (source.toSource) {
+        target.toSource = function toSource() {
+            return source.toSource();
+        };
+    } else {
+        delete target.toSource;
+    }
+
+    target.toString = function toString() {
+        return source.toString();
+    };
+
+    target.prototype = source.prototype;
+    target.parse = source.parse;
+    target.UTC = source.UTC;
+    target.prototype.toUTCString = source.prototype.toUTCString;
+
+    for (var prop in source) {
+        if (source.hasOwnProperty(prop)) {
+            target[prop] = source[prop];
+        }
+    }
+
+    return target;
+}
+
+function createDate() {
+    function ClockDate(year, month, date, hour, minute, second, ms) {
+        // Defensive and verbose to avoid potential harm in passing
+        // explicit undefined when user does not pass argument
+        switch (arguments.length) {
+        case 0:
+            return new NativeDate(ClockDate.clock.now);
+        case 1:
+            return new NativeDate(year);
+        case 2:
+            return new NativeDate(year, month);
+        case 3:
+            return new NativeDate(year, month, date);
+        case 4:
+            return new NativeDate(year, month, date, hour);
+        case 5:
+            return new NativeDate(year, month, date, hour, minute);
+        case 6:
+            return new NativeDate(year, month, date, hour, minute, second);
+        default:
+            return new NativeDate(year, month, date, hour, minute, second, ms);
+        }
+    }
+
+    return mirrorDateProperties(ClockDate, NativeDate);
+}
+
+function addTimer(clock, timer) {
+    if (typeof timer.func === "undefined") {
+        throw new Error("Callback must be provided to timer calls");
+    }
+
+    if (!clock.timers) {
+        clock.timers = {};
+    }
+
+    timer.id = id++;
+    timer.createdAt = clock.now;
+    timer.callAt = clock.now + (timer.delay || 0);
+
+    clock.timers[timer.id] = timer;
+
+    if (addTimerReturnsObject) {
+        return {
+            id: timer.id,
+            ref: function() {},
+            unref: function() {}
+        };
+    }
+    else {
+        return timer.id;
+    }
+}
+
+function firstTimerInRange(clock, from, to) {
+    var timers = clock.timers, timer = null;
+
+    for (var id in timers) {
+        if (!inRange(from, to, timers[id])) {
+            continue;
+        }
+
+        if (!timer || ~compareTimers(timer, timers[id])) {
+            timer = timers[id];
+        }
+    }
+
+    return timer;
+}
+
+function compareTimers(a, b) {
+    // Sort first by absolute timing
+    if (a.callAt < b.callAt) {
+        return -1;
+    }
+    if (a.callAt > b.callAt) {
+        return 1;
+    }
+
+    // Sort next by immediate, immediate timers take precedence
+    if (a.immediate && !b.immediate) {
+        return -1;
+    }
+    if (!a.immediate && b.immediate) {
+        return 1;
+    }
+
+    // Sort next by creation time, earlier-created timers take precedence
+    if (a.createdAt < b.createdAt) {
+        return -1;
+    }
+    if (a.createdAt > b.createdAt) {
+        return 1;
+    }
+
+    // Sort next by id, lower-id timers take precedence
+    if (a.id < b.id) {
+        return -1;
+    }
+    if (a.id > b.id) {
+        return 1;
+    }
+
+    // As timer ids are unique, no fallback `0` is necessary
+}
+
+function callTimer(clock, timer) {
+    if (typeof timer.interval == "number") {
+        clock.timers[timer.id].callAt += timer.interval;
+    } else {
+        delete clock.timers[timer.id];
+    }
+
+    try {
+        if (typeof timer.func == "function") {
+            timer.func.apply(null, timer.args);
+        } else {
+            eval(timer.func);
+        }
+    } catch (e) {
+        var exception = e;
+    }
+
+    if (!clock.timers[timer.id]) {
+        if (exception) {
+            throw exception;
+        }
+        return;
+    }
+
+    if (exception) {
+        throw exception;
+    }
+}
+
+function uninstall(clock, target) {
+    var method;
+
+    for (var i = 0, l = clock.methods.length; i < l; i++) {
+        method = clock.methods[i];
+
+        if (target[method].hadOwnProperty) {
+            target[method] = clock["_" + method];
+        } else {
+            try {
+                delete target[method];
+            } catch (e) {}
+        }
+    }
+
+    // Prevent multiple executions which will completely remove these props
+    clock.methods = [];
+}
+
+function hijackMethod(target, method, clock) {
+    clock[method].hadOwnProperty = Object.prototype.hasOwnProperty.call(target, method);
+    clock["_" + method] = target[method];
+
+    if (method == "Date") {
+        var date = mirrorDateProperties(clock[method], target[method]);
+        target[method] = date;
+    } else {
+        target[method] = function () {
+            return clock[method].apply(clock, arguments);
+        };
+
+        for (var prop in clock[method]) {
+            if (clock[method].hasOwnProperty(prop)) {
+                target[method][prop] = clock[method][prop];
+            }
+        }
+    }
+
+    target[method].clock = clock;
+}
+
+var timers = {
+    setTimeout: setTimeout,
+    clearTimeout: clearTimeout,
+    setImmediate: (typeof setImmediate !== "undefined" ? setImmediate : undefined),
+    clearImmediate: (typeof clearImmediate !== "undefined" ? clearImmediate: undefined),
+    setInterval: setInterval,
+    clearInterval: clearInterval,
+    Date: Date
+};
+
+var keys = Object.keys || function (obj) {
+    var ks = [];
+    for (var key in obj) {
+        ks.push(key);
+    }
+    return ks;
+};
+
+exports.timers = timers;
+
+var createClock = exports.createClock = function (now) {
+    var clock = {
+        now: getEpoch(now),
+        timeouts: {},
+        Date: createDate()
+    };
+
+    clock.Date.clock = clock;
+
+    clock.setTimeout = function setTimeout(func, timeout) {
+        return addTimer(clock, {
+            func: func,
+            args: Array.prototype.slice.call(arguments, 2),
+            delay: timeout
+        });
+    };
+
+    clock.clearTimeout = function clearTimeout(timerId) {
+        if (!timerId) {
+            // null appears to be allowed in most browsers, and appears to be
+            // relied upon by some libraries, like Bootstrap carousel
+            return;
+        }
+        if (!clock.timers) {
+            clock.timers = [];
+        }
+        // in Node, timerId is an object with .ref()/.unref(), and
+        // its .id field is the actual timer id.
+        if (typeof timerId === "object") {
+            timerId = timerId.id
+        }
+        if (timerId in clock.timers) {
+            delete clock.timers[timerId];
+        }
+    };
+
+    clock.setInterval = function setInterval(func, timeout) {
+        return addTimer(clock, {
+            func: func,
+            args: Array.prototype.slice.call(arguments, 2),
+            delay: timeout,
+            interval: timeout
+        });
+    };
+
+    clock.clearInterval = function clearInterval(timerId) {
+        clock.clearTimeout(timerId);
+    };
+
+    clock.setImmediate = function setImmediate(func) {
+        return addTimer(clock, {
+            func: func,
+            args: Array.prototype.slice.call(arguments, 1),
+            immediate: true
+        });
+    };
+
+    clock.clearImmediate = function clearImmediate(timerId) {
+        clock.clearTimeout(timerId);
+    };
+
+    clock.tick = function tick(ms) {
+        ms = typeof ms == "number" ? ms : parseTime(ms);
+        var tickFrom = clock.now, tickTo = clock.now + ms, previous = clock.now;
+        var timer = firstTimerInRange(clock, tickFrom, tickTo);
+
+        var firstException;
+        while (timer && tickFrom <= tickTo) {
+            if (clock.timers[timer.id]) {
+                tickFrom = clock.now = timer.callAt;
+                try {
+                    callTimer(clock, timer);
+                } catch (e) {
+                    firstException = firstException || e;
+                }
+            }
+
+            timer = firstTimerInRange(clock, previous, tickTo);
+            previous = tickFrom;
+        }
+
+        clock.now = tickTo;
+
+        if (firstException) {
+            throw firstException;
+        }
+
+        return clock.now;
+    };
+
+    clock.reset = function reset() {
+        clock.timers = {};
+    };
+
+    return clock;
+};
+
+exports.install = function install(target, now, toFake) {
+    if (typeof target === "number") {
+        toFake = now;
+        now = target;
+        target = null;
+    }
+
+    if (!target) {
+        target = global;
+    }
+
+    var clock = createClock(now);
+
+    clock.uninstall = function () {
+        uninstall(clock, target);
+    };
+
+    clock.methods = toFake || [];
+
+    if (clock.methods.length === 0) {
+        clock.methods = keys(timers);
+    }
+
+    for (var i = 0, l = clock.methods.length; i < l; i++) {
+        hijackMethod(target, clock.methods[i], clock);
+    }
+
+    return clock;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],32:[function(require,module,exports){
 // transducers-js 0.4.136
 // http://github.com/cognitect-labs/transducers-js
 // 
@@ -20864,7 +20829,7 @@ partitionBy:com.cognitect.transducers.partitionBy, PartitionBy:com.cognitect.tra
 reduce:com.cognitect.transducers.reduce, into:com.cognitect.transducers.into, toFn:com.cognitect.transducers.toFn, first:com.cognitect.transducers.first, ensureReduced:com.cognitect.transducers.ensureReduced, unreduced:com.cognitect.transducers.unreduced, deref:com.cognitect.transducers.deref});
 
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 
 // basic protocol helpers
 
@@ -21722,7 +21687,7 @@ module.exports = {
   LazyTransformer: LazyTransformer
 };
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -21858,7 +21823,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":85}],34:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],35:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -21893,7 +21858,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":85}],35:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -22007,7 +21972,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":85}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22115,7 +22080,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":85}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],38:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22135,7 +22100,7 @@ describe('constant', function() {
 
 
 
-},{"kefir":87}],38:[function(require,module,exports){
+},{"kefir":90}],39:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22326,7 +22291,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":85}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],40:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22390,7 +22355,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":85}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],41:[function(require,module,exports){
 var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22421,11 +22386,22 @@ describe('diff', function() {
         return send(a, [1, 3, '<end>']);
       });
     });
-    return it('works without fn argument', function() {
+    it('works without fn argument', function() {
       var a;
       a = stream();
       return expect(a.diff(null, 0)).toEmit([[0, 1], [1, 3], '<end>'], function() {
         return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = stream();
+      expect(a.diff(minus)).toEmit([-1, -2, '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
+      });
+      a = stream();
+      return expect(a.diff()).toEmit([[0, 1], [1, 3], '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
       });
     });
   });
@@ -22452,7 +22428,7 @@ describe('diff', function() {
         return send(a, [3, 6, '<end>']);
       });
     });
-    return it('works without fn argument', function() {
+    it('works without fn argument', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.diff(null, 0)).toEmit([
@@ -22463,12 +22439,23 @@ describe('diff', function() {
         return send(a, [3, 6, '<end>']);
       });
     });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = send(prop(), [0]);
+      expect(a.diff(minus)).toEmit([-1, -2, '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+      a = send(prop(), [0]);
+      return expect(a.diff()).toEmit([[0, 1], [1, 3], '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":85}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],42:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -22494,7 +22481,7 @@ describe('emitter', function() {
 
 
 
-},{"kefir":87}],42:[function(require,module,exports){
+},{"kefir":90}],43:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22743,7 +22730,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],44:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -22761,13 +22748,20 @@ describe('filter', function() {
     it('should be ended if source was ended', function() {
       return expect(send(stream(), ['<end>']).filter(function() {})).toEmit(['<end:current>']);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.filter(function(x) {
         return x > 3;
       })).toEmit([4, 5, 6, '<end>'], function() {
         return send(a, [1, 2, 4, 5, 0, 6, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = stream();
+      return expect(a.filter()).toEmit([4, 5, 6, '<end>'], function() {
+        return send(a, [0, 0, 4, 5, 0, 6, '<end>']);
       });
     });
   });
@@ -22796,19 +22790,34 @@ describe('filter', function() {
         return send(a, [4, 3, 2, 1, '<end>']);
       });
     });
-    return it('should handle current (not pass)', function() {
+    it('should handle current (not pass)', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.filter(function(x) {
         return x > 2;
       })).toEmit([]);
     });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = send(prop(), [0]);
+      expect(a.filter()).toEmit([4, 5, 6, '<end>'], function() {
+        return send(a, [0, 4, 5, 0, 6, '<end>']);
+      });
+      a = send(prop(), [1]);
+      return expect(a.filter()).toEmit([
+        {
+          current: 1
+        }, 4, 5, 6, '<end>'
+      ], function() {
+        return send(a, [0, 4, 5, 0, 6, '<end>']);
+      });
+    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":85}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],45:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -22943,7 +22952,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":85}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],46:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23098,7 +23107,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":85}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],47:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23232,7 +23241,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":85}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],48:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23363,7 +23372,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":85}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],49:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23526,7 +23535,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":85}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],50:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -23644,7 +23653,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":85}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],51:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23726,7 +23735,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":85}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],52:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23776,7 +23785,7 @@ describe('fromCallback', function() {
       return cb(1);
     });
   });
-  it('should emit a current, if `callback` is called immediately in `callbackConsumer`', function() {
+  return it('should emit a current, if `callback` is called immediately in `callbackConsumer`', function() {
     return expect(Kefir.fromCallback(function(cb) {
       return cb(1);
     })).toEmit([
@@ -23785,25 +23794,11 @@ describe('fromCallback', function() {
       }, '<end:current>'
     ]);
   });
-  return it('should accept an array form of function', function() {
-    var fn, obj;
-    obj = {
-      a: 'a'
-    };
-    fn = function(b, cb) {
-      return cb(this.a + b);
-    };
-    return expect(Kefir.fromCallback([fn, obj, 'b'])).toEmit([
-      {
-        current: 'ab'
-      }, '<end:current>'
-    ]);
-  });
 });
 
 
 
-},{"../test-helpers.coffee":85}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],53:[function(require,module,exports){
 var Kefir, activate, deactivate, _ref;
 
 _ref = require('../test-helpers.coffee'), activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -23900,7 +23895,7 @@ describe('fromEvent', function() {
       return target.fooListener(3);
     });
   });
-  it('should accept optional transformer and call it properly', function() {
+  return it('should accept optional transformer and call it properly', function() {
     var a, target;
     target = domTarget();
     a = Kefir.fromEvent(target, 'foo', function(a, b) {
@@ -23932,81 +23927,11 @@ describe('fromEvent', function() {
       }, 1, 2);
     });
   });
-  it('should accept optional transformer and call it properly (array fn)', function() {
-    var a, target;
-    target = domTarget();
-    a = Kefir.fromEvent(target, 'foo', [
-      (function(a, b) {
-        return [this, a, b];
-      }), null, 0
-    ]);
-    return expect(a).toEmit([
-      [
-        {
-          a: 1
-        }, 0, void 0
-      ], [
-        {
-          b: 1
-        }, 0, 1
-      ], [
-        {
-          c: 1
-        }, 0, 1
-      ]
-    ], function() {
-      target.fooListener.call({
-        a: 1
-      });
-      target.fooListener.call({
-        b: 1
-      }, 1);
-      return target.fooListener.call({
-        c: 1
-      }, 1, 2);
-    });
-  });
-  return it('should accept optional transformer and call it properly (array fn + context)', function() {
-    var a, target;
-    target = domTarget();
-    a = Kefir.fromEvent(target, 'foo', [
-      (function(a, b) {
-        return [this, a, b];
-      }), {
-        x: 1
-      }, 0
-    ]);
-    return expect(a).toEmit([
-      [
-        {
-          x: 1
-        }, 0, void 0
-      ], [
-        {
-          x: 1
-        }, 0, 1
-      ], [
-        {
-          x: 1
-        }, 0, 1
-      ]
-    ], function() {
-      target.fooListener.call({
-        a: 1
-      });
-      target.fooListener.call({
-        b: 1
-      }, 1);
-      return target.fooListener.call({
-        c: 1
-      }, 1, 2);
-    });
-  });
 });
 
 
 
-},{"../test-helpers.coffee":85}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],54:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24026,7 +23951,7 @@ describe('fromPoll', function() {
 
 
 
-},{"kefir":87}],54:[function(require,module,exports){
+},{"kefir":90}],55:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24042,7 +23967,7 @@ describe('interval', function() {
 
 
 
-},{"kefir":87}],55:[function(require,module,exports){
+},{"kefir":90}],56:[function(require,module,exports){
 var $, Kefir, countListentrs, inBrowser, withDOM, _ref;
 
 _ref = require('../test-helpers.coffee'), withDOM = _ref.withDOM, inBrowser = _ref.inBrowser, Kefir = _ref.Kefir;
@@ -24274,37 +24199,11 @@ if (!inBrowser) {
           });
         });
       });
-      it('should call transformer with correct this context', function() {
+      return it('should call transformer with correct this context', function() {
         return withDOM(function(tmpDom) {
           return expect($(tmpDom).asKefirStream('click', function(e) {
             return e.currentTarget === this;
           })).toEmit([true, true], function() {
-            return $(tmpDom).trigger('click').trigger('click');
-          });
-        });
-      });
-      it('should call transformer with correct this context (binded)', function() {
-        return withDOM(function(tmpDom) {
-          var obj;
-          obj = {};
-          return expect($(tmpDom).asKefirStream('click', [
-            (function() {
-              return this === obj;
-            }), obj
-          ])).toEmit([true, true], function() {
-            return $(tmpDom).trigger('click').trigger('click');
-          });
-        });
-      });
-      return it('should call transformer with correct this context (binded, with only args)', function() {
-        return withDOM(function(tmpDom) {
-          var obj;
-          obj = {};
-          return expect($(tmpDom).asKefirStream('click', [
-            (function(n, e) {
-              return n === 1 && e.currentTarget === this;
-            }), null, 1
-          ])).toEmit([true, true], function() {
             return $(tmpDom).trigger('click').trigger('click');
           });
         });
@@ -24378,7 +24277,7 @@ if (!inBrowser) {
 
 
 
-},{"../test-helpers.coffee":85,"addons/kefir-jquery":86,"jquery":6}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":88,"addons/kefir-jquery":89,"jquery":6}],57:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24394,7 +24293,84 @@ describe('later', function() {
 
 
 
-},{"kefir":87}],57:[function(require,module,exports){
+},{"kefir":90}],58:[function(require,module,exports){
+var Kefir, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+describe('mapEnd', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().mapEnd(function() {})).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.mapEnd(function() {})).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).mapEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 42
+        }, '<end:current>'
+      ]);
+    });
+    return it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.mapEnd(function() {
+        return 42;
+      })).toEmit([1, 2, 42, '<end>'], function() {
+        return send(a, [1, 2, '<end>']);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().mapEnd(function() {})).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.mapEnd(function() {})).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      expect(send(prop(), ['<end>']).mapEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 42
+        }, '<end:current>'
+      ]);
+      return expect(send(prop(), [1, '<end>']).mapEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 42
+        }, '<end:current>'
+      ]);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [1]);
+      return expect(a.mapEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 1
+        }, 2, 3, 42, '<end>'
+      ], function() {
+        return send(a, [2, 3, '<end>']);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":88}],59:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24452,7 +24428,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":85}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],60:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -24548,7 +24524,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":85}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],61:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24564,7 +24540,7 @@ describe('never', function() {
 
 
 
-},{"kefir":87}],60:[function(require,module,exports){
+},{"kefir":90}],62:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, activate = _ref.activate, deactivate = _ref.deactivate, Kefir = _ref.Kefir;
@@ -24663,7 +24639,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":85}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],63:[function(require,module,exports){
 var Kefir, activate, prop, send, _ref;
 
 _ref = require('../test-helpers.coffee'), prop = _ref.prop, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -24823,7 +24799,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":85}],62:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],64:[function(require,module,exports){
 var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -24851,11 +24827,26 @@ describe('reduce', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.reduce(minus, 0)).toEmit([-4, '<end>'], function() {
         return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = stream();
+      expect(a.reduce(minus)).toEmit([-4, '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
+      });
+      a = stream();
+      expect(a.reduce(minus)).toEmit([0, '<end>'], function() {
+        return send(a, [0, '<end>']);
+      });
+      a = stream();
+      return expect(a.reduce(minus)).toEmit(['<end>'], function() {
+        return send(a, ['<end>']);
       });
     });
   });
@@ -24875,19 +24866,36 @@ describe('reduce', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events and current', function() {
+    it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.reduce(minus, 0)).toEmit([-10, '<end>'], function() {
         return send(a, [3, 6, '<end>']);
       });
     });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = send(prop(), [0]);
+      expect(a.reduce(minus)).toEmit([-4, '<end>'], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+      a = send(prop(), [0]);
+      expect(a.reduce(minus)).toEmit([0, '<end>'], function() {
+        return send(a, ['<end>']);
+      });
+      a = send(prop(), [0, '<end>']);
+      return expect(a.reduce(minus)).toEmit([
+        {
+          current: 0
+        }, '<end:current>'
+      ]);
+    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":85}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],65:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -24906,7 +24914,7 @@ describe('repeatedly', function() {
 
 
 
-},{"kefir":87}],64:[function(require,module,exports){
+},{"kefir":90}],66:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref,
   __slice = [].slice;
 
@@ -24945,7 +24953,7 @@ describe('sampledBy', function() {
     ]);
     expect(s2).toEmit([
       {
-        current: [1, 2]
+        current: 1
       }, '<end:current>'
     ]);
     expect(s1).toEmit(['<end:current>']);
@@ -24975,7 +24983,7 @@ describe('sampledBy', function() {
     });
     a = stream();
     b = send(prop(), [0]);
-    return expect(a.sampledBy(b)).toEmit([[2, 3], [4, 5], [4, 6], '<end>'], function() {
+    return expect(a.sampledBy(b)).toEmit([2, 4, 4, '<end>'], function() {
       send(b, [1]);
       send(a, [2]);
       send(b, [3]);
@@ -25012,7 +25020,7 @@ describe('sampledBy', function() {
       return send(b, [5, 6, '<end>']);
     });
   });
-  return it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+  it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
     var a, b, c, sb;
     a = send(prop(), [0]);
     b = send(prop(), [1]);
@@ -25026,11 +25034,24 @@ describe('sampledBy', function() {
       }
     ]);
   });
+  return it('one sampledBy should remove listeners of another', function() {
+    var a, b, s1, s2;
+    a = send(prop(), [0]);
+    b = stream();
+    s1 = a.sampledBy(b);
+    s2 = a.sampledBy(b);
+    activate(s1);
+    activate(s2);
+    deactivate(s2);
+    return expect(s1).toEmit([0], function() {
+      return send(b, [1]);
+    });
+  });
 });
 
 
 
-},{"../test-helpers.coffee":85}],65:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],67:[function(require,module,exports){
 var Kefir, minus, noop, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25058,7 +25079,7 @@ describe('scan', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a;
       a = stream();
       return expect(a.scan(minus, 0)).toEmit([
@@ -25067,6 +25088,13 @@ describe('scan', function() {
         }, -1, -4, '<end>'
       ], function() {
         return send(a, [1, 3, '<end>']);
+      });
+    });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = stream();
+      return expect(a.scan(minus)).toEmit([0, -1, -4, '<end>'], function() {
+        return send(a, [0, 1, 3, '<end>']);
       });
     });
   });
@@ -25086,7 +25114,7 @@ describe('scan', function() {
         }, '<end:current>'
       ]);
     });
-    return it('should handle events and current', function() {
+    it('should handle events and current', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.scan(minus, 0)).toEmit([
@@ -25097,12 +25125,23 @@ describe('scan', function() {
         return send(a, [3, 6, '<end>']);
       });
     });
+    return it('if no seed provided uses first value as seed', function() {
+      var a;
+      a = send(prop(), [0]);
+      return expect(a.scan(minus)).toEmit([
+        {
+          current: 0
+        }, -1, -4, '<end>'
+      ], function() {
+        return send(a, [1, 3, '<end>']);
+      });
+    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":85}],66:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],68:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -25121,7 +25160,7 @@ describe('sequentially', function() {
 
 
 
-},{"kefir":87}],67:[function(require,module,exports){
+},{"kefir":90}],69:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25197,7 +25236,66 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":85}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],70:[function(require,module,exports){
+var Kefir, prop, send, stream, _ref;
+
+_ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
+
+describe('mapEnd', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().skipEnd()).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.skipEnd()).toActivate(a);
+    });
+    it('should not be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).skipEnd()).toEmit([]);
+    });
+    return it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.skipEnd()).toEmit([1, 2], function() {
+        return send(a, [1, 2, '<end>']);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().skipEnd()).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.skipEnd()).toActivate(a);
+    });
+    it('should not be ended if source was ended', function() {
+      expect(send(prop(), ['<end>']).skipEnd()).toEmit([]);
+      return expect(send(prop(), [1, '<end>']).skipEnd()).toEmit([
+        {
+          current: 1
+        }
+      ]);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [1]);
+      return expect(a.skipEnd()).toEmit([
+        {
+          current: 1
+        }, 2, 3
+      ], function() {
+        return send(a, [2, 3, '<end>']);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":88}],71:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, activate = _ref.activate, deactivate = _ref.deactivate;
@@ -25451,7 +25549,7 @@ describe('skipUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],72:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir, deactivate = _ref.deactivate, activate = _ref.activate;
@@ -25708,7 +25806,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],73:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25750,13 +25848,20 @@ describe('skipWhile', function() {
         return send(a, [1, 2, 3, '<end>']);
       });
     });
-    return it('should handle events (`(x) -> x < 3`)', function() {
+    it('should handle events (`(x) -> x < 3`)', function() {
       var a;
       a = stream();
       return expect(a.skipWhile(function(x) {
         return x < 3;
       })).toEmit([3, 4, 5, '<end>'], function() {
         return send(a, [1, 2, 3, 4, 5, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = stream();
+      return expect(a.skipWhile()).toEmit([0, 4, 5, '<end>'], function() {
+        return send(a, [1, 2, 0, 4, 5, '<end>']);
       });
     });
   });
@@ -25800,7 +25905,7 @@ describe('skipWhile', function() {
         return send(a, [2, 3, '<end>']);
       });
     });
-    return it('should handle events and current (`(x) -> x < 3`)', function() {
+    it('should handle events and current (`(x) -> x < 3`)', function() {
       var a;
       a = send(prop(), [1]);
       return expect(a.skipWhile(function(x) {
@@ -25809,12 +25914,27 @@ describe('skipWhile', function() {
         return send(a, [2, 3, 4, 5, '<end>']);
       });
     });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = send(prop(), [1]);
+      expect(a.skipWhile()).toEmit([0, 4, 5, '<end>'], function() {
+        return send(a, [2, 0, 4, 5, '<end>']);
+      });
+      a = send(prop(), [0]);
+      return expect(a.skipWhile()).toEmit([
+        {
+          current: 0
+        }, 2, 0, 4, 5, '<end>'
+      ], function() {
+        return send(a, [2, 0, 4, 5, '<end>']);
+      });
+    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":85}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],74:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -25914,7 +26034,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":85}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],75:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26010,7 +26130,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":85}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],76:[function(require,module,exports){
 var Kefir, activate, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, send = _ref.send, activate = _ref.activate, Kefir = _ref.Kefir;
@@ -26117,7 +26237,7 @@ describe('Stream', function() {
       return expect(s).not.toBeActive();
     });
   });
-  describe('subscribers', function() {
+  return describe('subscribers', function() {
     it('should deliver values', function() {
       var s;
       s = stream();
@@ -26197,55 +26317,11 @@ describe('Stream', function() {
       return expect(log).toEqual(['a1', 'b1', 'a2']);
     });
   });
-  return describe('listener with context and/or args', function() {
-    it('listener should be called with specified context', function() {
-      var log, obj, s;
-      s = stream();
-      log = [];
-      obj = {
-        name: 'foo',
-        getName: function() {
-          return log.push(this.name);
-        }
-      };
-      s.onValue([obj.getName, obj]);
-      send(s, [1]);
-      return expect(log).toEqual(['foo']);
-    });
-    it('listener should be called with specified args', function() {
-      var log, obj, s;
-      s = stream();
-      log = [];
-      obj = {
-        name: 'foo',
-        getName: function(a, b, c) {
-          return log.push(this.name + a + b + c);
-        }
-      };
-      s.onValue([obj.getName, obj, 'b', 'a']);
-      send(s, ['r']);
-      return expect(log).toEqual(['foobar']);
-    });
-    return it('fn can be passed as string (name of method in context)', function() {
-      var log, obj, s;
-      s = stream();
-      log = [];
-      obj = {
-        name: 'foo',
-        getName: function() {
-          return log.push(this.name);
-        }
-      };
-      s.onValue(['getName', obj]);
-      send(s, [1]);
-      return expect(log).toEqual(['foo']);
-    });
-  });
 });
 
 
 
-},{"../test-helpers.coffee":85}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],77:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26497,7 +26573,7 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":85}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],78:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26741,7 +26817,7 @@ describe('takeUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],76:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],79:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -26990,7 +27066,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":85}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],80:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27032,13 +27108,20 @@ describe('takeWhile', function() {
         return send(a, [1, 2, '<end>']);
       });
     });
-    return it('should handle events (with `-> false`)', function() {
+    it('should handle events (with `-> false`)', function() {
       var a;
       a = stream();
       return expect(a.takeWhile(function() {
         return false;
       })).toEmit(['<end>'], function() {
         return send(a, [1, 2, '<end>']);
+      });
+    });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = stream();
+      return expect(a.takeWhile()).toEmit([1, 2, '<end>'], function() {
+        return send(a, [1, 2, 0, 5, '<end>']);
       });
     });
   });
@@ -27091,7 +27174,7 @@ describe('takeWhile', function() {
         return send(a, [2, '<end>']);
       });
     });
-    return it('should handle events (with `-> false`)', function() {
+    it('should handle events (with `-> false`)', function() {
       var a;
       a = prop();
       return expect(a.takeWhile(function() {
@@ -27100,12 +27183,27 @@ describe('takeWhile', function() {
         return send(a, [1, 2, '<end>']);
       });
     });
+    return it('shoud use id as default predicate', function() {
+      var a;
+      a = send(prop(), [1]);
+      expect(a.takeWhile()).toEmit([
+        {
+          current: 1
+        }, 2, '<end>'
+      ], function() {
+        return send(a, [2, 0, 5, '<end>']);
+      });
+      a = send(prop(), [0]);
+      return expect(a.takeWhile()).toEmit(['<end:current>'], function() {
+        return send(a, [2, 0, 5, '<end>']);
+      });
+    });
   });
 });
 
 
 
-},{"../test-helpers.coffee":85}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],81:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27190,7 +27288,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":85}],79:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],82:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27464,7 +27562,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":85}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],83:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27553,7 +27651,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":85}],81:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],84:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27599,7 +27697,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":85}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],85:[function(require,module,exports){
 var Kefir, comp, noop, prop, send, stream, testWithLib, _ref,
   __slice = [].slice;
 
@@ -27849,7 +27947,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":85,"transducers-js":31,"transducers.js":32}],83:[function(require,module,exports){
+},{"../test-helpers.coffee":88,"transducers-js":32,"transducers.js":33}],86:[function(require,module,exports){
 var Kefir, prop, send, stream, _ref;
 
 _ref = require('../test-helpers.coffee'), stream = _ref.stream, prop = _ref.prop, send = _ref.send, Kefir = _ref.Kefir;
@@ -27966,7 +28064,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":85}],84:[function(require,module,exports){
+},{"../test-helpers.coffee":88}],87:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('kefir');
@@ -27992,7 +28090,7 @@ describe('withInterval', function() {
 
 
 
-},{"kefir":87}],85:[function(require,module,exports){
+},{"kefir":90}],88:[function(require,module,exports){
 var Kefir, getCurrent, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
@@ -28241,8 +28339,8 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":7}],86:[function(require,module,exports){
-/*! An addon for Kefir.js v0.3.0
+},{"../dist/kefir":1,"sinon":7}],89:[function(require,module,exports){
+/*! An addon for Kefir.js v0.4.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -28252,28 +28350,18 @@ beforeEach(function() {
 
 
 
-
     $.fn.asKefirStream = function(eventName, selector, transformer) {
       var $el = this;
       if (transformer == null && selector != null && 'string' !== typeof selector) {
         transformer = selector;
         selector = null;
       }
-      transformer = transformer && Kefir.Fn(transformer);
-      return Kefir.fromBinder(function(emitter) {
-        var onEvent;
-        if (transformer) {
-          onEvent = function() {
-            emitter.emit(transformer.applyWithContext(this, arguments));
-          };
-        } else {
-          onEvent = emitter.emit;
-        }
-        $el.on(eventName, selector, onEvent);
-        return ['off', $el, eventName, selector, onEvent];
-      }).setName('asKefirStream');
+      return Kefir._fromEvent(
+        function(handler) {  $el.on(eventName, selector, handler)  },
+        function(handler) {  $el.off(eventName, selector, handler)  },
+        transformer
+      ).setName('asKefirStream');
     }
-
 
 
 
@@ -28282,12 +28370,10 @@ beforeEach(function() {
         getter = selector;
         selector = null;
       }
-      getter = Kefir.Fn(getter);
       return this.asKefirStream(eventName, selector, getter)
-        .toProperty(getter.invoke())
+        .toProperty(getter())
         .setName('asKefirProperty');
     }
-
 
 
 
@@ -28305,6 +28391,6 @@ beforeEach(function() {
 
 }(this));
 
-},{"jquery":6,"kefir":87}],87:[function(require,module,exports){
+},{"jquery":6,"kefir":90}],90:[function(require,module,exports){
 module.exports=require(1)
-},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84]);
+},{"/Users/anon/projects/my/kefir/dist/kefir.js":1}]},{},[34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87]);
