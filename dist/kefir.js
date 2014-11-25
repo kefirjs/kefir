@@ -541,7 +541,7 @@ extend(Subscribers.prototype, {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
-      key: _key || NOTHING
+      key: _key || {}
     }]);
   },
   remove: function(type, fn, _key) {
