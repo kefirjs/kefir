@@ -1681,16 +1681,47 @@ withOneSource('slidingWindow', {
   _init: function(args) {
     this._max = args[0];
     this._min = args[1] || 0;
-    this._cache = [];
+    this._buff = [];
   },
   _free: function() {
-    this._cache = null;
+    this._buff = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._cache = slide(this._cache, x, this._max);
-    if (this._cache.length >= this._min) {
-      this._send(VALUE, this._cache, isCurrent);
+    this._buff = slide(this._buff, x, this._max);
+    if (this._buff.length >= this._min) {
+      this._send(VALUE, this._buff, isCurrent);
     }
+  }
+});
+
+
+
+
+// .bufferWhile([predicate])
+
+withOneSource('bufferWhile', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+    this._buff = [];
+  },
+  _free: function() {
+    this._buff = null;
+  },
+  _flush: function(isCurrent) {
+    this._send(VALUE, this._buff, isCurrent);
+    this._buff = [];
+  },
+  _handleValue: function(x, isCurrent) {
+    this._buff.push(x);
+    if (!this._fn(x)) {
+      this._flush(isCurrent);
+    }
+  },
+  _handleEnd: function(x, isCurrent) {
+    if (this._buff.length !== 0) {
+      this._flush(isCurrent);
+    }
+    this._send(END, null, isCurrent);
   }
 });
 
