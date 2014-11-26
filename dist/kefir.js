@@ -1329,14 +1329,12 @@ withOneSource('toProperty', {
 
 
 
+
 // .withDefault()
 
 withOneSource('withDefault', {
   _init: function(args) {
     this._send(VALUE, args[0], true);
-  },
-  _free: function() {
-    this._defaultValue = null;
   }
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
 
@@ -2172,6 +2170,46 @@ Kefir.fromEvent = function(target, eventName, transformer) {
     transformer
   ).setName('fromEvent');
 }
+
+withTwoSources('bufferBy', {
+
+  _init: function() {
+    this._buff = [];
+  },
+  _free: function() {
+    this._buff = null;
+  },
+  _flush: function(isCurrent) {
+    if (this._buff !== null && this._buff.length !== 0) {
+      this._send(VALUE, this._buff, isCurrent);
+      this._buff = [];
+    }
+  },
+
+  _onActivation: function() {
+    this._primary.onAny(this._$handlePrimaryAny);
+    if (this._alive && this._secondary !== null) {
+      this._secondary.onAny(this._$handleSecondaryAny);
+    }
+  },
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    this._buff.push(x);
+  },
+
+  _handlePrimaryEnd: function(__, isCurrent) {
+    this._flush(isCurrent);
+    this._send(END, null, isCurrent);
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._flush(isCurrent);
+  }
+
+});
+
+
+
 
 withTwoSources('filterBy', {
 

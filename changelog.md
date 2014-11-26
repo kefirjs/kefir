@@ -1,6 +1,7 @@
 ## next
 
  - New method `.bufferWhile`
+ - New method `.bufferBy`
  - New method `.withDefault`
 
 
