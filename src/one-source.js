@@ -19,6 +19,19 @@ withOneSource('toProperty', {
 
 
 
+// .withDefault()
+
+withOneSource('withDefault', {
+  _init: function(args) {
+    this._send(VALUE, args[0], true);
+  },
+  _free: function() {
+    this._defaultValue = null;
+  }
+}, {propertyMethod: produceProperty, streamMethod: produceProperty});
+
+
+
 
 // .changes()
 

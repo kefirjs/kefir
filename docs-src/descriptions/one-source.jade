@@ -550,11 +550,11 @@ div
 
 +descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate])').
   Passes every value from source observable to #[b predicate] function,
-  if it returns #[tt true] adds value to buffer, otherwise flushes the buffer.
-  Also flushes buffer before end, if it not empty.
+  if it returns #[tt true] adds value to the buffer, otherwise flushes the buffer.
+  Also flushes the buffer before end, if it not empty.
 
 p.
-  The default  #[b predicate] is #[tt function(x) {return x}].
+  The default #[b predicate] is #[tt function(x) {return x}].
 
 pre(title='example')
   :escapehtml
