@@ -548,6 +548,32 @@ div
 
 
 
++descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate])').
+  Passes every value from source observable to #[b predicate] function,
+  if it returns #[tt true] adds value to the buffer, otherwise flushes the buffer.
+  Also flushes the buffer before end, if it not empty.
+
+p.
+  The default #[b predicate] is #[tt function(x) {return x}].
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
+    var result = source.bufferWhile(function(x) {return x !== 3});
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWhile] <value> [1, 2, 3]
+    > [sequentially.bufferWhile] <value> [4, 5]
+    > [sequentially.bufferWhile] <end>
+
+pre(title='events in time').
+  source:  ---1---2---(    3    )---4---5(   X   )
+  result:  -----------([1, 2, 3])--------([4, 5])X
+div
+
+
 
 +descr-method('delay', 'delay', 'obs.delay(wait)').
   Delays all events by <b>wait</b> milliseconds,

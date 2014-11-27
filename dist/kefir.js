@@ -349,9 +349,6 @@ function withOneSource(name, mixin, options) {
     _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
     _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
-    _onActivationHook: function() {},
-    _onDeactivationHook: function() {},
-
     _handleAny: function(event) {
       switch (event.type) {
         case VALUE: this._handleValue(event.value, event.current); break;
@@ -360,11 +357,9 @@ function withOneSource(name, mixin, options) {
     },
 
     _onActivation: function() {
-      this._onActivationHook();
       this._source.onAny(this._$handleAny);
     },
     _onDeactivation: function() {
-      this._onDeactivationHook();
       this._source.offAny(this._$handleAny);
     }
   }, mixin || {});
@@ -541,7 +536,7 @@ extend(Subscribers.prototype, {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
-      key: _key || NOTHING
+      key: _key || {}
     }]);
   },
   remove: function(type, fn, _key) {
@@ -1335,6 +1330,17 @@ withOneSource('toProperty', {
 
 
 
+// .withDefault()
+
+withOneSource('withDefault', {
+  _init: function(args) {
+    this._send(VALUE, args[0], true);
+  }
+}, {propertyMethod: produceProperty, streamMethod: produceProperty});
+
+
+
+
 // .changes()
 
 withOneSource('changes', {
@@ -1681,16 +1687,47 @@ withOneSource('slidingWindow', {
   _init: function(args) {
     this._max = args[0];
     this._min = args[1] || 0;
-    this._cache = [];
+    this._buff = [];
   },
   _free: function() {
-    this._cache = null;
+    this._buff = null;
   },
   _handleValue: function(x, isCurrent) {
-    this._cache = slide(this._cache, x, this._max);
-    if (this._cache.length >= this._min) {
-      this._send(VALUE, this._cache, isCurrent);
+    this._buff = slide(this._buff, x, this._max);
+    if (this._buff.length >= this._min) {
+      this._send(VALUE, this._buff, isCurrent);
     }
+  }
+});
+
+
+
+
+// .bufferWhile([predicate])
+
+withOneSource('bufferWhile', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+    this._buff = [];
+  },
+  _free: function() {
+    this._buff = null;
+  },
+  _flush: function(isCurrent) {
+    this._send(VALUE, this._buff, isCurrent);
+    this._buff = [];
+  },
+  _handleValue: function(x, isCurrent) {
+    this._buff.push(x);
+    if (!this._fn(x)) {
+      this._flush(isCurrent);
+    }
+  },
+  _handleEnd: function(x, isCurrent) {
+    if (this._buff.length !== 0) {
+      this._flush(isCurrent);
+    }
+    this._send(END, null, isCurrent);
   }
 });
 
@@ -2133,6 +2170,46 @@ Kefir.fromEvent = function(target, eventName, transformer) {
     transformer
   ).setName('fromEvent');
 }
+
+withTwoSources('bufferBy', {
+
+  _init: function() {
+    this._buff = [];
+  },
+  _free: function() {
+    this._buff = null;
+  },
+  _flush: function(isCurrent) {
+    if (this._buff !== null && this._buff.length !== 0) {
+      this._send(VALUE, this._buff, isCurrent);
+      this._buff = [];
+    }
+  },
+
+  _onActivation: function() {
+    this._primary.onAny(this._$handlePrimaryAny);
+    if (this._alive && this._secondary !== null) {
+      this._secondary.onAny(this._$handleSecondaryAny);
+    }
+  },
+
+  _handlePrimaryValue: function(x, isCurrent) {
+    this._buff.push(x);
+  },
+
+  _handlePrimaryEnd: function(__, isCurrent) {
+    this._flush(isCurrent);
+    this._send(END, null, isCurrent);
+  },
+
+  _handleSecondaryValue: function(x, isCurrent) {
+    this._flush(isCurrent);
+  }
+
+});
+
+
+
 
 withTwoSources('filterBy', {
 

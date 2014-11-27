@@ -148,6 +148,36 @@ div
 
 
 
++descr-method('buffer-by', 'bufferBy', 'obs.bufferBy(otherObs)').
+  Buffers all values from #[b obs] observable,
+  and flushes the buffer on each value from #[b otherObs].
+  Also flushes before end. Ends when #[b obs] observable ends.
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]).delay(40);
+  var bar = Kefir.sequentially(300, [1, 2])
+  var result = foo.bufferBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.delay.bufferBy] <value> [1, 2]
+    > [sequentially.delay.bufferBy] <value> [3, 4, 5]
+    > [sequentially.delay.bufferBy] <value> [6, 7, 8]
+    > [sequentially.delay.bufferBy] <end>
+
+pre(title='events in time').
+  foo:     ------1----2----3----4----5----6----7----8 X
+  bar:     --------------1--------------2X
+
+  result:  --------------a--------------a------------aX
+
+  ('a' here is one of arrays [1, 2], [3, 4, 5], and [6, 7, 8] respectively)
+div
+
+
+
+
 
 +descr-method('awaiting', 'awaiting', 'obs.awaiting(otherObs)').
   Returns a property that represents the awaiting status of two observables,
