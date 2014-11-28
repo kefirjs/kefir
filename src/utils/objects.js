@@ -21,6 +21,7 @@ function extend(target /*, mixin1, mixin2...*/) {
     , i, prop;
   for (i = 1; i < length; i++) {
     for (prop in arguments[i]) {
+      //noinspection JSUnfilteredForInLoop
       target[prop] = arguments[i][prop];
     }
   }

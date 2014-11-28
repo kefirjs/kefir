@@ -8,6 +8,7 @@ withInterval('withInterval', {
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x)  },
+      error: function(e) {  $._send(ERROR, e)  },
       end: function() {  $._send(END)  }
     }
   },
@@ -16,7 +17,11 @@ withInterval('withInterval', {
     this._emitter = null;
   },
   _onTick: function() {
-    this._fn(this._emitter);
+    try {
+      this._fn(this._emitter);
+    } catch(e) {
+      this._send(ERROR, e);
+    }
   }
 });
 
@@ -34,7 +39,13 @@ withInterval('fromPoll', {
     this._fn = null;
   },
   _onTick: function() {
-    this._send(VALUE, this._fn());
+    var val = null;
+    try {
+      val = this._fn();
+    } catch (e) {
+      this._send(ERROR, e);
+    }
+    this._send(VALUE, val);
   }
 });
 

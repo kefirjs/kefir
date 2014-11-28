@@ -62,6 +62,8 @@ inherit(_AbstractPool, Stream, {
   _handleSubAny: function(event) {
     if (event.type === VALUE) {
       this._send(VALUE, event.value, event.current && this._activating);
+    } else if (event.type === ERROR) {
+      this._send(ERROR, event.value, event.current && this._activating);
     }
   },
 
@@ -141,11 +143,11 @@ inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 Kefir.merge = function(obss) {
   return new Merge(obss);
-}
+};
 
 Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
-}
+};
 
 
 
@@ -162,11 +164,11 @@ inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
 Kefir.concat = function(obss) {
   return new Concat(obss);
-}
+};
 
 Observable.prototype.concat = function(other) {
   return Kefir.concat([this, other]);
-}
+};
 
 
 
@@ -196,7 +198,7 @@ inherit(Pool, _AbstractPool, {
 
 Kefir.pool = function() {
   return new Pool();
-}
+};
 
 
 
@@ -225,6 +227,10 @@ inherit(Bus, _AbstractPool, {
     this._send(VALUE, x);
     return this;
   },
+  error: function(e) {
+    this._send(ERROR, e);
+    return this;
+  },
   end: function() {
     this._send(END);
     return this;
@@ -234,7 +240,7 @@ inherit(Bus, _AbstractPool, {
 
 Kefir.bus = function() {
   return new Bus();
-}
+};
 
 
 
@@ -297,22 +303,22 @@ inherit(FlatMap, _AbstractPool, {
 Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn)
     .setName(this, 'flatMap');
-}
+};
 
 Observable.prototype.flatMapLatest = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
     .setName(this, 'flatMapLatest');
-}
+};
 
 Observable.prototype.flatMapFirst = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1})
     .setName(this, 'flatMapFirst');
-}
+};
 
 Observable.prototype.flatMapConcat = function(fn) {
   return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
     .setName(this, 'flatMapConcat');
-}
+};
 
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
@@ -323,7 +329,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
   return result.setName(this, 'flatMapConcurLimit');
-}
+};
 
 
 
@@ -426,11 +432,11 @@ inherit(SampledBy, Stream, {
 
 Kefir.sampledBy = function(passive, active, combinator) {
   return new SampledBy(passive, active, combinator);
-}
+};
 
 Observable.prototype.sampledBy = function(other, combinator) {
   return Kefir.sampledBy([this], [other], combinator || id);
-}
+};
 
 
 
@@ -441,8 +447,8 @@ Kefir.combine = function(sources, combinator) {
   var result = new SampledBy([], sources, combinator);
   result._name = 'combine';
   return result;
-}
+};
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
-}
+};
