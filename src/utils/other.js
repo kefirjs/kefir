@@ -1,6 +1,7 @@
 var NOTHING = ['<nothing>'];
 var END = 'end';
 var VALUE = 'value';
+var ERROR = 'error';
 var ANY = 'any';
 
 function noop() {}

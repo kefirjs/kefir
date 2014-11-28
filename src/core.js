@@ -9,7 +9,7 @@ extend(Subscribers, {
     if (fnData.type === ANY) {
       fnData.fn(event);
     } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE) {
+      if (fnData.type === VALUE || fnData.type === ERROR) {
         fnData.fn(event.value);
       } else {
         fnData.fn();
@@ -20,7 +20,7 @@ extend(Subscribers, {
     if (type === ANY) {
       fn(event);
     } else if (type === event.type) {
-      if (type === VALUE) {
+      if (type === VALUE || type === ERROR) {
         fn(event.value);
       } else {
         fn();
@@ -65,7 +65,6 @@ function Event(type, value, current) {
 }
 
 var CURRENT_END = Event(END, undefined, true);
-
 
 
 
@@ -131,10 +130,12 @@ extend(Observable.prototype, {
   },
 
   onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
+  onError:  function(fn, _key) {  return this.on(ERROR, fn, _key)   },
   onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
   onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
 
   offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
+  offError: function(fn, _key) {  return this.off(ERROR, fn, _key)  },
   offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
   offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
 
@@ -189,7 +190,7 @@ inherit(Property, Observable, {
         this._subscribers.callAll(Event(type, x));
       }
       if (type === VALUE) {  this._current = x  }
-      if (type === END) {  this._clear()  }
+      if (type === END || type === ERROR) {  this._clear()  } // no errors on init allowed
     }
   },
 
@@ -227,10 +228,10 @@ Observable.prototype.log = function(name) {
     }
   }, '__logKey__' + name);
   return this;
-}
+};
 
 Observable.prototype.offLog = function(name) {
   name = name || this.toString();
   this.offAny(null, '__logKey__' + name);
   return this;
-}
+};

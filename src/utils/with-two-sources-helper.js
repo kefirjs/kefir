@@ -5,21 +5,27 @@ function withTwoSources(name, mixin /*, options*/) {
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handlePrimaryError: function(e, isCurrent) {  this._send(ERROR, e, isCurrent)  },
     _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
-    _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
+    _handleSecondaryValue: function(x) {  this._lastSecondary = x  },
+    _handleSecondaryError: function(e) {  this._lastError = e  },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
         case VALUE: this._handlePrimaryValue(event.value, event.current); break;
+        case ERROR: this._handlePrimaryError(event.value, event.current); break;
         case END: this._handlePrimaryEnd(event.value, event.current); break;
       }
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
         case VALUE:
-          this._handleSecondaryValue(event.value, event.current);
+          this._handleSecondaryValue(event.value);
+          break;
+        case ERROR:
+          this._handleSecondaryError(event.value);
           break;
         case END:
           this._handleSecondaryEnd(event.value, event.current);
@@ -61,6 +67,7 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
+      this._lastError = NOTHING;
       var $ = this;
       this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
       this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
@@ -73,7 +80,8 @@ function withTwoSources(name, mixin /*, options*/) {
         this._primary = null;
         this._secondary = null;
         this._lastSecondary = null;
-        this._$handleSecondaryAny = null;
+        this._lastError = null;
+            this._$handleSecondaryAny = null;
         this._$handlePrimaryAny = null;
         this._free();
       }
@@ -88,7 +96,7 @@ function withTwoSources(name, mixin /*, options*/) {
 
   Stream.prototype[name] = function(secondary) {
     return new AnonymousStream(this, secondary);
-  }
+  };
 
   Property.prototype[name] = function(secondary) {
     return new AnonymousProperty(this, secondary);

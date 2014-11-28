@@ -12,11 +12,11 @@ function isArrayLike(xs) {
 
 var isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
-}
+};
 
 var isArguments = function(xs) {
   return Object.prototype.toString.call(xs) === '[object Arguments]';
-}
+};
 
 // For IE
 if (!isArguments(arguments)) {

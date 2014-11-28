@@ -167,7 +167,7 @@ function isEqualArrays(a, b) {
 
 function spread(fn, length) {
   switch(length) {
-    case 0:  return function(a) {  return fn()  };
+    case 0:  return function() {  return fn()  };
     case 1:  return function(a) {  return fn(a[0])  };
     case 2:  return function(a) {  return fn(a[0], a[1])  };
     case 3:  return function(a) {  return fn(a[0], a[1], a[2])  };
@@ -218,6 +218,7 @@ function extend(target /*, mixin1, mixin2...*/) {
     , i, prop;
   for (i = 1; i < length; i++) {
     for (prop in arguments[i]) {
+      //noinspection JSUnfilteredForInLoop
       target[prop] = arguments[i][prop];
     }
   }
@@ -238,6 +239,7 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
 var NOTHING = ['<nothing>'];
 var END = 'end';
 var VALUE = 'value';
+var ERROR = 'error';
 var ANY = 'any';
 
 function noop() {}
@@ -272,11 +274,11 @@ function isArrayLike(xs) {
 
 var isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
-}
+};
 
 var isArguments = function(xs) {
   return Object.prototype.toString.call(xs) === '[object Arguments]';
-}
+};
 
 // For IE
 if (!isArguments(arguments)) {
@@ -292,7 +294,7 @@ function withInterval(name, mixin) {
     this._wait = wait;
     this._intervalId = null;
     var $ = this;
-    this._$onTick = function() {  $._onTick()  }
+    this._$onTick = function() {  $._onTick()  };
     this._init(args);
   }
 
@@ -347,11 +349,13 @@ function withOneSource(name, mixin, options) {
     _free: function() {},
 
     _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handleError: function(e, isCurrent) {  this._send(ERROR, e, isCurrent)  },
     _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleAny: function(event) {
       switch (event.type) {
         case VALUE: this._handleValue(event.value, event.current); break;
+        case ERROR: this._handleError(event.value, event.current); break;
         case END: this._handleEnd(event.value, event.current); break;
       }
     },
@@ -409,21 +413,27 @@ function withTwoSources(name, mixin /*, options*/) {
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handlePrimaryError: function(e, isCurrent) {  this._send(ERROR, e, isCurrent)  },
     _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
-    _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
+    _handleSecondaryValue: function(x) {  this._lastSecondary = x  },
+    _handleSecondaryError: function(e) {  this._lastError = e  },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
         case VALUE: this._handlePrimaryValue(event.value, event.current); break;
+        case ERROR: this._handlePrimaryError(event.value, event.current); break;
         case END: this._handlePrimaryEnd(event.value, event.current); break;
       }
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
         case VALUE:
-          this._handleSecondaryValue(event.value, event.current);
+          this._handleSecondaryValue(event.value);
+          break;
+        case ERROR:
+          this._handleSecondaryError(event.value);
           break;
         case END:
           this._handleSecondaryEnd(event.value, event.current);
@@ -465,6 +475,7 @@ function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
+      this._lastError = NOTHING;
       var $ = this;
       this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
       this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
@@ -477,7 +488,8 @@ function withTwoSources(name, mixin /*, options*/) {
         this._primary = null;
         this._secondary = null;
         this._lastSecondary = null;
-        this._$handleSecondaryAny = null;
+        this._lastError = null;
+            this._$handleSecondaryAny = null;
         this._$handlePrimaryAny = null;
         this._free();
       }
@@ -492,7 +504,7 @@ function withTwoSources(name, mixin /*, options*/) {
 
   Stream.prototype[name] = function(secondary) {
     return new AnonymousStream(this, secondary);
-  }
+  };
 
   Property.prototype[name] = function(secondary) {
     return new AnonymousProperty(this, secondary);
@@ -511,7 +523,7 @@ extend(Subscribers, {
     if (fnData.type === ANY) {
       fnData.fn(event);
     } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE) {
+      if (fnData.type === VALUE || fnData.type === ERROR) {
         fnData.fn(event.value);
       } else {
         fnData.fn();
@@ -522,7 +534,7 @@ extend(Subscribers, {
     if (type === ANY) {
       fn(event);
     } else if (type === event.type) {
-      if (type === VALUE) {
+      if (type === VALUE || type === ERROR) {
         fn(event.value);
       } else {
         fn();
@@ -567,7 +579,6 @@ function Event(type, value, current) {
 }
 
 var CURRENT_END = Event(END, undefined, true);
-
 
 
 
@@ -633,10 +644,12 @@ extend(Observable.prototype, {
   },
 
   onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
+  onError:  function(fn, _key) {  return this.on(ERROR, fn, _key)   },
   onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
   onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
 
   offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
+  offError: function(fn, _key) {  return this.off(ERROR, fn, _key)  },
   offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
   offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
 
@@ -691,7 +704,7 @@ inherit(Property, Observable, {
         this._subscribers.callAll(Event(type, x));
       }
       if (type === VALUE) {  this._current = x  }
-      if (type === END) {  this._clear()  }
+      if (type === END || type === ERROR) {  this._clear()  } // no errors on init allowed
     }
   },
 
@@ -729,13 +742,13 @@ Observable.prototype.log = function(name) {
     }
   }, '__logKey__' + name);
   return this;
-}
+};
 
 Observable.prototype.offLog = function(name) {
   name = name || this.toString();
   this.offAny(null, '__logKey__' + name);
   return this;
-}
+};
 
 
 
@@ -747,6 +760,7 @@ withInterval('withInterval', {
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x)  },
+      error: function(e) {  $._send(ERROR, e)  },
       end: function() {  $._send(END)  }
     }
   },
@@ -755,7 +769,11 @@ withInterval('withInterval', {
     this._emitter = null;
   },
   _onTick: function() {
-    this._fn(this._emitter);
+    try {
+      this._fn(this._emitter);
+    } catch(e) {
+      this._send(ERROR, e);
+    }
   }
 });
 
@@ -773,7 +791,13 @@ withInterval('fromPoll', {
     this._fn = null;
   },
   _onTick: function() {
-    this._send(VALUE, this._fn());
+    var val = null;
+    try {
+      val = this._fn();
+    } catch (e) {
+      this._send(ERROR, e);
+    }
+    this._send(VALUE, val);
   }
 });
 
@@ -923,6 +947,8 @@ inherit(_AbstractPool, Stream, {
   _handleSubAny: function(event) {
     if (event.type === VALUE) {
       this._send(VALUE, event.value, event.current && this._activating);
+    } else if (event.type === ERROR) {
+      this._send(ERROR, event.value, event.current && this._activating);
     }
   },
 
@@ -1002,11 +1028,11 @@ inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 Kefir.merge = function(obss) {
   return new Merge(obss);
-}
+};
 
 Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
-}
+};
 
 
 
@@ -1023,11 +1049,11 @@ inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
 Kefir.concat = function(obss) {
   return new Concat(obss);
-}
+};
 
 Observable.prototype.concat = function(other) {
   return Kefir.concat([this, other]);
-}
+};
 
 
 
@@ -1057,7 +1083,7 @@ inherit(Pool, _AbstractPool, {
 
 Kefir.pool = function() {
   return new Pool();
-}
+};
 
 
 
@@ -1086,6 +1112,10 @@ inherit(Bus, _AbstractPool, {
     this._send(VALUE, x);
     return this;
   },
+  error: function(e) {
+    this._send(ERROR, e);
+    return this;
+  },
   end: function() {
     this._send(END);
     return this;
@@ -1095,7 +1125,7 @@ inherit(Bus, _AbstractPool, {
 
 Kefir.bus = function() {
   return new Bus();
-}
+};
 
 
 
@@ -1158,22 +1188,22 @@ inherit(FlatMap, _AbstractPool, {
 Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn)
     .setName(this, 'flatMap');
-}
+};
 
 Observable.prototype.flatMapLatest = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
     .setName(this, 'flatMapLatest');
-}
+};
 
 Observable.prototype.flatMapFirst = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1})
     .setName(this, 'flatMapFirst');
-}
+};
 
 Observable.prototype.flatMapConcat = function(fn) {
   return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
     .setName(this, 'flatMapConcat');
-}
+};
 
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
@@ -1184,7 +1214,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
   return result.setName(this, 'flatMapConcurLimit');
-}
+};
 
 
 
@@ -1287,11 +1317,11 @@ inherit(SampledBy, Stream, {
 
 Kefir.sampledBy = function(passive, active, combinator) {
   return new SampledBy(passive, active, combinator);
-}
+};
 
 Observable.prototype.sampledBy = function(other, combinator) {
   return Kefir.sampledBy([this], [other], combinator || id);
-}
+};
 
 
 
@@ -1302,11 +1332,11 @@ Kefir.combine = function(sources, combinator) {
   var result = new SampledBy([], sources, combinator);
   result._name = 'combine';
   return result;
-}
+};
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
-}
+};
 
 function produceStream(StreamClass, PropertyClass) {
   return function() {  return new StreamClass(this, arguments)  }
@@ -1363,6 +1393,7 @@ withOneSource('withHandler', {
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
+      error: function(e) {  $._send(ERROR, e, $._forcedCurrent)  },
       end: function() {  $._send(END, null, $._forcedCurrent)  }
     }
   },
@@ -1372,7 +1403,11 @@ withOneSource('withHandler', {
   },
   _handleAny: function(event) {
     this._forcedCurrent = event.current;
-    this._handler(this._emitter, event);
+    try {
+      this._handler(this._emitter, event);
+    } catch(e) {
+      this._send(ERROR, e, this._forcedCurrent)
+    }
     this._forcedCurrent = false;
   }
 });
@@ -1390,7 +1425,12 @@ withOneSource('flatten', {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    var xs = this._fn(x);
+    var xs = [];
+    try {
+      xs = this._fn(x);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
     for (var i = 0; i < xs.length; i++) {
       this._send(VALUE, xs[i], isCurrent);
     }
@@ -1427,8 +1467,12 @@ withOneSource('transduce', {
   },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    if (this._xform.step(null, x) !== null) {
-      this._xform.result(null);
+    try {
+      if (this._xform.step(null, x) !== null) {
+        this._xform.result(null);
+      }
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
     }
     this._forcedCurrent = false;
   },
@@ -1454,7 +1498,11 @@ var withFnArgMixin = {
 
 withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
-    this._send(VALUE, this._fn(x), isCurrent);
+    try {
+      this._send(VALUE, this._fn(x), isCurrent);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
   }
 }, withFnArgMixin));
 
@@ -1466,8 +1514,12 @@ withOneSource('map', extend({
 
 withOneSource('filter', extend({
   _handleValue: function(x, isCurrent) {
-    if (this._fn(x)) {
-      this._send(VALUE, x, isCurrent);
+    try {
+      if (this._fn(x)) {
+        this._send(VALUE, x, isCurrent);
+      }
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
     }
   }
 }, withFnArgMixin));
@@ -1480,7 +1532,13 @@ withOneSource('filter', extend({
 
 withOneSource('takeWhile', extend({
   _handleValue: function(x, isCurrent) {
-    if (this._fn(x)) {
+    var flag = false; //end on error
+    try {
+      flag = this._fn(x);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
+    if (flag) {
       this._send(VALUE, x, isCurrent);
     } else {
       this._send(END, null, isCurrent);
@@ -1544,7 +1602,13 @@ withOneSource('skipDuplicates', {
     this._prev = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._prev === NOTHING || !this._fn(this._prev, x)) {
+    var eql = false; //not eql by default if error
+    try {
+      eql = this._fn(this._prev, x);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
+    if (this._prev === NOTHING || !eql) {
       this._send(VALUE, x, isCurrent);
       this._prev = x;
     }
@@ -1570,7 +1634,13 @@ withOneSource('skipWhile', {
       this._send(VALUE, x, isCurrent);
       return;
     }
-    if (!this._fn(x)) {
+    var skip = true;
+    try {
+      skip = this._fn(x);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
+    if (!skip) {
       this._skip = false;
       this._fn = null;
       this._send(VALUE, x, isCurrent);
@@ -1595,7 +1665,11 @@ withOneSource('diff', {
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev !== NOTHING) {
-      this._send(VALUE, this._fn(this._prev, x), isCurrent);
+      try {
+        this._send(VALUE, this._fn(this._prev, x), isCurrent);
+      } catch(e) {
+        this._send(ERROR, e, isCurrent);
+      }
     }
     this._prev = x;
   }
@@ -1618,10 +1692,14 @@ withOneSource('scan', {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._current !== NOTHING) {
-      x = this._fn(this._current, x);
+    try {
+      if (this._current !== NOTHING) {
+        x = this._fn(this._current, x);
+      }
+      this._send(VALUE, x, isCurrent);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
     }
-    this._send(VALUE, x, isCurrent);
   }
 }, {streamMethod: produceProperty});
 
@@ -1641,7 +1719,16 @@ withOneSource('reduce', {
     this._result = null;
   },
   _handleValue: function(x) {
-    this._result = (this._result === NOTHING) ? x : this._fn(this._result, x);
+    if (this._result === NOTHING) {
+      this._result = x;
+    } else {
+      try {
+        this._result = this._fn(this._result, x);
+      } catch(e) {
+        this._send(ERROR, e);
+      }
+    }
+
   },
   _handleEnd: function(__, isCurrent) {
     if (this._result !== NOTHING) {
@@ -1664,7 +1751,11 @@ withOneSource('mapEnd', {
     this._fn = null;
   },
   _handleEnd: function(__, isCurrent) {
-    this._send(VALUE, this._fn(), isCurrent);
+    try {
+      this._send(VALUE, this._fn(), isCurrent);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
     this._send(END, null, isCurrent);
   }
 });
@@ -1719,7 +1810,13 @@ withOneSource('bufferWhile', {
   },
   _handleValue: function(x, isCurrent) {
     this._buff.push(x);
-    if (!this._fn(x)) {
+    var flag = true;
+    try {
+      flag = this._fn(x);
+    } catch(e) {
+      this._send(ERROR, e, isCurrent);
+    }
+    if (!flag) {
       this._flush(isCurrent);
     }
   },
@@ -1918,9 +2015,16 @@ inherit(FromBinder, Stream, {
       , isCurrent = true
       , emitter = {
         emit: function(x) {  $._send(VALUE, x, isCurrent)  },
+        error: function(e) {  $._send(ERROR, e, isCurrent)  },
         end: function() {  $._send(END, null, isCurrent)  }
       };
-    this._unsubscribe = this._fn(emitter) || null;
+    this._unsubscribe =  null;
+    try {
+      this._unsubscribe = this._fn(emitter);
+    } catch(e) {
+      $._send(ERROR, e, isCurrent);
+      $._send(END, null, isCurrent);
+    }
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -1935,11 +2039,11 @@ inherit(FromBinder, Stream, {
     this._fn = null;
   }
 
-})
+});
 
 Kefir.fromBinder = function(fn) {
   return new FromBinder(fn);
-}
+};
 
 
 
@@ -1958,6 +2062,9 @@ inherit(Emitter, Stream, {
     this._send(VALUE, x);
     return this;
   },
+  error: function(e) {
+    $._send(ERROR, e)
+  },
   end: function() {
     this._send(END);
     return this;
@@ -1966,7 +2073,7 @@ inherit(Emitter, Stream, {
 
 Kefir.emitter = function() {
   return new Emitter();
-}
+};
 
 
 
@@ -1979,7 +2086,7 @@ Kefir.emitter = function() {
 var neverObj = new Stream();
 neverObj._send(END);
 neverObj._name = 'never';
-Kefir.never = function() {  return neverObj  }
+Kefir.never = function() {  return neverObj  };
 
 
 
@@ -1995,11 +2102,11 @@ function Constant(x) {
 
 inherit(Constant, Property, {
   _name: 'constant'
-})
+});
 
 Kefir.constant = function(x) {
   return new Constant(x);
-}
+};
 
 
 // .setName
@@ -2007,7 +2114,7 @@ Kefir.constant = function(x) {
 Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
   this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
   return this;
-}
+};
 
 
 
@@ -2015,7 +2122,7 @@ Observable.prototype.setName = function(sourceObs, selfName /* or just selfName 
 
 Observable.prototype.mapTo = function(value) {
   return this.map(function() {  return value  }).setName(this, 'mapTo');
-}
+};
 
 
 
@@ -2025,7 +2132,7 @@ Observable.prototype.pluck = function(propertyName) {
   return this.map(function(x) {
     return x[propertyName];
   }).setName(this, 'pluck');
-}
+};
 
 
 
@@ -2037,7 +2144,7 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
     function(x) {  return apply(x[methodName], x, args)  } :
     function(x) {  return x[methodName]()  }
   ).setName(this, 'invoke');
-}
+};
 
 
 
@@ -2046,7 +2153,7 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
 
 Observable.prototype.timestamp = function() {
   return this.map(function(x) {  return {value: x, time: now()}  }).setName(this, 'timestamp');
-}
+};
 
 
 
@@ -2058,7 +2165,7 @@ Observable.prototype.tap = function(fn) {
     fn(x);
     return x;
   }).setName(this, 'tap');
-}
+};
 
 
 
@@ -2066,11 +2173,11 @@ Observable.prototype.tap = function(fn) {
 
 Kefir.and = function(observables) {
   return Kefir.combine(observables, and).setName('and');
-}
+};
 
 Observable.prototype.and = function(other) {
   return this.combine(other, and).setName('and');
-}
+};
 
 
 
@@ -2078,11 +2185,11 @@ Observable.prototype.and = function(other) {
 
 Kefir.or = function(observables) {
   return Kefir.combine(observables, or).setName('or');
-}
+};
 
 Observable.prototype.or = function(other) {
   return this.combine(other, or).setName('or');
-}
+};
 
 
 
@@ -2090,7 +2197,7 @@ Observable.prototype.or = function(other) {
 
 Observable.prototype.not = function() {
   return this.map(not).setName(this, 'not');
-}
+};
 
 
 
@@ -2101,7 +2208,7 @@ Observable.prototype.awaiting = function(other) {
     this.mapTo(true),
     other.mapTo(false)
   ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
-}
+};
 
 
 
@@ -2118,8 +2225,9 @@ Kefir.fromCallback = function(callbackConsumer) {
       });
       called = true;
     }
+    return noop;
   }).setName('fromCallback');
-}
+};
 
 
 
@@ -2135,7 +2243,7 @@ Kefir._fromEvent = function(sub, unsub, transformer) {
     sub(handler);
     return function() {  unsub(handler)  };
   });
-}
+};
 
 
 
@@ -2169,8 +2277,41 @@ Kefir.fromEvent = function(target, eventName, transformer) {
     function(handler) {  target[unsub](eventName, handler)  },
     transformer
   ).setName('fromEvent');
-}
+};
 
+
+Kefir.fromPromise = function(promise) {
+  return Kefir.fromBinder(function(emitter) {
+
+    promise.then(function(value) {
+      emitter.emit(value); // Success!
+      emitter.end();
+    }, function(err) {
+      emitter.error(err); // Error!
+      emitter.end();
+    });
+
+  }).setName('fromPromise');
+};
+
+
+Observable.prototype.toPromise = function(promiseCtor) {
+  promiseCtor = promiseCtor || Promise;
+  if (!promiseCtor) { throw new TypeError('Promise type not provided nor native Promise support'); }
+  var source = this;
+  return new promiseCtor(function (resolve, reject) {
+    // No cancellation can be done
+    var value, hasValue = false;
+    source.onValue(function (v) {
+      value = v;
+      hasValue = true;
+    });
+    source.onEnd(function () {
+      if (hasValue) resolve(value);
+    });
+    source.onError(reject);
+  });
+};
 withTwoSources('bufferBy', {
 
   _init: function() {
