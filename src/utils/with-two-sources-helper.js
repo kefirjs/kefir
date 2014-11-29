@@ -1,7 +1,7 @@
 function withTwoSources(name, mixin /*, options*/) {
 
   mixin = extend({
-    _init: function() {},
+    _init: function(args) {},
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
@@ -55,7 +55,7 @@ function withTwoSources(name, mixin /*, options*/) {
 
 
   function buildClass(BaseClass) {
-    function AnonymousObservable(primary, secondary) {
+    function AnonymousObservable(primary, secondary, args) {
       BaseClass.call(this);
       this._primary = primary;
       this._secondary = secondary;
@@ -64,7 +64,7 @@ function withTwoSources(name, mixin /*, options*/) {
       var $ = this;
       this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
       this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
-      this._init();
+      this._init(args);
     }
 
     inherit(AnonymousObservable, BaseClass, {
@@ -87,11 +87,11 @@ function withTwoSources(name, mixin /*, options*/) {
   var AnonymousProperty = buildClass(Property);
 
   Stream.prototype[name] = function(secondary) {
-    return new AnonymousStream(this, secondary);
+    return new AnonymousStream(this, secondary, rest(arguments, 1, []));
   }
 
   Property.prototype[name] = function(secondary) {
-    return new AnonymousProperty(this, secondary);
+    return new AnonymousProperty(this, secondary, rest(arguments, 1, []));
   }
 
 }

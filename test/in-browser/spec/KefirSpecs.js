@@ -406,7 +406,7 @@ function withOneSource(name, mixin, options) {
 function withTwoSources(name, mixin /*, options*/) {
 
   mixin = extend({
-    _init: function() {},
+    _init: function(args) {},
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
@@ -460,7 +460,7 @@ function withTwoSources(name, mixin /*, options*/) {
 
 
   function buildClass(BaseClass) {
-    function AnonymousObservable(primary, secondary) {
+    function AnonymousObservable(primary, secondary, args) {
       BaseClass.call(this);
       this._primary = primary;
       this._secondary = secondary;
@@ -469,7 +469,7 @@ function withTwoSources(name, mixin /*, options*/) {
       var $ = this;
       this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
       this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
-      this._init();
+      this._init(args);
     }
 
     inherit(AnonymousObservable, BaseClass, {
@@ -492,11 +492,11 @@ function withTwoSources(name, mixin /*, options*/) {
   var AnonymousProperty = buildClass(Property);
 
   Stream.prototype[name] = function(secondary) {
-    return new AnonymousStream(this, secondary);
+    return new AnonymousStream(this, secondary, rest(arguments, 1, []));
   }
 
   Property.prototype[name] = function(secondary) {
-    return new AnonymousProperty(this, secondary);
+    return new AnonymousProperty(this, secondary, rest(arguments, 1, []));
   }
 
 }
@@ -1704,19 +1704,22 @@ withOneSource('slidingWindow', {
 
 
 
-// .bufferWhile([predicate])
+// .bufferWhile([predicate], [options])
 
 withOneSource('bufferWhile', {
   _init: function(args) {
     this._fn = args[0] || id;
+    this._flushOnEnd = get(args[1], 'flushOnEnd', true);
     this._buff = [];
   },
   _free: function() {
     this._buff = null;
   },
   _flush: function(isCurrent) {
-    this._send(VALUE, this._buff, isCurrent);
-    this._buff = [];
+    if (this._buff !== null && this._buff.length !== 0) {
+      this._send(VALUE, this._buff, isCurrent);
+      this._buff = [];
+    }
   },
   _handleValue: function(x, isCurrent) {
     this._buff.push(x);
@@ -1725,7 +1728,7 @@ withOneSource('bufferWhile', {
     }
   },
   _handleEnd: function(x, isCurrent) {
-    if (this._buff.length !== 0) {
+    if (this._flushOnEnd) {
       this._flush(isCurrent);
     }
     this._send(END, null, isCurrent);
@@ -2172,10 +2175,10 @@ Kefir.fromEvent = function(target, eventName, transformer) {
   ).setName('fromEvent');
 }
 
-withTwoSources('bufferBy', {
-
-  _init: function() {
+var withTwoSourcesAndBufferMixin = {
+  _init: function(args) {
     this._buff = [];
+    this._flushOnEnd = get(args[0], 'flushOnEnd', true);
   },
   _free: function() {
     this._buff = null;
@@ -2186,6 +2189,18 @@ withTwoSources('bufferBy', {
       this._buff = [];
     }
   },
+
+  _handlePrimaryEnd: function(__, isCurrent) {
+    if (this._flushOnEnd) {
+      this._flush(isCurrent);
+    }
+    this._send(END, null, isCurrent);
+  }
+};
+
+
+
+withTwoSources('bufferBy', extend({
 
   _onActivation: function() {
     this._primary.onAny(this._$handlePrimaryAny);
@@ -2198,16 +2213,26 @@ withTwoSources('bufferBy', {
     this._buff.push(x);
   },
 
-  _handlePrimaryEnd: function(__, isCurrent) {
-    this._flush(isCurrent);
-    this._send(END, null, isCurrent);
-  },
-
   _handleSecondaryValue: function(x, isCurrent) {
     this._flush(isCurrent);
   }
 
-});
+}, withTwoSourcesAndBufferMixin));
+
+
+
+
+// withTwoSources('bufferWhileBy', extend({
+
+//   _handlePrimaryValue: function(x, isCurrent) {
+//     this._buff.push(x);
+//     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+//       this._flush(isCurrent);
+//     }
+//   }
+
+// }, withTwoSourcesAndBufferMixin));
+
 
 
 
@@ -21808,6 +21833,19 @@ describe('bufferBy', function() {
         return send(a, [1, 2, '<end>']);
       });
     });
+    it('should not flush buffer on end if {flushOnEnd: false}', function() {
+      var a, b;
+      expect(send(prop(), [1, '<end>']).bufferBy(stream(), {
+        flushOnEnd: false
+      })).toEmit(['<end:current>']);
+      a = stream();
+      b = stream();
+      return expect(a.bufferBy(b, {
+        flushOnEnd: false
+      })).toEmit(['<end>'], function() {
+        return send(a, [1, 2, '<end>']);
+      });
+    });
     it('should not end when secondary ends', function() {
       var a, b;
       expect(stream().bufferBy(send(stream(), ['<end>']))).toEmit([]);
@@ -21896,10 +21934,19 @@ describe('bufferWhile', function() {
     it('should be ended if source was ended', function() {
       return expect(send(stream(), ['<end>']).bufferWhile(not3)).toEmit(['<end:current>']);
     });
-    return it('should work correctly', function() {
+    it('should work correctly', function() {
       var a;
       a = stream();
       return expect(a.bufferWhile(not3)).toEmit([[3], [1, 2, 3], [4, 3], [3], [5, 6], '<end>'], function() {
+        return send(a, [3, 1, 2, 3, 4, 3, 3, 5, 6, '<end>']);
+      });
+    });
+    return it('should not flush buffer on end if {flushOnEnd: false}', function() {
+      var a;
+      a = stream();
+      return expect(a.bufferWhile(not3, {
+        flushOnEnd: false
+      })).toEmit([[3], [1, 2, 3], [4, 3], [3], '<end>'], function() {
         return send(a, [3, 1, 2, 3, 4, 3, 3, 5, 6, '<end>']);
       });
     });
@@ -21920,11 +21967,21 @@ describe('bufferWhile', function() {
           current: [3]
         }, '<end:current>'
       ]);
-      return expect(send(prop(), [2, '<end>']).bufferWhile(not3)).toEmit([
+      expect(send(prop(), [2, '<end>']).bufferWhile(not3)).toEmit([
         {
           current: [2]
         }, '<end:current>'
       ]);
+      expect(send(prop(), [3, '<end>']).bufferWhile(not3, {
+        flushOnEnd: false
+      })).toEmit([
+        {
+          current: [3]
+        }, '<end:current>'
+      ]);
+      return expect(send(prop(), [2, '<end>']).bufferWhile(not3, {
+        flushOnEnd: false
+      })).toEmit(['<end:current>']);
     });
     return it('should work correctly', function() {
       var a;

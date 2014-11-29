@@ -405,7 +405,7 @@ function withOneSource(name, mixin, options) {
 function withTwoSources(name, mixin /*, options*/) {
 
   mixin = extend({
-    _init: function() {},
+    _init: function(args) {},
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
@@ -459,7 +459,7 @@ function withTwoSources(name, mixin /*, options*/) {
 
 
   function buildClass(BaseClass) {
-    function AnonymousObservable(primary, secondary) {
+    function AnonymousObservable(primary, secondary, args) {
       BaseClass.call(this);
       this._primary = primary;
       this._secondary = secondary;
@@ -468,7 +468,7 @@ function withTwoSources(name, mixin /*, options*/) {
       var $ = this;
       this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
       this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
-      this._init();
+      this._init(args);
     }
 
     inherit(AnonymousObservable, BaseClass, {
@@ -491,11 +491,11 @@ function withTwoSources(name, mixin /*, options*/) {
   var AnonymousProperty = buildClass(Property);
 
   Stream.prototype[name] = function(secondary) {
-    return new AnonymousStream(this, secondary);
+    return new AnonymousStream(this, secondary, rest(arguments, 1, []));
   }
 
   Property.prototype[name] = function(secondary) {
-    return new AnonymousProperty(this, secondary);
+    return new AnonymousProperty(this, secondary, rest(arguments, 1, []));
   }
 
 }
@@ -1703,19 +1703,22 @@ withOneSource('slidingWindow', {
 
 
 
-// .bufferWhile([predicate])
+// .bufferWhile([predicate], [options])
 
 withOneSource('bufferWhile', {
   _init: function(args) {
     this._fn = args[0] || id;
+    this._flushOnEnd = get(args[1], 'flushOnEnd', true);
     this._buff = [];
   },
   _free: function() {
     this._buff = null;
   },
   _flush: function(isCurrent) {
-    this._send(VALUE, this._buff, isCurrent);
-    this._buff = [];
+    if (this._buff !== null && this._buff.length !== 0) {
+      this._send(VALUE, this._buff, isCurrent);
+      this._buff = [];
+    }
   },
   _handleValue: function(x, isCurrent) {
     this._buff.push(x);
@@ -1724,7 +1727,7 @@ withOneSource('bufferWhile', {
     }
   },
   _handleEnd: function(x, isCurrent) {
-    if (this._buff.length !== 0) {
+    if (this._flushOnEnd) {
       this._flush(isCurrent);
     }
     this._send(END, null, isCurrent);
@@ -2171,10 +2174,10 @@ Kefir.fromEvent = function(target, eventName, transformer) {
   ).setName('fromEvent');
 }
 
-withTwoSources('bufferBy', {
-
-  _init: function() {
+var withTwoSourcesAndBufferMixin = {
+  _init: function(args) {
     this._buff = [];
+    this._flushOnEnd = get(args[0], 'flushOnEnd', true);
   },
   _free: function() {
     this._buff = null;
@@ -2185,6 +2188,18 @@ withTwoSources('bufferBy', {
       this._buff = [];
     }
   },
+
+  _handlePrimaryEnd: function(__, isCurrent) {
+    if (this._flushOnEnd) {
+      this._flush(isCurrent);
+    }
+    this._send(END, null, isCurrent);
+  }
+};
+
+
+
+withTwoSources('bufferBy', extend({
 
   _onActivation: function() {
     this._primary.onAny(this._$handlePrimaryAny);
@@ -2197,16 +2212,26 @@ withTwoSources('bufferBy', {
     this._buff.push(x);
   },
 
-  _handlePrimaryEnd: function(__, isCurrent) {
-    this._flush(isCurrent);
-    this._send(END, null, isCurrent);
-  },
-
   _handleSecondaryValue: function(x, isCurrent) {
     this._flush(isCurrent);
   }
 
-});
+}, withTwoSourcesAndBufferMixin));
+
+
+
+
+// withTwoSources('bufferWhileBy', extend({
+
+//   _handlePrimaryValue: function(x, isCurrent) {
+//     this._buff.push(x);
+//     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+//       this._flush(isCurrent);
+//     }
+//   }
+
+// }, withTwoSourcesAndBufferMixin));
+
 
 
 

@@ -1,7 +1,7 @@
-withTwoSources('bufferBy', {
-
-  _init: function() {
+var withTwoSourcesAndBufferMixin = {
+  _init: function(args) {
     this._buff = [];
+    this._flushOnEnd = get(args[0], 'flushOnEnd', true);
   },
   _free: function() {
     this._buff = null;
@@ -12,6 +12,18 @@ withTwoSources('bufferBy', {
       this._buff = [];
     }
   },
+
+  _handlePrimaryEnd: function(__, isCurrent) {
+    if (this._flushOnEnd) {
+      this._flush(isCurrent);
+    }
+    this._send(END, null, isCurrent);
+  }
+};
+
+
+
+withTwoSources('bufferBy', extend({
 
   _onActivation: function() {
     this._primary.onAny(this._$handlePrimaryAny);
@@ -24,16 +36,26 @@ withTwoSources('bufferBy', {
     this._buff.push(x);
   },
 
-  _handlePrimaryEnd: function(__, isCurrent) {
-    this._flush(isCurrent);
-    this._send(END, null, isCurrent);
-  },
-
   _handleSecondaryValue: function(x, isCurrent) {
     this._flush(isCurrent);
   }
 
-});
+}, withTwoSourcesAndBufferMixin));
+
+
+
+
+// withTwoSources('bufferWhileBy', extend({
+
+//   _handlePrimaryValue: function(x, isCurrent) {
+//     this._buff.push(x);
+//     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+//       this._flush(isCurrent);
+//     }
+//   }
+
+// }, withTwoSourcesAndBufferMixin));
+
 
 
 

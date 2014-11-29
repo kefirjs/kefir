@@ -30,6 +30,16 @@ describe 'bufferWhile', ->
         '<end>'
       ], -> send(a, [3, 1, 2, 3, 4, 3, 3, 5, 6, '<end>'])
 
+    it 'should not flush buffer on end if {flushOnEnd: false}', ->
+      a = stream()
+      expect(a.bufferWhile(not3, {flushOnEnd: false})).toEmit [
+        [3],
+        [1, 2, 3],
+        [4, 3],
+        [3],
+        '<end>'
+      ], -> send(a, [3, 1, 2, 3, 4, 3, 3, 5, 6, '<end>'])
+
 
 
   describe 'property', ->
@@ -45,6 +55,8 @@ describe 'bufferWhile', ->
       expect(send(prop(), ['<end>']).bufferWhile(not3)).toEmit ['<end:current>']
       expect(send(prop(), [3, '<end>']).bufferWhile(not3)).toEmit [{current: [3]}, '<end:current>']
       expect(send(prop(), [2, '<end>']).bufferWhile(not3)).toEmit [{current: [2]}, '<end:current>']
+      expect(send(prop(), [3, '<end>']).bufferWhile(not3, {flushOnEnd: false})).toEmit [{current: [3]}, '<end:current>']
+      expect(send(prop(), [2, '<end>']).bufferWhile(not3, {flushOnEnd: false})).toEmit ['<end:current>']
 
     it 'should work correctly', ->
       a = send(prop(), [3])

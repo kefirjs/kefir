@@ -393,19 +393,22 @@ withOneSource('slidingWindow', {
 
 
 
-// .bufferWhile([predicate])
+// .bufferWhile([predicate], [options])
 
 withOneSource('bufferWhile', {
   _init: function(args) {
     this._fn = args[0] || id;
+    this._flushOnEnd = get(args[1], 'flushOnEnd', true);
     this._buff = [];
   },
   _free: function() {
     this._buff = null;
   },
   _flush: function(isCurrent) {
-    this._send(VALUE, this._buff, isCurrent);
-    this._buff = [];
+    if (this._buff !== null && this._buff.length !== 0) {
+      this._send(VALUE, this._buff, isCurrent);
+      this._buff = [];
+    }
   },
   _handleValue: function(x, isCurrent) {
     this._buff.push(x);
@@ -414,7 +417,7 @@ withOneSource('bufferWhile', {
     }
   },
   _handleEnd: function(x, isCurrent) {
-    if (this._buff.length !== 0) {
+    if (this._flushOnEnd) {
       this._flush(isCurrent);
     }
     this._send(END, null, isCurrent);

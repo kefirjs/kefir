@@ -32,6 +32,12 @@ describe 'bufferBy', ->
       b = stream()
       expect(a.bufferBy(b)).toEmit [[1, 2], '<end>'], -> send(a, [1, 2, '<end>'])
 
+    it 'should not flush buffer on end if {flushOnEnd: false}', ->
+      expect(send(prop(), [1, '<end>']).bufferBy(stream(), {flushOnEnd: false})).toEmit ['<end:current>']
+      a = stream()
+      b = stream()
+      expect(a.bufferBy(b, {flushOnEnd: false})).toEmit ['<end>'], -> send(a, [1, 2, '<end>'])
+
     it 'should not end when secondary ends', ->
       expect(stream().bufferBy(send(stream(), ['<end>']))).toEmit []
       a = stream()
