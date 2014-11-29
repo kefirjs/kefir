@@ -1,9 +1,10 @@
-## next
+## 0.4.1
 
  - New method `.bufferWhile`
  - New method `.bufferBy`
  - New method `.bufferWhileBy`
  - New method `.withDefault`
+ - New method `.zip`
 
 
 ## 0.4.0

@@ -329,6 +329,91 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 
 
 
+
+// .zip()
+
+function Zip(sources, combinator) {
+  Stream.call(this);
+  if (sources.length === 0) {
+    this._send(END);
+  } else {
+    this._sources = sources;
+    this._combinator = combinator ? spread(combinator, this._sources.length) : id;
+    this._buffers = map(sources, function() {return []});
+    this._aliveCount = 0;
+  }
+}
+
+function bind_Zip_handleAny($, i) {
+  return function(event) {  $._handleAny(i, event)  };
+}
+
+inherit(Zip, Stream, {
+
+  _name: 'zip',
+
+  _onActivation: function() {
+    var i, length = this._sources.length;
+    this._aliveCount = length;
+    for (i = 0; i < length; i++) {
+      this._sources[i].onAny(bind_Zip_handleAny(this, i), [this, i]);
+    }
+  },
+
+  _onDeactivation: function() {
+    for (var i = 0; i < this._sources.length; i++) {
+      this._sources[i].offAny(null, [this, i]);
+    }
+  },
+
+  _emitIfFull: function(isCurrent) {
+    var i, values;
+    for (i = 0; i < this._buffers.length; i++) {
+      if (this._buffers[i].length === 0) {
+        return;
+      }
+    }
+    values = new Array(this._buffers.length);
+    for (i = 0; i < this._buffers.length; i++) {
+      values[i] = this._buffers[i].shift();
+    }
+    this._send(VALUE, this._combinator(values), isCurrent);
+  },
+
+  _handleAny: function(i, event) {
+    if (event.type === VALUE) {
+      this._buffers[i].push(event.value);
+      this._emitIfFull(event.current);
+    } else {
+      this._aliveCount--;
+      if (this._aliveCount === 0) {
+        this._send(END, null, event.current);
+      }
+    }
+  },
+
+  _clear: function() {
+    Stream.prototype._clear.call(this);
+    this._sources = null;
+    this._buffers = null;
+    this._combinator = null;
+  }
+
+});
+
+Kefir.zip = function(sources, combinator) {
+  return new Zip(sources, combinator);
+}
+
+Observable.prototype.zip = function(other, combinator) {
+  return new Zip([this, other], combinator);
+}
+
+
+
+
+
+
 // .sampledBy()
 
 function SampledBy(passive, active, combinator) {
@@ -438,9 +523,7 @@ Observable.prototype.sampledBy = function(other, combinator) {
 // .combine()
 
 Kefir.combine = function(sources, combinator) {
-  var result = new SampledBy([], sources, combinator);
-  result._name = 'combine';
-  return result;
+  return new SampledBy([], sources, combinator).setName('combine');
 }
 
 Observable.prototype.combine = function(other, combinator) {
