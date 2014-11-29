@@ -65,6 +65,8 @@ Kefir.emitter = function() {
   return new Emitter();
 }
 
+Kefir.Emitter = Emitter;
+
 
 
 
