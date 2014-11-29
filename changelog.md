@@ -2,6 +2,7 @@
 
  - New method `.bufferWhile`
  - New method `.bufferBy`
+ - New method `.bufferWhileBy`
  - New method `.withDefault`
 
 

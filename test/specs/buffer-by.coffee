@@ -44,6 +44,12 @@ describe 'bufferBy', ->
       b = stream()
       expect(a.bufferBy(b)).toEmit [], -> send(b, ['<end>'])
 
+    it 'should do end when secondary ends if {flushOnEnd: false}', ->
+      expect(stream().bufferBy(send(stream(), ['<end>']), {flushOnEnd: false})).toEmit ['<end:current>']
+      a = stream()
+      b = stream()
+      expect(a.bufferBy(b, {flushOnEnd: false})).toEmit ['<end>'], -> send(b, ['<end>'])
+
     it 'should flush buffer (if not empty) on each value from secondary', ->
       a = stream()
       b = stream()

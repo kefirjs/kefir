@@ -2214,6 +2214,12 @@ withTwoSources('bufferBy', extend({
 
   _handleSecondaryValue: function(x, isCurrent) {
     this._flush(isCurrent);
+  },
+
+  _handleSecondaryEnd: function(x, isCurrent) {
+    if (!this._flushOnEnd) {
+      this._send(END, null, isCurrent);
+    }
   }
 
 }, withTwoSourcesAndBufferMixin));
@@ -2221,16 +2227,22 @@ withTwoSources('bufferBy', extend({
 
 
 
-// withTwoSources('bufferWhileBy', extend({
+withTwoSources('bufferWhileBy', extend({
 
-//   _handlePrimaryValue: function(x, isCurrent) {
-//     this._buff.push(x);
-//     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
-//       this._flush(isCurrent);
-//     }
-//   }
+  _handlePrimaryValue: function(x, isCurrent) {
+    this._buff.push(x);
+    if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+      this._flush(isCurrent);
+    }
+  },
 
-// }, withTwoSourcesAndBufferMixin));
+  _handleSecondaryEnd: function(x, isCurrent) {
+    if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
+      this._send(END, null, isCurrent);
+    }
+  }
+
+}, withTwoSourcesAndBufferMixin));
 
 
 
