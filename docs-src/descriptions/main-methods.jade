@@ -8,7 +8,7 @@ p.
   Subscribes <b>fn</b> functions to values on an observable.
   If <b>onValue</b> called on a property, and property has
   current value, <b>fn</b> will be called
-  immediately with property current value as argument.
+  immediately (synchronously) with property current value as argument.
 
 pre(title='example').
   var emitter = Kefir.emitter();
@@ -26,7 +26,7 @@ pre(title='console output')
 
 +descr-method('on-end', 'onEnd', 'obs.onEnd(fn)').
   Subscribes <b>fn</b> functions to ending off an observable.
-  If observable already ended, <b>fn</b> will be called immediately.
+  If observable already ended, <b>fn</b> will be called immediately (synchronously).
 
 pre(title='example').
   var emitter = Kefir.emitter();

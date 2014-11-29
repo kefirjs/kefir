@@ -548,13 +548,16 @@ div
 
 
 
-+descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate])').
++descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate], [options])').
   Passes every value from source observable to #[b predicate] function,
   if it returns #[tt true] adds value to the buffer, otherwise flushes the buffer.
-  Also flushes the buffer before end, if it not empty.
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
 
 p.
   The default #[b predicate] is #[tt function(x) {return x}].
+  If you want to omit #[b predicate] but pass #[b options],
+  pass #[tt null] as a #[b predicate].
 
 pre(title='example')
   :escapehtml

@@ -6,6 +6,8 @@ p.
   observable (on which method was called). With one exception
   for <a href="#awaiting">awaiting</a>, that always returns a property.
 
+
+
 +descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
   Works like <a href="#filter">filter</a>, but instead of calling a predicate
   on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
@@ -148,10 +150,12 @@ div
 
 
 
-+descr-method('buffer-by', 'bufferBy', 'obs.bufferBy(otherObs)').
++descr-method('buffer-by', 'bufferBy', 'obs.bufferBy(otherObs, [options])').
   Buffers all values from #[b obs] observable,
   and flushes the buffer on each value from #[b otherObs].
-  Also flushes before end. Ends when #[b obs] observable ends.
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
+  Ends when #[b obs] observable ends.
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]).delay(40);

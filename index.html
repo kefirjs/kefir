@@ -187,10 +187,27 @@ setTimeout(function() {
 &gt; !deactivation
 </pre><pre title="events in time">stream:  ----1----2----3---</pre><div></div><p>See also <a href="demos/custom-stream.html">Custom stream demo</a>
 as another <b>fromBinder</b> usage example.
-
-
-
-</p><h2 id="create-property">Create a property</h2><p>For now there is only one method that creates a property directly —
+</p><p><img data-emoji="point_up"> Note that if you call <b>emitter</b> methods
+synchronously in <b>subscribe</b> function, the callback passed to <b>on*</b> methods
+(<b>onValue</b> etc.) will be also called synchronously.
+And only first subscriber will get values emitted synchronously
+(but if you convert stream to a property, this value will became property
+current value, and all subscribers will get it).
+</p><pre title="example">var stream = Kefir.fromBinder(function(emitter) {
+  emitter.emit(1); // synchronous call
+  setTimeout(function() {emitter.emit(2)}, 0); // asynchronous call
+});
+console.log(&#x27;about to add first subscriber&#x27;);
+stream.onValue(function(x) {console.log(&#x27;first:&#x27;, x)});
+console.log(&#x27;first subscriber added&#x27;);
+stream.onValue(function(x) {console.log(&#x27;second:&#x27;, x)});
+console.log(&#x27;second subscriber added&#x27;);
+</pre><pre title="console output">&gt; about to add first subscriber
+&gt; first: 1
+&gt; first subscriber added
+&gt; second subscriber added
+&gt; first: 2
+&gt; second: 2</pre><div></div><h2 id="create-property">Create a property</h2><p>For now there is only one method that creates a property directly —
 <tt>constant()</tt>. But you can always convert any stream to a property using
 <a href="#to-property">toProperty</a> method.
 </p><p id="constant"><a href="#constant" class="header">constant</a><code>Kefir.constant(value)</code><br/>Creates ended property, with specified <b>current value</b>.
@@ -300,7 +317,7 @@ result: 5----1----2----3X</pre><div></div><h2 id="main-methods">Main observable*
 </p><p id="on-value"><a href="#on-value" class="header">onValue</a><code>obs.onValue(fn)</code><br/>Subscribes <b>fn</b> functions to values on an observable.
 If <b>onValue</b> called on a property, and property has
 current value, <b>fn</b> will be called
-immediately with property current value as argument.
+immediately (synchronously) with property current value as argument.
 </p><pre title="example">var emitter = Kefir.emitter();
 emitter.onValue(function(x) {  console.log('value:', x)  });
 emitter.emit(1);
@@ -309,7 +326,7 @@ emitter.emit(2);
 &gt; value: 2
 </pre><p id="off-value"><a href="#off-value" class="header">offValue</a><code>obs.offValue(fn)</code><br/>Unsubscribes <b>fn</b> from values on an observable.
 </p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(fn)</code><br/>Subscribes <b>fn</b> functions to ending off an observable.
-If observable already ended, <b>fn</b> will be called immediately.
+If observable already ended, <b>fn</b> will be called immediately (synchronously).
 </p><pre title="example">var emitter = Kefir.emitter();
 emitter.onEnd(function(x) {  console.log('stream ended')  });
 emitter.end();
@@ -589,10 +606,13 @@ result.log();
 &gt; [sequentially.slidingWindow] &lt;value&gt; [3, 4, 5]
 &gt; [sequentially.slidingWindow] &lt;end&gt;
 </pre><pre title="events in time">source:  ---1---(   2  )---(    3    )---(    4    )---(    5    )X
-result:  -------([1, 2])---([1, 2, 3])---([2, 3, 4])---([3, 4, 5])X</pre><div></div><p id="buffer-while"><a href="#buffer-while" class="header">bufferWhile</a><code>obs.bufferWhile([predicate])</code><br/>Passes every value from source observable to <b>predicate</b> function,
+result:  -------([1, 2])---([1, 2, 3])---([2, 3, 4])---([3, 4, 5])X</pre><div></div><p id="buffer-while"><a href="#buffer-while" class="header">bufferWhile</a><code>obs.bufferWhile([predicate], [options])</code><br/>Passes every value from source observable to <b>predicate</b> function,
 if it returns <tt>true</tt> adds value to the buffer, otherwise flushes the buffer.
-Also flushes the buffer before end, if it not empty.
+Also flushes the buffer before end, but you can disable that
+by passing <tt>{flushOnEnd: false}</tt> as <b>options</b>.
 </p><p>The default <b>predicate</b> is <tt>function(x) {return x}</tt>.
+If you want to omit <b>predicate</b> but pass <b>options</b>,
+pass <tt>null</tt> as a <b>predicate</b>.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
 var result = source.bufferWhile(function(x) {return x !== 3});
 result.log();
@@ -1090,6 +1110,8 @@ result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><d
 all methods in this section return observables of same kind as an original
 observable (on which method was called). With one exception
 for <a href="#awaiting">awaiting</a>, that always returns a property.
+
+
 </p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/>Works like <a href="#filter">filter</a>, but instead of calling a predicate
 on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
 </p><pre title="example">var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1162,9 +1184,11 @@ result.log();
 </pre><pre title="events in time">foo:     ----1----2----3----4X
 bar:     -----------0X
 
-result:  ----1----2-X</pre><div></div><p id="buffer-by"><a href="#buffer-by" class="header">bufferBy</a><code>obs.bufferBy(otherObs)</code><br/>Buffers all values from <b>obs</b> observable,
+result:  ----1----2-X</pre><div></div><p id="buffer-by"><a href="#buffer-by" class="header">bufferBy</a><code>obs.bufferBy(otherObs, [options])</code><br/>Buffers all values from <b>obs</b> observable,
 and flushes the buffer on each value from <b>otherObs</b>.
-Also flushes before end. Ends when <b>obs</b> observable ends.
+Also flushes the buffer before end, but you can disable that
+by passing <tt>{flushOnEnd: false}</tt> as <b>options</b>.
+Ends when <b>obs</b> observable ends.
 </p><pre title="example">var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]).delay(40);
 var bar = Kefir.sequentially(300, [1, 2])
 var result = foo.bufferBy(bar);
