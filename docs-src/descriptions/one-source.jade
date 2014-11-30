@@ -79,8 +79,9 @@ pre(title='console output')
 div
 
 pre(title='events in time').
-  source: ---({num: 1})---({num: 2})---({num: 3})X
-  result: ---(   1    )---(   2    )---(   3    )X
+  source: --------•--------•--------•X
+            {num:1}  {num:2}  {num:3}
+  result: --------1--------2--------3X
 div
 
 
@@ -110,8 +111,9 @@ pre(title='console output')
 
 pre(title='events in time')
   :escapehtml
-    source: ---({foo: ()=>1})---({foo: ()=>2})---({foo: ()=>3})X
-    result: ---(     1      )---(     2      )---(     3      )X
+    source: ------------•------------•------------•X
+              {foo:()=>1}  {foo:()=>2}  {foo:()=>3}
+    result: ------------1------------2------------3X
 div
 
 
@@ -156,8 +158,9 @@ pre(title='console output')
     > [sequentially.timestamp] <end>
 
 pre(title='events in time').
-  source: ---(          1          )---(          2          )X
-  result: ---({value: 1, time: ...})---({value: 2, time: ...})X
+  source: --------1--------2X
+  result: --------•--------•X
+    {value:1,time:...}    {value:2,time:...}
 div
 
 
@@ -366,8 +369,9 @@ pre(title='console output')
     > [sequentially.skipDuplicates] <end>
 
 pre(title='events in time').
-  source: ---1---2---(2.1)---3---1X
-  result: ---1---2-----------3---1X
+  source: ---1---2---•---3---1X
+                   2.1
+  result: ---1---2-------3---1X
 div
 
 
@@ -542,10 +546,41 @@ pre(title='console output')
     > [sequentially.slidingWindow] <end>
 
 pre(title='events in time').
-  source:  ---1---(   2  )---(    3    )---(    4    )---(    5    )X
-  result:  -------([1, 2])---([1, 2, 3])---([2, 3, 4])---([3, 4, 5])X
+  source:  --------1--------2--------3--------4--------5X
+  result:  -----------------•--------•--------•--------•X
+                        [1,2]  [1,2,3]  [2,3,4]  [3,4,5]
 div
 
+
+
++descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate], [options])').
+  Passes every value from source observable to #[b predicate] function,
+  if it returns #[tt true] adds value to the buffer, otherwise flushes the buffer.
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
+
+p.
+  The default #[b predicate] is #[tt function(x) {return x}].
+  If you want to omit #[b predicate] but pass #[b options],
+  pass #[tt null] as a #[b predicate].
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
+    var result = source.bufferWhile(function(x) {return x !== 3});
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWhile] <value> [1, 2, 3]
+    > [sequentially.bufferWhile] <value> [4, 5]
+    > [sequentially.bufferWhile] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3---4---5 X
+  result:  -----------•--------•X
+                [1,2,3]    [4,5]
+div
 
 
 
@@ -663,8 +698,9 @@ pre(title='console output')
     > [sequentially.flatten] <end>
 
 pre(title='events in time').
-  source:  ---([1])---([])---([2, 3])X
-  result:  ---( 1 )----------(2 )(3 )X
+  source:  --------•--------•-------- •X
+                 [1]       []     [2,3]
+  result:  --------1-----------------23X
 div
 
 p.
@@ -698,8 +734,9 @@ pre(title='console output')
     > [sequentially.flatten] <end>
 
 pre(title='events in time').
-  source:  ---1---(2 )---3---(4 )X
-  result:  -------(20)-------(40)X
+  source:  ---1---2---3---4X
+  result:  -------•-------•X
+                 20      40
 div
 
 p.
@@ -739,8 +776,9 @@ pre(title='console output')
     > [sequentially.transduce] <end>
 
 pre(title='events in time').
-  source:  ---1---(2 )---3---(4 )---5---6X
-  result:  -------(12)-------(14)X
+  source:  ---1---2---3---4---5---6X
+  result:  -------•-------•X
+                 12      14
 div
 
 
@@ -792,6 +830,7 @@ pre(title='console output')
 div
 
 pre(title='events in time').
-  source:  ---0---1---( 2  )---(   3   )(  X   )
-  result:  -------1---(2)(2)---(3)(3)(3)(bye)(X)
+  source:  ---0---1--- 2---  3 X
+  result:  -------•---••---••••X
+                  1   22   333bye
 div

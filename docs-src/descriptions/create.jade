@@ -162,7 +162,8 @@ pre(title='console output')
     ...
 
 pre(title='events in time').
-  stream:  ----(1001)----(2002)----(3004)----(4006)---
+  stream:  ----•----•----•----•---
+            1001 2002 3004 4006
 div
 
 
@@ -196,7 +197,8 @@ pre(title='console output')
     > [withInterval] <end>
 
 pre(title='events in time').
-  stream:  ----(1002)----(2003)----(3005)----X
+  stream:  ----•----•----•----X
+            1002 2003 3005
 div
 
 p.
@@ -310,6 +312,35 @@ p.
   See also <a href="demos/custom-stream.html">Custom stream demo</a>
   as another <b>fromBinder</b> usage example.
 
+p.
+  #[img(data-emoji="point_up")] Note that if you call #[b emitter] methods
+  synchronously in #[b subscribe] function, the callback passed to #[b on*] methods
+  (#[b onValue] etc.) will be also called synchronously.
+  And only first subscriber will get values emitted synchronously
+  (but if you convert stream to a property, this value will became property
+  current value, and all subscribers will get it).
+
+pre(title='example')
+  :escapehtml
+    var stream = Kefir.fromBinder(function(emitter) {
+      emitter.emit(1); // synchronous call
+      setTimeout(function() {emitter.emit(2)}, 0); // asynchronous call
+    });
+    console.log('about to add first subscriber');
+    stream.onValue(function(x) {console.log('first:', x)});
+    console.log('first subscriber added');
+    stream.onValue(function(x) {console.log('second:', x)});
+    console.log('second subscriber added');
+
+pre(title='console output')
+  :escapehtml
+    > about to add first subscriber
+    > first: 1
+    > first subscriber added
+    > second subscriber added
+    > first: 2
+    > second: 2
+div
 
 
 

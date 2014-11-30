@@ -19,9 +19,6 @@ function withOneSource(name, mixin, options) {
     _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
     _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
-    _onActivationHook: function() {},
-    _onDeactivationHook: function() {},
-
     _handleAny: function(event) {
       switch (event.type) {
         case VALUE: this._handleValue(event.value, event.current); break;
@@ -30,11 +27,9 @@ function withOneSource(name, mixin, options) {
     },
 
     _onActivation: function() {
-      this._onActivationHook();
       this._source.onAny(this._$handleAny);
     },
     _onDeactivation: function() {
-      this._onDeactivationHook();
       this._source.offAny(this._$handleAny);
     }
   }, mixin || {});

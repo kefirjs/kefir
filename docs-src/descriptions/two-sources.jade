@@ -6,6 +6,8 @@ p.
   observable (on which method was called). With one exception
   for <a href="#awaiting">awaiting</a>, that always returns a property.
 
+
+
 +descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
   Works like <a href="#filter">filter</a>, but instead of calling a predicate
   on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
@@ -143,6 +145,72 @@ pre(title='events in time').
   bar:     -----------0X
 
   result:  ----1----2-X
+div
+
+
+
+
++descr-method('buffer-by', 'bufferBy', 'obs.bufferBy(otherObs, [options])').
+  Buffers all values from #[b obs] observable,
+  and flushes the buffer on each value from #[b otherObs].
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]).delay(40);
+  var bar = Kefir.sequentially(300, [1, 2])
+  var result = foo.bufferBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.delay.bufferBy] <value> [1, 2]
+    > [sequentially.delay.bufferBy] <value> [3, 4, 5]
+    > [sequentially.delay.bufferBy] <value> [6, 7, 8]
+    > [sequentially.delay.bufferBy] <end>
+
+pre(title='events in time').
+  foo:     ------1----2----3----4----5----6----7----8 X
+  bar:     --------------1--------------2X
+
+  result:  --------------•--------------•------------•X
+                    [1, 2]      [3, 4, 5]    [6, 7, 8]
+div
+
+
+
+
+
++descr-method('buffer-while-by', 'bufferWhileBy', 'obs.bufferWhileBy(otherObs, [options])').
+  Similar to #[a(href="#buffer-while") bufferWhile], but instead of using a
+  predicate function it uses another observable.
+  On each value from #[b obs] observable:
+  if last value from #[b otherObs] was truthy, adds new value to the buffer,
+  otherwise flushes the buffer (with new value included).
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
+
+
+pre(title='example').
+  var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+  var bar = Kefir.sequentially(200, [false, true, false]).delay(40);
+  var result = foo.bufferWhileBy(bar);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWhileBy] <value> [1, 2, 3]
+    > [sequentially.bufferWhileBy] <value> [4]
+    > [sequentially.bufferWhileBy] <value> [5, 6, 7]
+    > [sequentially.bufferWhileBy] <value> [8]
+    > [sequentially.bufferWhileBy] <end>
+
+pre(title='events in time').
+  foo:     ----1----2----3----4----5----6----7----8X
+  bar:     -----------f---------t---------fX
+
+  result:  --------------•----•--------------•----•X
+                 [1, 2, 3]  [4]      [5, 6, 7]  [8]
 div
 
 

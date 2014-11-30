@@ -174,6 +174,54 @@ p.
   <tt>a.sampledBy(b)</tt>.
 
 
+
++descr-method('zip', 'zip', 'Kefir.zip(sources, [combinator])', 'obs.zip(otherObs, [combinator])').
+  Creates a stream with values from #[b sources]
+  lined up with each other. For example if you have two sources with values
+  #[tt [1, 2, 3]] and #[tt [4, 5, 6, 7]], the result stream will emit
+  #[tt [1, 4]], #[tt [2, 5]], and #[tt [3, 6]].
+  The result stream will emit next value only when it has at least one value
+  from each of sources.
+
+p.
+  You can also provide a #[b combinator] function, in this case instead
+  of emitting array of values, they will be passed to #[b combinator] as arguments,
+  and returned value will be emitted (same as in #[a(href="#combine") combine],
+  #[a(href="#sampled-by") sampledBy], etc.)
+
+p.
+  Also in #[b zip] you can pass ordinary arrays along with observables
+  in #[b sources], e.g. #[tt Kefir.zip([obs,&nbsp;[1,&nbsp;2,&nbsp;3]],&nbsp;fn)].
+  In other words, #[b sources] is an array of observables and arrays,
+  or only observables of course.
+
+p.
+  The result stream ends when all sources end.
+
+pre(title='example').
+  var a = Kefir.sequentially(100, [0, 1, 2, 3]);
+  var b = Kefir.sequentially(160, [4, 5, 6]);
+  var c = Kefir.sequentially(100, [8, 9]).delay(260).toProperty(7);
+  var result = Kefir.zip([a, b, c]);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [zip] <value> [0, 4, 7]
+    > [zip] <value> [1, 5, 8]
+    > [zip] <value> [2, 6, 9]
+    > [zip] <end>
+
+pre(title='events in time').
+  a:    ----0----1----2----3X
+  b:    -------4-------5-------6X
+  c:   7-----------------8----9X
+
+  abc:  -------•---------•-----•X
+         [0,4,7]   [1,5,8]     [2,6,9]
+div
+
+
 +descr-method('merge', 'merge', 'Kefir.merge(obss)', 'obs.merge(otherObs)').
   Merges several <b>obss</b> observables into single stream,
   i.e. simply repeats values from each source observable.

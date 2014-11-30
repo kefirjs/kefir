@@ -34,7 +34,7 @@ extend(Subscribers.prototype, {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
-      key: _key || NOTHING
+      key: _key || {}
     }]);
   },
   remove: function(type, fn, _key) {
@@ -225,12 +225,12 @@ Observable.prototype.log = function(name) {
     } else {
       console.log(name, typeStr);
     }
-  }, '__logKey__' + name);
+  }, ['__logKey__', this, name]);
   return this;
 }
 
 Observable.prototype.offLog = function(name) {
   name = name || this.toString();
-  this.offAny(null, '__logKey__' + name);
+  this.offAny(null, ['__logKey__', this, name]);
   return this;
 }

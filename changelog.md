@@ -1,10 +1,19 @@
+## 0.4.1
+
+ - New method `.bufferWhile`
+ - New method `.bufferBy`
+ - New method `.bufferWhileBy`
+ - New method `.withDefault`
+ - New method `.zip`
+
+
 ## 0.4.0
 
  - The `seed` argument in `.scan`, `.reduce`, and `.diff` is now optional
  - Removed support of ["array functions"](https://github.com/pozadi/kefir/blob/2edf32a82d5b24ecb6ed99c9bcbd2391b91c8715/docs-src/descriptions/about-callbacks.jade)
  - The default `fn` in `obs.sampledBy(other, fn)` changed from `function(a, b) {return [a, b]}` to `function(a, b) {return a}`. The default `fn` for `Kefir.sampledBy` hasn't changed.
- - New method `.mapEnd(fn)`
- - New method `.skipEnd()`
+ - New method `.mapEnd`
+ - New method `.skipEnd`
  - The `fn` argument in `.filter`, `.takeWhile`, and `.skipWhile` is now optional
 
 
