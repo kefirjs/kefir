@@ -1,4 +1,4 @@
-/*! Kefir.js v0.4.0
+/*! Kefir.js v0.4.1
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
