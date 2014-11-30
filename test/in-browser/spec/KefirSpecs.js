@@ -532,19 +532,20 @@ extend(Subscribers, {
   }
 });
 
+
 extend(Subscribers.prototype, {
   add: function(type, fn, _key) {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
-      key: _key || {}
+      key: _key || null
     }]);
   },
   remove: function(type, fn, _key) {
-    this._items = removeByPred(this._items, function(fnData) {
-      return fnData.type === type &&
-        (fnData.fn === fn || isEqualArrays(fnData.key, _key));
-    });
+    var pred = isArray(_key) ?
+      function(fnData) {return fnData.type === type && isEqualArrays(fnData.key, _key)} :
+      function(fnData) {return fnData.type === type && fnData.fn === fn};
+    this._items = removeByPred(this._items, pred);
   },
   callAll: function(event) {
     var items = this._items;
