@@ -62,6 +62,36 @@ describe 'zip', ->
       send(b, ['<end>'])
 
 
+  it 'should support arrays', ->
+    a = [1, 4, 6, 7]
+    b = send(prop(), [0])
+    c = stream()
+    # a   1, 4, 6, 7
+    # b  0---2------------------9X
+    # c   ----3-------5-------8------X
+    #     ----•-------•---------•----X
+    #   [1,0,3] [4,2,5]   [6,9,8]
+    expect(Kefir.zip([a, b, c])).toEmit [[1,0,3], [4,2,5], [6,9,8], '<end>'], ->
+      send(b, [2])
+      send(c, [3])
+      send(c, [5])
+      send(c, [8])
+      send(b, [9, '<end>'])
+      send(c, ['<end>'])
+
+    a = [1, 3]
+    b = send(prop(), [0])
+    expect(b.zip(a)).toEmit [{current: [0,1]}, [2,3], '<end>'], ->
+      send(b, [2])
+      send(b, ['<end>'])
+
+  it 'should work with arrays only', ->
+    expect(Kefir.zip([
+      [1,2,3]
+      [4,5]
+      [6,7,8,9]
+    ])).toEmit [{current: [1,4,6]}, {current: [2,5,7]}, '<end:current>']
+
   it 'should accept optional combinator function', ->
     join = (args...) -> args.join('+')
     a = stream()

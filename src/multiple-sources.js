@@ -337,9 +337,13 @@ function Zip(sources, combinator) {
   if (sources.length === 0) {
     this._send(END);
   } else {
-    this._sources = sources;
+    this._buffers = map(sources, function(source) {
+      return isArray(source) ? cloneArray(source) : [];
+    });
+    this._sources = map(sources, function(source) {
+      return isArray(source) ? Kefir.never() : source;
+    });
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
-    this._buffers = map(sources, function() {return []});
     this._aliveCount = 0;
   }
 }
@@ -354,6 +358,7 @@ inherit(Zip, Stream, {
 
   _onActivation: function() {
     var i, length = this._sources.length;
+    this._drainArrays();
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
       this._sources[i].onAny(bind_Zip_handleAny(this, i), [this, i]);
@@ -366,18 +371,33 @@ inherit(Zip, Stream, {
     }
   },
 
-  _emitIfFull: function(isCurrent) {
-    var i, values;
-    for (i = 0; i < this._buffers.length; i++) {
-      if (this._buffers[i].length === 0) {
-        return;
-      }
-    }
-    values = new Array(this._buffers.length);
-    for (i = 0; i < this._buffers.length; i++) {
+  _emit: function(isCurrent) {
+    var values = new Array(this._buffers.length);
+    for (var i = 0; i < this._buffers.length; i++) {
       values[i] = this._buffers[i].shift();
     }
     this._send(VALUE, this._combinator(values), isCurrent);
+  },
+
+  _isFull: function() {
+    for (var i = 0; i < this._buffers.length; i++) {
+      if (this._buffers[i].length === 0) {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  _emitIfFull: function(isCurrent) {
+    if (this._isFull()) {
+      this._emit(isCurrent);
+    }
+  },
+
+  _drainArrays: function() {
+    while (this._isFull()) {
+      this._emit(true);
+    }
   },
 
   _handleAny: function(i, event) {
