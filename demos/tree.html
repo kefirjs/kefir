@@ -60,6 +60,7 @@
           <option value="12">12</option>
           <option value="13">13</option>
           <option value="14">14</option>
+          <option value="15">15</option>
           <option value="16">16</option>
           <option value="17">17</option>
           <option value="18">18</option>
@@ -107,14 +108,15 @@
           # Setup selects
 
           $('#lib').val(getParam('lib', DEFAULT_LIB)).change ->
-            location.search = "?lib=#{ $(this).val() }&depth=#{ getParam('depth', DEFAULT_DEPTH) }"
+            location.search = "?lib=#{ $(this).val() }&depth=#{ getParam('depth', DEFAULT_DEPTH) }&partial_render=#{ getParam('partial_render', 'no') }"
           $('#depth').val(getParam('depth', DEFAULT_DEPTH)).change ->
-            location.search = "?lib=#{ getParam('lib', DEFAULT_LIB) }&depth=#{ $(this).val() }"
+            location.search = "?lib=#{ getParam('lib', DEFAULT_LIB) }&depth=#{ $(this).val() }&partial_render=#{ getParam('partial_render', 'no') }"
+          $('#partial-render').prop('checked', getParam('partial_render') == 'yes').change ->
+            val = if $(this).prop('checked') then 'yes' else 'no'
+            location.search = "?lib=#{ getParam('lib', DEFAULT_LIB) }&depth=#{ getParam('depth', DEFAULT_DEPTH) }&partial_render=#{ val }"
 
-          PARTIAL_RENDER = false
+          PARTIAL_RENDER = (getParam('partial_render') == 'yes')
 
-          $('#partial-render').change ->
-            PARTIAL_RENDER = $(this).prop('checked');
 
 
 
