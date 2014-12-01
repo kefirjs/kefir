@@ -511,7 +511,7 @@ extend(Subscribers, {
     if (fnData.type === ANY) {
       fnData.fn(event);
     } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE) {
+      if (fnData.type !== END) {
         fnData.fn(event.value);
       } else {
         fnData.fn();
@@ -522,7 +522,7 @@ extend(Subscribers, {
     if (type === ANY) {
       fn(event);
     } else if (type === event.type) {
-      if (type === VALUE) {
+      if (type !== END) {
         fn(event.value);
       } else {
         fn();
@@ -723,7 +723,7 @@ Observable.prototype.log = function(name) {
   name = name || this.toString();
   this.onAny(function(event) {
     var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-    if (event.type === VALUE) {
+    if (event.type !== END) {
       console.log(name, typeStr, event.value);
     } else {
       console.log(name, typeStr);
@@ -1099,7 +1099,39 @@ Kefir.bus = function() {
 }
 
 
+// .bus()
 
+function MultiBus() {
+  _AbstractPool.call(this);
+}
+
+inherit(MultiBus, _AbstractPool, {
+
+  _name: 'multiBus',
+
+  plug: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  unplug: function(obs) {
+    this._remove(obs);
+    return this;
+  },
+
+  emit: function(type, x) {
+    this._send(type, x);
+    return this;
+  },
+  end: function() {
+    this._send(END);
+    return this;
+  }
+
+});
+
+Kefir.multiBus = function() {
+  return new MultiBus();
+}
 
 
 // .flatMap()

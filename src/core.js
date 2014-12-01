@@ -9,7 +9,7 @@ extend(Subscribers, {
     if (fnData.type === ANY) {
       fnData.fn(event);
     } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE) {
+      if (fnData.type !== END) {
         fnData.fn(event.value);
       } else {
         fnData.fn();
@@ -20,7 +20,7 @@ extend(Subscribers, {
     if (type === ANY) {
       fn(event);
     } else if (type === event.type) {
-      if (type === VALUE) {
+      if (type !== END) {
         fn(event.value);
       } else {
         fn();
@@ -221,7 +221,7 @@ Observable.prototype.log = function(name) {
   name = name || this.toString();
   this.onAny(function(event) {
     var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-    if (event.type === VALUE) {
+    if (event.type !== END) {
       console.log(name, typeStr, event.value);
     } else {
       console.log(name, typeStr);

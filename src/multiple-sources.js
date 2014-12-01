@@ -237,7 +237,39 @@ Kefir.bus = function() {
 }
 
 
+// .bus()
 
+function MultiBus() {
+  _AbstractPool.call(this);
+}
+
+inherit(MultiBus, _AbstractPool, {
+
+  _name: 'multiBus',
+
+  plug: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  unplug: function(obs) {
+    this._remove(obs);
+    return this;
+  },
+
+  emit: function(type, x) {
+    this._send(type, x);
+    return this;
+  },
+  end: function() {
+    this._send(END);
+    return this;
+  }
+
+});
+
+Kefir.multiBus = function() {
+  return new MultiBus();
+}
 
 
 // .flatMap()
