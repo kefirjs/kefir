@@ -237,7 +237,54 @@ Kefir.bus = function() {
 }
 
 
+// .bus()
 
+function MultiBus() {
+  _AbstractPool.call(this);
+}
+
+inherit(MultiBus, _AbstractPool, {
+
+  _name: 'multiBus',
+
+  plug: function(obs) {
+    this._add(obs);
+    return this;
+  },
+  unplug: function(obs) {
+    this._remove(obs);
+    return this;
+  },
+
+  channel: function(type) {
+    var bus = this;
+    return new FromBinder(function (emitter) {
+      var fn = function (val) {
+        emitter.emit(val)
+      };
+
+      bus.on(type, fn);
+
+      return function () {
+        bus.off(type, fn);
+      }
+    }).setName(bus, 'channel['+type+']');
+  },
+
+  emit: function(type, x) {
+    this._send(type, x);
+    return this;
+  },
+  end: function() {
+    this._send(END);
+    return this;
+  }
+
+});
+
+Kefir.multiBus = function() {
+  return new MultiBus();
+}
 
 
 // .flatMap()
