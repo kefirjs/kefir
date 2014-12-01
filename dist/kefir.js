@@ -1119,8 +1119,9 @@ inherit(MultiBus, _AbstractPool, {
   },
 
   channel: function(type) {
+    var bus = this;
     return new FromBinder(function (emitter) {
-      var bus = this, fn = function (val) {
+      var fn = function (val) {
         emitter.emit(val)
       };
 
@@ -1129,7 +1130,7 @@ inherit(MultiBus, _AbstractPool, {
       return function () {
         bus.off(type, fn);
       }
-    });
+    }).setName(bus, 'channel');
   },
 
   emit: function(type, x) {
