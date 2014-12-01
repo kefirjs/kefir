@@ -16,9 +16,9 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 [![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
 [![devDependency Status](https://david-dm.org/pozadi/kefir/dev-status.svg)](https://david-dm.org/pozadi/kefir#info=devDependencies)
 
-[![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir)
+<!-- [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir) -->
 
-[Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch)
+[Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch, i.e. last stable version)
 
 
 
