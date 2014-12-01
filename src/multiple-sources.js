@@ -256,6 +256,20 @@ inherit(MultiBus, _AbstractPool, {
     return this;
   },
 
+  channel: function(type) {
+    return new FromBinder(function (emitter) {
+      var bus = this, fn = function (val) {
+        emitter.emit(val)
+      };
+
+      bus.on(type, fn);
+
+      return function () {
+        bus.off(type, fn);
+      }
+    });
+  },
+
   emit: function(type, x) {
     this._send(type, x);
     return this;
