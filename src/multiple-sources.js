@@ -268,7 +268,7 @@ inherit(MultiBus, _AbstractPool, {
       return function () {
         bus.off(type, fn);
       }
-    }).setName(bus, 'channel');
+    }).setName(bus, 'channel['+type+']');
   },
 
   emit: function(type, x) {
