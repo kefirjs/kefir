@@ -361,7 +361,7 @@ emitter.end();
 &gt; myEmitter &lt;value&gt; 2
 &gt; myEmitter &lt;end&gt;
 </pre><p id="off-log"><a href="#off-log" class="header">offLog</a><code>obs.offLog([name])</code><br/>Turns off logging. If <b>.log</b> was called with <b>name</b> argument,
-<b>offLog</b> must be called with same <b>name</b> argument.</p><h2 id="modify">Modify an observable</h2><p>All methods in this section create a new observable of same kind* from an original one.
+<b>offLog</b> must be called with same <b>name</b> argument.</p><h2 id="modify">Modify an observable</h2><p>All methods in this section create a new observable of same type* from an original one.
 New observable applies some transformation to each event from original
 and emits result of transformation.
 In most cases a transformation is applied only to <b>value events</b>,
@@ -1151,7 +1151,7 @@ spawned 2:                       ---2---2---2---2---2---2X
 spawned 3:                                     ---3---3---3---3---3---3X
 
 result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><h2 id="combine-two">Combine two observables</h2><p>Just like in <a href="#modify">"Modify an observable"</a> section,
-all methods in this section return observables of same kind as an original
+all methods in this section return observables of same type as an original
 observable (on which method was called). With one exception
 for <a href="#awaiting">awaiting</a>, that always returns a property.
 
