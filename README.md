@@ -22,6 +22,20 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 
 
+# Installation
+
+Server:
+```sh
+npm install --save kefir
+```
+
+Client:
+```sh
+bower install --save kefir
+```
+
+
+
 # Development
 
 To build `/dist` from `/src` and run tests on Node.js type this in console:
