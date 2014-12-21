@@ -73,18 +73,6 @@ exports.withDOM = (cb) ->
 
 
 
-getCurrent = (prop) ->
-  val = getCurrent.NOTHING
-  save = (x, isCurrent) ->
-    if isCurrent
-      val = x
-  prop.on 'value', save
-  prop.off 'value', save
-  val
-getCurrent.NOTHING = ['<getCurrent.NOTHING>']
-
-
-
 
 beforeEach ->
   @addMatchers {
@@ -111,10 +99,6 @@ beforeEach ->
         tick(timeLimit)
       @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
       @env.equals_(expectedLog, log)
-
-    toHasNoCurrent: -> getCurrent(@actual) == getCurrent.NOTHING
-    toHasCurrent: (x) -> getCurrent(@actual) == x
-    toHasEqualCurrent: (x) -> @env.equals_(x, getCurrent(@actual))
 
     toActivate: (obss...) ->
 
