@@ -11,6 +11,11 @@ logItem = (event) ->
       {current: event.value}
     else
       event.value
+  else if event.type == 'error'
+    if event.current
+      {currentError: event.value}
+    else
+      {error: event.value}
   else
     if event.current
       '<end:current>'
@@ -35,6 +40,8 @@ exports.send = (obs, events) ->
   for event in events
     if event == '<end>'
       obs._send('end')
+    if (typeof event == 'object' && 'error' of event)
+      obs._send('error', event.error)
     else
       obs._send('value', event)
   obs

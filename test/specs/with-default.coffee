@@ -19,8 +19,10 @@ describe 'withDefault', ->
 
     it 'should handle events', ->
       a = stream()
-      expect(a.withDefault(0)).toEmit [{current: 0}, 1, 2, '<end>'], ->
-        send(a, [1, 2, '<end>'])
+      p = a.withDefault(0)
+      expect(p).toEmit [{current: 0}, 1, {error: 3}, 2, '<end>'], ->
+        send(a, [1, {error: 3}, 2, '<end>'])
+      expect(p).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
 
 
 
@@ -39,10 +41,16 @@ describe 'withDefault', ->
 
     it 'should handle events', ->
       a = send(prop(), [1])
-      expect(a.withDefault(0)).toEmit [{current: 1}, 2, '<end>'], ->
-        send(a, [2, '<end>'])
+      b = a.withDefault(0)
+      expect(b).toEmit [{current: 1}, 2, {error: 3}, '<end>'], ->
+        send(a, [2, {error: 3}, '<end>'])
+      expect(b).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+
       a = prop()
-      expect(a.withDefault(0)).toEmit [{current: 0}, 2, '<end>'], ->
-        send(a, [2, '<end>'])
+      b = a.withDefault(0)
+      expect(b).toEmit [{current: 0}, 2, {error: 3}, '<end>'], ->
+        send(a, [2, {error: 3}, '<end>'])
+      expect(b).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+
 
 

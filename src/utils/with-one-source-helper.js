@@ -17,11 +17,13 @@ function withOneSource(name, mixin, options) {
     _free: function() {},
 
     _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handleError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
     _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleAny: function(event) {
       switch (event.type) {
         case VALUE: this._handleValue(event.value, event.current); break;
+        case ERROR: this._handleError(event.value, event.current); break;
         case END: this._handleEnd(event.value, event.current); break;
       }
     },

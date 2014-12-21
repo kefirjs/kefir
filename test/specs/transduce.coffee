@@ -145,8 +145,8 @@ describe 'transduce', ->
 
       it 'should handle events', ->
         a = stream()
-        expect(a.transduce(noop)).toEmit [1, 2, 3, '<end>'], ->
-          send(a, [1, 2, 3, '<end>'])
+        expect(a.transduce(noop)).toEmit [1, 2, {error: 4}, 3, '<end>'], ->
+          send(a, [1, 2, {error: 4}, 3, '<end>'])
 
     describe 'property', ->
 
@@ -161,9 +161,9 @@ describe 'transduce', ->
         expect(send(prop(), ['<end>']).transduce(noop)).toEmit ['<end:current>']
 
       it 'should handle events and current', ->
-        a = send(prop(), [1])
-        expect(a.transduce(noop)).toEmit [{current: 1}, 2, 3, '<end>'], ->
-          send(a, [2, 3, '<end>'])
+        a = send(prop(), [1, {error: 0}])
+        expect(a.transduce(noop)).toEmit [{current: 1}, {currentError: 0}, 2, {error: 4}, 3, '<end>'], ->
+          send(a, [2, {error: 4}, 3, '<end>'])
 
   testWithLib('Cognitect Labs', require 'transducers-js')
   testWithLib('James Long\'s', require 'transducers.js')

@@ -38,6 +38,11 @@ withOneSource('changes', {
     if (!isCurrent) {
       this._send(VALUE, x);
     }
+  },
+  _handleError: function(x, isCurrent) {
+    if (!isCurrent) {
+      this._send(ERROR, x);
+    }
   }
 }, {streamMethod: null, propertyMethod: produceStream});
 
@@ -53,6 +58,7 @@ withOneSource('withHandler', {
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
+      error: function(x) {  $._send(ERROR, x, $._forcedCurrent)  },
       end: function() {  $._send(END, null, $._forcedCurrent)  }
     }
   },
@@ -163,6 +169,8 @@ withOneSource('filter', extend({
 }, withFnArgMixin));
 
 
+
+// ----- Errors tested this far
 
 
 
