@@ -117,22 +117,66 @@ beforeEach ->
     toHasEqualCurrent: (x) -> @env.equals_(x, getCurrent(@actual))
 
     toActivate: (obss...) ->
-      conditions = []
-      conditions.push (!obs._active for obs in obss)...
+
+      orOp = (a, b) -> a || b
+      andOp = (a, b) -> a && b
+
+      notStr = (if @isNot then 'not ' else '')
+      notNotStr = (if @isNot then '' else 'not ')
+
+      tests = {}
+      tests["some activated at start"] = true
+      tests["some #{notNotStr}activated"] = true
+      tests["some #{notNotStr}deactivated"] = true
+      tests["some #{notNotStr}activated at second try"] = true
+      tests["some #{notNotStr}deactivated at second try"] = true
+
+      correctResults = {}
+      correctResults["some activated at start"] = true
+      correctResults["some #{notNotStr}activated"] = true
+      correctResults["some #{notNotStr}deactivated"] = true
+      correctResults["some #{notNotStr}activated at second try"] = true
+      correctResults["some #{notNotStr}deactivated at second try"] = true
+
+      if @isNot
+        correctResults["some #{notNotStr}activated"] = false
+        correctResults["some #{notNotStr}activated at second try"] = false
+
+      check = (test, conditions) ->
+        if correctResults[test] == true
+          for condition in conditions
+            if !condition
+              tests[test] = false
+              return
+        else
+          for condition in conditions
+            if condition
+              return
+          tests[test] = false
+
+      check("some activated at start", (!obs._active for obs in obss))
+
       exports.activate(@actual)
-      conditions.push (obs._active for obs in obss)...
+      check("some #{notNotStr}activated", (obs._active for obs in obss))
+
       exports.deactivate(@actual)
-      conditions.push (!obs._active for obs in obss)...
+      check("some #{notNotStr}deactivated", (!obs._active for obs in obss))
+
       exports.activate(@actual)
-      conditions.push (obs._active for obs in obss)...
+      check("some #{notNotStr}activated at second try", (obs._active for obs in obss))
+
       exports.deactivate(@actual)
-      conditions.push (!obs._active for obs in obss)...
-      allTrue = true
-      for condition in conditions
-        allTrue = allTrue && condition
+      check("some #{notNotStr}deactivated at second try", (!obs._active for obs in obss))
+
       @message = ->
-        obssString = (obs.toString() for obs in obss).join(', ')
-        "Expected #{@actual.toString()} to activate #{obssString} (results: #{jasmine.pp(conditions)})"
-      allTrue
+        failedTest = (name for name of tests when tests[name] != correctResults[name]).join(', ')
+        obssNames = (obs.toString() for obs in obss).join(', ')
+        "Expected #{@actual.toString()} to #{notStr}activate: #{obssNames} (#{failedTest})"
+
+      for name of tests
+        if tests[name] != correctResults[name]
+          return @isNot
+      return !@isNot
+
   }
 
