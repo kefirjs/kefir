@@ -1,4 +1,4 @@
-/*! Kefir.js v0.4.1
+/*! Kefir.js v0.4.2
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -531,19 +531,20 @@ extend(Subscribers, {
   }
 });
 
+
 extend(Subscribers.prototype, {
   add: function(type, fn, _key) {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
-      key: _key || {}
+      key: _key || null
     }]);
   },
   remove: function(type, fn, _key) {
-    this._items = removeByPred(this._items, function(fnData) {
-      return fnData.type === type &&
-        (fnData.fn === fn || isEqualArrays(fnData.key, _key));
-    });
+    var pred = isArray(_key) ?
+      function(fnData) {return fnData.type === type && isEqualArrays(fnData.key, _key)} :
+      function(fnData) {return fnData.type === type && fnData.fn === fn};
+    this._items = removeByPred(this._items, pred);
   },
   callAll: function(event) {
     var items = this._items;
@@ -1118,9 +1119,11 @@ inherit(FlatMap, _AbstractPool, {
 
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
-    this._activating = true;
-    this._source.onAny(this._$handleMainSource);
-    this._activating = false;
+    if (this._active) {
+      this._activating = true;
+      this._source.onAny(this._$handleMainSource);
+      this._activating = false;
+    }
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
