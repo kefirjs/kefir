@@ -4,7 +4,7 @@
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
-    "test": "NODE_PATH=./dist grunt test"
+    "test": "NODE_PATH=./dist grunt"
   },
   "keywords": [
     "frp",
