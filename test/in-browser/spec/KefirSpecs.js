@@ -1120,9 +1120,11 @@ inherit(FlatMap, _AbstractPool, {
 
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
-    this._activating = true;
-    this._source.onAny(this._$handleMainSource);
-    this._activating = false;
+    if (this._active) {
+      this._activating = true;
+      this._source.onAny(this._$handleMainSource);
+      this._activating = false;
+    }
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
@@ -24085,7 +24087,7 @@ describe('flatMap', function() {
         return send(a, [b, c]);
       });
     });
-    return it('should work nicely with Kefir.constant and Kefir.never', function() {
+    it('should work nicely with Kefir.constant and Kefir.never', function() {
       var a;
       a = stream();
       return expect(a.flatMap(function(x) {
@@ -24097,6 +24099,21 @@ describe('flatMap', function() {
       })).toEmit([3, 4, 5], function() {
         return send(a, [1, 2, 3, 4, 5]);
       });
+    });
+    return it('Bug in flatMap: exception thrown when resubscribing to stream', function() {
+      var handler, src, stream1, sub;
+      src = Kefir.emitter();
+      stream1 = src.flatMap(function(x) {
+        return x;
+      });
+      handler = function() {};
+      stream1.onValue(handler);
+      sub = Kefir.emitter();
+      src.emit(sub);
+      src.end();
+      stream1.offValue(handler);
+      sub.end();
+      return stream1.onValue(handler);
     });
   });
   return describe('property', function() {
@@ -28951,7 +28968,7 @@ describe('zip', function() {
 
 
 },{"../test-helpers.coffee":93}],93:[function(require,module,exports){
-var Kefir, getCurrent, logItem, sinon, _activateHelper,
+var Kefir, logItem, sinon, _activateHelper,
   __slice = [].slice;
 
 Kefir = require("../dist/kefir");
@@ -29049,21 +29066,6 @@ exports.withDOM = function(cb) {
   return document.body.removeChild(div);
 };
 
-getCurrent = function(prop) {
-  var save, val;
-  val = getCurrent.NOTHING;
-  save = function(x, isCurrent) {
-    if (isCurrent) {
-      return val = x;
-    }
-  };
-  prop.on('value', save);
-  prop.off('value', save);
-  return val;
-};
-
-getCurrent.NOTHING = ['<getCurrent.NOTHING>'];
-
 beforeEach(function() {
   return this.addMatchers({
     toBeProperty: function() {
@@ -29112,87 +29114,131 @@ beforeEach(function() {
       };
       return this.env.equals_(expectedLog, log);
     },
-    toHasNoCurrent: function() {
-      return getCurrent(this.actual) === getCurrent.NOTHING;
-    },
-    toHasCurrent: function(x) {
-      return getCurrent(this.actual) === x;
-    },
-    toHasEqualCurrent: function(x) {
-      return this.env.equals_(x, getCurrent(this.actual));
-    },
     toActivate: function() {
-      var allTrue, condition, conditions, obs, obss, _i, _len;
+      var andOp, check, correctResults, name, notNotStr, notStr, obs, obss, orOp, tests;
       obss = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      conditions = [];
-      conditions.push.apply(conditions, (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = obss.length; _i < _len; _i++) {
-          obs = obss[_i];
-          _results.push(!obs._active);
-        }
-        return _results;
-      })());
-      exports.activate(this.actual);
-      conditions.push.apply(conditions, (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = obss.length; _i < _len; _i++) {
-          obs = obss[_i];
-          _results.push(obs._active);
-        }
-        return _results;
-      })());
-      exports.deactivate(this.actual);
-      conditions.push.apply(conditions, (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = obss.length; _i < _len; _i++) {
-          obs = obss[_i];
-          _results.push(!obs._active);
-        }
-        return _results;
-      })());
-      exports.activate(this.actual);
-      conditions.push.apply(conditions, (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = obss.length; _i < _len; _i++) {
-          obs = obss[_i];
-          _results.push(obs._active);
-        }
-        return _results;
-      })());
-      exports.deactivate(this.actual);
-      conditions.push.apply(conditions, (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = obss.length; _i < _len; _i++) {
-          obs = obss[_i];
-          _results.push(!obs._active);
-        }
-        return _results;
-      })());
-      allTrue = true;
-      for (_i = 0, _len = conditions.length; _i < _len; _i++) {
-        condition = conditions[_i];
-        allTrue = allTrue && condition;
+      orOp = function(a, b) {
+        return a || b;
+      };
+      andOp = function(a, b) {
+        return a && b;
+      };
+      notStr = (this.isNot ? 'not ' : '');
+      notNotStr = (this.isNot ? '' : 'not ');
+      tests = {};
+      tests["some activated at start"] = true;
+      tests["some " + notNotStr + "activated"] = true;
+      tests["some " + notNotStr + "deactivated"] = true;
+      tests["some " + notNotStr + "activated at second try"] = true;
+      tests["some " + notNotStr + "deactivated at second try"] = true;
+      correctResults = {};
+      correctResults["some activated at start"] = true;
+      correctResults["some " + notNotStr + "activated"] = true;
+      correctResults["some " + notNotStr + "deactivated"] = true;
+      correctResults["some " + notNotStr + "activated at second try"] = true;
+      correctResults["some " + notNotStr + "deactivated at second try"] = true;
+      if (this.isNot) {
+        correctResults["some " + notNotStr + "activated"] = false;
+        correctResults["some " + notNotStr + "activated at second try"] = false;
       }
+      check = function(test, conditions) {
+        var condition, _i, _j, _len, _len1;
+        if (correctResults[test] === true) {
+          for (_i = 0, _len = conditions.length; _i < _len; _i++) {
+            condition = conditions[_i];
+            if (!condition) {
+              tests[test] = false;
+              return;
+            }
+          }
+        } else {
+          for (_j = 0, _len1 = conditions.length; _j < _len1; _j++) {
+            condition = conditions[_j];
+            if (condition) {
+              return;
+            }
+          }
+          return tests[test] = false;
+        }
+      };
+      check("some activated at start", (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = obss.length; _i < _len; _i++) {
+          obs = obss[_i];
+          _results.push(!obs._active);
+        }
+        return _results;
+      })());
+      exports.activate(this.actual);
+      check("some " + notNotStr + "activated", (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = obss.length; _i < _len; _i++) {
+          obs = obss[_i];
+          _results.push(obs._active);
+        }
+        return _results;
+      })());
+      exports.deactivate(this.actual);
+      check("some " + notNotStr + "deactivated", (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = obss.length; _i < _len; _i++) {
+          obs = obss[_i];
+          _results.push(!obs._active);
+        }
+        return _results;
+      })());
+      exports.activate(this.actual);
+      check("some " + notNotStr + "activated at second try", (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = obss.length; _i < _len; _i++) {
+          obs = obss[_i];
+          _results.push(obs._active);
+        }
+        return _results;
+      })());
+      exports.deactivate(this.actual);
+      check("some " + notNotStr + "deactivated at second try", (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = obss.length; _i < _len; _i++) {
+          obs = obss[_i];
+          _results.push(!obs._active);
+        }
+        return _results;
+      })());
       this.message = function() {
-        var obssString;
-        obssString = ((function() {
-          var _j, _len1, _results;
+        var failedTest, name, obssNames;
+        failedTest = ((function() {
+          var _results;
           _results = [];
-          for (_j = 0, _len1 = obss.length; _j < _len1; _j++) {
-            obs = obss[_j];
+          for (name in tests) {
+            if (tests[name] !== correctResults[name]) {
+              _results.push(name);
+            }
+          }
+          return _results;
+        })()).join(', ');
+        obssNames = ((function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = obss.length; _i < _len; _i++) {
+            obs = obss[_i];
             _results.push(obs.toString());
           }
           return _results;
         })()).join(', ');
-        return "Expected " + (this.actual.toString()) + " to activate " + obssString + " (results: " + (jasmine.pp(conditions)) + ")";
+        return "Expected " + (this.actual.toString()) + " to " + notStr + "activate: " + obssNames + " (" + failedTest + ")";
       };
-      return allTrue;
+      for (name in tests) {
+        if (tests[name] !== correctResults[name]) {
+          return this.isNot;
+        }
+      }
+      return !this.isNot;
     }
   });
 });

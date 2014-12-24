@@ -74,6 +74,22 @@ describe 'flatMap', ->
       ).toEmit [3, 4, 5], ->
         send(a, [1, 2, 3, 4, 5])
 
+    # https://github.com/pozadi/kefir/issues/29
+    it 'Bug in flatMap: exception thrown when resubscribing to stream', ->
+
+      src = Kefir.emitter()
+      stream1 = src.flatMap((x) -> x)
+      handler = ->
+      stream1.onValue(handler)
+      sub = Kefir.emitter()
+      src.emit(sub)
+      src.end()
+      stream1.offValue(handler)
+      sub.end()
+
+      # Throws exception
+      stream1.onValue(handler)
+
 
 
 

@@ -257,9 +257,11 @@ inherit(FlatMap, _AbstractPool, {
 
   _onActivation: function() {
     _AbstractPool.prototype._onActivation.call(this);
-    this._activating = true;
-    this._source.onAny(this._$handleMainSource);
-    this._activating = false;
+    if (this._active) {
+      this._activating = true;
+      this._source.onAny(this._$handleMainSource);
+      this._activating = false;
+    }
   },
   _onDeactivation: function() {
     _AbstractPool.prototype._onDeactivation.call(this);
