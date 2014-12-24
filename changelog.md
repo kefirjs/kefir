@@ -1,3 +1,8 @@
+## 0.4.2
+
+ - A bug in `.flatMap` fixed #29
+ - Minor perf fixes
+
 ## 0.4.1
 
  - New method `.bufferWhile`
