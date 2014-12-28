@@ -1,18 +1,18 @@
 h2#active-state Active state
 
 p.
-  Each stream or property at any time may be in one of two states —
-  active or inactive. When observable in inactive state it not emits any
-  events, and not subscribes to it's original source.
-  Observables automatically became active when first listener added,
-  and became inactive when last listener removed.
+  Each stream or property at any given time may be in one of two states —
+  active or inactive. When an observable is in an inactive state, it does not emit any
+  events, and not does not subscribe to it's original source.
+  Observables automatically become active when first listener is added,
+  and become inactive when last listener is removed.
 
 p.
   For example <tt>stream = $('.foo').asKefirStream('click')</tt> won't
   immediately subscribe to <tt>'click'</tt> event on <tt>$('.foo')</tt>,
-  it will subscribe only when first listener will be added to
-  <tt>stream</tt>. And will automatically unsubscribe when last listener
-  will be removed from <tt>stream</tt>.
+  it will subscribe only when the first listener will be added to the
+  <tt>stream</tt>. And it will automatically unsubscribe when the last listener
+  will be removed from the <tt>stream</tt>.
 
 pre
   :escapehtml
@@ -23,12 +23,12 @@ pre
     // now 'click' listener added to .foo
 
     stream.offValue(someFn);
-    // and now it removed again
+    // and now it is removed again
 
 p.
   If one observable depends on another,
   its active state propagates to its dependencies.
-  For example, in following code,
+  For example, in the following code,
   <b>mapA</b> will activate <b>A</b>,
   <b>filterMapA</b> will activate <b>mapA</b> and <b>A</b>,
   <b>mergeAB</b> will activate <b>A</b> and <b>B</b>.
@@ -43,12 +43,12 @@ pre
     var mergeAB = Kefir.merge(A, B);
 
 p.
-  <img data-emoji="point_up"> Note that current value of a
-  property won't update when property is inactive.
-  For example, we convert an <b>emitter</b> to property,
+  <img data-emoji="point_up"> Note that the current value of a
+  property won't update when that property is inactive.
+  For example, we convert an <b>emitter</b> to a property,
   then emit some values via <b>emitter</b>,
-  while property has no subscribers (i.e. inactive).
-  In this case property won't get those values and
+  while the property has no subscribers (i.e. it's inactive).
+  In this case the property won't get those values, and it
   won't update its current value.
 
 pre
@@ -71,11 +71,11 @@ pre
     property.onValue(function(x) {  console.log(x)  }) // => 4
 
 p.
-  In fact active state is just a convention that strictly
+  In fact active state is just a convention that is strictly
   followed in Kefir code, for better performance.
-  But you free to not follow it in your custom plugins or combinators.
+  But you are free to not follow it in your custom plugins or combinators.
   For example you can create your own jQuery <tt>.asKefirStream()</tt>
-  plugin using <b>emitter</b> and always subscribe to DOM event, even when
-  stream has no subscribers. Or you can create your own <tt>.map()</tt>
-  combinator that always keeps subscription to its source observable
+  plugin using <b>emitter</b>, and always subscribe to DOM events, even when
+  a stream has no subscribers. Or you can create your own <tt>.map()</tt>
+  combinator that always keeps the subscription to its source observable
   (i.e keeps it in active state).
