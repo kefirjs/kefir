@@ -25,10 +25,10 @@ div
 
 p.
   <img data-emoji="point_up"> <b>Emitter</b> is the easiest way
-  to create general purpose stream,
-  but it doesn't give control over <b>active</b> state of stream
+  to create general purpose streams,
+  but it doesn't give control over the <b>active</b> state of the stream
   (see <a href="#active-state">active state</a>).
-  If you want to create general purpose stream and
+  If you want to create general purpose streams and
   have control over <b>active</b> state, you should use
   <a href="from-binder">fromBinder</a>.
 
@@ -54,8 +54,8 @@ div
 
 
 +descr-method('later', 'later', 'Kefir.later(wait, value)').
-  Creates a stream, that produces single <b>value</b>
-  after <b>wait</b> milliseconds then ends.
+  Creates a stream, that produces a single <b>value</b>
+  after <b>wait</b> milliseconds, then ends.
 
 pre(title='example').
   var stream = Kefir.later(1000, 1);
@@ -74,7 +74,7 @@ div
 
 
 +descr-method('interval', 'interval', 'Kefir.interval(interval, value)').
-  Creates a stream, that produces same <b>value</b>
+  Creates a stream, that produces the same <b>value</b>
   each <b>interval</b> milliseconds. Never ends.
 
 pre(title='example').
@@ -96,7 +96,7 @@ div
 +descr-method('sequentially', 'sequentially', 'Kefir.sequentially(interval, values)').
   Creates a stream containing given <b>values</b> (array),
   delivered with given <b>interval</b> in milliseconds.
-  Ends after all <b>values</b> delivered.
+  Ends after all <b>values</b> are delivered.
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2, 3]);
@@ -117,7 +117,7 @@ div
 +descr-method('repeatedly', 'repeatedly', 'Kefir.repeatedly(interval, values)').
   Creates a stream, that produces given <b>values</b> (array),
   with given <b>interval</b> in milliseconds.
-  When all values emitted, it begins to produce them again from start.
+  When all values emitted, it begins to produce them again from the start.
   Never ends.
 
 pre(title='example').
