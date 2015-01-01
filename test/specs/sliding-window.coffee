@@ -52,6 +52,11 @@ describe 'slidingWindow', ->
       expect(a.slidingWindow(3, 4)).toEmit ['<end>'], ->
         send(a, [1, 2, 3, 4, 5,'<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.slidingWindow(3, 4)).errorsToFlow(a)
+
+
 
 
 
@@ -101,3 +106,7 @@ describe 'slidingWindow', ->
       a = send(prop(), [1])
       expect(a.slidingWindow(3, 4)).toEmit ['<end>'], ->
         send(a, [2, 3, 4, 5,'<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.slidingWindow(3, 4)).errorsToFlow(a)

@@ -34,6 +34,10 @@ describe 'reduce', ->
       expect(a.reduce minus).toEmit ['<end>'], ->
         send(a, ['<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.reduce minus).errorsToFlow(a)
+
 
 
 
@@ -63,6 +67,10 @@ describe 'reduce', ->
         send(a, ['<end>'])
       a = send(prop(), [0, '<end>'])
       expect(a.reduce minus).toEmit [{ current : 0 }, '<end:current>']
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.reduce minus).errorsToFlow(a)
 
 
 

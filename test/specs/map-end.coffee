@@ -22,6 +22,10 @@ describe 'mapEnd', ->
       expect(a.mapEnd -> 42).toEmit [1, 2, 42, '<end>'], ->
         send(a, [1, 2, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.mapEnd ->).errorsToFlow(a)
+
 
 
   describe 'property', ->
@@ -41,5 +45,9 @@ describe 'mapEnd', ->
       a = send(prop(), [1])
       expect(a.mapEnd -> 42).toEmit [{current: 1}, 2, 3, 42, '<end>'], ->
         send(a, [2, 3, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.mapEnd ->).errorsToFlow(a)
 
 

@@ -41,6 +41,11 @@ describe 'bufferWhile', ->
       ], -> send(a, [3, 1, 2, 3, 4, 3, 3, 5, 6, '<end>'])
 
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.bufferWhile(not3)).errorsToFlow(a)
+
+
 
   describe 'property', ->
 
@@ -75,3 +80,7 @@ describe 'bufferWhile', ->
         '<end>'
       ], -> send(a, [2, 3, 5, 6, '<end>'])
 
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.bufferWhile(not3)).errorsToFlow(a)

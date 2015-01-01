@@ -30,6 +30,10 @@ describe 'take', ->
       expect(a.take(3)).toEmit [1, 2, 3, '<end>'], ->
         send(a, [1, 2, 3, 4, 5, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.take(1)).errorsToFlow(a)
+
 
 
 
@@ -60,6 +64,10 @@ describe 'take', ->
 
     it 'should work correctly with .constant', ->
       expect(Kefir.constant(1).take(1)).toEmit([{current: 1}, '<end:current>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.take(1)).errorsToFlow(a)
 
 
 

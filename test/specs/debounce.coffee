@@ -59,6 +59,10 @@ describe 'debounce', ->
       ], (tick) ->
         send(a, [1, '<end>']);
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.debounce(100)).errorsToFlow(a)
+
 
 
 
@@ -119,3 +123,7 @@ describe 'debounce', ->
         [0, {current: 0}], [0, 1], [0, '<end>']
       ], (tick) ->
         send(a, [1, '<end>']);
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.debounce(100)).errorsToFlow(a)

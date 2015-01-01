@@ -98,6 +98,19 @@ beforeEach ->
       @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
       @env.equals_(expectedLog, log)
 
+    errorsToFlow: (source) ->
+      expectedLog = [{error: -2}, {error: -3}]
+      if (@actual instanceof Kefir.Property)
+        exports.activate(@actual)
+        exports.send(source, [{error: -1}])
+        exports.deactivate(@actual)
+        expectedLog.unshift({currentError: -1})
+      log = exports.watch(@actual)
+      exports.send(source, [{error: -2}, {error: -3}])
+      @message = -> "Expected errors to flow (i.e. to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)})"
+      @env.equals_(expectedLog, log)
+
+
     toEmitInTime: (expectedLog, cb, timeLimit = 10000) ->
       log = null
       exports.withFakeTime (tick) =>
