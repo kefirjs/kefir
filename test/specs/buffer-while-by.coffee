@@ -85,6 +85,32 @@ describe 'bufferWhileBy', ->
         send(b, [false])
         send(a, [8]) # flushing 6,7,8
 
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      expect(a.bufferWhileBy(b)).errorsToFlow(a)
+      a = stream()
+      b = stream()
+      expect(a.bufferWhileBy(b)).errorsToFlow(b)
+      a = prop()
+      b = stream()
+      expect(a.bufferWhileBy(b)).errorsToFlow(a)
+      a = prop()
+      b = stream()
+      expect(a.bufferWhileBy(b)).errorsToFlow(b)
+      a = stream()
+      b = prop()
+      expect(a.bufferWhileBy(b)).errorsToFlow(a)
+      a = stream()
+      b = prop()
+      expect(a.bufferWhileBy(b)).errorsToFlow(b)
+      a = prop()
+      b = prop()
+      expect(a.bufferWhileBy(b)).errorsToFlow(a)
+      a = prop()
+      b = prop()
+      expect(a.bufferWhileBy(b)).errorsToFlow(b)
+
 
 
   describe 'stream + stream', ->

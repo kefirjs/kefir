@@ -4,6 +4,37 @@
 
 describe 'takeWhileBy', ->
 
+  describe 'common', ->
+
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      expect(a.takeWhileBy(b)).errorsToFlow(a)
+      a = stream()
+      b = stream()
+      expect(a.takeWhileBy(b)).errorsToFlow(b)
+      a = prop()
+      b = stream()
+      expect(a.takeWhileBy(b)).errorsToFlow(a)
+      a = prop()
+      b = stream()
+      expect(a.takeWhileBy(b)).errorsToFlow(b)
+      a = stream()
+      b = prop()
+      expect(a.takeWhileBy(b)).errorsToFlow(a)
+      a = stream()
+      b = prop()
+      expect(a.takeWhileBy(b)).errorsToFlow(b)
+      a = prop()
+      b = prop()
+      expect(a.takeWhileBy(b)).errorsToFlow(a)
+      a = prop()
+      b = prop()
+      expect(a.takeWhileBy(b)).errorsToFlow(b)
+
+
+
+
   describe 'stream, stream', ->
 
     it 'should return a stream', ->
