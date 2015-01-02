@@ -15,6 +15,7 @@ inherit(FromBinder, Stream, {
       , isCurrent = true
       , emitter = {
         emit: function(x) {  $._send(VALUE, x, isCurrent)  },
+        error: function(x) {  $._send(ERROR, x, isCurrent)  },
         end: function() {  $._send(END, null, isCurrent)  }
       };
     this._unsubscribe = this._fn(emitter) || null;
@@ -53,6 +54,10 @@ inherit(Emitter, Stream, {
   _name: 'emitter',
   emit: function(x) {
     this._send(VALUE, x);
+    return this;
+  },
+  error: function(x) {
+    this._send(ERROR, x);
     return this;
   },
   end: function() {
