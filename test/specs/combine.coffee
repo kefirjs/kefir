@@ -79,3 +79,17 @@ describe 'combine', ->
     activate(cb)
     deactivate(cb)
     expect(cb).toEmit [{current: [0, 1]}]
+
+  it 'errors should flow', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.combine([a, b, c])).errorsToFlow(a)
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.combine([a, b, c])).errorsToFlow(b)
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.combine([a, b, c])).errorsToFlow(c)

@@ -90,6 +90,18 @@ describe 'flatMap', ->
       # Throws exception
       stream1.onValue(handler)
 
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      c = prop()
+      result = a.flatMap()
+      activate(result)
+      send(a, [b, c])
+      deactivate(result)
+      expect(result).errorsToFlow(a)
+      expect(result).errorsToFlow(b)
+      expect(result).errorsToFlow(c)
+
 
 
 
@@ -139,5 +151,21 @@ describe 'flatMap', ->
       a = send(prop(), [0])
       b = send(prop(), [a])
       expect(b.flatMap()).toEmit [{current: 0}]
+
+    it 'errors should flow 1', ->
+      a = prop()
+      result = a.flatMap()
+      expect(result).errorsToFlow(a)
+
+    it 'errors should flow 2', ->
+      a = prop()
+      b = stream()
+      c = prop()
+      result = a.flatMap()
+      activate(result)
+      send(a, [b, c])
+      deactivate(result)
+      expect(result).errorsToFlow(b)
+      expect(result).errorsToFlow(c)
 
 

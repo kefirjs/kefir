@@ -24,9 +24,12 @@ logItem = (event) ->
 
 exports.watch = (obs) ->
   log = []
-  obs.onAny (event) ->
+  fn = (event) ->
     log.push(logItem event)
-  log
+  unwatch = ->
+    obs.offAny fn
+  obs.onAny fn
+  {log, unwatch}
 
 exports.watchWithTime = (obs) ->
   startTime = new Date()
@@ -93,23 +96,33 @@ beforeEach ->
     toBeActive: -> @actual._active
 
     toEmit: (expectedLog, cb) ->
-      log = exports.watch(@actual)
+      {log, unwatch} = exports.watch(@actual)
       cb?()
+      unwatch()
       @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
       @env.equals_(expectedLog, log)
 
     errorsToFlow: (source) ->
-      expectedLog = [{error: -2}, {error: -3}]
+      expectedLog = if @isNot then [] else [{error: -2}, {error: -3}]
       if (@actual instanceof Kefir.Property)
         exports.activate(@actual)
         exports.send(source, [{error: -1}])
         exports.deactivate(@actual)
-        expectedLog.unshift({currentError: -1})
-      log = exports.watch(@actual)
+        unless @isNot
+          expectedLog.unshift({currentError: -1})
+      else if (source instanceof Kefir.Property)
+        exports.send(source, [{error: -1}])
+        unless @isNot
+          expectedLog.unshift({currentError: -1})
+      {log, unwatch} = exports.watch(@actual)
       exports.send(source, [{error: -2}, {error: -3}])
-      @message = -> "Expected errors to flow (i.e. to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)})"
-      @env.equals_(expectedLog, log)
-
+      unwatch()
+      if @isNot
+        @message = -> "Expected errors not to flow (i.e. to emit [], actually emitted #{jasmine.pp(log)})"
+        !@env.equals_(expectedLog, log)
+      else
+        @message = -> "Expected errors to flow (i.e. to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)})"
+        @env.equals_(expectedLog, log)
 
     toEmitInTime: (expectedLog, cb, timeLimit = 10000) ->
       log = null

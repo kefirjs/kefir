@@ -13,9 +13,10 @@ describe 'bus', ->
 
   it 'should emit values and end', ->
     a = Kefir.bus()
-    expect(a).toEmit [1, 2, 3, '<end>'], ->
+    expect(a).toEmit [1, 2, {error: -1}, 3, '<end>'], ->
       a.emit(1)
       a.emit(2)
+      a.error(-1)
       a.emit(3)
       a.end()
 
@@ -86,6 +87,24 @@ describe 'bus', ->
       expect(bus).toEmit [1, 2], ->
         bus.plug(b)
         bus.plug(c)
+
+  it 'errors should flow', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    pool = Kefir.bus()
+    pool.plug(a)
+    expect(pool).errorsToFlow(a)
+    pool.unplug(a)
+    expect(pool).not.errorsToFlow(a)
+    pool.plug(a)
+    pool.plug(b)
+    expect(pool).errorsToFlow(a)
+    expect(pool).errorsToFlow(b)
+    pool.unplug(b)
+    expect(pool).not.errorsToFlow(b)
+    pool.plug(c)
+    expect(pool).errorsToFlow(c)
 
 
   # bus specific specs

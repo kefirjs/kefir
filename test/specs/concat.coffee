@@ -81,5 +81,24 @@ describe 'concat', ->
     ).toEmit [{current: 0}, {current: 1}, {current: 2}, '<end:current>']
 
 
+  it 'errors should flow', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.concat([a, b, c])).errorsToFlow(a)
+    a = send(stream(), ['<end>'])
+    b = prop()
+    c = stream()
+    expect(Kefir.concat([a, b, c])).errorsToFlow(b)
+    a = send(stream(), ['<end>'])
+    b = prop()
+    c = stream()
+    result = Kefir.concat([a, b, c])
+    activate(result)
+    send(b, ['<end>'])
+    deactivate(result)
+    expect(result).errorsToFlow(c)
+
+
 
 

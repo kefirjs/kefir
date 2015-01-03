@@ -66,3 +66,29 @@ describe 'pool', ->
       expect(pool).toEmit [1, 2], ->
         pool.plug(b)
         pool.plug(c)
+
+
+  it 'errors should flow', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    pool = Kefir.pool()
+    pool.plug(a)
+    expect(pool).errorsToFlow(a)
+    pool.unplug(a)
+    expect(pool).not.errorsToFlow(a)
+    pool.plug(a)
+    pool.plug(b)
+    expect(pool).errorsToFlow(a)
+    expect(pool).errorsToFlow(b)
+    pool.unplug(b)
+    expect(pool).not.errorsToFlow(b)
+    pool.plug(c)
+    expect(pool).errorsToFlow(c)
+
+
+
+
+
+
+

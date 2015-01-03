@@ -48,20 +48,20 @@ inherit(_AbstractPool, Stream, {
   },
   _addToCur: function(obs) {
     this._curSources = concat(this._curSources, [obs]);
-    if (this._active) {  this._sub(obs)  }
+    if (this._active) {  this._subscribe(obs)  }
   },
-  _sub: function(obs) {
+  _subscribe: function(obs) {
     var $ = this;
     obs.onAny(this._$handleSubAny);
     obs.onEnd(function() {  $._removeCur(obs)  }, [this, obs]);
   },
-  _unsub: function(obs) {
+  _unsubscribe: function(obs) {
     obs.offAny(this._$handleSubAny);
     obs.offEnd(null, [this, obs]);
   },
   _handleSubAny: function(event) {
-    if (event.type === VALUE) {
-      this._send(VALUE, event.value, event.current && this._activating);
+    if (event.type === VALUE || event.type === ERROR) {
+      this._send(event.type, event.value, event.current && this._activating);
     }
   },
 
@@ -71,7 +71,7 @@ inherit(_AbstractPool, Stream, {
     return index;
   },
   _removeCur: function(obs) {
-    if (this._active) {  this._unsub(obs)  }
+    if (this._active) {  this._unsubscribe(obs)  }
     var index = find(this._curSources, obs);
     this._curSources = remove(this._curSources, index);
     if (index !== -1) {
@@ -98,13 +98,13 @@ inherit(_AbstractPool, Stream, {
     var sources = this._curSources
       , i;
     this._activating = true;
-    for (i = 0; i < sources.length; i++) {  this._sub(sources[i])  }
+    for (i = 0; i < sources.length; i++) {  this._subscribe(sources[i])  }
     this._activating = false;
   },
   _onDeactivation: function() {
     var sources = this._curSources
       , i;
-    for (i = 0; i < sources.length; i++) {  this._unsub(sources[i])  }
+    for (i = 0; i < sources.length; i++) {  this._unsubscribe(sources[i])  }
   },
 
   _isEmpty: function() {  return this._curSources.length === 0  },
@@ -225,6 +225,10 @@ inherit(Bus, _AbstractPool, {
     this._send(VALUE, x);
     return this;
   },
+  error: function(x) {
+    this._send(ERROR, x);
+    return this;
+  },
   end: function() {
     this._send(END);
     return this;
@@ -274,7 +278,11 @@ inherit(FlatMap, _AbstractPool, {
         this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
-    } else {
+    }
+    if (event.type === ERROR) {
+      this._send(ERROR, event.value, event.current);
+    }
+    if (event.type === END) {
       if (this._isEmpty()) {
         this._send(END, null, event.current);
       } else {
@@ -350,9 +358,6 @@ function Zip(sources, combinator) {
   }
 }
 
-function bind_Zip_handleAny($, i) {
-  return function(event) {  $._handleAny(i, event)  };
-}
 
 inherit(Zip, Stream, {
 
@@ -363,7 +368,7 @@ inherit(Zip, Stream, {
     this._drainArrays();
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny(bind_Zip_handleAny(this, i), [this, i]);
+      this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
     }
   },
 
@@ -402,11 +407,20 @@ inherit(Zip, Stream, {
     }
   },
 
+  _bindHandleAny: function(i) {
+    var $ = this;
+    return function(event) {  $._handleAny(i, event)  };
+  },
+
   _handleAny: function(i, event) {
     if (event.type === VALUE) {
       this._buffers[i].push(event.value);
       this._emitIfFull(event.current);
-    } else {
+    }
+    if (event.type === ERROR) {
+      this._send(ERROR, event.value, event.current);
+    }
+    if (event.type === END) {
       this._aliveCount--;
       if (this._aliveCount === 0) {
         this._send(END, null, event.current);
@@ -456,10 +470,6 @@ function SampledBy(passive, active, combinator) {
 }
 
 
-function bind_SampledBy_handleAny($, i) {
-  return function(event) {  $._handleAny(i, event)  };
-}
-
 inherit(SampledBy, Stream, {
 
   _name: 'sampledBy',
@@ -470,7 +480,7 @@ inherit(SampledBy, Stream, {
     this._aliveCount = length - this._passiveCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny(bind_SampledBy_handleAny(this, i), [this, i]);
+      this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
     }
     this._activating = false;
     if (this._emitAfterActivation) {
@@ -498,6 +508,11 @@ inherit(SampledBy, Stream, {
     }
   },
 
+  _bindHandleAny: function(i) {
+    var $ = this;
+    return function(event) {  $._handleAny(i, event)  };
+  },
+
   _handleAny: function(i, event) {
     if (event.type === VALUE) {
       this._currents[i] = event.value;
@@ -508,7 +523,11 @@ inherit(SampledBy, Stream, {
           this._emitIfFull(event.current);
         }
       }
-    } else {
+    }
+    if (event.type === ERROR) {
+      this._send(ERROR, event.value, event.current);
+    }
+    if (event.type === END) {
       if (i >= this._passiveCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
