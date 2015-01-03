@@ -3,24 +3,26 @@ h2#create-stream Create a stream
 
 +descr-method('emitter', 'emitter', 'Kefir.emitter()').
   Creates an emitter, that is ordinary stream, but also has additional methods:
-  <tt>.emit(value)</tt> and <tt>.end()</tt>.
-  Then you can easily send events to stream via <b>emit()</b>.
+  <tt>.emit(value)</tt>, <tt>.error(error)</tt>, and <tt>.end()</tt>.
+  Once an emitter created one can easily emit all three kind of events to it,
+  using these methods.
 
 pre(title='example').
   var emitter = Kefir.emitter();
   emitter.log(); // log events to console (see <a href="#log">log</a>)
   emitter.emit(1);
-  emitter.emit(2);
+  emitter.error('Oops!');
   emitter.end();
 
 pre(title='console output')
   :escapehtml
     > [emitter] <value> 1
-    > [emitter] <value> 2
+    > [emitter] <error> Oops!
     > [emitter] <end>
 
 pre(title='events in time').
-  emitter:  ----1----2----X
+  emitter:  ----1----e----X
+                     Oops!
 div
 
 p.
