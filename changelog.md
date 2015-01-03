@@ -1,3 +1,10 @@
+## next
+
+ - Base errors support added (i.e. errors flow through all kind of transformations/combinations)
+ - Emitter now has `.error` method for emitting errors
+ - Emitter object also now has `.error` method
+ - Properties now might have a current error along with current value
+
 ## 0.4.2
 
  - A bug in `.flatMap` fixed #29
