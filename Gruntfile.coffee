@@ -197,8 +197,3 @@ module.exports = (grunt) ->
     'test'
   ]
 
-  grunt.registerTask 'watch-light', [
-    'watch:kefir_light'
-    'watch:addons_light'
-    'watch:run_tests'
-  ]
