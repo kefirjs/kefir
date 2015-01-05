@@ -33,6 +33,18 @@ describe 'errorsToValues', ->
           '<end>'
         ])
 
+    it 'default handler should convert all errors', ->
+      a = stream()
+      expect(a.errorsToValues()).toEmit [1, 2, -1, 3, 4, '<end>'], ->
+        send(a, [
+          1
+          {error: 2}
+          {error: -1}
+          {error: 3}
+          4
+          '<end>'
+        ])
+
 
 
   describe 'property', ->

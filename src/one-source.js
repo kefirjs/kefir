@@ -169,27 +169,53 @@ withOneSource('mapErrors', extend({
 
 // .errorsToValues(fn)
 
+function defaultErrorsToValuesHandler(x) {
+  return {
+    convert: true,
+    value: x
+  };
+}
+
 withOneSource('errorsToValues', extend({
+  _init: function(args) {
+    this._fn = args[0] || defaultErrorsToValuesHandler;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleError: function(x, isCurrent) {
     var result = this._fn(x);
     var type = result.convert ? VALUE : ERROR;
     var newX = result.convert ? result.value : x;
     this._send(type, newX, isCurrent);
   }
-}, withFnArgMixin));
+}));
 
 
 
 // .valuesToErrors(fn)
 
+function defaultValuesToErrorsHandler(x) {
+  return {
+    convert: true,
+    error: x
+  };
+}
+
 withOneSource('valuesToErrors', extend({
+  _init: function(args) {
+    this._fn = args[0] || defaultValuesToErrorsHandler;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     var result = this._fn(x);
     var type = result.convert ? ERROR : VALUE;
     var newX = result.convert ? result.error : x;
     this._send(type, newX, isCurrent);
   }
-}, withFnArgMixin));
+}));
 
 
 
