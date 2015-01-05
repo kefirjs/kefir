@@ -2,7 +2,7 @@
 
 
 
-describe 'mapEnd', ->
+describe 'skipEnd', ->
 
 
   describe 'stream', ->

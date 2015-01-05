@@ -442,10 +442,26 @@ withOneSource('mapEnd', {
 
 
 
+// .skipValue()
+
+withOneSource('skipValues', {
+  _handleValue: function() {}
+});
+
+
+
+// .skipError()
+
+withOneSource('skipErrors', {
+  _handleError: function() {}
+});
+
+
+
 // .skipEnd()
 
 withOneSource('skipEnd', {
-  _handleEnd: function(__, isCurrent) {}
+  _handleEnd: function() {}
 });
 
 
