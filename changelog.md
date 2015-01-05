@@ -5,6 +5,8 @@
  - Emitter object also now has `.error` method
  - Properties now might have a current error along with current value
  - New method `Kefir.constantError`
+ - New method `.mapErrors`
+ - New method `.filterErrors`
 
 ## 0.4.2
 

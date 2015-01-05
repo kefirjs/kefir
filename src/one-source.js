@@ -157,6 +157,16 @@ withOneSource('map', extend({
 
 
 
+// .mapErrors(fn)
+
+withOneSource('mapErrors', extend({
+  _handleError: function(x, isCurrent) {
+    this._send(ERROR, this._fn(x), isCurrent);
+  }
+}, withFnArgMixin));
+
+
+
 
 // .filter(fn)
 
@@ -169,6 +179,17 @@ withOneSource('filter', extend({
 }, withFnArgMixin));
 
 
+
+
+// .filterErrors(fn)
+
+withOneSource('filterErrors', extend({
+  _handleError: function(x, isCurrent) {
+    if (this._fn(x)) {
+      this._send(ERROR, x, isCurrent);
+    }
+  }
+}, withFnArgMixin));
 
 
 
