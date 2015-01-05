@@ -9,6 +9,8 @@
  - New method `.mapErrors`
  - New method `.filterErrors`
  - New method `.endOnError`
+ - New method `.errorsToValues`
+ - New method `.valuesToErrors`
 
 ## 0.4.2
 

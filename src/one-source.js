@@ -167,6 +167,32 @@ withOneSource('mapErrors', extend({
 
 
 
+// .errorsToValues(fn)
+
+withOneSource('errorsToValues', extend({
+  _handleError: function(x, isCurrent) {
+    var result = this._fn(x);
+    var type = result.convert ? VALUE : ERROR;
+    var newX = result.convert ? result.value : x;
+    this._send(type, newX, isCurrent);
+  }
+}, withFnArgMixin));
+
+
+
+// .valuesToErrors(fn)
+
+withOneSource('valuesToErrors', extend({
+  _handleValue: function(x, isCurrent) {
+    var result = this._fn(x);
+    var type = result.convert ? ERROR : VALUE;
+    var newX = result.convert ? result.error : x;
+    this._send(type, newX, isCurrent);
+  }
+}, withFnArgMixin));
+
+
+
 
 // .filter(fn)
 
