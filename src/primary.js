@@ -105,3 +105,22 @@ Kefir.constant = function(x) {
   return new Constant(x);
 }
 
+
+
+
+// Kefir.constantError(x)
+
+function ConstantError(x) {
+  Property.call(this);
+  this._send(ERROR, x);
+  this._send(END);
+}
+
+inherit(ConstantError, Property, {
+  _name: 'constantError'
+})
+
+Kefir.constantError = function(x) {
+  return new ConstantError(x);
+}
+
