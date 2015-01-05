@@ -398,6 +398,16 @@ withOneSource('skipEnd', {
 
 
 
+// .endOnError(fn)
+
+withOneSource('endOnError', extend({
+  _handleError: function(x, isCurrent) {
+    this._send(ERROR, x, isCurrent);
+    this._send(END, null, isCurrent);
+  }
+}));
+
+
 
 // .slidingWindow(max[, min])
 
