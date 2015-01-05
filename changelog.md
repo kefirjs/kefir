@@ -10,8 +10,8 @@
  - New method `.endOnError`
  - New method `.errorsToValues`
  - New method `.valuesToErrors`
- - New methos `.skipErrors`
- - New methos `.skipValues`
+ - New method `.skipErrors`
+ - New method `.skipValues`
 
 
 ## 0.4.2
