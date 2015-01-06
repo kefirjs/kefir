@@ -349,9 +349,11 @@ div
 h2#create-property Create a property
 
 p.
-  For now there is only one method that creates a property directly —
-  <tt>constant()</tt>. But you can always convert any stream to a property using
+  For now there is only two method that creates a property directly.
+  But you can always convert any stream to a property using
   <a href="#to-property">toProperty</a> method.
+
+
 
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
   Creates ended property, with specified <b>current value</b>.
@@ -367,5 +369,23 @@ pre(title='console output')
 
 pre(title='events in time').
   property: 1X
+div
+
+
+
++descr-method('constant-error', 'constantError', 'Kefir.constantError(error)').
+  Creates ended property, with specified <b>current error</b>.
+
+pre(title='example').
+  var property = Kefir.constantError(1);
+  property.log();
+
+pre(title='console output')
+  :escapehtml
+    > [constantError] <error:current> 1
+    > [constantError] <end:current>
+
+pre(title='events in time').
+  property: eX
 div
 

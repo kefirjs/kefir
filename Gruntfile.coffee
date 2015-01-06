@@ -132,9 +132,9 @@ module.exports = (grunt) ->
       # addons:
       #   files: 'addons/*.js'
       #   tasks: ['build-addons', 'build-browser-tests']
-      # docs:
-      #   files: 'docs-src/**/*'
-      #   tasks: ['build-docs']
+      docs:
+        files: 'docs-src/**/*'
+        tasks: ['build-docs']
       # tests:
       #   files: ['test/specs/*', 'test/test-helpers*']
       #   tasks: ['build-browser-tests']
