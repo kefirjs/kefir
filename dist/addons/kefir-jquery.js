@@ -1,4 +1,4 @@
-/*! An addon for Kefir.js v0.4.2
+/*! An addon for Kefir.js v0.5.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
