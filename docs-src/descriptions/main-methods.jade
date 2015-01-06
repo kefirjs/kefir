@@ -24,6 +24,28 @@ pre(title='console output')
 +descr-method('off-value', 'offValue', 'obs.offValue(fn)').
   Unsubscribes <b>fn</b> from values on an observable.
 
+
++descr-method('on-error', 'onError', 'obs.onError(fn)').
+  Subscribes <b>fn</b> functions to #[a(href='#about-errors') errors] on an observable.
+  If <b>onError</b> called on a property, and property has
+  current error, <b>fn</b> will be called
+  immediately (synchronously) with property current error as argument.
+
+pre(title='example').
+  var emitter = Kefir.emitter();
+  emitter.onError(function(x) {  console.log('error:', x)  });
+  emitter.error(1);
+  emitter.error(2);
+
+pre(title='console output')
+  :escapehtml
+    > error: 1
+    > error: 2
+
++descr-method('off-error', 'offError', 'obs.offError(fn)').
+  Unsubscribes <b>fn</b> from errors on an observable.
+
+
 +descr-method('on-end', 'onEnd', 'obs.onEnd(fn)').
   Subscribes <b>fn</b> functions to ending off an observable.
   If observable already ended, <b>fn</b> will be called immediately (synchronously).
@@ -47,9 +69,9 @@ pre(title='console output')
 
 ul
   li
-    | <b>type</b> is a <tt>'value'</tt> or <tt>'end'</tt> string
+    | <b>type</b> is a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string
   li
-    | <b>value</b> is a value that was emitted,
+    | <b>value</b> is a value or error that was emitted,
     | or <tt>undefined</tt> if <b>type</b> was <tt>'end'</tt>
   li
     | <b>current</b> is a boolean, that equals <tt>true</tt> if callback was
