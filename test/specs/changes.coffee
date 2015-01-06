@@ -23,8 +23,8 @@ describe 'changes', ->
       expect(send(prop(), ['<end>']).changes()).toEmit ['<end:current>']
 
     it 'should handle events and current', ->
-      a = send(prop(), [1])
-      expect(a.changes()).toEmit [2, 3, '<end>'], ->
-        send(a, [2, 3, '<end>'])
+      a = send(prop(), [1, {error: 4}])
+      expect(a.changes()).toEmit [2, {error: 5}, 3, '<end>'], ->
+        send(a, [2, {error: 5}, 3, '<end>'])
 
 

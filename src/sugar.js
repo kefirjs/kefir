@@ -157,7 +157,8 @@ Kefir.fromEvent = function(target, eventName, transformer) {
   }
 
   if (sub === undefined) {
-    throw new Error('target don\'t support any of addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
+    throw new Error('target don\'t support any of ' +
+      'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
   return Kefir._fromEvent(

@@ -5,21 +5,33 @@ function withTwoSources(name, mixin /*, options*/) {
     _free: function() {},
 
     _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
+    _handlePrimaryError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
     _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
 
     _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
+    _handleSecondaryError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
       switch (event.type) {
-        case VALUE: this._handlePrimaryValue(event.value, event.current); break;
-        case END: this._handlePrimaryEnd(event.value, event.current); break;
+        case VALUE:
+          this._handlePrimaryValue(event.value, event.current);
+          break;
+        case ERROR:
+          this._handlePrimaryError(event.value, event.current);
+          break;
+        case END:
+          this._handlePrimaryEnd(event.value, event.current);
+          break;
       }
     },
     _handleSecondaryAny: function(event) {
       switch (event.type) {
         case VALUE:
           this._handleSecondaryValue(event.value, event.current);
+          break;
+        case ERROR:
+          this._handleSecondaryError(event.value, event.current);
           break;
         case END:
           this._handleSecondaryEnd(event.value, event.current);

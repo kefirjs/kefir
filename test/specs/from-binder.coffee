@@ -9,14 +9,15 @@ describe 'fromBinder', ->
   it 'should not be ended', ->
     expect(Kefir.fromBinder(->)).toEmit []
 
-  it 'should emit values and end', ->
+  it 'should emit values, errors, and end', ->
     emitter = null
     a = Kefir.fromBinder (em) ->
       emitter = em
       null
-    expect(a).toEmit [1, 2, 3, '<end>'], ->
+    expect(a).toEmit [1, 2, {error: -1}, 3, '<end>'], ->
       emitter.emit(1)
       emitter.emit(2)
+      emitter.error(-1)
       emitter.emit(3)
       emitter.end()
 
@@ -55,13 +56,14 @@ describe 'fromBinder', ->
     expect(
       Kefir.fromBinder  (emitter) ->
         emitter.emit(1)
+        emitter.error(-1)
         emitter.emit(2)
         setTimeout ->
           emitter.emit(2)
           emitter.end()
         , 1000
         null
-    ).toEmitInTime [[0, {current: 1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
+    ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
 
 
 

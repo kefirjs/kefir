@@ -25,6 +25,10 @@ describe 'delay', ->
         tick(100)
         send(a, ['<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.delay(100)).errorsToFlow(a)
+
 
   describe 'property', ->
 
@@ -46,3 +50,7 @@ describe 'delay', ->
         send(a, [3])
         tick(100)
         send(a, ['<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.delay(100)).errorsToFlow(a)

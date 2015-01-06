@@ -60,6 +60,11 @@ describe 'Stream', ->
       s.onValue ->
       expect(s).toBeActive()
 
+    it 'should activate when first subscriber added (error)', ->
+      s = stream()
+      s.onError ->
+      expect(s).toBeActive()
+
     it 'should activate when first subscriber added (end)', ->
       s = stream()
       s.onEnd ->
@@ -76,10 +81,14 @@ describe 'Stream', ->
       s.onAny (any2 = ->)
       s.onValue (value1 = ->)
       s.onValue (value2 = ->)
+      s.onError (error1 = ->)
+      s.onError (error2 = ->)
       s.onEnd (end1 = ->)
       s.onEnd (end2 = ->)
       s.offValue value1
       s.offValue value2
+      s.offError error1
+      s.offError error2
       s.offAny any1
       s.offAny any2
       s.offEnd end1
@@ -93,6 +102,10 @@ describe 'Stream', ->
     it 'should deliver values', ->
       s = stream()
       expect(s).toEmit [1, 2], -> send(s, [1, 2])
+
+    it 'should deliver errors', ->
+      s = stream()
+      expect(s).toEmit [{error: 1}, {error: 2}], -> send(s, [{error: 1}, {error: 2}])
 
     it 'should not deliver values to unsubscribed subscribers', ->
       log = []
@@ -110,11 +123,34 @@ describe 'Stream', ->
       send(s, [4])
       expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
 
+    it 'should not deliver errors to unsubscribed subscribers', ->
+      log = []
+      a = (x) -> log.push('a' + x)
+      b = (x) -> log.push('b' + x)
+      s = stream()
+      s.onError(a)
+      s.onError(b)
+      send(s, [{error: 1}])
+      s.offError(->)
+      send(s, [{error: 2}])
+      s.offError(a)
+      send(s, [{error: 3}])
+      s.offError(b)
+      send(s, [{error: 4}])
+      expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
+
     it 'onValue subscribers should be called with 1 argument', ->
       s = stream()
       count = null
       s.onValue -> count = arguments.length
       send(s, [1])
+      expect(count).toBe(1)
+
+    it 'onError subscribers should be called with 1 argument', ->
+      s = stream()
+      count = null
+      s.onError -> count = arguments.length
+      send(s, [{error: 1}])
       expect(count).toBe(1)
 
     it 'onAny subscribers should be called with 1 arguments', ->

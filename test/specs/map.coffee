@@ -19,8 +19,8 @@ describe 'map', ->
 
     it 'should handle events', ->
       a = stream()
-      expect(a.map (x) -> x * 2).toEmit [2, 4, '<end>'], ->
-        send(a, [1, 2, '<end>'])
+      expect(a.map (x) -> x * 2).toEmit [2, {error: 5}, 4, '<end>'], ->
+        send(a, [1, {error: 5}, 2, '<end>'])
 
 
 
@@ -37,8 +37,8 @@ describe 'map', ->
       expect(send(prop(), ['<end>']).map ->).toEmit ['<end:current>']
 
     it 'should handle events and current', ->
-      a = send(prop(), [1])
-      expect(a.map (x) -> x * 2).toEmit [{current: 2}, 4, 6, '<end>'], ->
-        send(a, [2, 3, '<end>'])
+      a = send(prop(), [1, {error: 0}])
+      expect(a.map (x) -> x * 2).toEmit [{current: 2}, {currentError: 0}, 4, {error: 5}, 6, '<end>'], ->
+        send(a, [2, {error: 5}, 3, '<end>'])
 
 

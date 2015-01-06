@@ -4,6 +4,50 @@
 
 describe 'skipWhileBy', ->
 
+  describe 'common', ->
+
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      expect(a.skipWhileBy(b)).errorsToFlow(a)
+      a = stream()
+      b = stream()
+      expect(a.skipWhileBy(b)).errorsToFlow(b)
+      a = prop()
+      b = stream()
+      expect(a.skipWhileBy(b)).errorsToFlow(a)
+      a = prop()
+      b = stream()
+      expect(a.skipWhileBy(b)).errorsToFlow(b)
+      a = stream()
+      b = prop()
+      expect(a.skipWhileBy(b)).errorsToFlow(a)
+      a = stream()
+      b = prop()
+      expect(a.skipWhileBy(b)).errorsToFlow(b)
+      a = prop()
+      b = prop()
+      expect(a.skipWhileBy(b)).errorsToFlow(a)
+      a = prop()
+      b = prop()
+      expect(a.skipWhileBy(b)).errorsToFlow(b)
+
+    it 'errors should flow after first falsey value from secondary', ->
+      a = stream()
+      b = stream()
+      res = a.skipUntilBy(b)
+      activate(res)
+      send(b, [true, false])
+      deactivate(res)
+      expect(res).errorsToFlow(b)
+
+
+
+
+
+
+
+
   describe 'stream, stream', ->
 
     it 'should return a stream', ->
@@ -14,7 +58,7 @@ describe 'skipWhileBy', ->
       b = stream()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsey value from it', ->
+    it 'should do activate secondary after first falsey value from it', ->
       a = stream()
       b = stream()
       res = a.skipWhileBy(b)
@@ -22,7 +66,7 @@ describe 'skipWhileBy', ->
       send(b, [true, false])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(stream(), ['<end>']).skipWhileBy(stream())).toEmit ['<end:current>']
@@ -66,7 +110,7 @@ describe 'skipWhileBy', ->
       b = prop()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsey value from it', ->
+    it 'should do activate secondary after first falsey value from it', ->
       a = stream()
       b = prop()
       res = a.skipWhileBy(b)
@@ -74,7 +118,7 @@ describe 'skipWhileBy', ->
       send(b, [true, false])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(stream(), ['<end>']).skipWhileBy(prop())).toEmit ['<end:current>']
@@ -124,7 +168,7 @@ describe 'skipWhileBy', ->
       b = stream()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsey value from it', ->
+    it 'should do activate secondary after first falsey value from it', ->
       a = prop()
       b = stream()
       res = a.skipWhileBy(b)
@@ -132,7 +176,7 @@ describe 'skipWhileBy', ->
       send(b, [true, false])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(prop(), ['<end>']).skipWhileBy(stream())).toEmit ['<end:current>']
@@ -175,7 +219,7 @@ describe 'skipWhileBy', ->
       b = prop()
       expect(a.skipWhileBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first falsey value from it', ->
+    it 'should do activate secondary after first falsey value from it', ->
       a = prop()
       b = prop()
       res = a.skipWhileBy(b)
@@ -183,7 +227,7 @@ describe 'skipWhileBy', ->
       send(b, [true, false])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(prop(), ['<end>']).skipWhileBy(prop())).toEmit ['<end:current>']

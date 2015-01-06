@@ -21,8 +21,8 @@ describe 'flatten', ->
       a = stream()
       expect(
         a.flatten (x) -> if x > 1 then [1..x] else []
-      ).toEmit [1, 2, 1, 2, 3, '<end>'], ->
-        send(a, [1, 2, 3, '<end>'])
+      ).toEmit [1, 2, {error: 4}, 1, 2, 3, '<end>'], ->
+        send(a, [1, 2, {error: 4}, 3, '<end>'])
 
     it 'if no `fn` provided should use the `id` function by default', ->
       a = stream()
@@ -47,13 +47,13 @@ describe 'flatten', ->
       a = send(prop(), [1])
       expect(
         a.flatten (x) -> if x > 1 then [1..x] else []
-      ).toEmit [1, 2, 1, 2, 3, '<end>'], ->
-        send(a, [2, 3, '<end>'])
+      ).toEmit [1, 2, {error: 4}, 1, 2, 3, '<end>'], ->
+        send(a, [2, {error: 4}, 3, '<end>'])
 
     it 'should handle current correctly', ->
       expect(
-        send(prop(), [1]).flatten (x) -> [1..x]
-      ).toEmit [{current: 1}]
+        send(prop(), [1, {error: 0}]).flatten (x) -> [1..x]
+      ).toEmit [{current: 1}, {currentError: 0}]
 
     it 'should handle multiple currents correctly', ->
       expect(

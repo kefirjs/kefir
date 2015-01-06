@@ -60,6 +60,11 @@ describe 'Property', ->
       s.onValue ->
       expect(s).toBeActive()
 
+    it 'should activate when first subscriber added (error)', ->
+      s = prop()
+      s.onError ->
+      expect(s).toBeActive()
+
     it 'should activate when first subscriber added (end)', ->
       s = prop()
       s.onEnd ->
@@ -94,12 +99,24 @@ describe 'Property', ->
       s = send(prop(), [0])
       expect(s).toEmit [{current: 0}, 1, 2], -> send(s, [1, 2])
 
+    it 'should deliver errors and current error', ->
+      s = send(prop(), [{error: 0}])
+      expect(s).toEmit [{currentError: 0}, {error: 1}, {error: 2}], -> send(s, [{error: 1}, {error: 2}])
+
     it 'onValue subscribers should be called with 1 argument', ->
       s = send(prop(), [0])
       count = null
       s.onValue -> count = arguments.length
       expect(count).toBe(1)
       send(s, [1])
+      expect(count).toBe(1)
+
+    it 'onError subscribers should be called with 1 argument', ->
+      s = send(prop(), [{error: 0}])
+      count = null
+      s.onError -> count = arguments.length
+      expect(count).toBe(1)
+      send(s, [{error: 1}])
       expect(count).toBe(1)
 
     it 'onAny subscribers should be called with 1 arguments', ->

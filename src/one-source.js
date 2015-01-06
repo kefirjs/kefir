@@ -38,6 +38,11 @@ withOneSource('changes', {
     if (!isCurrent) {
       this._send(VALUE, x);
     }
+  },
+  _handleError: function(x, isCurrent) {
+    if (!isCurrent) {
+      this._send(ERROR, x);
+    }
   }
 }, {streamMethod: null, propertyMethod: produceStream});
 
@@ -53,6 +58,7 @@ withOneSource('withHandler', {
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
+      error: function(x) {  $._send(ERROR, x, $._forcedCurrent)  },
       end: function() {  $._send(END, null, $._forcedCurrent)  }
     }
   },
@@ -151,6 +157,68 @@ withOneSource('map', extend({
 
 
 
+// .mapErrors(fn)
+
+withOneSource('mapErrors', extend({
+  _handleError: function(x, isCurrent) {
+    this._send(ERROR, this._fn(x), isCurrent);
+  }
+}, withFnArgMixin));
+
+
+
+// .errorsToValues(fn)
+
+function defaultErrorsToValuesHandler(x) {
+  return {
+    convert: true,
+    value: x
+  };
+}
+
+withOneSource('errorsToValues', extend({
+  _init: function(args) {
+    this._fn = args[0] || defaultErrorsToValuesHandler;
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleError: function(x, isCurrent) {
+    var result = this._fn(x);
+    var type = result.convert ? VALUE : ERROR;
+    var newX = result.convert ? result.value : x;
+    this._send(type, newX, isCurrent);
+  }
+}));
+
+
+
+// .valuesToErrors(fn)
+
+function defaultValuesToErrorsHandler(x) {
+  return {
+    convert: true,
+    error: x
+  };
+}
+
+withOneSource('valuesToErrors', extend({
+  _init: function(args) {
+    this._fn = args[0] || defaultValuesToErrorsHandler;
+  },
+  _free: function() {
+    this._fn = null;
+  },
+  _handleValue: function(x, isCurrent) {
+    var result = this._fn(x);
+    var type = result.convert ? ERROR : VALUE;
+    var newX = result.convert ? result.error : x;
+    this._send(type, newX, isCurrent);
+  }
+}));
+
+
+
 
 // .filter(fn)
 
@@ -162,6 +230,18 @@ withOneSource('filter', extend({
   }
 }, withFnArgMixin));
 
+
+
+
+// .filterErrors(fn)
+
+withOneSource('filterErrors', extend({
+  _handleError: function(x, isCurrent) {
+    if (this._fn(x)) {
+      this._send(ERROR, x, isCurrent);
+    }
+  }
+}, withFnArgMixin));
 
 
 
@@ -362,12 +442,38 @@ withOneSource('mapEnd', {
 
 
 
+// .skipValue()
+
+withOneSource('skipValues', {
+  _handleValue: function() {}
+});
+
+
+
+// .skipError()
+
+withOneSource('skipErrors', {
+  _handleError: function() {}
+});
+
+
+
 // .skipEnd()
 
 withOneSource('skipEnd', {
-  _handleEnd: function(__, isCurrent) {}
+  _handleEnd: function() {}
 });
 
+
+
+// .endOnError(fn)
+
+withOneSource('endOnError', extend({
+  _handleError: function(x, isCurrent) {
+    this._send(ERROR, x, isCurrent);
+    this._send(END, null, isCurrent);
+  }
+}));
 
 
 

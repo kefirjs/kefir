@@ -98,11 +98,6 @@ withTwoSources('skipUntilBy', {
     }
   },
 
-  _handleSecondaryValue: function(x) {
-    this._lastSecondary = x;
-    this._removeSecondary();
-  },
-
   _handleSecondaryEnd: function(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
       this._send(END, null, isCurrent);
@@ -151,21 +146,22 @@ withTwoSources('takeWhileBy', {
 
 withTwoSources('skipWhileBy', {
 
+  _init: function() {
+    this._hasFalseyFromSecondary = false;
+  },
+
   _handlePrimaryValue: function(x, isCurrent) {
-    if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
+    if (this._hasFalseyFromSecondary) {
       this._send(VALUE, x, isCurrent);
     }
   },
 
   _handleSecondaryValue: function(x, isCurrent) {
-    this._lastSecondary = x;
-    if (!this._lastSecondary) {
-      this._removeSecondary();
-    }
+    this._hasFalseyFromSecondary = this._hasFalseyFromSecondary || !x;
   },
 
   _handleSecondaryEnd: function(__, isCurrent) {
-    if (this._lastSecondary === NOTHING || this._lastSecondary) {
+    if (!this._hasFalseyFromSecondary) {
       this._send(END, null, isCurrent);
     }
   }

@@ -37,6 +37,10 @@ describe 'skip', ->
       expect(a.skip(-1)).toEmit [1, 2, 3, '<end>'], ->
         send(a, [1, 2, 3, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.skip(1)).errorsToFlow(a)
+
 
 
 
@@ -71,6 +75,10 @@ describe 'skip', ->
       a = send(prop(), [1])
       expect(a.skip(-1)).toEmit [{current: 1}, 2, 3, '<end>'], ->
         send(a, [2, 3, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.skip(1)).errorsToFlow(a)
 
 
 

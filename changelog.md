@@ -1,3 +1,19 @@
+## next
+
+ - Base errors support added (i.e. errors flow through all kind of transformations/combinations)
+ - Emitter now has `.error` method for emitting errors
+ - Emitter object also now has `.error` method
+ - Properties now may have a current error (as well as current value)
+ - New method `Kefir.constantError`
+ - New method `.mapErrors`
+ - New method `.filterErrors`
+ - New method `.endOnError`
+ - New method `.errorsToValues`
+ - New method `.valuesToErrors`
+ - New method `.skipErrors`
+ - New method `.skipValues`
+
+
 ## 0.4.2
 
  - A bug in `.flatMap` fixed #29

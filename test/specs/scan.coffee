@@ -28,6 +28,10 @@ describe 'scan', ->
       expect(a.scan minus).toEmit [0, -1, -4, '<end>'], ->
         send(a, [0, 1, 3, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.scan minus).errorsToFlow(a)
+
 
 
   describe 'property', ->
@@ -51,5 +55,9 @@ describe 'scan', ->
       a = send(prop(), [0])
       expect(a.scan minus).toEmit [{current: 0}, -1, -4, '<end>'], ->
         send(a, [1, 3, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.scan minus).errorsToFlow(a)
 
 

@@ -8,6 +8,7 @@ withInterval('withInterval', {
     var $ = this;
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x)  },
+      error: function(x) {  $._send(ERROR, x)  },
       end: function() {  $._send(END)  }
     }
   },

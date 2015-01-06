@@ -37,6 +37,10 @@ describe 'skipWhile', ->
       expect(a.skipWhile()).toEmit [0, 4, 5, '<end>'], ->
         send(a, [1, 2, 0, 4, 5, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.skipWhile()).errorsToFlow(a)
+
 
 
 
@@ -75,3 +79,7 @@ describe 'skipWhile', ->
       a = send(prop(), [0])
       expect(a.skipWhile()).toEmit [{current: 0}, 2, 0, 4, 5, '<end>'], ->
         send(a, [2, 0, 4, 5, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.skipWhile()).errorsToFlow(a)
