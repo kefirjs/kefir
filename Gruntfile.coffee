@@ -126,18 +126,21 @@ module.exports = (grunt) ->
           'index.html': 'docs-src/index.jade'
 
     watch:
-      kefir:
-        files: 'src/*.js'
-        tasks: ['build-kefir', 'build-browser-tests']
-      addons:
-        files: 'addons/*.js'
-        tasks: ['build-addons', 'build-browser-tests']
+      # kefir:
+      #   files: 'src/*.js'
+      #   tasks: ['build-kefir', 'build-browser-tests']
+      # addons:
+      #   files: 'addons/*.js'
+      #   tasks: ['build-addons', 'build-browser-tests']
       docs:
         files: 'docs-src/**/*'
         tasks: ['build-docs']
-      tests:
-        files: ['test/specs/*', 'test/test-helpers*']
-        tasks: ['build-browser-tests']
+      # tests:
+      #   files: ['test/specs/*', 'test/test-helpers*']
+      #   tasks: ['build-browser-tests']
+      all_light:
+        files: ['test/specs/*', 'test/test-helpers*', 'src/*.js', 'addons/*.js']
+        tasks: ['concat:kefir', 'concat:addons', 'test']
 
     clean:
       main:
@@ -187,3 +190,10 @@ module.exports = (grunt) ->
   grunt.registerTask 'release-pre', ['bump:prerelease', 'release']
   grunt.registerTask 'default', [
     'clean', 'build-docs', 'build-kefir', 'build-addons', 'build-browser-tests', 'test']
+
+  grunt.registerTask 'build-light', [
+    'concat:kefir'
+    'concat:addons'
+    'test'
+  ]
+

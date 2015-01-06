@@ -37,6 +37,10 @@ describe 'takeWhile', ->
       expect(a.takeWhile()).toEmit [1, 2, '<end>'], ->
         send(a, [1, 2, 0, 5, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.takeWhile()).errorsToFlow(a)
+
 
 
 
@@ -77,4 +81,8 @@ describe 'takeWhile', ->
       a = send(prop(), [0])
       expect(a.takeWhile()).toEmit ['<end:current>'], ->
         send(a, [2, 0, 5, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.takeWhile()).errorsToFlow(a)
 

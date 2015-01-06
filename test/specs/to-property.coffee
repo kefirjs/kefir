@@ -22,9 +22,10 @@ describe 'toProperty', ->
 
     it 'should handle events', ->
       a = stream()
-      expect(a.toProperty(0)).toEmit [{current: 0}, 1, 2, '<end>'], ->
-        send(a, [1, 2, '<end>'])
-
+      p = a.toProperty(0)
+      expect(p).toEmit [{current: 0}, 1, {error: 3}, 2, '<end>'], ->
+        send(a, [1, {error: 3}, 2, '<end>'])
+      expect(p).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
 
 
   describe 'property', ->

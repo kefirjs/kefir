@@ -30,6 +30,10 @@ describe 'skipDuplicates', ->
       expect(a.skipDuplicates roundlyEqual).toEmit [1, 2, 3.8, '<end>'], ->
         send(a, [1, 1.1, 2, 3.8, 4, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.skipDuplicates()).errorsToFlow(a)
+
 
 
   describe 'property', ->
@@ -53,5 +57,9 @@ describe 'skipDuplicates', ->
       a = send(prop(), [1])
       expect(a.skipDuplicates roundlyEqual).toEmit [{current: 1}, 2, 3, '<end>'], ->
         send(a, [1.1, 1.2, 2, 3, 3.2, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.skipDuplicates()).errorsToFlow(a)
 
 

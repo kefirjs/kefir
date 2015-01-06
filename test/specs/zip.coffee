@@ -116,6 +116,19 @@ describe 'zip', ->
       send(a, [1, 3, '<end>'])
       send(b, ['<end>'])
 
+  it 'errors should flow', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.zip([a, b, c])).errorsToFlow(a)
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.zip([a, b, c])).errorsToFlow(b)
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.zip([a, b, c])).errorsToFlow(c)
 
 
   it 'when activating second time and has 2+ properties in sources, should emit current value at most once', ->

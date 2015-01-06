@@ -2,7 +2,7 @@
 
 
 
-describe 'mapEnd', ->
+describe 'skipEnd', ->
 
 
   describe 'stream', ->
@@ -21,6 +21,10 @@ describe 'mapEnd', ->
       a = stream()
       expect(a.skipEnd()).toEmit [1, 2], ->
         send(a, [1, 2, '<end>'])
+
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.skipEnd()).errorsToFlow(a)
 
 
 
@@ -41,5 +45,9 @@ describe 'mapEnd', ->
       a = send(prop(), [1])
       expect(a.skipEnd()).toEmit [{current: 1}, 2, 3], ->
         send(a, [2, 3, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.skipEnd()).errorsToFlow(a)
 
 

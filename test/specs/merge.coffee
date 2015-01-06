@@ -61,3 +61,17 @@ describe 'merge', ->
     activate(merge)
     deactivate(merge)
     expect(merge).toEmit [{current: 0}, {current: 1}, {current: 2}]
+
+  it 'errors should flow', ->
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.merge([a, b, c])).errorsToFlow(a)
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.merge([a, b, c])).errorsToFlow(b)
+    a = stream()
+    b = prop()
+    c = stream()
+    expect(Kefir.merge([a, b, c])).errorsToFlow(c)

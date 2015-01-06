@@ -69,14 +69,15 @@ describe 'flatMap', ->
         a.flatMap (x) ->
           if x > 2
             Kefir.constant(x)
+          else if x < 0
+            Kefir.constantError(x)
           else
             Kefir.never()
-      ).toEmit [3, 4, 5], ->
-        send(a, [1, 2, 3, 4, 5])
+      ).toEmit [3, {error: -1}, 4, {error: -2}, 5], ->
+        send(a, [1, 2, 3, -1, 4, -2, 5])
 
     # https://github.com/pozadi/kefir/issues/29
     it 'Bug in flatMap: exception thrown when resubscribing to stream', ->
-
       src = Kefir.emitter()
       stream1 = src.flatMap((x) -> x)
       handler = ->
@@ -86,9 +87,20 @@ describe 'flatMap', ->
       src.end()
       stream1.offValue(handler)
       sub.end()
-
       # Throws exception
       stream1.onValue(handler)
+
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      c = prop()
+      result = a.flatMap()
+      activate(result)
+      send(a, [b, c])
+      deactivate(result)
+      expect(result).errorsToFlow(a)
+      expect(result).errorsToFlow(b)
+      expect(result).errorsToFlow(c)
 
 
 
@@ -139,5 +151,21 @@ describe 'flatMap', ->
       a = send(prop(), [0])
       b = send(prop(), [a])
       expect(b.flatMap()).toEmit [{current: 0}]
+
+    it 'errors should flow 1', ->
+      a = prop()
+      result = a.flatMap()
+      expect(result).errorsToFlow(a)
+
+    it 'errors should flow 2', ->
+      a = prop()
+      b = stream()
+      c = prop()
+      result = a.flatMap()
+      activate(result)
+      send(a, [b, c])
+      deactivate(result)
+      expect(result).errorsToFlow(b)
+      expect(result).errorsToFlow(c)
 
 

@@ -4,6 +4,46 @@
 
 describe 'skipUntilBy', ->
 
+  describe 'common', ->
+
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      expect(a.skipUntilBy(b)).errorsToFlow(a)
+      a = stream()
+      b = stream()
+      expect(a.skipUntilBy(b)).errorsToFlow(b)
+      a = prop()
+      b = stream()
+      expect(a.skipUntilBy(b)).errorsToFlow(a)
+      a = prop()
+      b = stream()
+      expect(a.skipUntilBy(b)).errorsToFlow(b)
+      a = stream()
+      b = prop()
+      expect(a.skipUntilBy(b)).errorsToFlow(a)
+      a = stream()
+      b = prop()
+      expect(a.skipUntilBy(b)).errorsToFlow(b)
+      a = prop()
+      b = prop()
+      expect(a.skipUntilBy(b)).errorsToFlow(a)
+      a = prop()
+      b = prop()
+      expect(a.skipUntilBy(b)).errorsToFlow(b)
+
+    it 'errors should flow after first value from secondary', ->
+      a = stream()
+      b = stream()
+      res = a.skipUntilBy(b)
+      activate(res)
+      send(b, [1])
+      deactivate(res)
+      expect(res).errorsToFlow(b)
+
+
+
+
   describe 'stream, stream', ->
 
     it 'should return a stream', ->
@@ -14,7 +54,7 @@ describe 'skipUntilBy', ->
       b = stream()
       expect(a.skipUntilBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first value from it', ->
+    it 'should do activate secondary after first value from it', ->
       a = stream()
       b = stream()
       res = a.skipUntilBy(b)
@@ -22,7 +62,7 @@ describe 'skipUntilBy', ->
       send(b, [1])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(stream(), ['<end>']).skipUntilBy(stream())).toEmit ['<end:current>']
@@ -66,7 +106,7 @@ describe 'skipUntilBy', ->
       b = prop()
       expect(a.skipUntilBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first value from it', ->
+    it 'should do activate secondary after first value from it', ->
       a = stream()
       b = prop()
       res = a.skipUntilBy(b)
@@ -74,7 +114,7 @@ describe 'skipUntilBy', ->
       send(b, [1])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(stream(), ['<end>']).skipUntilBy(prop())).toEmit ['<end:current>']
@@ -120,7 +160,7 @@ describe 'skipUntilBy', ->
       b = stream()
       expect(a.skipUntilBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first value from it', ->
+    it 'should do activate secondary after first value from it', ->
       a = prop()
       b = stream()
       res = a.skipUntilBy(b)
@@ -128,7 +168,7 @@ describe 'skipUntilBy', ->
       send(b, [1])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(prop(), ['<end>']).skipUntilBy(stream())).toEmit ['<end:current>']
@@ -171,7 +211,7 @@ describe 'skipUntilBy', ->
       b = prop()
       expect(a.skipUntilBy(b)).toActivate(a, b)
 
-    it 'should not activate secondary after first value from it', ->
+    it 'should do activate secondary after first value from it', ->
       a = prop()
       b = prop()
       res = a.skipUntilBy(b)
@@ -179,7 +219,7 @@ describe 'skipUntilBy', ->
       send(b, [1])
       deactivate(res)
       expect(res).toActivate(a)
-      expect(res).not.toActivate(b)
+      expect(res).toActivate(b)
 
     it 'should be ended if primary was ended', ->
       expect(send(prop(), ['<end>']).skipUntilBy(prop())).toEmit ['<end:current>']

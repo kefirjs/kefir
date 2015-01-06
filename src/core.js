@@ -9,7 +9,7 @@ extend(Subscribers, {
     if (fnData.type === ANY) {
       fnData.fn(event);
     } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE) {
+      if (fnData.type === VALUE || fnData.type === ERROR) {
         fnData.fn(event.value);
       } else {
         fnData.fn();
@@ -20,7 +20,7 @@ extend(Subscribers, {
     if (type === ANY) {
       fn(event);
     } else if (type === event.type) {
-      if (type === VALUE) {
+      if (type === VALUE || type === ERROR) {
         fn(event.value);
       } else {
         fn();
@@ -132,10 +132,12 @@ extend(Observable.prototype, {
   },
 
   onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
+  onError:  function(fn, _key) {  return this.on(ERROR, fn, _key)   },
   onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
   onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
 
   offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
+  offError: function(fn, _key) {  return this.off(ERROR, fn, _key)  },
   offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
   offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
 
@@ -177,6 +179,7 @@ inherit(Stream, Observable, {
 function Property() {
   Observable.call(this);
   this._current = NOTHING;
+  this._currentError = NOTHING;
 }
 Kefir.Property = Property;
 
@@ -190,6 +193,7 @@ inherit(Property, Observable, {
         this._subscribers.callAll(Event(type, x));
       }
       if (type === VALUE) {  this._current = x  }
+      if (type === ERROR) {  this._currentError = x  }
       if (type === END) {  this._clear()  }
     }
   },
@@ -201,6 +205,9 @@ inherit(Property, Observable, {
     }
     if (this._current !== NOTHING) {
       Subscribers.callOnce(type, fn, Event(VALUE, this._current, true));
+    }
+    if (this._currentError !== NOTHING) {
+      Subscribers.callOnce(type, fn, Event(ERROR, this._currentError, true));
     }
     if (!this._alive) {
       Subscribers.callOnce(type, fn, CURRENT_END);
@@ -221,7 +228,7 @@ Observable.prototype.log = function(name) {
   name = name || this.toString();
   this.onAny(function(event) {
     var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-    if (event.type === VALUE) {
+    if (event.type === VALUE || event.type === ERROR) {
       console.log(name, typeStr, event.value);
     } else {
       console.log(name, typeStr);

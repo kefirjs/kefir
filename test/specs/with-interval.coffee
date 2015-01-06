@@ -9,10 +9,13 @@ describe 'withInterval', ->
     i = 0
     fn = (emitter) ->
       i++
-      emitter.emit(i)
-      emitter.emit(i*2)
+      if i == 2
+        emitter.error(-1)
+      else
+        emitter.emit(i)
+        emitter.emit(i*2)
       if i == 3
         emitter.end()
     expect(Kefir.withInterval(100, fn)).toEmitInTime(
-      [[ 100, 1 ], [ 100, 2 ], [ 200, 2 ], [ 200, 4 ], [ 300, 3 ], [ 300, 6 ], [ 300, '<end>' ]]
+      [[ 100, 1 ], [ 100, 2 ], [ 200, {error: -1} ], [ 300, 3 ], [ 300, 6 ], [ 300, '<end>' ]]
     )

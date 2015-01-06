@@ -85,6 +85,10 @@ describe 'throttle', ->
           tick(30); send(a, ['<end>'])
       )
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.throttle(100)).errorsToFlow(a)
+
 
 
   describe 'property', ->
@@ -166,3 +170,7 @@ describe 'throttle', ->
           tick(30); send(a, [9])
           tick(30); send(a, ['<end>'])
       )
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.throttle(100)).errorsToFlow(a)

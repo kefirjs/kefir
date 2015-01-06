@@ -62,6 +62,32 @@ describe 'bufferBy', ->
         send(b, [0])
         send(a, [4])
 
+    it 'errors should flow', ->
+      a = stream()
+      b = stream()
+      expect(a.bufferBy(b)).errorsToFlow(a)
+      a = stream()
+      b = stream()
+      expect(a.bufferBy(b)).errorsToFlow(b)
+      a = prop()
+      b = stream()
+      expect(a.bufferBy(b)).errorsToFlow(a)
+      a = prop()
+      b = stream()
+      expect(a.bufferBy(b)).errorsToFlow(b)
+      a = stream()
+      b = prop()
+      expect(a.bufferBy(b)).errorsToFlow(a)
+      a = stream()
+      b = prop()
+      expect(a.bufferBy(b)).errorsToFlow(b)
+      a = prop()
+      b = prop()
+      expect(a.bufferBy(b)).errorsToFlow(a)
+      a = prop()
+      b = prop()
+      expect(a.bufferBy(b)).errorsToFlow(b)
+
 
 
   describe 'stream + stream', ->

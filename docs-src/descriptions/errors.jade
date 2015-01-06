@@ -1,0 +1,102 @@
+h2#about-errors Errors
+
+p.
+  Kefir supports additional channel to pass data through observables — errors.
+  Unlike values, errors normally just flow through observable chain
+  without any transformation. Consider this example:
+
+pre(title='example')
+  :escapehtml
+    function add2(x) {
+      return x + 2;
+    }
+
+    function gt3(x) {
+      return x > 3;
+    }
+
+    var foo = Kefir.emitter();
+    var bar = foo.map(add2).filter(gt3);
+
+    bar.log();
+
+    foo.emit(0);
+    foo.emit(2);
+    foo.error(-1);
+    foo.emit(3);
+    foo.end();
+
+
+pre(title='console output')
+  :escapehtml
+    > [emitter.map.filter] <value> 4
+    > [emitter.map.filter] <error> -1
+    > [emitter.map.filter] <value> 5
+    > [emitter.map.filter] <end>
+
+pre(title='events in time')
+  :escapehtml
+    foo: ---0---2---e---3---X
+                    -1
+
+    bar: -------4---e---5---X
+                    -1
+div
+
+p.
+  As you can see values being mapped and filtered,
+  although errors just flows unchanged.
+  Also notice that observable doesn't end on an error by default,
+  but you can use #[a(href='#end-on-error') endOnError] method to make it happen.
+
+p.
+  With multiple source observables it works same way.
+  Errors from each source show up in the result observable unchanged.
+
+pre(title='example')
+  :escapehtml
+    function sum(a, b) {
+      return a + b;
+    }
+
+    var foo = Kefir.emitter();
+    var bar = Kefir.emitter();
+    var baz = Kefir.combine([foo, bar], sum);
+
+    baz.log();
+
+    foo.emit(1);
+    bar.emit(2);
+    foo.error(-1);
+    foo.emit(3);
+    bar.error(-2);
+    bar.emit(4);
+    foo.end();
+    bar.end();
+
+pre(title='console output')
+  :escapehtml
+    > [combine] <value> 3
+    > [combine] <error> -1
+    > [combine] <value> 5
+    > [combine] <error> -2
+    > [combine] <value> 7
+    > [combine] <end>
+
+pre(title='events in time')
+  :escapehtml
+    foo: ---1-------e---3-----------X
+                    -1
+    bar: -------2-----------e---4-------X
+                           -2
+
+    baz: -------3---e---5---e---7-------X
+                    -1      -2
+div
+
+p.
+  But notice that if multiple source observable isn't watch for some of it's
+  sources at some point in time it will also not emit errors from them.
+  This applies to observables like #[a(href='#concat') concat],
+  #[a(href='#flat-map-concat') flatMapConcat] etc.
+

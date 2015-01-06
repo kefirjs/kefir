@@ -37,6 +37,9 @@ describe 'diff', ->
       expect(a.diff()).toEmit [[0,1], [1,3], '<end>'], ->
         send(a, [0, 1, 3, '<end>'])
 
+    it 'errors should flow', ->
+      a = stream()
+      expect(a.diff()).errorsToFlow(a)
 
 
 
@@ -70,5 +73,9 @@ describe 'diff', ->
       a = send(prop(), [0])
       expect(a.diff()).toEmit [[0,1], [1,3], '<end>'], ->
         send(a, [1, 3, '<end>'])
+
+    it 'errors should flow', ->
+      a = prop()
+      expect(a.diff()).errorsToFlow(a)
 
 

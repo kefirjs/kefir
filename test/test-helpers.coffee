@@ -11,6 +11,11 @@ logItem = (event) ->
       {current: event.value}
     else
       event.value
+  else if event.type == 'error'
+    if event.current
+      {currentError: event.value}
+    else
+      {error: event.value}
   else
     if event.current
       '<end:current>'
@@ -19,9 +24,12 @@ logItem = (event) ->
 
 exports.watch = (obs) ->
   log = []
-  obs.onAny (event) ->
+  fn = (event) ->
     log.push(logItem event)
-  log
+  unwatch = ->
+    obs.offAny fn
+  obs.onAny fn
+  {log, unwatch}
 
 exports.watchWithTime = (obs) ->
   startTime = new Date()
@@ -35,6 +43,8 @@ exports.send = (obs, events) ->
   for event in events
     if event == '<end>'
       obs._send('end')
+    if (typeof event == 'object' && 'error' of event)
+      obs._send('error', event.error)
     else
       obs._send('value', event)
   obs
@@ -86,10 +96,33 @@ beforeEach ->
     toBeActive: -> @actual._active
 
     toEmit: (expectedLog, cb) ->
-      log = exports.watch(@actual)
+      {log, unwatch} = exports.watch(@actual)
       cb?()
+      unwatch()
       @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
       @env.equals_(expectedLog, log)
+
+    errorsToFlow: (source) ->
+      expectedLog = if @isNot then [] else [{error: -2}, {error: -3}]
+      if (@actual instanceof Kefir.Property)
+        exports.activate(@actual)
+        exports.send(source, [{error: -1}])
+        exports.deactivate(@actual)
+        unless @isNot
+          expectedLog.unshift({currentError: -1})
+      else if (source instanceof Kefir.Property)
+        exports.send(source, [{error: -1}])
+        unless @isNot
+          expectedLog.unshift({currentError: -1})
+      {log, unwatch} = exports.watch(@actual)
+      exports.send(source, [{error: -2}, {error: -3}])
+      unwatch()
+      if @isNot
+        @message = -> "Expected errors not to flow (i.e. to emit [], actually emitted #{jasmine.pp(log)})"
+        !@env.equals_(expectedLog, log)
+      else
+        @message = -> "Expected errors to flow (i.e. to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)})"
+        @env.equals_(expectedLog, log)
 
     toEmitInTime: (expectedLog, cb, timeLimit = 10000) ->
       log = null

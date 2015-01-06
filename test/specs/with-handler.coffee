@@ -6,18 +6,25 @@ describe 'withHandler', ->
 
 
   mirror = (emitter, event) ->
-    if event.type == 'value'
-      emitter.emit(event.value)
-    else
-      emitter.end()
+    switch event.type
+      when 'value' then emitter.emit(event.value)
+      when 'error' then emitter.error(event.value)
+      when 'end' then emitter.end()
+
 
   duplicate = (emitter, event) ->
     if event.type == 'value'
       emitter.emit(event.value)
       if !event.current
         emitter.emit(event.value)
+    else if event.type == 'error'
+      emitter.error(event.value)
+      if !event.current
+        emitter.error(event.value)
     else
       emitter.end()
+
+
 
   describe 'stream', ->
 
@@ -36,8 +43,8 @@ describe 'withHandler', ->
 
     it 'should handle events (with `duplicate` handler)', ->
       a = stream()
-      expect(a.withHandler duplicate).toEmit [1, 1, 2, 2, '<end>'], ->
-        send(a, [1, 2, '<end>'])
+      expect(a.withHandler duplicate).toEmit [1, 1, {error: 3}, {error: 3}, 2, 2, '<end>'], ->
+        send(a, [1, {error: 3}, 2, '<end>'])
 
     it 'should automatically preserve isCurent (end)', ->
       a = stream()
@@ -63,9 +70,9 @@ describe 'withHandler', ->
       expect(send(prop(), ['<end>']).withHandler mirror).toEmit ['<end:current>']
 
     it 'should handle events and current (with `duplicate` handler)', ->
-      a = send(prop(), [1])
-      expect(a.withHandler duplicate).toEmit [{current: 1}, 2, 2, 3, 3, '<end>'], ->
-        send(a, [2, 3, '<end>'])
+      a = send(prop(), [1, {error: 0}])
+      expect(a.withHandler duplicate).toEmit [{current: 1}, {currentError: 0}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], ->
+        send(a, [2, {error: 4}, 3, '<end>'])
 
     it 'should automatically preserve isCurent (end)', ->
       a = prop()
@@ -86,5 +93,19 @@ describe 'withHandler', ->
           savedEmitter = emitter
       ).toEmit [{current: 1}, 2], ->
         savedEmitter.emit(2)
+
+    it 'should automatically preserve isCurent (error)', ->
+      a = prop()
+      expect(a.withHandler mirror).toEmit [{error: 1}], ->
+        send(a, [{error: 1}])
+      expect(a.withHandler mirror).toEmit [{currentError: 1}]
+
+      savedEmitter = null
+      expect(
+        a.withHandler (emitter, event) ->
+          mirror(emitter, event)
+          savedEmitter = emitter
+      ).toEmit [{currentError: 1}, {error: 2}], ->
+        savedEmitter.emit({error: 2})
 
 
