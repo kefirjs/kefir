@@ -1,4 +1,4 @@
-## next
+## 0.5.0
 
  - Base errors support added (i.e. errors flow through all kind of transformations/combinations)
  - Emitter now has `.error` method for emitting errors
