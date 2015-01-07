@@ -31,6 +31,9 @@ div
   If property has current value, it will be ignored
   (stream's subscribers won't get it).
 
+p.
+  If you call #[b changes] on a stream, it'll just return same stream.
+
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var property = source.toProperty(0);

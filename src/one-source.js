@@ -44,7 +44,14 @@ withOneSource('changes', {
       this._send(ERROR, x);
     }
   }
-}, {streamMethod: null, propertyMethod: produceStream});
+}, {
+  streamMethod: function() {
+    return function() {
+      return this;
+    }
+  },
+  propertyMethod: produceStream
+});
 
 
 

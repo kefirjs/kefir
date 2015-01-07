@@ -2,6 +2,7 @@
 
  - New method `.fromSubUnsub`
  - Undocumented methods `.on/.off` renamed to `._on/._off`
+ - The `.changes` method now can be called on a stream
 
 
 ## 0.5.0
