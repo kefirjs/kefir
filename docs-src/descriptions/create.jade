@@ -264,6 +264,49 @@ p.
 
 
 
++descr-method('from-sub-unsub', 'fromSubUnsub', 'Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])').
+  Creates a stream from #[b subscribe] and #[b unsubscribe] functions.
+  The #[b subscribe] function is called on each #[a(href='#active-state') activation] with callback as argument,
+  giving you an opportunity to subscribe with this callback to an original source of values.
+  When all subscribers from the stream removed, the #[b unsubscribe] function is called
+  with the same callback, so you could unsubscribe from your original source.
+
+p.
+  You can also provide an #[b transform] function, which will work the same way as in
+  #[a(href='from-event') fromEvent] or #[a(href='as-kefir-stream') asKefirStream].
+
+pre(title='example')
+  :escapehtml
+    function subscribe(callback) {
+      document.body.addEventListener('click', callback);
+    }
+
+    function unsubscribe(callback) {
+      document.body.removeEventListener('click', callback);
+    }
+
+    function transform(event) {
+      return event.type + ' on ' + this.tagName;
+    }
+
+    var stream = Kefir.fromSubUnsub(subscribe, unsubscribe, transform);
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromBinder] <value> click on BODY
+    > [fromBinder] <value> click on BODY
+    > [fromBinder] <value> click on BODY
+
+pre(title='events in time').
+  stream:  ----•--------------•----•---
+    'click on...'  'click on...'  'click on...'
+div
+
+
+
+
+
 +descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
   Another method for creation general purpose stream,
   along with <a href="#emitter">emitter</a>.

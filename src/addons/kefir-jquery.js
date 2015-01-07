@@ -11,7 +11,7 @@
         transformer = selector;
         selector = null;
       }
-      return Kefir._fromEvent(
+      return Kefir.fromSubUnsub(
         function(handler) {  $el.on(eventName, selector, handler)  },
         function(handler) {  $el.off(eventName, selector, handler)  },
         transformer

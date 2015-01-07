@@ -1,3 +1,8 @@
+## next
+
+ - New method `.fromSubUnsub`
+
+
 ## 0.5.0
 
  - Base errors support added (i.e. errors flow through all kind of transformations/combinations)

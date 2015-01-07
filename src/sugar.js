@@ -121,9 +121,9 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 
 
-// ._fromEvent
+// .fromSubUnsub
 
-Kefir._fromEvent = function(sub, unsub, transformer) {
+Kefir.fromSubUnsub = function(sub, unsub, transformer) {
   return Kefir.fromBinder(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
@@ -161,7 +161,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir._fromEvent(
+  return Kefir.fromSubUnsub(
     function(handler) {  target[sub](eventName, handler)  },
     function(handler) {  target[unsub](eventName, handler)  },
     transformer
