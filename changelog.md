@@ -1,6 +1,7 @@
 ## next
 
  - New method `.fromSubUnsub`
+ - Undocumented methods `.on/.off` renamed to `._on/._off`
 
 
 ## 0.5.0
