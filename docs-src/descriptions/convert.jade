@@ -6,6 +6,13 @@ h2#convert Convert observables
   Accepts optional <b>current</b> argument, which becomes current value of the
   property.
 
+p.
+  You can also call #[b toProperty] on a property.
+  If called on a property that already has a current value,
+  just returns same property with same current value.
+  But if source property has no current value,
+  specified value will be the current value of the result property.
+
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.toProperty(0);
@@ -22,7 +29,11 @@ pre(title='console output')
 pre(title='events in time').
   source:  ----1----2----3X
   result: 0----1----2----3X
-div
+
+p(id='with-default' style='margin-top: 0').
+  There is also deprecated method #[tt .withDefault(current)] that works
+  exactly as #[b toProperty], but the #[b current] argument is required.
+  This method will be removed in the future.
 
 
 
@@ -50,57 +61,4 @@ pre(title='console output')
 pre(title='events in time').
   property: 0----1----2----3X
   result:    ----1----2----3X
-div
-
-
-
-+descr-method('with-default', 'withDefault', 'obs.withDefault(current)').
-  Same as #[a(href="#to-property") toProperty],
-  except the #[b current] argument is required
-  and one can call this method on a property.
-  When called on a property which already has a current value,
-  just returns same property with same current value.
-  But if source property has no current value,
-  specified value will be current of result property.
-
-
-p.
-  Example with property without current value:
-
-pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2]).toProperty();
-  var result = source.withDefault(0);
-  result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.toProperty.withDefault] <value:current> 0
-    > [sequentially.toProperty.withDefault] <value> 1
-    > [sequentially.toProperty.withDefault] <value> 2
-    > [sequentially.toProperty.withDefault] <end>
-
-pre(title='events in time').
-  source:  ----1----2----3X
-  result: 0----1----2----3X
-div
-
-
-p.
-  Example with property with current value:
-
-pre(title='example').
-  var source = Kefir.sequentially(100, [1, 2]).toProperty(5);
-  var result = source.withDefault(0);
-  result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.toProperty.withDefault] <value:current> 5
-    > [sequentially.toProperty.withDefault] <value> 1
-    > [sequentially.toProperty.withDefault] <value> 2
-    > [sequentially.toProperty.withDefault] <end>
-
-pre(title='events in time').
-  source: 5----1----2----3X
-  result: 5----1----2----3X
 div

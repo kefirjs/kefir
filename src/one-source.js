@@ -15,18 +15,15 @@ withOneSource('toProperty', {
       this._send(VALUE, args[0]);
     }
   }
-}, {propertyMethod: null, streamMethod: produceProperty});
-
-
-
-
-// .withDefault()
-
-withOneSource('withDefault', {
-  _init: function(args) {
-    this._send(VALUE, args[0], true);
-  }
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
+
+
+
+// .withDefault (Deprecated)
+
+Stream.prototype.withDefault = Stream.prototype.toProperty;
+Property.prototype.withDefault = Property.prototype.toProperty;
+
 
 
 
