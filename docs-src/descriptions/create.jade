@@ -237,7 +237,7 @@ div
 
 
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
-  Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter
+  Creates a stream from events on a DOM EventTarget or Node.JS EventEmitter
   object, or an object that supports event listeners using <tt>on/off</tt> methods.
   You can also pass optional transformation function like in
   <a href="#as-kefir-stream">asKefirStream</a> method.
@@ -254,7 +254,8 @@ pre(title='console output')
     > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
 
 pre(title='events in time').
-  stream:  ----e--e----e---
+  stream:  ----•-----------•----•---
+      MouseEvent   MouseEvent   MouseEvent
 div
 
 p.
