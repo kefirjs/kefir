@@ -1,0 +1,18 @@
+h2#about-observables Streams and Properties
+
+p.
+  Kefir supports two types of observables — streams and properties.
+  Stream represents a stream of events. And property represents a value,
+  that changes over time. The value of a property changes in response of events,
+  which means that any stream may be easily converted to a property.
+
+figure
+  img(src='docs-src/images/stream-and-property.png')
+
+p.
+  In practice, the only difference between two types of observables
+  is that property may have a current value. The process of subscribing
+  to values in both types is the same, you call the #[tt .onValue]
+  method, passing to it a callback function. But when you subscribe
+  to a property which has current value, the callback is called
+  immediately (synchronously) with the current value of the property.

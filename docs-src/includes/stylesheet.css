@@ -43,6 +43,12 @@ optgroup{font-weight:700}
 table{border-collapse:collapse;border-spacing:0}
 td,th{padding:0}
 
+figure {
+  margin: 1em 0;
+}
+  figure img {
+    max-width: 100%;
+  }
 
 body {
   font-size: 14px;
