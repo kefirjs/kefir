@@ -419,11 +419,6 @@ div
 
 h2#create-property Create a property
 
-p.
-  For now there is only two method that creates a property directly.
-  But you can always convert any stream to a property using
-  <a href="#to-property">toProperty</a> method.
-
 
 
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
@@ -458,5 +453,31 @@ pre(title='console output')
 
 pre(title='events in time').
   property: eX
+div
+
+
+
++descr-method('from-promise', 'fromPromise', 'Kefir.fromPromise(promise)').
+  Converts a promise to a property.
+
+pre(title='example')
+  :escapehtml
+    var myPromise = {
+      then: function(onSuccess, onError) {
+        var fulfill = function() {  onSuccess(1)  };
+        setTimeout(fulfill, 1000);
+      }
+    };
+
+    var result = Kefir.fromPromise(myPromise);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromPromise] <value> 1
+    > [fromPromise] <end>
+
+pre(title='events in time').
+  result:  ----1X
 div
 

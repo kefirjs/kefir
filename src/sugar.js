@@ -139,6 +139,40 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
   }).setName('fromNodeCallback');
 }
 
+
+
+
+// .fromPromise
+
+Kefir.fromPromise = function(promise) {
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      var onValue = function(x) {
+        emitter.emit(x);
+        emitter.end();
+      };
+      var onError = function(x) {
+        emitter.error(x);
+        emitter.end();
+      };
+      var _promise = promise.then(onValue, onError);
+
+      // prevent promise/A+ libraries like Q to swallow exceptions
+      if (_promise && isFn(_promise.done)) {
+        _promise.done();
+      }
+
+      called = true;
+    }
+  }).toProperty().setName('fromPromise');
+}
+
+
+
+
+
+
 // .fromSubUnsub
 
 Kefir.fromSubUnsub = function(sub, unsub, transformer) {
