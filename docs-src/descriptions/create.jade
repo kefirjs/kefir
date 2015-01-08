@@ -236,6 +236,33 @@ div
 
 
 
++descr-method('from-node-callback', 'fromNodeCallback', 'Kefir.fromNodeCallback(fn)').
+  Similar to #[a(href='#from-callback') fromCallback],
+  but the #[b callback] passed to #[b fn]
+  is a node.js style callback — #[tt callback(error,&nbsp;result)].
+  If the #[b error] argument of the #[b callback] is truthy,
+  an error will be emitted from the result stream, in other case a value.
+  Then the stream will end (after first value or error).
+
+pre(title='example')
+  :escapehtml
+    var stream = Kefir.fromNodeCallback(function(callback) {
+      // we use setTimeout here just to simulate some asynchronous activity
+      setTimeout(function() {  callback(null, 1)  }, 1000);
+    });
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromNodeCallback] <value> 1
+    > [fromNodeCallback] <end>
+
+pre(title='events in time').
+  stream:  ----1X
+div
+
+
+
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
   Creates a stream from events on a DOM EventTarget or Node.JS EventEmitter
   object, or an object that supports event listeners using <tt>on/off</tt> methods.

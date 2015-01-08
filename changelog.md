@@ -3,8 +3,9 @@
  - New method `.fromSubUnsub`
  - Undocumented methods `.on/.off` renamed to `._on/._off`
  - The `.changes` method now can be called on a stream
- - The `.toProperty` method now can be called on a property, and woks similar to `.withDefault`
+ - The `.toProperty` method now can be called on a property, and works similar to `.withDefault`
  - The `.withDefault` method is now deprecated, and will be removed in the future
+ - New method `.fromNodeCallback`
 
 
 ## 0.5.0

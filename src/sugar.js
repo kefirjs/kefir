@@ -120,6 +120,24 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 
 
+// .fromNodeCallback
+
+Kefir.fromNodeCallback = function(callbackConsumer) {
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      callbackConsumer(function(error, x) {
+        if (error) {
+          emitter.error(error);
+        } else {
+          emitter.emit(x);
+        }
+        emitter.end();
+      });
+      called = true;
+    }
+  }).setName('fromNodeCallback');
+}
 
 // .fromSubUnsub
 
