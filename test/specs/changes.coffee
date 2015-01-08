@@ -6,8 +6,9 @@ describe 'changes', ->
 
   describe 'stream', ->
 
-    it 'should not have .changes method', ->
-      expect(stream().changes).toBe(undefined)
+    it 'should just return same stream', ->
+      a = stream()
+      expect(a.changes()).toBe(a)
 
 
   describe 'property', ->

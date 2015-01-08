@@ -30,7 +30,31 @@ describe 'toProperty', ->
 
   describe 'property', ->
 
-    it 'should not have .toProperty method', ->
-      expect(prop().toProperty).toBe(undefined)
+    it 'should return property', ->
+      expect(prop().toProperty(0)).toBeProperty()
+
+    it 'should activate/deactivate source', ->
+      a = prop()
+      expect(a.toProperty(0)).toActivate(a)
+
+    it 'should be ended if source was ended', ->
+      expect(send(prop(), ['<end>']).toProperty(0)).toEmit [{current: 0}, '<end:current>']
+      expect(send(prop(), [1, '<end>']).toProperty(0)).toEmit [{current: 1}, '<end:current>']
+
+    it 'should handle events', ->
+      a = send(prop(), [1])
+      b = a.toProperty(0)
+      expect(b).toEmit [{current: 1}, 2, {error: 3}, '<end>'], ->
+        send(a, [2, {error: 3}, '<end>'])
+      expect(b).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+
+      a = prop()
+      b = a.toProperty(0)
+      expect(b).toEmit [{current: 0}, 2, {error: 3}, '<end>'], ->
+        send(a, [2, {error: 3}, '<end>'])
+      expect(b).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+
+    it 'if original property has no current, and .toProperty called with no arguments, then result should have no current', ->
+      expect(prop().toProperty()).toEmit []
 
 

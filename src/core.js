@@ -111,7 +111,7 @@ extend(Observable.prototype, {
     }
   },
 
-  on: function(type, fn, _key) {
+  _on: function(type, fn, _key) {
     if (this._alive) {
       this._subscribers.add(type, fn, _key);
       this._setActive(true);
@@ -121,7 +121,7 @@ extend(Observable.prototype, {
     return this;
   },
 
-  off: function(type, fn, _key) {
+  _off: function(type, fn, _key) {
     if (this._alive) {
       this._subscribers.remove(type, fn, _key);
       if (this._subscribers.isEmpty()) {
@@ -131,15 +131,15 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
-  onError:  function(fn, _key) {  return this.on(ERROR, fn, _key)   },
-  onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
-  onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
+  onValue:  function(fn, _key) {  return this._on(VALUE, fn, _key)   },
+  onError:  function(fn, _key) {  return this._on(ERROR, fn, _key)   },
+  onEnd:    function(fn, _key) {  return this._on(END, fn, _key)     },
+  onAny:    function(fn, _key) {  return this._on(ANY, fn, _key)     },
 
-  offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
-  offError: function(fn, _key) {  return this.off(ERROR, fn, _key)  },
-  offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
-  offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
+  offValue: function(fn, _key) {  return this._off(VALUE, fn, _key)  },
+  offError: function(fn, _key) {  return this._off(ERROR, fn, _key)  },
+  offEnd:   function(fn, _key) {  return this._off(END, fn, _key)    },
+  offAny:   function(fn, _key) {  return this._off(ANY, fn, _key)    }
 
 });
 
@@ -198,7 +198,7 @@ inherit(Property, Observable, {
     }
   },
 
-  on: function(type, fn, _key) {
+  _on: function(type, fn, _key) {
     if (this._alive) {
       this._subscribers.add(type, fn, _key);
       this._setActive(true);

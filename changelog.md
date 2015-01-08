@@ -1,3 +1,14 @@
+## 0.5.1
+
+ - Undocumented methods `.on/.off` renamed to `._on/._off`
+ - The `.changes` method now can be called on a stream
+ - The `.toProperty` method now can be called on a property, and works similar to `.withDefault`
+ - The `.withDefault` method is now deprecated, and will be removed in the future
+ - New method `.fromSubUnsub`
+ - New method `.fromNodeCallback`
+ - New method `.fromPromise`
+
+
 ## 0.5.0
 
  - Base errors support added (i.e. errors flow through all kind of transformations/combinations)

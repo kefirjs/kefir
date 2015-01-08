@@ -120,10 +120,62 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 
 
+// .fromNodeCallback
 
-// ._fromEvent
+Kefir.fromNodeCallback = function(callbackConsumer) {
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      callbackConsumer(function(error, x) {
+        if (error) {
+          emitter.error(error);
+        } else {
+          emitter.emit(x);
+        }
+        emitter.end();
+      });
+      called = true;
+    }
+  }).setName('fromNodeCallback');
+}
 
-Kefir._fromEvent = function(sub, unsub, transformer) {
+
+
+
+// .fromPromise
+
+Kefir.fromPromise = function(promise) {
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      var onValue = function(x) {
+        emitter.emit(x);
+        emitter.end();
+      };
+      var onError = function(x) {
+        emitter.error(x);
+        emitter.end();
+      };
+      var _promise = promise.then(onValue, onError);
+
+      // prevent promise/A+ libraries like Q to swallow exceptions
+      if (_promise && isFn(_promise.done)) {
+        _promise.done();
+      }
+
+      called = true;
+    }
+  }).toProperty().setName('fromPromise');
+}
+
+
+
+
+
+
+// .fromSubUnsub
+
+Kefir.fromSubUnsub = function(sub, unsub, transformer) {
   return Kefir.fromBinder(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
@@ -161,7 +213,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir._fromEvent(
+  return Kefir.fromSubUnsub(
     function(handler) {  target[sub](eventName, handler)  },
     function(handler) {  target[unsub](eventName, handler)  },
     transformer

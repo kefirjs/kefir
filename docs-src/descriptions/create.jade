@@ -236,8 +236,35 @@ div
 
 
 
++descr-method('from-node-callback', 'fromNodeCallback', 'Kefir.fromNodeCallback(fn)').
+  Similar to #[a(href='#from-callback') fromCallback],
+  but the #[b callback] passed to #[b fn]
+  is a node.js style callback — #[tt callback(error,&nbsp;result)].
+  If the #[b error] argument of the #[b callback] is truthy,
+  an error will be emitted from the result stream, in other case a value.
+  Then the stream will end (after first value or error).
+
+pre(title='example')
+  :escapehtml
+    var stream = Kefir.fromNodeCallback(function(callback) {
+      // we use setTimeout here just to simulate some asynchronous activity
+      setTimeout(function() {  callback(null, 1)  }, 1000);
+    });
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromNodeCallback] <value> 1
+    > [fromNodeCallback] <end>
+
+pre(title='events in time').
+  stream:  ----1X
+div
+
+
+
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
-  Creates an stream from events on a DOM EventTarget or Node.JS EventEmitter
+  Creates a stream from events on a DOM EventTarget or Node.JS EventEmitter
   object, or an object that supports event listeners using <tt>on/off</tt> methods.
   You can also pass optional transformation function like in
   <a href="#as-kefir-stream">asKefirStream</a> method.
@@ -254,13 +281,57 @@ pre(title='console output')
     > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
 
 pre(title='events in time').
-  stream:  ----e--e----e---
+  stream:  ----•-----------•----•---
+      MouseEvent   MouseEvent   MouseEvent
 div
 
 p.
   Note that it uses <tt>addEventListener()</tt> for DOM events,
   which is not supported by IE8. If you need IE8 support use
   <a href="#jquery">jQuery addon</a>.
+
+
+
++descr-method('from-sub-unsub', 'fromSubUnsub', 'Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])').
+  Creates a stream from #[b subscribe] and #[b unsubscribe] functions.
+  The #[b subscribe] function is called on each #[a(href='#active-state') activation] with callback as argument,
+  giving you an opportunity to subscribe with this callback to an original source of values.
+  When all subscribers from the stream removed, the #[b unsubscribe] function is called
+  with the same callback, so you could unsubscribe from your original source.
+
+p.
+  You can also provide an #[b transform] function, which will work the same way as in
+  #[a(href='from-event') fromEvent] or #[a(href='as-kefir-stream') asKefirStream].
+
+pre(title='example')
+  :escapehtml
+    function subscribe(callback) {
+      document.body.addEventListener('click', callback);
+    }
+
+    function unsubscribe(callback) {
+      document.body.removeEventListener('click', callback);
+    }
+
+    function transform(event) {
+      return event.type + ' on ' + this.tagName;
+    }
+
+    var stream = Kefir.fromSubUnsub(subscribe, unsubscribe, transform);
+    stream.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromBinder] <value> click on BODY
+    > [fromBinder] <value> click on BODY
+    > [fromBinder] <value> click on BODY
+
+pre(title='events in time').
+  stream:  ----•--------------•----•---
+    'click on...'  'click on...'  'click on...'
+div
+
+
 
 
 
@@ -348,11 +419,6 @@ div
 
 h2#create-property Create a property
 
-p.
-  For now there is only two method that creates a property directly.
-  But you can always convert any stream to a property using
-  <a href="#to-property">toProperty</a> method.
-
 
 
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
@@ -387,5 +453,31 @@ pre(title='console output')
 
 pre(title='events in time').
   property: eX
+div
+
+
+
++descr-method('from-promise', 'fromPromise', 'Kefir.fromPromise(promise)').
+  Converts a promise to a property.
+
+pre(title='example')
+  :escapehtml
+    var myPromise = {
+      then: function(onSuccess, onError) {
+        var fulfill = function() {  onSuccess(1)  };
+        setTimeout(fulfill, 1000);
+      }
+    };
+
+    var result = Kefir.fromPromise(myPromise);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromPromise] <value> 1
+    > [fromPromise] <end>
+
+pre(title='events in time').
+  result:  ----1X
 div
 
