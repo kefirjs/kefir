@@ -3,8 +3,8 @@ h2#create-stream Create a stream
 
 +descr-method('emitter', 'emitter', 'Kefir.emitter()').
   Creates an emitter, that is ordinary stream, but also has additional methods:
-  <tt>.emit(value)</tt>, <tt>.error(error)</tt>, and <tt>.end()</tt>.
-  Once an emitter created one can easily emit all three kind of events to it,
+  #[tt .emit(value)], #[tt .error(error)], and #[tt .end()].
+  Once an emitter was created, one can easily emit all three kind of events to it,
   using these methods.
 
 pre(title='example').
@@ -26,13 +26,11 @@ pre(title='events in time').
 div
 
 p.
-  <img data-emoji="point_up"> <b>Emitter</b> is the easiest way
+  <img data-emoji="point_up"> #[b Emitter] is the easiest way
   to create general purpose streams,
-  but it doesn't give control over the <b>active</b> state of the stream
-  (see <a href="#active-state">active state</a>).
-  If you want to create general purpose streams and
-  have control over <b>active</b> state, you should use
-  <a href="from-binder">fromBinder</a>.
+  but it doesn't give control over the #[a(href='#active-state') active state]
+  of the stream. If you want to have that control, you should use
+  #[a(href='from-binder') fromBinder] or #[a(href='#from-sub-unsub') fromSubUnsub].
 
 
 
@@ -56,8 +54,8 @@ div
 
 
 +descr-method('later', 'later', 'Kefir.later(wait, value)').
-  Creates a stream, that produces a single <b>value</b>
-  after <b>wait</b> milliseconds, then ends.
+  Creates a stream, that produces a single #[b value]
+  after #[b wait] milliseconds, then ends.
 
 pre(title='example').
   var stream = Kefir.later(1000, 1);
@@ -76,8 +74,8 @@ div
 
 
 +descr-method('interval', 'interval', 'Kefir.interval(interval, value)').
-  Creates a stream, that produces the same <b>value</b>
-  each <b>interval</b> milliseconds. Never ends.
+  Creates a stream, that produces the same #[b value]
+  each #[b interval] milliseconds. Never ends.
 
 pre(title='example').
   var stream = Kefir.interval(1000, 1);
@@ -96,9 +94,9 @@ div
 
 
 +descr-method('sequentially', 'sequentially', 'Kefir.sequentially(interval, values)').
-  Creates a stream containing given <b>values</b> (array),
-  delivered with given <b>interval</b> in milliseconds.
-  Ends after all <b>values</b> are delivered.
+  Creates a stream containing given #[b values] (array),
+  delivered with given #[b interval] in milliseconds.
+  Ends after all #[b values] are delivered.
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2, 3]);
@@ -117,8 +115,8 @@ div
 
 
 +descr-method('repeatedly', 'repeatedly', 'Kefir.repeatedly(interval, values)').
-  Creates a stream, that produces given <b>values</b> (array),
-  with given <b>interval</b> in milliseconds.
+  Creates a stream, that produces given #[b values] (array),
+  with given #[b interval] in milliseconds.
   When all values emitted, it begins to produce them again from the start.
   Never ends.
 
@@ -143,9 +141,9 @@ div
 
 
 +descr-method('from-poll', 'fromPoll', 'Kefir.fromPoll(interval, fn)').
-  Creates a stream, that polls given <b>fn</b> function,
-  with given <b>interval</b> in milliseconds,
-  and emits values returned by <b>fn</b>.
+  Creates a stream, that polls given #[b fn] function,
+  with given #[b interval] in milliseconds,
+  and emits values returned by #[b fn].
   Never ends.
 
 pre(title='example').
@@ -171,12 +169,10 @@ div
 
 +descr-method('with-interval', 'withInterval', 'Kefir.withInterval(interval, handler)').
   General method to create an interval based stream.
-  Creates a stream, that call given <b>handler</b> function,
-  with given <b>interval</b> in milliseconds.
-  <b>Handler</b> is called with one argument — <b>emitter object</b>
-  (it's similar to <a href="#emitter">emitter stream</a>
-  but not actualy a stream, you can read more about emitter object
-  <a href="#emitter-object">here</a>).
+  Creates a stream, that call given #[b handler] function,
+  with given #[b interval] in milliseconds.
+  The #[b handler] function is called with one argument —
+  #[a(href="#emitter-object") emitter object].
 
 pre(title='example')
   :escapehtml
@@ -204,18 +200,17 @@ pre(title='events in time').
 div
 
 p.
-  You may call <b>emitter.emit</b> several times on each interval tick,
+  You may call #[b emitter.emit] several times on each interval tick,
   or not call it at all.
 
 
 
 +descr-method('from-callback', 'fromCallback', 'Kefir.fromCallback(fn)').
-  Convert a <b>fn</b> function than accepts <b>callback</b>
-  as first argument to a stream.
-  Emits at most one value when <b>callback</b> is called then ends.
-  <b>Fn</b> will be called at most
-  once on first <a href="#active-state">activation</a> of a stream
-  (i.e. when first subscriber added).
+  Convert a function than accepts a #[b callback]
+  as the first argument to a stream.
+  Emits at most one value when #[b callback] is called then ends.
+  The #[b fn] function will be called at most once,
+  when first subscriber will be added to the stream.
 
 pre(title='example')
   :escapehtml
@@ -265,7 +260,7 @@ div
 
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
   Creates a stream from events on a DOM EventTarget or Node.JS EventEmitter
-  object, or an object that supports event listeners using <tt>on/off</tt> methods.
+  object, or an object that supports event listeners using #[tt on/off] methods.
   You can also pass optional transformation function like in
   <a href="#as-kefir-stream">asKefirStream</a> method.
 
@@ -286,7 +281,7 @@ pre(title='events in time').
 div
 
 p.
-  Note that it uses <tt>addEventListener()</tt> for DOM events,
+  Note that it uses #[tt addEventListener()] for DOM events,
   which is not supported by IE8. If you need IE8 support use
   <a href="#jquery">jQuery addon</a>.
 
@@ -338,18 +333,17 @@ div
 +descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
   Another method for creation general purpose stream,
   along with <a href="#emitter">emitter</a>.
-  Unlike <b>emitter</b> it gives you control over
+  Unlike #[b emitter] it gives you control over
   <a href="#active-state">active state</a> of the stream.
 
 p.
-  Creates stream which call <b>subscribe</b> function on each <b>activation</b>,
-  passing to it an <a href="#emitter-object">emitter object</a>.
-  Then you can call <b>emiter.emit</b> or <b>emitter.end</b> at any time
-  to emit value or end the stream.
-  <b>Subscribe</b> function can also return an <b>unsubscribe</b> function,
-  that will be called on <b>deactivation</b> of the stream.
-  Read about <a href="#active-state">active state</a> to understand what
-  <b>activation</b> and <b>deactivation</b> means.
+  Creates a stream which call #[b subscribe] function on each
+  #[a(href="#active-state") activation], passing to it an
+  #[a(href="#emitter-object") emitter object].
+  Then you can call #[b emitter] methods at any time to emit events.
+  The #[b subscribe] function can also return an #[b unsubscribe] function,
+  that will be called on #[b deactivation] of the stream.
+
 
 pre(title='example')
   :escapehtml
@@ -383,7 +377,7 @@ div
 
 p.
   See also <a href="demos/custom-stream.html">Custom stream demo</a>
-  as another <b>fromBinder</b> usage example.
+  as another #[b fromBinder] usage example.
 
 p.
   #[img(data-emoji="point_up")] Note that if you call #[b emitter] methods
@@ -422,7 +416,7 @@ h2#create-property Create a property
 
 
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
-  Creates ended property, with specified <b>current value</b>.
+  Creates ended property, with specified #[b current value].
 
 pre(title='example').
   var property = Kefir.constant(1);
@@ -440,7 +434,7 @@ div
 
 
 +descr-method('constant-error', 'constantError', 'Kefir.constantError(error)').
-  Creates ended property, with specified <b>current error</b>.
+  Creates ended property, with specified #[b current error].
 
 pre(title='example').
   var property = Kefir.constantError(1);

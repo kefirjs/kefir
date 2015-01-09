@@ -10,7 +10,7 @@ p.
 
 +descr-method('filter-by', 'filterBy', 'obs.filterBy(otherObs)').
   Works like <a href="#filter">filter</a>, but instead of calling a predicate
-  on each value from <b>obs</b> observable, it checks last value from <b>otherObs</b>.
+  on each value from #[b obs] observable, it checks last value from #[b otherObs].
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
@@ -38,13 +38,13 @@ div
 +descr-method('take-while-by', 'takeWhileBy', 'obs.takeWhileBy(otherObs)').
   Works like <a href="#take-while">takeWhile</a>, but instead of using a
   predicate function it uses another observable. It takes values from
-  <b>obs</b> observable until the first falsey value from <b>otherObs</b>.
+  #[b obs] observable until the first falsey value from #[b otherObs].
 
 p.
   <img data-emoji="point_up"> Note that it will not produce any value until
-  first value from <b>otherObs</b>, if that not what you need, just turn your
-  stream into property with current value <tt>true</tt>
-  by calling <tt>.toProperty(true)</tt>.
+  first value from #[b otherObs], if that not what you need, just turn your
+  stream into property with current value #[tt true]
+  by calling #[tt .toProperty(true)].
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
@@ -73,7 +73,7 @@ div
 +descr-method('skip-while-by', 'skipWhileBy', 'obs.skipWhileBy(otherObs)').
   Works like <a href="#skip-while">skipWhile</a>, but instead of using a
   predicate function it uses another observable. It skips values from
-  <b>obs</b> observable until first falsey value from <b>otherObs</b>.
+  #[b obs] observable until first falsey value from #[b otherObs].
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
@@ -100,7 +100,7 @@ div
 
 +descr-method('skip-until-by', 'skipUntilBy', 'obs.skipUntilBy(otherObs)').
   Similar to <a href="#skip-while-by">skipWhileBy</a>, but instead of
-  waiting for first falsey value from <b>otherObs</b>, it waits for just any value from it.
+  waiting for first falsey value from #[b otherObs], it waits for just any value from it.
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
@@ -126,7 +126,7 @@ div
 
 +descr-method('take-until-by', 'takeUntilBy', 'obs.takeUntilBy(otherObs)').
   Similar to <a href="#take-while-by">takeWhileBy</a>, but instead of
-  waiting for first falsey value from <b>otherObs</b>, it waits for just any value from it.
+  waiting for first falsey value from #[b otherObs], it waits for just any value from it.
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
@@ -219,8 +219,8 @@ div
 
 +descr-method('awaiting', 'awaiting', 'obs.awaiting(otherObs)').
   Returns a property that represents the awaiting status of two observables,
-  i.e. answers the question «Has <b>obs</b> observable emitted a value
-  since the last value from <b>otherObs</b> observable has been emitted?».
+  i.e. answers the question «Has #[b obs] observable emitted a value
+  since the last value from #[b otherObs] observable has been emitted?».
 
 pre(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3]);

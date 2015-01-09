@@ -8,12 +8,12 @@ p.
 +descr-method('as-kefir-stream', 'asKefirStream', '$(...).asKefirStream(eventName, [selector], [eventTransformer])').
   Creates a stream from events on a jQuery object. This methods mimics
   <a href="http://api.jquery.com/on/" target="_balnk">jQuery .on method</a> with
-  two exceptions: it not accepts <b>data</b> argument, and instead of
-  <b>handler</b> function it accepts optional <b>eventTransformer</b> function,
+  two exceptions: it not accepts #[b data] argument, and instead of
+  #[b handler] function it accepts optional #[b eventTransformer] function,
   which, if provided, will be called on each event with same arguments and
-  context as jQuery <b>handler</b> callback, and value returned by
-  <b>eventTransformer</b> will be emitted to Kefir stream.
-  If no <b>eventTransformer</b> provided, jQuery event object
+  context as jQuery #[b handler] callback, and value returned by
+  #[b eventTransformer] will be emitted to Kefir stream.
+  If no #[b eventTransformer] provided, jQuery event object
   will be emited in stream.
 
 pre(title='example').
@@ -58,11 +58,11 @@ div
 
 
 +descr-method('as-kefir-property', 'asKefirProperty', '$(...).asKefirProperty(eventName, [selector], getter)', null, '$(...).asKefirStream(eventName, [selector], getter).toProperty(getter())').
-  Like <b>asKefirStream</b>, but instead of optional <b>eventTransformer</b> accepts
-  required <b>getter</b> function, which is called like <b>eventTransformer</b>
+  Like #[b asKefirStream], but instead of optional #[b eventTransformer] accepts
+  required #[b getter] function, which is called like #[b eventTransformer]
   for each new event, but also called once without any argument
   at moment when property is created.
-  Also unlike <b>asKefirStream</b> returns a property.
+  Also unlike #[b asKefirStream] returns a property.
 
 pre(title='example').
   var cursorPosition = $('body').asKefirProperty('mousemove', function(event) {
