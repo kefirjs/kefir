@@ -4,11 +4,11 @@ p.
   All methods in this section create a new observable of same type* from an original one.
   New observable applies some transformation to each event from original
   and emits result of transformation.
-  In most cases a transformation is applied only to <b>value events</b>,
-  but <b>end event</b> just passes through (i.e. new observable ends when original ends).
+  In most cases a transformation is applied only to #[b value events],
+  but #[b end event] just passes through (i.e. new observable ends when original ends).
 
 p.
-  <b>*</b> For example if original observable was a stream,
+  #[b *] For example if original observable was a stream,
   then new one also will be a stream. Same for properties.
   This rule has one exception for <a href="#scan">scan</a> method,
   that always returns a property.
@@ -16,8 +16,8 @@ p.
 
 
 +descr-method('map', 'map', 'obs.map(fn)').
-  Applies given <b>fn</b> function to each value from original observable
-  and emits value returned by <b>fn</b>.
+  Applies given #[b fn] function to each value from original observable
+  and emits value returned by #[b fn].
 
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -40,7 +40,7 @@ div
 
 
 +descr-method('map-to', 'mapTo', 'obs.mapTo(value)', null, 'obs.map(function() {return value})').
-  On each value from original observable emits given <b>value</b>.<br>
+  On each value from original observable emits given #[b value].
 
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -63,7 +63,7 @@ div
 
 
 +descr-method('pluck', 'pluck', 'obs.pluck(propertyName)', null, 'obs.map(function(x) {return x.foo})').
-  On each value from original observable emits <tt>value[propertyName]</tt>.<br>
+  On each value from original observable emits #[tt value[propertyName]].
 
 pre(title='example').
   var source = Kefir.sequentially(100, [{num: 1}, {num: 2}, {num: 3}]);
@@ -88,10 +88,10 @@ div
 
 
 +descr-method('invoke', 'invoke', 'obs.invoke(methodName)', null, 'obs.map(function(x) {return x.foo()})').
-  Just like <b>.pluck</b>, but instead of emitting <tt>value[propertyName]</tt>
-  it emits <tt>value[methodName]()</tt>,
-  i.e. calls method <b>methodName</b> of each value object
-  and emits whatever it returns.<br>
+  Just like #[b .pluck], but instead of emitting #[tt value[propertyName]]
+  it emits #[tt value[methodName]()],
+  i.e. calls method #[b methodName] of each value object
+  and emits whatever it returns.
 
 pre(title='example').
   var source = Kefir.sequentially(100, [
@@ -119,7 +119,7 @@ div
 
 
 +descr-method('not', 'not', 'obs.not()', null, 'obs.map(function(x) {return !x})').
-  Inverts every value from original observable using <tt>!</tt> operator.<br>
+  Inverts every value from original observable using #[tt !] operator.
 
 pre(title='example').
   var source = Kefir.sequentially(100, [true, false, true]);
@@ -166,9 +166,9 @@ div
 
 
 +descr-method('tap', 'tap', 'obs.tap(fn)').
-  Just like <b>.map</b> applies given <b>fn</b>
+  Just like #[b .map] applies given #[b fn]
   function to each value from original observable, but emits original value
-  (not what <b>fn</b> returns).
+  (not what #[b fn] returns).
 
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -197,7 +197,7 @@ div
 
 +descr-method('filter', 'filter', 'obs.filter([predicate])').
   Filters values from original observable
-  using given <b>predicate</b> function.
+  using given #[b predicate] function.
 
 p.
   If no #[b predicate] provided #[tt function(x) {return x}] will be used.
@@ -225,7 +225,7 @@ p.
 
 
 +descr-method('take', 'take', 'obs.take(n)').
-  Emits first <b>n</b> values from original observable, then ends.
+  Emits first #[b n] values from original observable, then ends.
 
 pre(title='example')
   :escapehtml
@@ -247,9 +247,9 @@ div
 
 
 +descr-method('take-while', 'takeWhile', 'obs.takeWhile([predicate])').
-  Emits values from original observable until given <b>predicate</b>
+  Emits values from original observable until given #[b predicate]
   function applied to a value returns false.
-  Ends when <b>predicate</b> returns false.
+  Ends when #[b predicate] returns false.
 
 p.
   If no #[b predicate] provided #[tt function(x) {return x}] will be used.
@@ -276,7 +276,7 @@ p.
 
 
 +descr-method('skip', 'skip', 'obs.skip(n)').
-  Skips first <b>n</b> values from original observable, then emits all rest.
+  Skips first #[b n] values from original observable, then emits all rest.
 
 pre(title='example')
   :escapehtml
@@ -297,9 +297,9 @@ div
 
 
 +descr-method('skip-while', 'skipWhile', 'obs.skipWhile([predicate])').
-  Skips values from original observable until given <b>predicate</b>
+  Skips values from original observable until given #[b predicate]
   function applied to a value returns false,
-  then stops applying <b>predicate</b> to values and emits all of them.
+  then stops applying #[b predicate] to values and emits all of them.
 
 p.
   If no #[b predicate] provided #[tt function(x) {return x}] will be used.
@@ -327,9 +327,9 @@ p.
 
 
 +descr-method('skip-duplicates', 'skipDuplicates', 'obs.skipDuplicates([comparator])').
-  Skips duplicate values using <tt>===</tt> for comparison by default.
-  Accepts optional <b>comparator</b> function,
-  that, if provided, is used for comparison instead of <tt>===</tt>.
+  Skips duplicate values using #[tt ===] for comparison by default.
+  Accepts optional #[b comparator] function,
+  that, if provided, is used for comparison instead of #[tt ===].
 
 pre(title='example')
   :escapehtml
@@ -350,7 +350,7 @@ pre(title='events in time').
   result: ---1---2-------3---1X
 div
 
-p With custom <b>comparator</b> function:
+p With custom #[b comparator] function:
 
 pre(title='example')
   :escapehtml
@@ -377,19 +377,19 @@ div
 
 
 +descr-method('diff', 'diff', 'obs.diff([fn], [seed])').
-  On each value from original observable calls <b>fn</b>
+  On each value from original observable calls #[b fn]
   function with previous and current value as arguments.
-  At first time calls <b>fn</b> with <b>seed</b> and current value.
-  Emits whatever <b>fn</b> returns.
+  At first time calls #[b fn] with #[b seed] and current value.
+  Emits whatever #[b fn] returns.
 
 p.
   If no #[b seed] provided the first value will be used as a seed,
   and result observable won't emit on first value.
 
 p.
-  If you want to omit <b>fn</b> place <tt>null</tt> in its place.
-  If no <b>fn</b> function provided,
-  <tt>function(a, b) {return [a, b]}</tt> will be used as default.
+  If you want to omit #[b fn] place #[tt null] in its place.
+  If no #[b fn] function provided,
+  #[tt function(a, b) {return [a, b]}] will be used as default.
 
 pre(title='example')
   :escapehtml
@@ -416,11 +416,11 @@ div
 
 +descr-method('scan', 'scan', 'obs.scan(fn, [seed])').
   On each value from original
-  observable calls <b>fn</b> function with
-  previous result returned by <b>fn</b> and
+  observable calls #[b fn] function with
+  previous result returned by #[b fn] and
   current value emitted by original observable.
-  At first time calls <b>fn</b> with <b>seed</b> and current value.
-  Emits whatever <b>fn</b> returns. Always creates a property.
+  At first time calls #[b fn] with #[b seed] and current value.
+  Emits whatever #[b fn] returns. Always creates a property.
 
 p.
   If no #[b seed] provided the first value will be used as a seed.
@@ -450,7 +450,7 @@ div
 
 
 +descr-method('reduce', 'reduce', 'obs.reduce(fn, [seed])').
-  Similar to <b>.scan</b>, but emits only last result just before end.
+  Similar to #[b .scan], but emits only last result just before end.
 
 p.
   If no #[b seed] provided the first value will be used as a seed.
@@ -527,9 +527,9 @@ div
 
 
 +descr-method('sliding-window', 'slidingWindow', 'obs.slidingWindow(max, [min])').
-  Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
-  where <b>n</b> is between <b>max</b> and <b>min</b> arguments.
-  By default <b>min</b> equals <tt>0</tt>.
+  Will emit arrays containing the last #[b n] values from #[b obs] observable,
+  where #[b n] is between #[b max] and #[b min] arguments.
+  By default #[b min] equals #[tt 0].
 
 pre(title='example')
   :escapehtml
@@ -585,7 +585,7 @@ div
 
 
 +descr-method('delay', 'delay', 'obs.delay(wait)').
-  Delays all events by <b>wait</b> milliseconds,
+  Delays all events by #[b wait] milliseconds,
   with exception for current value of property,
   or current end for already ended observable.
 
@@ -611,19 +611,19 @@ div
 
 
 +descr-method('throttle', 'throttle', 'obs.throttle(wait, [options])').
-  Return new throttled version of <b>obs</b> observable, which will emit values
-  only at most once per every <b>wait</b> milliseconds.
+  Return new throttled version of #[b obs] observable, which will emit values
+  only at most once per every #[b wait] milliseconds.
   If used on a property current value will always pass intact without any delay.
 
 p.
-  Accepts optional <b>options</b> object similar to
+  Accepts optional #[b options] object similar to
   <a href="http://underscorejs.org/#throttle" target="_blank">underscore.throttle</a>.
   By default, will emit event as soon as it comes for the first time, and,
   if any new events will come during the wait period,
   will emit last of them as soon as that period is over.
   If you'd like to disable the leading-edge emit,
-  pass <tt>{leading: false}</tt>, and if you'd like to disable the emit
-  on the trailing-edge, pass <tt>{trailing: false}</tt>.
+  pass #[tt {leading: false}], and if you'd like to disable the emit
+  on the trailing-edge, pass #[tt {trailing: false}].
 
 pre(title='example')
   :escapehtml
@@ -650,11 +650,11 @@ div
 
 
 +descr-method('debounce', 'debounce', 'obs.debounce(wait, [options])').
-  Creates new debounced version of <b>obs</b> observable.
-  Will emit a value only after <b>wait</b> milliseconds period of no events.
-  Pass <tt>{immediate: true}</tt> as an <b>options</b> object to cause
+  Creates new debounced version of #[b obs] observable.
+  Will emit a value only after #[b wait] milliseconds period of no events.
+  Pass #[tt {immediate: true}] as an #[b options] object to cause
   observable to emit value on leading instead of the
-  trailing edge of the <b>wait</b> interval.
+  trailing edge of the #[b wait] interval.
   If used on a property current value will always pass intact without any delay.
 
 pre(title='example')
@@ -681,8 +681,8 @@ div
 
 
 +descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
-  For this method it's expected that <b>obs</b> observable emits arrays.
-  The result observable (that <b>flatten</b> returns) will emit each element of those arrays.
+  For this method it's expected that #[b obs] observable emits arrays.
+  The result observable (that #[b flatten] returns) will emit each element of those arrays.
 
 pre(title='example')
   :escapehtml
@@ -704,15 +704,15 @@ pre(title='events in time').
 div
 
 p.
-  You can also provide the <b>transformer</b> function
-  which will be applied to each value from <b>obs</b> observable,
-  and supposed to return an array. This makes <b>flatten</b>
+  You can also provide the #[b transformer] function
+  which will be applied to each value from #[b obs] observable,
+  and supposed to return an array. This makes #[b flatten]
   pretty powerful transformation method.
-  It allows you to do three kind
-  of transformation on each value: change value (like map), skip value (like filter),
-  and respond with several values to single value.
-  If you want to skip a value, return an empty array. If you want to change value,
-  return array with single new value. And if you want to respond with several values,
+  It allows you to do three kinds
+  of transformations on each value: change value (like map), skip value (like filter),
+  and respond with several values to a single value.
+  If you want to skip a value, return an empty array. If you want to change a value,
+  return array with a single new value. And if you want to respond with several values,
   return them in array.
 
 pre(title='example')
@@ -756,7 +756,9 @@ p.
   To learn more about transducers please visit those libraries pages.
 
 p.
-  Here is an example with <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a>:
+  In the example the
+  <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a>
+  library is used.
 
 pre(title='example')
   :escapehtml
@@ -787,19 +789,19 @@ div
 
 +descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
   The most general transformation method. All other transformation methods above
-  can be implemented via <b>withHandler</b>.
-  Will call <b>handler</b> function on each event from <b>obs</b> observable
+  can be implemented via #[b withHandler].
+  Will call #[b handler] function on each event from #[b obs] observable
   passing to it two arguments: an <a href="#emitter-object">emitter object</a>,
-  and an event object (with same format as in <a href="#on-any">.onAny</a> callback).
+  and an event object (with same format as in <a href="#on-any">onAny</a> callback).
 
 p.
-  By default will not emit any values, and will not end when <b>obs</b>
+  By default will not emit any values, and will not end when #[b obs]
   observable ends. Instead you should implement desired behaviour in
-  <b>handler</b> function, i.e. analyse <b>event object</b> and call
-  <tt>emitter.emit()</tt> or <tt>emitter.end()</tt> if necessary. You can call
-  <b>emitter</b> methods several times in each <b>handler</b> execution,
+  #[b handler] function, i.e. analyse #[b event object] and call
+  #[tt emitter.emit()] or #[tt emitter.end()] if necessary. You can call
+  #[b emitter] methods several times in each #[b handler] execution,
   and you can also call them at any time later, for example to implement
-  <a href="#delay">.delay()</a>.
+  <a href="#delay">delay</a>.
 
 pre(title='example')
   :escapehtml
@@ -909,8 +911,8 @@ div
 
 
 +descr-method('map-errors', 'mapErrors', 'obs.mapErrors(fn)').
-  Applies given <b>fn</b> function to each error from original observable
-  and emits error returned by <b>fn</b>.
+  Applies given #[b fn] function to each error from original observable
+  and emits error returned by #[b fn].
 
 pre(title='example')
   :escapehtml
@@ -941,7 +943,7 @@ div
 
 +descr-method('filter-errors', 'filterErrors', 'obs.filterErrors([predicate])').
   Filters errors from original observable
-  using given <b>predicate</b> function.
+  using given #[b predicate] function.
 
 p.
   If no #[b predicate] provided #[tt function(x) {return x}] will be used.

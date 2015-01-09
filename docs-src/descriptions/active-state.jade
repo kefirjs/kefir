@@ -8,11 +8,11 @@ p.
   and become inactive when last listener is removed.
 
 p.
-  For example <tt>stream = $('.foo').asKefirStream('click')</tt> won't
-  immediately subscribe to <tt>'click'</tt> event on <tt>$('.foo')</tt>,
+  For example #[tt stream = $('.foo').asKefirStream('click')] won't
+  immediately subscribe to #[tt 'click'] event on #[tt $('.foo')],
   it will subscribe only when the first listener will be added to the
-  <tt>stream</tt>. And it will automatically unsubscribe when the last listener
-  will be removed from the <tt>stream</tt>.
+  #[tt stream]. And it will automatically unsubscribe when the last listener
+  will be removed from the #[tt stream].
 
 pre
   :escapehtml
@@ -29,9 +29,9 @@ p.
   If one observable depends on another,
   its active state propagates to its dependencies.
   For example, in the following code,
-  <b>mapA</b> will activate <b>A</b>,
-  <b>filterMapA</b> will activate <b>mapA</b> and <b>A</b>,
-  <b>mergeAB</b> will activate <b>A</b> and <b>B</b>.
+  #[b mapA] will activate #[b A],
+  #[b filterMapA] will activate #[b mapA] and #[b A],
+  #[b mergeAB] will activate #[b A] and #[b B].
 
 pre
   :escapehtml
@@ -43,11 +43,18 @@ pre
     var mergeAB = Kefir.merge(A, B);
 
 p.
+  In fact active state is just a convention that is strictly
+  followed in Kefir code, for better performance.
+  But you are free to not follow it in your custom plugins or combinators.
+  For example you can create your own jQuery #[tt .asKefirStream()]
+  plugin using #[b emitter], and always subscribe to DOM events, even when
+  the stream has no subscribers.
+
+p.
   <img data-emoji="point_up"> Note that the current value of a
   property won't update when that property is inactive.
-  For example, we convert an <b>emitter</b> to a property,
-  then emit some values via <b>emitter</b>,
-  while the property has no subscribers (i.e. it's inactive).
+  For example, we convert an #[b emitter] to a property,
+  then emit some values, while the property has no subscribers (i.e. is inactive).
   In this case the property won't get those values, and it
   won't update its current value.
 
@@ -71,11 +78,13 @@ pre
     property.onValue(function(x) {  console.log(x)  }) // => 4
 
 p.
-  In fact active state is just a convention that is strictly
-  followed in Kefir code, for better performance.
-  But you are free to not follow it in your custom plugins or combinators.
-  For example you can create your own jQuery <tt>.asKefirStream()</tt>
-  plugin using <b>emitter</b>, and always subscribe to DOM events, even when
-  a stream has no subscribers. Or you can create your own <tt>.map()</tt>
-  combinator that always keeps the subscription to its source observable
-  (i.e keeps it in active state).
+  This issue applies not only to properties,
+  but also to all stateful observables
+  (like #[a(href='take') take], #[a(href='diff') diff], #[a(href='scan') scan] etc.).
+  In rare cases you might need to activate an observable by adding
+  a dummy subscriber, to solve this issue. It's ok if you really need this,
+  but don't overuse that pattern. For example
+  #[tt obs.map(sideEffect).onEnd(function(){})] is a bad code,
+  you should do #[tt obs.onValue(sideEffect)] istead.
+
+

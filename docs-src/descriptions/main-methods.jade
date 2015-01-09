@@ -2,10 +2,12 @@ h2#main-methods Main observable methods
 
 
 +descr-method('on-value', 'onValue', 'obs.onValue(fn)').
-  Subscribes <b>fn</b> functions to values on an observable.
-  If <b>onValue</b> called on a property, and property has
-  current value, <b>fn</b> will be called
-  immediately (synchronously) with property current value as argument.
+  Subscribes #[b fn] functions to values on an observable.
+
+p.
+  If called on a property, which has a current value,
+  the #[b fn] function will be called immediately (synchronously)
+  with that value as an argument.
 
 pre(title='example').
   var emitter = Kefir.emitter();
@@ -19,14 +21,16 @@ pre(title='console output')
     > value: 2
 
 +descr-method('off-value', 'offValue', 'obs.offValue(fn)').
-  Unsubscribes <b>fn</b> from values on an observable.
+  Unsubscribes #[b fn] from values on an observable.
 
 
 +descr-method('on-error', 'onError', 'obs.onError(fn)').
-  Subscribes <b>fn</b> functions to #[a(href='#about-errors') errors] on an observable.
-  If <b>onError</b> called on a property, and property has
-  current error, <b>fn</b> will be called
-  immediately (synchronously) with property current error as argument.
+  Subscribes #[b fn] functions to #[a(href='#about-errors') errors] on an observable.
+
+p.
+  If called on a property, which has a current error,
+  the #[b fn] function will be called immediately (synchronously)
+  with that error as an argument.
 
 pre(title='example').
   var emitter = Kefir.emitter();
@@ -40,12 +44,14 @@ pre(title='console output')
     > error: 2
 
 +descr-method('off-error', 'offError', 'obs.offError(fn)').
-  Unsubscribes <b>fn</b> from errors on an observable.
+  Unsubscribes #[b fn] from errors on an observable.
 
 
 +descr-method('on-end', 'onEnd', 'obs.onEnd(fn)').
-  Subscribes <b>fn</b> functions to ending off an observable.
-  If observable already ended, <b>fn</b> will be called immediately (synchronously).
+  Subscribes #[b fn] functions to ending off an observable.
+
+p.
+  If observable already ended, #[b fn] will be called immediately (synchronously).
 
 pre(title='example').
   var emitter = Kefir.emitter();
@@ -57,42 +63,42 @@ pre(title='console output')
     > stream ended
 
 +descr-method('off-end', 'offEnd', 'obs.offEnd(fn)').
-  Unsubscribes <b>fn</b> from ending off an observable.
+  Unsubscribes #[b fn] from ending off an observable.
 
 +descr-method('on-any', 'onAny', 'obs.onAny(fn)').
-  Subscribes <b>fn</b> functions to both ending and values on an observable.
-  Callback is called with <b>event object</b> as argument. Each event object
-  contains three attributes — <b>type</b>, <b>value</b>, and <b>current</b>.
+  Subscribes #[b fn] functions to all three types of events.
+  Callback is called with #[b event object] as argument. Each event object
+  contains three attributes — #[b type], #[b value], and #[b current].
 
 ul
   li
-    | <b>type</b> is a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string
+    | #[b type] is a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string
   li
-    | <b>value</b> is a value or error that was emitted,
-    | or <tt>undefined</tt> if <b>type</b> was <tt>'end'</tt>
+    | #[b value] is a value or error that was emitted,
+    | or <tt>undefined</tt> if #[b type] was <tt>'end'</tt>
   li
-    | <b>current</b> is a boolean, that equals <tt>true</tt> if callback was
+    | #[b current] is a boolean, that equals <tt>true</tt> if callback was
     | called with current value of a property, or on end of already ended observable
 
 pre(title='example').
   var emitter = Kefir.emitter();
   emitter.onAny(function(event) {  console.log('event:', event)  });
   emitter.emit(1);
-  emitter.emit(2);
+  emitter.error(2);
   emitter.end();
 
 pre(title='console output')
   :escapehtml
     > event: Object {type: "value", value: 1, current: false}
-    > event: Object {type: "value", value: 2, current: false}
+    > event: Object {type: "error", value: 2, current: false}
     > event: Object {type: "end", value: undefined, current: false}
 
 +descr-method('off-any', 'offAny', 'obs.offAny(fn)').
-  Unsubscribes an <b>onAny</b> subscriber.
+  Unsubscribes an #[b onAny] subscriber.
 
 +descr-method('log', 'log', 'obs.log([name])').
-  Turns on logging of any events on an observable to browser console.
-  Accepts optional <b>name</b> argument that will be shown in log if provided.
+  Turns on logging of any events to browser console.
+  Accepts optional #[b name] argument that will be shown in the log if provided.
 
 pre(title='example').
   var emitter = Kefir.emitter();
@@ -108,5 +114,5 @@ pre(title='console output')
     > myEmitter <end>
 
 +descr-method('off-log', 'offLog', 'obs.offLog([name])').
-  Turns off logging. If <b>.log</b> was called with <b>name</b> argument,
-  <b>offLog</b> must be called with same <b>name</b> argument.
+  Turns off logging. If #[b .log] was called with a #[b name] argument,
+  #[b offLog] must be called with the same #[b name] argument.

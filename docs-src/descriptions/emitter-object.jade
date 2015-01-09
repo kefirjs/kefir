@@ -1,13 +1,13 @@
 h2#emitter-object Emitter object
 
 p.
-  Emitter object is an object, that has three methods <b>emit</b>, <b>error</b>, and <b>end</b>.
+  Emitter object is an object, that has three methods #[b emit], #[b error], and #[b end].
   It is used in several places in Kefir as a proxy to emit events to some observable.
 
-p.
-  <b>emiter.emit</b> accepts one argument (any value).<br>
-  <b>emiter.error</b> accepts one argument (any value).<br>
-  <b>emiter.end</b> accepts no arguments.<br>
+ul
+  li #[tt emiter.emit(value)] accepts one argument (any value)
+  li #[tt emiter.error(error)] accepts one argument (any value)
+  li #[tt emiter.end()] accepts no arguments
 
 pre
   :escapehtml
@@ -17,15 +17,15 @@ pre
 div
 
 p.
-  Do not confuse <b>emitter object</b> with <a href="#emitter">emitter stream</a>.
+  Do not confuse #[b emitter object] with <a href="#emitter">emitter stream</a>.
   They both have similar methods,
-  but <b>emitter object</b> isn't actually a stream,
+  but #[b emitter object] isn't actually a stream,
   it has no stream methods or functionality.
   Emitter object has only three methods, that's it.
 
 p.
-  All <b>emitter object</b> methods are bound to its context,
-  and can be passed safely as callbacks without binding (see example).
+  All #[b emitter object] methods are bound to its context,
+  and can be passed safely as callbacks without binding:
 
 pre
   :escapehtml
