@@ -1,4 +1,4 @@
-/*! An addon for Kefir.js v0.5.0
+/*! An addon for Kefir.js v0.5.1
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -14,7 +14,7 @@
         transformer = selector;
         selector = null;
       }
-      return Kefir._fromEvent(
+      return Kefir.fromSubUnsub(
         function(handler) {  $el.on(eventName, selector, handler)  },
         function(handler) {  $el.off(eventName, selector, handler)  },
         transformer

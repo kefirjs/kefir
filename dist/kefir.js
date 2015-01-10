@@ -1,4 +1,4 @@
-/*! Kefir.js v0.5.0
+/*! Kefir.js v0.5.1
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -628,7 +628,7 @@ extend(Observable.prototype, {
     }
   },
 
-  on: function(type, fn, _key) {
+  _on: function(type, fn, _key) {
     if (this._alive) {
       this._subscribers.add(type, fn, _key);
       this._setActive(true);
@@ -638,7 +638,7 @@ extend(Observable.prototype, {
     return this;
   },
 
-  off: function(type, fn, _key) {
+  _off: function(type, fn, _key) {
     if (this._alive) {
       this._subscribers.remove(type, fn, _key);
       if (this._subscribers.isEmpty()) {
@@ -648,15 +648,15 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn, _key) {  return this.on(VALUE, fn, _key)   },
-  onError:  function(fn, _key) {  return this.on(ERROR, fn, _key)   },
-  onEnd:    function(fn, _key) {  return this.on(END, fn, _key)     },
-  onAny:    function(fn, _key) {  return this.on(ANY, fn, _key)     },
+  onValue:  function(fn, _key) {  return this._on(VALUE, fn, _key)   },
+  onError:  function(fn, _key) {  return this._on(ERROR, fn, _key)   },
+  onEnd:    function(fn, _key) {  return this._on(END, fn, _key)     },
+  onAny:    function(fn, _key) {  return this._on(ANY, fn, _key)     },
 
-  offValue: function(fn, _key) {  return this.off(VALUE, fn, _key)  },
-  offError: function(fn, _key) {  return this.off(ERROR, fn, _key)  },
-  offEnd:   function(fn, _key) {  return this.off(END, fn, _key)    },
-  offAny:   function(fn, _key) {  return this.off(ANY, fn, _key)    }
+  offValue: function(fn, _key) {  return this._off(VALUE, fn, _key)  },
+  offError: function(fn, _key) {  return this._off(ERROR, fn, _key)  },
+  offEnd:   function(fn, _key) {  return this._off(END, fn, _key)    },
+  offAny:   function(fn, _key) {  return this._off(ANY, fn, _key)    }
 
 });
 
@@ -715,7 +715,7 @@ inherit(Property, Observable, {
     }
   },
 
-  on: function(type, fn, _key) {
+  _on: function(type, fn, _key) {
     if (this._alive) {
       this._subscribers.add(type, fn, _key);
       this._setActive(true);
@@ -1473,18 +1473,15 @@ withOneSource('toProperty', {
       this._send(VALUE, args[0]);
     }
   }
-}, {propertyMethod: null, streamMethod: produceProperty});
-
-
-
-
-// .withDefault()
-
-withOneSource('withDefault', {
-  _init: function(args) {
-    this._send(VALUE, args[0], true);
-  }
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
+
+
+
+// .withDefault (Deprecated)
+
+Stream.prototype.withDefault = Stream.prototype.toProperty;
+Property.prototype.withDefault = Property.prototype.toProperty;
+
 
 
 
@@ -1502,7 +1499,14 @@ withOneSource('changes', {
       this._send(ERROR, x);
     }
   }
-}, {streamMethod: null, propertyMethod: produceStream});
+}, {
+  streamMethod: function() {
+    return function() {
+      return this;
+    }
+  },
+  propertyMethod: produceStream
+});
 
 
 
@@ -2407,10 +2411,62 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 
 
+// .fromNodeCallback
 
-// ._fromEvent
+Kefir.fromNodeCallback = function(callbackConsumer) {
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      callbackConsumer(function(error, x) {
+        if (error) {
+          emitter.error(error);
+        } else {
+          emitter.emit(x);
+        }
+        emitter.end();
+      });
+      called = true;
+    }
+  }).setName('fromNodeCallback');
+}
 
-Kefir._fromEvent = function(sub, unsub, transformer) {
+
+
+
+// .fromPromise
+
+Kefir.fromPromise = function(promise) {
+  var called = false;
+  return Kefir.fromBinder(function(emitter) {
+    if (!called) {
+      var onValue = function(x) {
+        emitter.emit(x);
+        emitter.end();
+      };
+      var onError = function(x) {
+        emitter.error(x);
+        emitter.end();
+      };
+      var _promise = promise.then(onValue, onError);
+
+      // prevent promise/A+ libraries like Q to swallow exceptions
+      if (_promise && isFn(_promise.done)) {
+        _promise.done();
+      }
+
+      called = true;
+    }
+  }).toProperty().setName('fromPromise');
+}
+
+
+
+
+
+
+// .fromSubUnsub
+
+Kefir.fromSubUnsub = function(sub, unsub, transformer) {
   return Kefir.fromBinder(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
@@ -2448,7 +2504,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir._fromEvent(
+  return Kefir.fromSubUnsub(
     function(handler) {  target[sub](eventName, handler)  },
     function(handler) {  target[unsub](eventName, handler)  },
     transformer
