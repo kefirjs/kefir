@@ -1,3 +1,7 @@
+## 0.5.2
+
+ - A bug in .fromBinder fixed [#35](https://github.com/pozadi/kefir/issues/35)
+
 ## 0.5.1
 
  - Undocumented methods `.on/.off` renamed to `._on/._off`
@@ -29,7 +33,7 @@
 
 ## 0.4.2
 
- - A bug in `.flatMap` fixed #29
+ - A bug in `.flatMap` fixed [#29](https://github.com/pozadi/kefir/issues/29)
  - Minor perf fixes
 
 ## 0.4.1
