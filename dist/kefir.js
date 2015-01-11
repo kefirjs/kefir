@@ -2183,6 +2183,12 @@ inherit(FromBinder, Stream, {
         end: function() {  $._send(END, null, isCurrent)  }
       };
     this._unsubscribe = this._fn(emitter) || null;
+
+    // work around https://github.com/pozadi/kefir/issues/35
+    if (!this._active && this._unsubscribe !== null) {
+      this._unsubscribe();
+    }
+
     isCurrent = false;
   },
   _onDeactivation: function() {
