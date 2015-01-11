@@ -66,6 +66,22 @@ describe 'fromBinder', ->
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
 
 
+  # https://github.com/pozadi/kefir/issues/35
+  it 'should work with .take(1) and sync emit', ->
+
+    subCalled = false
+    unsubCalled = false
+
+    a = Kefir.fromBinder (emitter) ->
+      subCalled = true
+      emitter.emit(1)
+      -> unsubCalled = true
+
+    a.take(1).onValue ->
+
+    expect(subCalled).toBe true
+    expect(unsubCalled).toBe true
+
 
 
 
