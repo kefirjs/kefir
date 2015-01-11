@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! An addon for Kefir.js v0.5.1
+/*! An addon for Kefir.js v0.5.2
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -51,7 +51,7 @@
 }(this));
 
 },{"jquery":7,"kefir":2}],2:[function(require,module,exports){
-/*! Kefir.js v0.5.1
+/*! Kefir.js v0.5.2
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -2236,6 +2236,12 @@ inherit(FromBinder, Stream, {
         end: function() {  $._send(END, null, isCurrent)  }
       };
     this._unsubscribe = this._fn(emitter) || null;
+
+    // work around https://github.com/pozadi/kefir/issues/35
+    if (!this._active && this._unsubscribe !== null) {
+      this._unsubscribe();
+    }
+
     isCurrent = false;
   },
   _onDeactivation: function() {
@@ -25465,7 +25471,7 @@ describe('fromBinder', function() {
     deactivate(a);
     return expect(unsubCount).toBe(2);
   });
-  return it('should automatically controll isCurent argument in `send`', function() {
+  it('should automatically controll isCurent argument in `send`', function() {
     expect(Kefir.fromBinder(function(emitter) {
       emitter.end();
       return null;
@@ -25494,6 +25500,21 @@ describe('fromBinder', function() {
         }
       ], [1000, 2], [1000, '<end>']
     ]);
+  });
+  return it('should work with .take(1) and sync emit', function() {
+    var a, subCalled, unsubCalled;
+    subCalled = false;
+    unsubCalled = false;
+    a = Kefir.fromBinder(function(emitter) {
+      subCalled = true;
+      emitter.emit(1);
+      return function() {
+        return unsubCalled = true;
+      };
+    });
+    a.take(1).onValue(function() {});
+    expect(subCalled).toBe(true);
+    return expect(unsubCalled).toBe(true);
   });
 });
 
