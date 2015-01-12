@@ -1,4 +1,4 @@
-/*! Kefir.js v0.5.2
+/*! Kefir.js v0.5.3
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -2187,6 +2187,7 @@ inherit(FromBinder, Stream, {
     // work around https://github.com/pozadi/kefir/issues/35
     if (!this._active && this._unsubscribe !== null) {
       this._unsubscribe();
+      this._unsubscribe = null;
     }
 
     isCurrent = false;

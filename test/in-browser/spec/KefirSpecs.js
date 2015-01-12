@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! An addon for Kefir.js v0.5.2
+/*! An addon for Kefir.js v0.5.3
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -51,7 +51,7 @@
 }(this));
 
 },{"jquery":7,"kefir":2}],2:[function(require,module,exports){
-/*! Kefir.js v0.5.2
+/*! Kefir.js v0.5.3
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -2240,6 +2240,7 @@ inherit(FromBinder, Stream, {
     // work around https://github.com/pozadi/kefir/issues/35
     if (!this._active && this._unsubscribe !== null) {
       this._unsubscribe();
+      this._unsubscribe = null;
     }
 
     isCurrent = false;
@@ -25502,19 +25503,33 @@ describe('fromBinder', function() {
     ]);
   });
   return it('should work with .take(1) and sync emit', function() {
-    var a, subCalled, unsubCalled;
-    subCalled = false;
-    unsubCalled = false;
+    var a, log, subCalls, unsubCalls;
+    subCalls = 0;
+    unsubCalls = 0;
+    log = [];
     a = Kefir.fromBinder(function(emitter) {
-      subCalled = true;
+      var logRecord;
+      logRecord = {
+        sub: 1,
+        unsub: 0
+      };
+      log.push(logRecord);
       emitter.emit(1);
       return function() {
-        return unsubCalled = true;
+        return logRecord.unsub++;
       };
     });
     a.take(1).onValue(function() {});
-    expect(subCalled).toBe(true);
-    return expect(unsubCalled).toBe(true);
+    a.take(1).onValue(function() {});
+    return expect(log).toEqual([
+      {
+        sub: 1,
+        unsub: 1
+      }, {
+        sub: 1,
+        unsub: 1
+      }
+    ]);
   });
 });
 
