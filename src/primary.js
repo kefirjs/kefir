@@ -23,6 +23,7 @@ inherit(FromBinder, Stream, {
     // work around https://github.com/pozadi/kefir/issues/35
     if (!this._active && this._unsubscribe !== null) {
       this._unsubscribe();
+      this._unsubscribe = null;
     }
 
     isCurrent = false;
