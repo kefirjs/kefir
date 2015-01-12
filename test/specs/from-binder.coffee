@@ -69,18 +69,24 @@ describe 'fromBinder', ->
   # https://github.com/pozadi/kefir/issues/35
   it 'should work with .take(1) and sync emit', ->
 
-    subCalled = false
-    unsubCalled = false
+    subCalls = 0
+    unsubCalls = 0
+
+    log = []
 
     a = Kefir.fromBinder (emitter) ->
-      subCalled = true
+      logRecord = {sub: 1, unsub: 0}
+      log.push(logRecord)
       emitter.emit(1)
-      -> unsubCalled = true
+      -> logRecord.unsub++
 
     a.take(1).onValue ->
+    a.take(1).onValue ->
 
-    expect(subCalled).toBe true
-    expect(unsubCalled).toBe true
+    expect(log).toEqual [
+      {sub: 1, unsub: 1}
+      {sub: 1, unsub: 1}
+    ]
 
 
 

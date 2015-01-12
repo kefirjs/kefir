@@ -1,3 +1,7 @@
+## 0.5.3
+
+ - A bug in .fromBinder fixed (continuation of [#35](https://github.com/pozadi/kefir/issues/35))
+
 ## 0.5.2
 
  - A bug in .fromBinder fixed [#35](https://github.com/pozadi/kefir/issues/35)
