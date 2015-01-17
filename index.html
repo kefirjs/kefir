@@ -2,8 +2,8 @@
 library for JavaScript inspired by
 <a href="https://github.com/baconjs/bacon.js">Bacon.js</a>
 and
-<a href="http://reactive-extensions.github.io/RxJS/">RxJS</a>
-,with focus on high perfomance and low memory usage.
+<a href="http://reactive-extensions.github.io/RxJS/">RxJS</a>,
+with focus on high perfomance and low memory usage.
 
 </p><p>Kefir has a
 <a href="https://github.com/pozadi/kefir">
@@ -25,7 +25,7 @@ that changes over time. The value of a property changes in response of events,
 which means that any stream may be easily converted to a property.
 </p><figure><img src="docs-src/images/stream-and-property.png"></figure><p>In practice, the only difference between two types of observables
 is that property may have a current value. The process of subscribing
-to values in both types is the same, you call the <tt>.onValue</tt>
+to values in both types is the same, you call the <a href="on-value">onValue</a>
 method, passing to it a callback function. But when you subscribe
 to a property which has current value, the callback is called
 immediately (synchronously) with the current value of the property.</p><h2 id="create-stream">Create a stream</h2><p id="emitter"><a href="#emitter" class="header">emitter</a><code>Kefir.emitter()</code><br/>Creates an emitter, that is ordinary stream, but also has additional methods:
@@ -651,7 +651,7 @@ result.log();
 &gt; [sequentially.skipEnd] &lt;value&gt; 2
 &gt; [sequentially.skipEnd] &lt;value&gt; 3
 </pre><pre title="events in time">source:  ---1---2---3X
-result:  ---1---3---3---</pre><div></div><p id="sliding-window"><a href="#sliding-window" class="header">slidingWindow</a><code>obs.slidingWindow(max, [min])</code><br/>Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
+result:  ---1---2---3---</pre><div></div><p id="sliding-window"><a href="#sliding-window" class="header">slidingWindow</a><code>obs.slidingWindow(max, [min])</code><br/>Will emit arrays containing the last <b>n</b> values from <b>obs</b> observable,
 where <b>n</b> is between <b>max</b> and <b>min</b> arguments.
 By default <b>min</b> equals <tt>0</tt>.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
