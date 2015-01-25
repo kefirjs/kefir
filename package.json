@@ -47,7 +47,6 @@
     "grunt-release": "0.7.0",
     "jquery": "1.11.1",
     "load-grunt-tasks": "2.0.0",
-    "marked": "0.3.2",
     "rx": "2.3.22",
     "semver": "2.3.0",
     "shelljs": "0.3.0",
