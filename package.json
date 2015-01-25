@@ -45,7 +45,6 @@
     "grunt-contrib-watch": "0.6.1",
     "grunt-jasmine-node": "0.2.1",
     "grunt-release": "0.7.0",
-    "jquery": "1.11.1",
     "load-grunt-tasks": "3.0.0",
     "rx": "2.3.24",
     "semver": "2.3.0",

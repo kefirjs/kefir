@@ -9,13 +9,6 @@ module.exports = (grunt) ->
 
   """
 
-  addonBanner = """
-    /*! An addon for Kefir.js v#{pkg.version}
-     *  #{pkg.homepage}
-     */
-
-  """
-
   intro = """
     ;(function(global){
       "use strict";
@@ -68,15 +61,6 @@ module.exports = (grunt) ->
           sourceMap: true
         files:
           'dist/kefir.min.js': 'dist/kefir.js'
-      addons:
-        options:
-          banner: addonBanner
-          sourceMap: true
-        expand: true
-        cwd: 'dist/addons'
-        src: ['*.js', '!*.min.js']
-        dest: 'dist/addons'
-        ext: '.min.js'
 
     concat:
       kefir:
@@ -89,18 +73,11 @@ module.exports = (grunt) ->
             'src/core.js'
             'src/*.js'
           ]
-      addons:
-        options:
-          banner: addonBanner
-        expand: true
-        cwd: 'src/addons'
-        src: '*.js'
-        dest: 'dist/addons'
 
     jasmine_node:
       main:
         options:
-          specFolders: ["test/specs"]
+          specFolders: ['test/specs']
           matchall: true
           verbose: true
           coffee: true
@@ -126,19 +103,10 @@ module.exports = (grunt) ->
           'index.html': 'docs-src/index.jade'
 
     watch:
-      # kefir:
-      #   files: 'src/*.js'
-      #   tasks: ['build-kefir', 'build-browser-tests']
-      # addons:
-      #   files: 'addons/*.js'
-      #   tasks: ['build-addons', 'build-browser-tests']
       docs:
         files: 'docs-src/**/*'
         tasks: ['build-docs']
-      # tests:
-      #   files: ['test/specs/*', 'test/test-helpers*']
-      #   tasks: ['build-browser-tests']
-      all_light:
+      src_and_tests:
         files: ['test/specs/*', 'test/test-helpers*', 'src/*.js', 'addons/*.js']
         tasks: ['concat:kefir', 'concat:addons', 'test']
 
@@ -176,12 +144,11 @@ module.exports = (grunt) ->
 
   )
 
-  require("load-grunt-tasks")(grunt)
-  grunt.loadTasks("grunt-tasks")
+  require('load-grunt-tasks')(grunt)
+  grunt.loadTasks('grunt-tasks')
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
-  grunt.registerTask 'build-addons', ['concat:addons', 'uglify:addons']
   grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
   grunt.registerTask 'build-docs', ['jade:docs']
   grunt.registerTask 'release-patch', ['bump', 'release']
@@ -189,7 +156,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'release-major', ['bump:major', 'release']
   grunt.registerTask 'release-pre', ['bump:prerelease', 'release']
   grunt.registerTask 'default', [
-    'clean', 'build-docs', 'build-kefir', 'build-addons', 'build-browser-tests', 'test']
+    'clean', 'build-docs', 'build-kefir', 'build-browser-tests', 'test']
 
   grunt.registerTask 'build-light', [
     'concat:kefir'

@@ -1,3 +1,7 @@
+## next
+
+ - jQuery plugin moved to a [separate repo](https://github.com/pozadi/kefir-jquery)
+
 ## 0.5.3
 
  - A bug in .fromBinder fixed (continuation of [#35](https://github.com/pozadi/kefir/issues/35))

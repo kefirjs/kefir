@@ -18,7 +18,6 @@ html(lang="en")
       include descriptions/intro
       include descriptions/about-observables
       include descriptions/create
-      include descriptions/jquery
       include descriptions/convert
       include descriptions/main-methods
       include descriptions/one-source
@@ -31,7 +30,9 @@ html(lang="en")
     script(src='bower-packages/jquery/jquery.js')
     script(src='bower-packages/transducers-js/transducers.js')
     script(src='dist/kefir.js')
-    script(src='dist/addons/kefir-jquery.js')
+    script(src='https://rawgit.com/pozadi/kefir-jquery/v1.0.0/kefir-jquery.js')
+    script.
+      KefirJQuery.init(Kefir, $)
 
     script.
       $.getJSON('https://api.github.com/emojis', function(emojis){

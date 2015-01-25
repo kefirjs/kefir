@@ -8,7 +8,7 @@ p.
   and become inactive when last listener is removed.
 
 p.
-  For example #[tt stream = $('.foo').asKefirStream('click')] won't
+  For example #[tt stream = Kefir.fromEvent(el, 'click')] won't
   immediately subscribe to #[tt 'click'] event on #[tt $('.foo')],
   it will subscribe only when the first listener will be added to the
   #[tt stream]. And it will automatically unsubscribe when the last listener
@@ -16,11 +16,11 @@ p.
 
 pre
   :escapehtml
-    var stream = $('.foo').asKefirStream('click')
-    // at this moment event listener to .foo not added
+    var stream = Kefir.fromEvent(el, 'click');
+    // at this moment event listener to _el_ not added
 
     stream.onValue(someFn);
-    // now 'click' listener added to .foo
+    // now 'click' listener added to _el_
 
     stream.offValue(someFn);
     // and now it is removed again
@@ -46,9 +46,6 @@ p.
   In fact active state is just a convention that is strictly
   followed in Kefir code, for better performance.
   But you are free to not follow it in your custom plugins or combinators.
-  For example you can create your own jQuery #[tt .asKefirStream()]
-  plugin using #[b emitter], and always subscribe to DOM events, even when
-  the stream has no subscribers.
 
 p.
   <img data-emoji="point_up"> Note that the current value of a

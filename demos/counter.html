@@ -6,7 +6,6 @@
         <title>Kefir.js counter demo</title>
         <script src="../bower-packages/jquery/jquery.js"></script>
         <script src="../dist/kefir.min.js"></script>
-        <script src="../dist/addons/kefir-jquery.min.js"></script>
         <link rel="stylesheet" type="text/css" href="../docs-src/includes/stylesheet.css">
         <style type="text/css">
           body {
@@ -26,10 +25,6 @@
       <p>
         This is the most basic Kefir.js example.
         Click «+» or «-» buttons to change value in between them.
-      </p>
-      <p>
-        This example also uses <a href="../#jquery">jQuery addon</a> for Kefir.js,
-        so make sure to include addon JavaScript file if you will use this code.
       </p>
 
       <h3>Result</h3>
@@ -53,18 +48,17 @@
 &lt;!-- JavaScript --&gt;
 
 &lt;script src="...jquery.js"&gt;&lt;/script&gt;
-&lt;script src="...dist/kefir.min.js"&gt;&lt;/script&gt;
-&lt;script src="...dist/addons/kefir-jquery.min.js"&gt;&lt;/script&gt;
+&lt;script src="...kefir.js"&gt;&lt;/script&gt;
 
 &lt;script type="text/javascript"&gt;
 
-  var plusClicks = $('#plus-btn').asKefirStream('click');
-  var minusClicks = $('#minus-btn').asKefirStream('click');
+  var plusClicks = Kefir.fromEvent($('#plus-btn'), 'click');
+  var minusClicks = Kefir.fromEvent($('#minus-btn'), 'click');
 
   var counterChanges = Kefir.merge([
     plusClicks.mapTo(1),
     minusClicks.mapTo(-1)
-  ])
+  ]);
 
   function sum(a, b) {
     return a + b;
@@ -72,7 +66,9 @@
 
   var counterValue = counterChanges.scan(sum, 0);
 
-  counterValue.onValue(function(n) {  $('#result').text(n)  });
+  counterValue.onValue(function(n) {
+    $('#result').text(n);
+  });
 
 &lt;/script&gt;
 
@@ -83,13 +79,13 @@
 
       <script type="text/javascript">
 
-        var plusClicks = $('#plus-btn').asKefirStream('click');
-        var minusClicks = $('#minus-btn').asKefirStream('click');
+        var plusClicks = Kefir.fromEvent($('#plus-btn'), 'click');
+        var minusClicks = Kefir.fromEvent($('#minus-btn'), 'click');
 
         var counterChanges = Kefir.merge([
           plusClicks.mapTo(1),
           minusClicks.mapTo(-1)
-        ])
+        ]);
 
         function sum(a, b) {
           return a + b;
@@ -97,7 +93,9 @@
 
         var counterValue = counterChanges.scan(sum, 0);
 
-        counterValue.onValue(function(n) {  $('#result').text(n)  });
+        counterValue.onValue(function(n) {
+          $('#result').text(n);
+        });
 
       </script>
 

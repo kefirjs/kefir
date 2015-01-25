@@ -260,9 +260,14 @@ div
 
 +descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
   Creates a stream from events on a DOM EventTarget or Node.JS EventEmitter
-  object, or an object that supports event listeners using #[tt on/off] methods.
-  You can also pass optional transformation function like in
-  <a href="#as-kefir-stream">asKefirStream</a> method.
+  object, or an object that supports event listeners using #[tt on/off] methods (e.g. jQuery object).
+
+p.
+  If #[b transform] function provided, it will be called on each event
+  with same arguments and context (#[tt this]) as the event listener callback.
+  And the value returned by #[b transform] will be emitted from stream.
+  If no #[b transform] function provided, first argument of callback is emitted by default,
+  i.e. #[tt function(x) {return x}] used as #[b transform].
 
 pre(title='example')
   :escapehtml
@@ -283,7 +288,8 @@ div
 p.
   Note that it uses #[tt addEventListener()] for DOM events,
   which is not supported by IE8. If you need IE8 support use
-  <a href="#jquery">jQuery addon</a>.
+  <a href="#jquery">jQuery plugin</a> or call #[b fromEvent]
+  on a jQuery object, e.g. #[tt Kefir.fromEvent($('.foo'), 'click')].
 
 
 
@@ -296,7 +302,7 @@ p.
 
 p.
   You can also provide an #[b transform] function, which will work the same way as in
-  #[a(href='#from-event') fromEvent] or #[a(href='#as-kefir-stream') asKefirStream].
+  #[a(href='#from-event') fromEvent].
 
 pre(title='example')
   :escapehtml
