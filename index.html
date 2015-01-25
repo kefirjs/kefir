@@ -25,7 +25,7 @@ that changes over time. The value of a property changes in response of events,
 which means that any stream may be easily converted to a property.
 </p><figure><img src="docs-src/images/stream-and-property.png"></figure><p>In practice, the only difference between two types of observables
 is that property may have a current value. The process of subscribing
-to values in both types is the same, you call the <a href="on-value">onValue</a>
+to values in both types is the same, you call the <a href="#on-value">onValue</a>
 method, passing to it a callback function. But when you subscribe
 to a property which has current value, the callback is called
 immediately (synchronously) with the current value of the property.</p><h2 id="create-stream">Create a stream</h2><p id="emitter"><a href="#emitter" class="header">emitter</a><code>Kefir.emitter()</code><br/>Creates an emitter, that is ordinary stream, but also has additional methods:
@@ -45,7 +45,7 @@ emitter.end();
 to create general purpose streams,
 but it doesn't give control over the <a href="#active-state">active state</a>
 of the stream. If you want to have that control, you should use
-<a href="from-binder">fromBinder</a> or <a href="#from-sub-unsub">fromSubUnsub</a>.
+<a href="#from-binder">fromBinder</a> or <a href="#from-sub-unsub">fromSubUnsub</a>.
 
 
 
@@ -175,7 +175,7 @@ giving you an opportunity to subscribe with this callback to an original source 
 When all subscribers from the stream removed, the <b>unsubscribe</b> function is called
 with the same callback, so you could unsubscribe from your original source.
 </p><p>You can also provide an <b>transform</b> function, which will work the same way as in
-<a href="from-event">fromEvent</a> or <a href="as-kefir-stream">asKefirStream</a>.
+<a href="#from-event">fromEvent</a> or <a href="#as-kefir-stream">asKefirStream</a>.
 </p><pre title="example">function subscribe(callback) {
   document.body.addEventListener(&#x27;click&#x27;, callback);
 }
@@ -1249,7 +1249,7 @@ spawned 1:             ---1---1---1---1X
 spawned 2:                       ---2---2---2---2X
 spawned 3:                                 ---3---3---3---3X
 
-result:      -------------1---1---1---1-------3---3---3---3X</pre><div></div><p id="flat-map-concat"><a href="#flat-map-concat" class="header">flatMapConcat</a><code>obs.flatMapConcat([fn])</code><br/>Like <a href="flat-map-first">flatMapFirst</a>, but instead of ignoring new observables
+result:      -------------1---1---1---1-------3---3---3---3X</pre><div></div><p id="flat-map-concat"><a href="#flat-map-concat" class="header">flatMapConcat</a><code>obs.flatMapConcat([fn])</code><br/>Like <a href="#flat-map-first">flatMapFirst</a>, but instead of ignoring new observables
 (if previous one still alive), it adds them to the queue.
 Then, when current source ends, it takes the oldest observable from the queue,
 and switches to it.
@@ -1277,7 +1277,7 @@ spawned 1:             ---1---1---1---1X
 spawned 2:                             ---2---2---2---2X
 spawned 3:                                             ---3---3---3---3X
 
-result:      -------------1---1---1---1---2---2---2---2---3---3---3---3X</pre><div></div><p id="flat-map-with-concurrency-limit"><a href="#flat-map-with-concurrency-limit" class="header">flatMapConcurLimit</a><code>obs.flatMapConcurLimit([fn], limit)</code><br/>Like <a href="flat-map-concat">flatMapConcat</a>, but with configurable number of concurent sources,
+result:      -------------1---1---1---1---2---2---2---2---3---3---3---3X</pre><div></div><p id="flat-map-with-concurrency-limit"><a href="#flat-map-with-concurrency-limit" class="header">flatMapConcurLimit</a><code>obs.flatMapConcurLimit([fn], limit)</code><br/>Like <a href="#flat-map-concat">flatMapConcat</a>, but with configurable number of concurent sources,
 in other words <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 </p><pre title="example">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMapConcurLimit(function(x) {
@@ -1502,7 +1502,7 @@ emitter.emit(4);
 property.onValue(function(x) {  console.log(x)  }) // =&gt; 4
 </pre><p>This issue applies not only to properties,
 but also to all stateful observables
-(like <a href="take">take</a>, <a href="diff">diff</a>, <a href="scan">scan</a> etc.).
+(like <a href="#take">take</a>, <a href="#diff">diff</a>, <a href="#scan">scan</a> etc.).
 In rare cases you might need to activate an observable by adding
 a dummy subscriber, to solve this issue. It's ok if you really need this,
 but don't overuse that pattern. For example
