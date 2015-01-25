@@ -494,7 +494,7 @@ div
 
 
 +descr-method('flat-map-concat', 'flatMapConcat', 'obs.flatMapConcat([fn])').
-  Like #[a(href='flat-map-first') flatMapFirst], but instead of ignoring new observables
+  Like #[a(href='#flat-map-first') flatMapFirst], but instead of ignoring new observables
   (if previous one still alive), it adds them to the queue.
   Then, when current source ends, it takes the oldest observable from the queue,
   and switches to it.
@@ -535,7 +535,7 @@ div
 
 
 +descr-method('flat-map-with-concurrency-limit', 'flatMapConcurLimit', 'obs.flatMapConcurLimit([fn], limit)').
-  Like #[a(href='flat-map-concat') flatMapConcat], but with configurable number of concurent sources,
+  Like #[a(href='#flat-map-concat') flatMapConcat], but with configurable number of concurent sources,
   in other words #[b flatMapConcat] is #[tt flatMapConcurLimit(fn, 1)].
 
 pre(title='example').

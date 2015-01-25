@@ -80,11 +80,9 @@ pre
 p.
   This issue applies not only to properties,
   but also to all stateful observables
-  (like #[a(href='take') take], #[a(href='diff') diff], #[a(href='scan') scan] etc.).
+  (like #[a(href='#take') take], #[a(href='#diff') diff], #[a(href='#scan') scan] etc.).
   In rare cases you might need to activate an observable by adding
   a dummy subscriber, to solve this issue. It's ok if you really need this,
   but don't overuse that pattern. For example
   #[tt obs.map(sideEffect).onEnd(function(){})] is a bad code,
   you should do #[tt obs.onValue(sideEffect)] istead.
-
-
