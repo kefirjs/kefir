@@ -19,13 +19,6 @@ withOneSource('toProperty', {
 
 
 
-// .withDefault (Deprecated)
-
-Stream.prototype.withDefault = Stream.prototype.toProperty;
-Property.prototype.withDefault = Property.prototype.toProperty;
-
-
-
 
 
 // .changes()
