@@ -40,7 +40,7 @@ bower install --save kefir
 
 To build `/dist` from `/src` and run tests on Node.js type this in console:
 
-    NODE_PATH=./dist grunt
+    grunt
 
 To run memory tests:
 

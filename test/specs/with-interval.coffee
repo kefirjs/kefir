@@ -1,4 +1,4 @@
-Kefir = require('kefir')
+Kefir = require('../../dist/kefir')
 
 describe 'withInterval', ->
 
