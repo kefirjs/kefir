@@ -1,4 +1,4 @@
-## next
+## 1.0.0
 
  - jQuery plugin moved to a [separate repo](https://github.com/pozadi/kefir-jquery)
  - Minor improvement in .skipDuplicates method [#42](https://github.com/pozadi/kefir/issues/42)
