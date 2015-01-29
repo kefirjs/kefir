@@ -107,8 +107,8 @@ module.exports = (grunt) ->
         files: 'docs-src/**/*'
         tasks: ['build-docs']
       src_and_tests:
-        files: ['test/specs/*', 'test/test-helpers*', 'src/*.js', 'addons/*.js']
-        tasks: ['concat:kefir', 'concat:addons', 'test']
+        files: ['test/specs/*', 'test/test-helpers*', 'src/*.js']
+        tasks: ['concat:kefir', 'test']
 
     clean:
       main:
@@ -160,7 +160,6 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-light', [
     'concat:kefir'
-    'concat:addons'
     'test'
   ]
 
