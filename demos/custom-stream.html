@@ -51,14 +51,12 @@
         <a href="../">↩ back to Kefir.js documentation</a>
       </p>
 
-      <h1>Kefir.js custom stream demo<br>
-        <small>Look ma no jQuery addon</small>
-      </h1>
+      <h1>Kefir.js custom stream demo</h1>
 
       <p>
         This demo shows how to create custom <b>event stream</b>
         from any original events source using <tt>fromBinder</tt>.<br>
-        In this case we create mouse clicks stream without jQuery addon.
+        In this case we create mouse clicks stream.
       </p>
 
       <h3>Result</h3>
@@ -81,7 +79,7 @@
 &lt;!-- JavaScript --&gt;
 
 &lt;script src="...jquery.js"&gt;&lt;/script&gt;
-&lt;script src="...dist/kefir.min.js"&gt;&lt;/script&gt;
+&lt;script src="...kefir.js"&gt;&lt;/script&gt;
 
 &lt;script type="text/javascript"&gt;
 
@@ -107,7 +105,9 @@
 
   var clickPositions = clicks.map(getPosition);
 
-  clickPositions.onValue(function(css) {  $('#pos-marker').css(css)  });
+  clickPositions.onValue(function(css) {
+    $('#pos-marker').css(css);
+  });
 
 &lt;/script&gt;
 
@@ -140,7 +140,9 @@
 
         var clickPositions = clicks.map(getPosition);
 
-        clickPositions.onValue(function(css) {  $('#pos-marker').css(css)  });
+        clickPositions.onValue(function(css) {
+          $('#pos-marker').css(css);
+        });
 
       </script>
 

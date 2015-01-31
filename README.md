@@ -12,11 +12,10 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 
 [![Build Status](https://travis-ci.org/pozadi/kefir.svg?branch=master)](https://travis-ci.org/pozadi/kefir)
-[![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir)
 [![Dependency Status](https://david-dm.org/pozadi/kefir.svg)](https://david-dm.org/pozadi/kefir)
 [![devDependency Status](https://david-dm.org/pozadi/kefir/dev-status.svg)](https://david-dm.org/pozadi/kefir#info=devDependencies)
-
-<!-- [![Testling](https://ci.testling.com/pozadi/kefir.png)](https://ci.testling.com/pozadi/kefir) -->
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pozadi/kefir?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+<!-- [![Code Climate](http://img.shields.io/codeclimate/github/pozadi/kefir.svg)](https://codeclimate.com/github/pozadi/kefir) -->
 
 [Run tests in your browser](http://pozadi.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch, i.e. last stable version)
 
@@ -24,23 +23,28 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 # Installation
 
-Server:
+Kefir available as NPM and Bower packages, as well as simple files download.
+
+### NPN
 ```sh
-npm install --save kefir
+npm install kefir
 ```
 
-Client:
+### Bower
 ```sh
-bower install --save kefir
+bower install kefir
 ```
 
+### Download
+
+See [downloads](https://pozadi.github.io/kefir/#downloads) section in the docs. 
 
 
 # Development
 
 To build `/dist` from `/src` and run tests on Node.js type this in console:
 
-    NODE_PATH=./dist grunt
+    grunt
 
 To run memory tests:
 
@@ -53,12 +57,3 @@ To run all memory tests (see [results](https://github.com/pozadi/kefir/blob/mast
 To run performance tests:
 
     coffee test/perf/perf-specs/[some spec].coffee
-
-
-# SemVer
-
-Kefir follows [Semantic Versioning](http://semver.org/).
-But it still before `1.0.0`, and for now version number follows this rules:
-
-* If major breaking changes introduced, then MINOR (middle) number is incremented
-* If there are no breaking changes, or only minor, which probably won't affect anybody, then PATCH (last) number is incremented

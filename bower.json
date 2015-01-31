@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "0.5.3",
+  "version": "1.0.0",
   "homepage": "https://github.com/pozadi/kefir",
   "authors": [
     "Roman Pominov <rpominov@gmail.com>"
@@ -34,10 +34,10 @@
     "!LICENSE.txt"
   ],
   "devDependencies": {
-    "bacon": "~0.7.41",
-    "jquery": "~1.11.1",
-    "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#~0.4.1",
-    "coffeescript": "git@github.com:jashkenas/coffeescript.git#~1.7.1",
+    "bacon": "0.7.43",
+    "jquery": "1.11.1",
+    "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#0.4.1",
+    "coffeescript": "git@github.com:jashkenas/coffeescript.git#1.9.0",
     "stats.js": "git@github.com:mrdoob/stats.js.git#r12",
     "transducers-js": "0.4.135"
   },

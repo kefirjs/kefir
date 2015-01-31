@@ -6,7 +6,10 @@
         <title>Kefir.js position demo</title>
         <script src="../bower-packages/jquery/jquery.js"></script>
         <script src="../dist/kefir.min.js"></script>
-        <script src="../dist/addons/kefir-jquery.min.js"></script>
+        <script src="https://rawgit.com/pozadi/kefir-jquery/v1.0.0/kefir-jquery.js"></script>
+        <script type="text/javascript">
+          KefirJQuery.init(Kefir, $);
+        </script>
         <link rel="stylesheet" type="text/css" href="../docs-src/includes/stylesheet.css">
         <style type="text/css">
           body {
@@ -54,8 +57,8 @@
       </p>
 
       <p>
-        This example also uses <a href="../#jquery">jQuery addon</a> for Kefir.js,
-        so make sure to include addon JavaScript file if you will use this code.
+        This example uses <a href="https://github.com/pozadi/kefir-jquery">jQuery plugin</a> for Kefir.js,
+        so make sure to install the plugin if you will use this code.
       </p>
 
       <h3>Result</h3>
@@ -82,8 +85,8 @@
 &lt;!-- JavaScript --&gt;
 
 &lt;script src="...jquery.js"&gt;&lt;/script&gt;
-&lt;script src="...dist/kefir.min.js"&gt;&lt;/script&gt;
-&lt;script src="...dist/addons/kefir-jquery.min.js"&gt;&lt;/script&gt;
+&lt;script src="...kefir.js"&gt;&lt;/script&gt;
+&lt;script src="...kefir-jquery.js"&gt;&lt;/script&gt;
 
 &lt;script type="text/javascript"&gt;
 

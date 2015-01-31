@@ -1,10 +1,10 @@
 {
   "name": "kefir",
-  "version": "0.5.3",
+  "version": "1.0.0",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
-    "test": "NODE_PATH=./dist grunt"
+    "test": "grunt"
   },
   "keywords": [
     "frp",
@@ -29,58 +29,28 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "baconjs": "0.7.41",
+    "baconjs": "0.7.43",
     "benchmark": "1.0.0",
-    "coffee-script": "1.8.0",
+    "coffee-script": "1.9.0",
     "coffeeify": "1.0.0",
     "grunt": "0.4.5",
     "grunt-bower-task": "0.4.0",
-    "grunt-browserify": "3.2.1",
+    "grunt-browserify": "3.3.0",
     "grunt-cli": "0.1.13",
     "grunt-contrib-clean": "0.6.0",
     "grunt-contrib-concat": "0.5.0",
     "grunt-contrib-jade": "0.14.0",
-    "grunt-contrib-jshint": "0.10.0",
+    "grunt-contrib-jshint": "0.11.0",
     "grunt-contrib-uglify": "0.7.0",
     "grunt-contrib-watch": "0.6.1",
     "grunt-jasmine-node": "0.2.1",
     "grunt-release": "0.7.0",
-    "jquery": "1.11.1",
-    "load-grunt-tasks": "2.0.0",
-    "marked": "0.3.2",
-    "rx": "2.3.22",
+    "load-grunt-tasks": "3.1.0",
+    "rx": "2.3.24",
     "semver": "2.3.0",
     "shelljs": "0.3.0",
     "sinon": "1.12.2",
     "transducers-js": "0.4.135",
     "transducers.js": "0.2.3"
-  },
-  "testling": {
-    "scripts": [
-      "test/in-browser/lib/jasmine-1.3.1/jasmine.js",
-      "test/in-browser/lib/jasmine-1.3.1/jasmine-html.js",
-      "test/in-browser/spec/KefirSpecs.js",
-      "bower-packages/jasmine-reporters/jasmine.tap_reporter.js",
-      "test/in-browser/boot.js"
-    ],
-    "browsers": [
-      "ie/8..latest",
-      "chrome/25",
-      "chrome/33",
-      "chrome/latest",
-      "firefox/12",
-      "firefox/17",
-      "firefox/20",
-      "firefox/28",
-      "firefox/latest",
-      "safari/latest",
-      "opera/11.0",
-      "opera/18.0",
-      "opera/20.0",
-      "opera/latest",
-      "iphone/6..latest",
-      "ipad/6..latest",
-      "android-browser/4.2..latest"
-    ]
   }
 }

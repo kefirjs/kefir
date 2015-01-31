@@ -35,6 +35,16 @@ describe 'skipDuplicates', ->
       expect(a.skipDuplicates()).errorsToFlow(a)
 
 
+    it 'should help with creating circular dependencies', ->
+      # https://github.com/pozadi/kefir/issues/42
+
+      a = Kefir.bus()
+      b = a.map (x) -> x
+      a.plug b.skipDuplicates()
+
+      expect(b).toEmit [1, 1], ->
+        a.emit(1)
+
 
   describe 'property', ->
 
