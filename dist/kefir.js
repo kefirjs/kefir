@@ -1,4 +1,4 @@
-/*! Kefir.js v0.5.3
+/*! Kefir.js v1.0.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1477,13 +1477,6 @@ withOneSource('toProperty', {
 
 
 
-// .withDefault (Deprecated)
-
-Stream.prototype.withDefault = Stream.prototype.toProperty;
-Property.prototype.withDefault = Property.prototype.toProperty;
-
-
-
 
 
 // .changes()
@@ -1777,8 +1770,8 @@ withOneSource('skipDuplicates', {
   },
   _handleValue: function(x, isCurrent) {
     if (this._prev === NOTHING || !this._fn(this._prev, x)) {
-      this._send(VALUE, x, isCurrent);
       this._prev = x;
+      this._send(VALUE, x, isCurrent);
     }
   }
 });
