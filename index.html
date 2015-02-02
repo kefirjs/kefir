@@ -337,7 +337,7 @@ stream.onError(function(x) {
 </p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(callback)</code><br/>Subscribes <b>callback</b> to ending off an observable.
 </p><p>If observable already ended, <b>callback</b> will be called immediately (synchronously).
 </p><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
-stream.onEnd(function(x) {
+stream.onEnd(function() {
   console.log('stream ended');
 });
 </pre><pre title="console output">&gt; stream ended
