@@ -3,12 +3,12 @@ id = (x) -> x
 require('../perf-helper.coffee').setupTest 'stream.map(id) with multiple listeners', {
   kefir: (stream) ->
     stream = stream.map(id)
-    stream.on('value', ->)
-    stream.on('value', ->)
-    stream.on('value', ->)
-    stream.on('value', ->)
-    stream.on('value', ->)
-    stream.on('value', ->)
+    stream.onValue(->)
+    stream.onValue(->)
+    stream.onValue(->)
+    stream.onValue(->)
+    stream.onValue(->)
+    stream.onValue(->)
     stream
   bacon: (stream) ->
     stream = stream.map(id)
