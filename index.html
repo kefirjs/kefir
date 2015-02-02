@@ -310,7 +310,7 @@ result.log();
 &gt; [sequentially.toProperty.changes] &lt;value&gt; 3
 &gt; [sequentially.toProperty.changes] &lt;end&gt;
 </pre><pre title="events in time">property: 0----1----2----3X
-result:    ----1----2----3X</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>obs.onValue(fn)</code><br/>Subscribes <b>fn</b> functions to values on an observable.
+result:    ----1----2----3X</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>obs.onValue(callback)</code><br/>Subscribes <b>callback</b> to values on an observable.
 </p><p>If called on a property, which has a current value,
 the <b>fn</b> function will be called immediately (synchronously)
 with that value as an argument.
@@ -320,9 +320,9 @@ stream.onValue(function(x) {
 });
 </pre><pre title="console output">&gt; value: 1
 &gt; value: 2
-</pre><p id="off-value"><a href="#off-value" class="header">offValue</a><code>obs.offValue(fn)</code><br/>Unsubscribes <b>fn</b> from values on an observable.
+</pre><p id="off-value"><a href="#off-value" class="header">offValue</a><code>obs.offValue(callback)</code><br/>Unsubscribes <b>callback</b> from values on an observable.
 
-</p><p id="on-error"><a href="#on-error" class="header">onError</a><code>obs.onError(fn)</code><br/>Subscribes <b>fn</b> functions to <a href="#about-errors">errors</a> on an observable.
+</p><p id="on-error"><a href="#on-error" class="header">onError</a><code>obs.onError(callback)</code><br/>Subscribes <b>callback</b> to <a href="#about-errors">errors</a> on an observable.
 </p><p>If called on a property, which has a current error,
 the <b>fn</b> function will be called immediately (synchronously)
 with that error as an argument.
@@ -332,17 +332,17 @@ stream.onError(function(x) {
 });
 </pre><pre title="console output">&gt; error: 1
 &gt; error: 2
-</pre><p id="off-error"><a href="#off-error" class="header">offError</a><code>obs.offError(fn)</code><br/>Unsubscribes <b>fn</b> from errors on an observable.
+</pre><p id="off-error"><a href="#off-error" class="header">offError</a><code>obs.offError(callback)</code><br/>Unsubscribes <b>callback</b> from errors on an observable.
 
-</p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(fn)</code><br/>Subscribes <b>fn</b> functions to ending off an observable.
+</p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(callback)</code><br/>Subscribes <b>callback</b> to ending off an observable.
 </p><p>If observable already ended, <b>fn</b> will be called immediately (synchronously).
 </p><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
 stream.onEnd(function(x) {
   console.log('stream ended');
 });
 </pre><pre title="console output">&gt; stream ended
-</pre><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>obs.offEnd(fn)</code><br/>Unsubscribes <b>fn</b> from ending off an observable.
-</p><p id="on-any"><a href="#on-any" class="header">onAny</a><code>obs.onAny(fn)</code><br/>Subscribes <b>fn</b> functions to all three types of events.
+</pre><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>obs.offEnd(callback)</code><br/>Unsubscribes <b>callback</b> from ending off an observable.
+</p><p id="on-any"><a href="#on-any" class="header">onAny</a><code>obs.onAny(callback)</code><br/>Subscribes <b>callback</b> to all three types of events.
 Callback is called with <b>event object</b> as argument. Each event object
 contains three attributes — <b>type</b>, <b>value</b>, and <b>current</b>.
 </p><ul><li><b>type</b> — a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string</li><li><b>value</b> — the emitted <b>value</b> or <b>error</b> (<tt>undefined</tt> if <tt>event.type === 'end'</tt>)</li><li><b>current</b> — a boolean, that equals <tt>true</tt> if callback is called with current value of a property, or if the event represents an <b>end</b> of already ended observable</li></ul><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
@@ -352,7 +352,7 @@ stream.onAny(function(event) {
 </pre><pre title="console output">&gt; event: Object {type: &quot;value&quot;, value: 1, current: false}
 &gt; event: Object {type: &quot;error&quot;, value: 2, current: false}
 &gt; event: Object {type: &quot;end&quot;, value: undefined, current: false}
-</pre><p id="off-any"><a href="#off-any" class="header">offAny</a><code>obs.offAny(fn)</code><br/>Unsubscribes an <b>onAny</b> subscriber.
+</pre><p id="off-any"><a href="#off-any" class="header">offAny</a><code>obs.offAny(callback)</code><br/>Unsubscribes an <b>onAny</b> subscriber.
 </p><p id="log"><a href="#log" class="header">log</a><code>obs.log([name])</code><br/>Turns on logging of any events to browser console.
 Accepts optional <b>name</b> argument that will be shown in the log if provided.
 </p><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
