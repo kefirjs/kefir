@@ -6,7 +6,7 @@ h2#main-methods Main observable methods
 
 p.
   If called on a property, which has a current value,
-  the #[b fn] function will be called immediately (synchronously)
+  #[b callback] will be called immediately (synchronously)
   with that value as an argument.
 
 pre(title='example').
@@ -29,7 +29,7 @@ pre(title='console output')
 
 p.
   If called on a property, which has a current error,
-  the #[b fn] function will be called immediately (synchronously)
+  #[b callback] will be called immediately (synchronously)
   with that error as an argument.
 
 pre(title='example').
@@ -51,7 +51,7 @@ pre(title='console output')
   Subscribes #[b callback] to ending off an observable.
 
 p.
-  If observable already ended, #[b fn] will be called immediately (synchronously).
+  If observable already ended, #[b callback] will be called immediately (synchronously).
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
