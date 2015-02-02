@@ -10,10 +10,10 @@ p.
   with that value as an argument.
 
 pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.onValue(function(x) {  console.log('value:', x)  });
-  emitter.emit(1);
-  emitter.emit(2);
+  var stream = Kefir.sequentially(1000, [1, 2]);
+  stream.onValue(function(x) {
+    console.log('value:', x);
+  });
 
 pre(title='console output')
   :escapehtml
@@ -33,10 +33,10 @@ p.
   with that error as an argument.
 
 pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.onError(function(x) {  console.log('error:', x)  });
-  emitter.error(1);
-  emitter.error(2);
+  var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
+  stream.onError(function(x) {
+    console.log('error:', x);
+  });
 
 pre(title='console output')
   :escapehtml
@@ -54,9 +54,10 @@ p.
   If observable already ended, #[b fn] will be called immediately (synchronously).
 
 pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.onEnd(function(x) {  console.log('stream ended')  });
-  emitter.end();
+  var stream = Kefir.sequentially(1000, [1, 2]);
+  stream.onEnd(function(x) {
+    console.log('stream ended');
+  });
 
 pre(title='console output')
   :escapehtml
@@ -71,21 +72,15 @@ pre(title='console output')
   contains three attributes — #[b type], #[b value], and #[b current].
 
 ul
-  li
-    | #[b type] is a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string
-  li
-    | #[b value] is a value or error that was emitted,
-    | or <tt>undefined</tt> if #[b type] was <tt>'end'</tt>
-  li
-    | #[b current] is a boolean, that equals <tt>true</tt> if callback was
-    | called with current value of a property, or on end of already ended observable
+  li #[b type] — a #[tt 'value'], #[tt 'error'], or #[tt 'end'] string
+  li #[b value] — the emitted #[b value] or #[b error] (#[tt undefined] if #[tt event.type === 'end'])
+  li #[b current] — a boolean, that equals #[tt true] if callback is called with current value of a property, or if the event represents an #[b end] of already ended observable
 
 pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.onAny(function(event) {  console.log('event:', event)  });
-  emitter.emit(1);
-  emitter.error(2);
-  emitter.end();
+  var stream = Kefir.sequentially(1000, [1, 2]);
+  stream.onAny(function(event) {
+    console.log('event:', event);
+  });
 
 pre(title='console output')
   :escapehtml
@@ -101,17 +96,14 @@ pre(title='console output')
   Accepts optional #[b name] argument that will be shown in the log if provided.
 
 pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.log('myEmitter');
-  emitter.emit(1);
-  emitter.emit(2);
-  emitter.end();
+  var stream = Kefir.sequentially(1000, [1, 2]);
+  stream.log('my stream');
 
 pre(title='console output')
   :escapehtml
-    > myEmitter <value> 1
-    > myEmitter <value> 2
-    > myEmitter <end>
+    > my stream <value> 1
+    > my stream <value> 2
+    > my stream <end>
 
 +descr-method('off-log', 'offLog', 'obs.offLog([name])').
   Turns off logging. If #[b .log] was called with a #[b name] argument,
