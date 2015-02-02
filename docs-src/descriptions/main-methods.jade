@@ -55,7 +55,7 @@ p.
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
-  stream.onEnd(function(x) {
+  stream.onEnd(function() {
     console.log('stream ended');
   });
 
