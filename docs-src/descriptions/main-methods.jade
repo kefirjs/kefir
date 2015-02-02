@@ -1,8 +1,8 @@
 h2#main-methods Main observable methods
 
 
-+descr-method('on-value', 'onValue', 'obs.onValue(fn)').
-  Subscribes #[b fn] functions to values on an observable.
++descr-method('on-value', 'onValue', 'obs.onValue(callback)').
+  Subscribes #[b callback] to values on an observable.
 
 p.
   If called on a property, which has a current value,
@@ -20,12 +20,12 @@ pre(title='console output')
     > value: 1
     > value: 2
 
-+descr-method('off-value', 'offValue', 'obs.offValue(fn)').
-  Unsubscribes #[b fn] from values on an observable.
++descr-method('off-value', 'offValue', 'obs.offValue(callback)').
+  Unsubscribes #[b callback] from values on an observable.
 
 
-+descr-method('on-error', 'onError', 'obs.onError(fn)').
-  Subscribes #[b fn] functions to #[a(href='#about-errors') errors] on an observable.
++descr-method('on-error', 'onError', 'obs.onError(callback)').
+  Subscribes #[b callback] to #[a(href='#about-errors') errors] on an observable.
 
 p.
   If called on a property, which has a current error,
@@ -43,12 +43,12 @@ pre(title='console output')
     > error: 1
     > error: 2
 
-+descr-method('off-error', 'offError', 'obs.offError(fn)').
-  Unsubscribes #[b fn] from errors on an observable.
++descr-method('off-error', 'offError', 'obs.offError(callback)').
+  Unsubscribes #[b callback] from errors on an observable.
 
 
-+descr-method('on-end', 'onEnd', 'obs.onEnd(fn)').
-  Subscribes #[b fn] functions to ending off an observable.
++descr-method('on-end', 'onEnd', 'obs.onEnd(callback)').
+  Subscribes #[b callback] to ending off an observable.
 
 p.
   If observable already ended, #[b fn] will be called immediately (synchronously).
@@ -63,11 +63,11 @@ pre(title='console output')
   :escapehtml
     > stream ended
 
-+descr-method('off-end', 'offEnd', 'obs.offEnd(fn)').
-  Unsubscribes #[b fn] from ending off an observable.
++descr-method('off-end', 'offEnd', 'obs.offEnd(callback)').
+  Unsubscribes #[b callback] from ending off an observable.
 
-+descr-method('on-any', 'onAny', 'obs.onAny(fn)').
-  Subscribes #[b fn] functions to all three types of events.
++descr-method('on-any', 'onAny', 'obs.onAny(callback)').
+  Subscribes #[b callback] to all three types of events.
   Callback is called with #[b event object] as argument. Each event object
   contains three attributes — #[b type], #[b value], and #[b current].
 
@@ -88,7 +88,7 @@ pre(title='console output')
     > event: Object {type: "error", value: 2, current: false}
     > event: Object {type: "end", value: undefined, current: false}
 
-+descr-method('off-any', 'offAny', 'obs.offAny(fn)').
++descr-method('off-any', 'offAny', 'obs.offAny(callback)').
   Unsubscribes an #[b onAny] subscriber.
 
 +descr-method('log', 'log', 'obs.log([name])').
