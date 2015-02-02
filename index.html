@@ -312,7 +312,7 @@ result.log();
 </pre><pre title="events in time">property: 0----1----2----3X
 result:    ----1----2----3X</pre><div></div><h2 id="main-methods">Main observable methods</h2><p id="on-value"><a href="#on-value" class="header">onValue</a><code>obs.onValue(callback)</code><br/>Subscribes <b>callback</b> to values on an observable.
 </p><p>If called on a property, which has a current value,
-the <b>fn</b> function will be called immediately (synchronously)
+<b>callback</b> will be called immediately (synchronously)
 with that value as an argument.
 </p><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
 stream.onValue(function(x) {
@@ -324,7 +324,7 @@ stream.onValue(function(x) {
 
 </p><p id="on-error"><a href="#on-error" class="header">onError</a><code>obs.onError(callback)</code><br/>Subscribes <b>callback</b> to <a href="#about-errors">errors</a> on an observable.
 </p><p>If called on a property, which has a current error,
-the <b>fn</b> function will be called immediately (synchronously)
+<b>callback</b> will be called immediately (synchronously)
 with that error as an argument.
 </p><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
 stream.onError(function(x) {
@@ -335,7 +335,7 @@ stream.onError(function(x) {
 </pre><p id="off-error"><a href="#off-error" class="header">offError</a><code>obs.offError(callback)</code><br/>Unsubscribes <b>callback</b> from errors on an observable.
 
 </p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(callback)</code><br/>Subscribes <b>callback</b> to ending off an observable.
-</p><p>If observable already ended, <b>fn</b> will be called immediately (synchronously).
+</p><p>If observable already ended, <b>callback</b> will be called immediately (synchronously).
 </p><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
 stream.onEnd(function(x) {
   console.log('stream ended');
