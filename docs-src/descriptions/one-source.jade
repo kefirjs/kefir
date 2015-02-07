@@ -2,10 +2,10 @@ h2#modify Modify an observable
 
 p.
   All methods in this section create a new observable of same type* from an original one.
-  New observable applies some transformation to each event from original
+  The new observable applies some transformation to each event from original one
   and emits result of transformation.
-  In most cases a transformation is applied only to #[b value events],
-  but #[b end event] just passes through (i.e. new observable ends when original ends).
+  In most cases a transformation is applied only to #[b value] events,
+  but #[b end] and #[b error] events just passes through untouched.
 
 p.
   #[b *] For example if original observable was a stream,
@@ -327,7 +327,7 @@ p.
 
 
 +descr-method('skip-duplicates', 'skipDuplicates', 'obs.skipDuplicates([comparator])').
-  Skips duplicate values using #[tt ===] for comparison by default.
+  Skips duplicate values using #[tt ===] for comparison.
   Accepts optional #[b comparator] function,
   that, if provided, is used for comparison instead of #[tt ===].
 
@@ -387,9 +387,8 @@ p.
   and result observable won't emit on first value.
 
 p.
-  If you want to omit #[b fn] place #[tt null] in its place.
-  If no #[b fn] function provided,
-  #[tt function(a, b) {return [a, b]}] will be used as default.
+  If no #[b fn] function provided, #[tt function(a, b) {return [a, b]}] will be used.
+  If you want to omit #[b fn] but provide #[b seed], pass #[tt null] as #[b fn].
 
 pre(title='example')
   :escapehtml
@@ -419,7 +418,7 @@ div
   observable calls #[b fn] function with
   previous result returned by #[b fn] and
   current value emitted by original observable.
-  At first time calls #[b fn] with #[b seed] and current value.
+  At first time calls #[b fn] with #[b seed] as previous result.
   Emits whatever #[b fn] returns. Always creates a property.
 
 p.
@@ -451,9 +450,6 @@ div
 
 +descr-method('reduce', 'reduce', 'obs.reduce(fn, [seed])').
   Similar to #[b .scan], but emits only last result just before end.
-
-p.
-  If no #[b seed] provided the first value will be used as a seed.
 
 pre(title='example')
   :escapehtml
@@ -587,7 +583,7 @@ div
 +descr-method('delay', 'delay', 'obs.delay(wait)').
   Delays all events by #[b wait] milliseconds,
   with exception for current value of property,
-  or current end for already ended observable.
+  or current end for already ended observable. Doesn't delay #[a(href='#about-errors') errors].
 
 pre(title='example')
   :escapehtml
@@ -611,7 +607,7 @@ div
 
 
 +descr-method('throttle', 'throttle', 'obs.throttle(wait, [options])').
-  Return new throttled version of #[b obs] observable, which will emit values
+  Return new throttled version of original observable, which will emit values
   only at most once per every #[b wait] milliseconds.
   If used on a property current value will always pass intact without any delay.
 
@@ -650,7 +646,7 @@ div
 
 
 +descr-method('debounce', 'debounce', 'obs.debounce(wait, [options])').
-  Creates new debounced version of #[b obs] observable.
+  Creates new debounced version of original observable.
   Will emit a value only after #[b wait] milliseconds period of no events.
   Pass #[tt {immediate: true}] as an #[b options] object to cause
   observable to emit value on leading instead of the
@@ -681,8 +677,8 @@ div
 
 
 +descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
-  For this method it's expected that #[b obs] observable emits arrays.
-  The result observable (that #[b flatten] returns) will emit each element of those arrays.
+  For this method it's expected that source observable emits arrays.
+  The result observable will emit each element of those arrays.
 
 pre(title='example')
   :escapehtml
@@ -711,9 +707,9 @@ p.
   It allows you to do three kinds
   of transformations on each value: change value (like map), skip value (like filter),
   and respond with several values to a single value.
-  If you want to skip a value, return an empty array. If you want to change a value,
-  return array with a single new value. And if you want to respond with several values,
-  return them in array.
+  If you want to skip a value, return an empty array,
+  change the value — return array with a single new value,
+  emit several values — return them in array.
 
 pre(title='example')
   :escapehtml
@@ -764,11 +760,12 @@ pre(title='example')
   :escapehtml
     var t = transducers;
     var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
-    var result = source.transduce(t.comp(
+    var myTransducer = t.comp(
       t.map(function(x) {return x + 10}),
       t.filter(function(x) {return x % 2 === 0}),
       t.take(2)
-    ));
+    );
+    var result = source.transduce(myTransducer);
     result.log();
 
 pre(title='console output')
@@ -795,10 +792,10 @@ div
   and an event object (with same format as in <a href="#on-any">onAny</a> callback).
 
 p.
-  By default will not emit any values, and will not end when #[b obs]
+  By default will not emit any values or errors, and will not end when #[b obs]
   observable ends. Instead you should implement desired behaviour in
   #[b handler] function, i.e. analyse #[b event object] and call
-  #[tt emitter.emit()] or #[tt emitter.end()] if necessary. You can call
+  #[b emitter] methods if necessary. You can call
   #[b emitter] methods several times in each #[b handler] execution,
   and you can also call them at any time later, for example to implement
   <a href="#delay">delay</a>.

@@ -9,7 +9,7 @@ p.
 
 p.
   For example #[tt stream = Kefir.fromEvent(el, 'click')] won't
-  immediately subscribe to #[tt 'click'] event on #[tt $('.foo')],
+  immediately subscribe to #[tt 'click'] event on #[tt el],
   it will subscribe only when the first listener will be added to the
   #[tt stream]. And it will automatically unsubscribe when the last listener
   will be removed from the #[tt stream].
@@ -81,5 +81,5 @@ p.
   In rare cases you might need to activate an observable by adding
   a dummy subscriber, to solve this issue. It's ok if you really need this,
   but don't overuse that pattern. For example
-  #[tt obs.map(sideEffect).onEnd(function(){})] is a bad code,
+  #[tt obs.map(sideEffect).onValue(function(){})] is a antipattern,
   you should do #[tt obs.onValue(sideEffect)] instead.

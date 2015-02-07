@@ -28,8 +28,10 @@ div
 p.
   <img data-emoji="point_up"> #[b Emitter] is the easiest way
   to create general purpose streams,
-  but it doesn't give control over the #[a(href='#active-state') active state]
-  of the stream. If you want to have that control, you should use
+  but it doesn't give you control over the #[a(href='#active-state') active state]
+  of the stream — it doesn't allows you to monitor if the stream has subscribers or not,
+  and sub/unsub to your original source or doing other resource management based on
+  whether stream has subscribers or not. If you want to have that control, you should use
   #[a(href='#from-binder') fromBinder] or #[a(href='#from-sub-unsub') fromSubUnsub].
 
 
@@ -237,7 +239,7 @@ div
   is a node.js style callback — #[tt callback(error,&nbsp;result)].
   If the #[b error] argument of the #[b callback] is truthy,
   an error will be emitted from the result stream, in other case a value.
-  Then the stream will end (after first value or error).
+  The stream will end after first value or error.
 
 pre(title='example')
   :escapehtml
@@ -298,7 +300,7 @@ p.
   The #[b subscribe] function is called on each #[a(href='#active-state') activation] with callback as argument,
   giving you an opportunity to subscribe with this callback to an original source of values.
   When all subscribers from the stream removed, the #[b unsubscribe] function is called
-  with the same callback, so you could unsubscribe from your original source.
+  with the same callback, so you can unsubscribe from your original source.
 
 p.
   You can also provide an #[b transform] function, which will work the same way as in
@@ -347,9 +349,8 @@ p.
   #[a(href="#active-state") activation], passing to it an
   #[a(href="#emitter-object") emitter object].
   Then you can call #[b emitter] methods at any time to emit events.
-  The #[b subscribe] function can also return an #[b unsubscribe] function,
-  that will be called on #[b deactivation] of the stream.
-
+  You can also return an #[b unsubscribe] function from the #[b subscribe] function.
+  If a function is returned from #[b subscribe], it will be called on #[b deactivation] of the stream.
 
 pre(title='example')
   :escapehtml
@@ -422,7 +423,7 @@ h2#create-property Create a property
 
 
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
-  Creates ended property, with specified #[b current value].
+  Creates an ended property, with specified #[b current value].
 
 pre(title='example').
   var property = Kefir.constant(1);
@@ -440,7 +441,7 @@ div
 
 
 +descr-method('constant-error', 'constantError', 'Kefir.constantError(error)').
-  Creates ended property, with specified #[b current error].
+  Creates an ended property, with specified #[b current error].
 
 pre(title='example').
   var property = Kefir.constantError(1);

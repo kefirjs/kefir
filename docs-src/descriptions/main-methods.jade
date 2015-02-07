@@ -7,7 +7,7 @@ h2#main-methods Main observable methods
 p.
   If called on a property, which has a current value,
   #[b callback] will be called immediately (synchronously)
-  with that value as an argument.
+  with that value.
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
@@ -30,7 +30,7 @@ pre(title='console output')
 p.
   If called on a property, which has a current error,
   #[b callback] will be called immediately (synchronously)
-  with that error as an argument.
+  with that error.
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
@@ -74,7 +74,7 @@ pre(title='console output')
 ul
   li #[b type] — a #[tt 'value'], #[tt 'error'], or #[tt 'end'] string
   li #[b value] — the emitted #[b value] or #[b error] (#[tt undefined] if #[tt event.type === 'end'])
-  li #[b current] — a boolean, that equals #[tt true] if callback is called with current value of a property, or if the event represents an #[b end] of already ended observable
+  li #[b current] — a boolean, that equals #[tt true] if callback is called with current value/error of a property, or if the event represents an #[b end] of already ended observable
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
