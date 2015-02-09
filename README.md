@@ -25,7 +25,7 @@ For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
 
 Kefir available as NPM and Bower packages, as well as simple files download.
 
-### NPN
+### NPM
 ```sh
 npm install kefir
 ```
