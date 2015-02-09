@@ -12,7 +12,7 @@ p.
   but in Kefir we trying to avoid them as they may cause some confusion
   for beginners (actually that happens quite a lot for Bacon).
   So in Kefir it less easier to create streams that emit current values,
-  but there's still some situations when they can be created.
+  but there's still situations when they can be created.
 
 p.
   Let see some examples.
@@ -33,7 +33,7 @@ pre(title='example')
 p.
   When a stream emits a value like this, it internally considered as a #[b current] value.
   The #[a(href='#log') log] method will mark it as current,
-  and in #[a(href='#on-ony') onAny] subscriber #[tt event.current] will equal #[b true].
+  and in #[a(href='#on-any') onAny] subscriber #[tt event.current] will equal #[b true].
 
 p.
   There is some issues with all this, but also some benefits.
