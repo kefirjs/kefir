@@ -1548,7 +1548,7 @@ and only first subscriber will get the value.
 but in Kefir we trying to avoid them as they may cause some confusion
 for beginners (actually that happens quite a lot for Bacon).
 So in Kefir it less easier to create streams that emit current values,
-but there's still some situations when they can be created.
+but there's still situations when they can be created.
 </p><p>Let see some examples.
 Each of these streams will emit a value at the moment when first subscriber is added:
 </p><pre title="example">var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
@@ -1562,7 +1562,7 @@ var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)], function(x) {
 });
 </pre><p>When a stream emits a value like this, it internally considered as a <b>current</b> value.
 The <a href="#log">log</a> method will mark it as current,
-and in <a href="#on-ony">onAny</a> subscriber <tt>event.current</tt> will equal <b>true</b>.
+and in <a href="#on-any">onAny</a> subscriber <tt>event.current</tt> will equal <b>true</b>.
 </p><p>There is some issues with all this, but also some benefits.
 Issue number one is that only the first subscriber gets this value (or error).
 Even if it was an <b>onEnd</b> subscriber, it'll still eat all current values,
