@@ -1,0 +1,101 @@
+h2#current-in-streams Current values/errors in streams
+
+p.
+  Normally only properties have current values,
+  but sometimes streams also may emit them. What it means
+  is that sometimes a stream can emit a value (or error) in response to
+  first subscription (i.e. on #[a(href='#active-state') activation]),
+  and only first subscriber will get the value.
+
+p.
+  In Bacon.js there's even methods that creates such streams (#[tt .once], #[tt .fromArray]),
+  but in Kefir we trying to avoid them as they may cause some confusion
+  for beginners (actually that happens quite a lot for Bacon).
+  So in Kefir it less easier to create streams that emit current values,
+  but there's still some situations when they can be created.
+
+p.
+  Let see some examples.
+  Each of these streams will emit a value at the moment when first subscriber is added:
+
+pre(title='example')
+  :escapehtml
+    var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
+
+    var s2 = Kefir.fromBinder(function(emitter) {
+      emitter.emit(1);
+    });
+
+    var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)], function(x) {
+      return x * x;
+    });
+
+p.
+  When a stream emits a value like this, it internally considered as a #[b current] value.
+  The #[a(href='#log') log] method will mark it as current,
+  and in #[a(href='#on-ony') onAny] subscriber #[tt event.current] will equal #[b true].
+
+p.
+  There is some issues with all this, but also some benefits.
+  Issue number one is that only the first subscriber gets this value (or error).
+  Even if it was an #[b onEnd] subscriber, it'll still eat all current values,
+  and further subscribers won't get them.
+  Second issue is that it may be considered as not semantically correct behaviour
+  i.e., the fact that moments when stream emits values depend on when it gets subscribers ...
+
+p.
+  To benefits, first — it allows you to define current value in
+  #[a(href='#from-binder') fromBinder], it's easier to show in example:
+
+pre(title='example')
+  :escapehtml
+    var scrollTop = Kefir.fromBinder(function(emitter) {
+
+      function emitScrollY() {
+        emitter.emit(window.scrollY);
+      }
+
+      emitScrollY(); // here we are emitting the current value
+
+      window.addEventListener('scroll', emitScrollY);
+
+      return function() {
+        window.removeEventListener('scroll', emitScrollY);
+      };
+
+    }).toProperty();
+
+    scrollTop.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromBinder.toProperty] <value:current> 0
+    > [fromBinder.toProperty] <value> 4
+    > [fromBinder.toProperty] <value> 9
+    > [fromBinder.toProperty] <value> 23
+
+p.
+  Defining current value this way is better than
+  #[tt scrollYStream.toProperty(getScrollY())]
+  because in #[b fromBinder] example the current value will be pulled
+  in moment of subscription, and with #[tt .toProperty(getScrollY())]
+  it will be pulled at the moment of property creation and might
+  become obsolete when property will be used.
+
+p.
+  Second benefit is that it makes it possible to not lose
+  current values when converting properties to streams and then back to properties.
+  For example, #[a(href='#combine') combine] always returns a stream
+  (#[a(href='https://github.com/pozadi/kefir/issues/44#issuecomment-72875317') why?])
+  but it'll still emit current value.
+  So one can do #[tt Kefir.combine([p1, p2], fn).toProperty()],
+  and get a property combined from two other properties with correct current value.
+
+p.
+  Also it's a good practise to convert all streams that might
+  emit current values to properties using #[b toProperty] method.
+  That should make your code more reliable as all subscribers will get current values.
+  And it's just better semantically as current values should live in the properties.
+
+
+
