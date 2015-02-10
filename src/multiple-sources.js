@@ -246,7 +246,6 @@ Kefir.bus = function() {
 
 
 
-
 // .flatMap()
 
 function FlatMap(source, fn, options) {
