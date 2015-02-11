@@ -16,25 +16,25 @@ and have fun reading
 please help the project by
 <a href="https://github.com/pozadi/kefir/issues/new">filing an issue</a>
 or sending a pull request.
-</p><h2 id="installation">Installation</h2><p>Kefir available as NPM and Bower packages, as well as simple files download.
+</p><h2 id="installation">Installation</h2><p>Kefir is available as an NPM and Bower package, as well as simple file download.
 </p><h3 id="npm">NPM</h3><pre>npm install kefir
 </pre><h3 id="bower">Bower</h3><pre>bower install kefir
 </pre><h3 id="downloads">Downloads <sup>(1.0.0)</sup></h3><table><tr><th rowspan="1" valign="top">For Development</th><td><a href="dist/kefir.js">kefir.js</a></td><td><i>~ 50 kb</i></td></tr><tr><th rowspan="2" valign="top">For Production</th><td><a href="dist/kefir.min.js">kefir.min.js</a></td><td><i>~ 7 kb (when gzipped)</i></td></tr><tr><td><a href="dist/kefir.min.js.map">kefir.min.js.map</a></td><td>source map file, in case you need one</td></tr><tr><td colspan="3" class="rule"></td></tr><tr><th>All files</th><td><a href="https://github.com/pozadi/kefir/archive/1.0.0.zip">kefir-1.0.0.zip</a></td><td>... including documentation, demos, tests, source maps, etc.</td></tr></table><h2 id="jquery">jQuery plugin</h2><p>If you are going to use Kefir together with jQuery, you might be interested in the
 <a href="https://github.com/pozadi/kefir-jquery">kefir-jquery</a> plugin.
 It contains two handy methods <tt>$().asKefirStream</tt> and <tt>$().asKefirProperty</tt>
-for creating streams and properties from events of jQuery object.
+for creating streams and properties from events of jQuery objects.
 
-</p><h2 id="demos">Demos</h2><ul><li><a href="demos/counter.html">Counter</a>  — most basic example</li><li><a href="demos/position.html">Position</a> — another basic example</li><li><a href="demos/custom-stream.html">Custom stream</a> — how to create a custom event stream from any source of events</li><li><a href="demos/tree.html">Tree</a> — Bacon.js vs Kefir.js perfomance comparison, and also nice tree animation demo</li></ul><p><img data-emoji="information_desk_person">
+</p><h2 id="demos">Demos</h2><ul><li><a href="demos/counter.html">Counter</a>  — most basic example</li><li><a href="demos/position.html">Position</a> — another basic example</li><li><a href="demos/custom-stream.html">Custom stream</a> — how to create a custom event stream from any source of events</li><li><a href="demos/tree.html">Tree</a> — Bacon.js vs Kefir.js performance comparison, and also nice tree animation demo</li></ul><p><img data-emoji="information_desk_person">
 Also, almost any code snippet below can be run in browser console, on this page.
-So you can play with Kefir right now, just open up browser console.</p><h2 id="about-observables">Intro to Streams and Properties</h2><p>Kefir supports two types of observables — streams and properties.
-Stream represents a stream of events. And property represents a value,
-that changes over time. The value of a property changes in response of events,
+So you can play with Kefir right now, just open up browser console.</p><h2 id="about-observables">Intro to Streams and Properties</h2><p>Kefir supports two types of observable — streams and properties.
+Streams represent sequences of events made available over time. And properties represent
+values that change over time. The value of a property changes in response to events,
 which means that any stream may be easily converted to a property.
-</p><figure><img src="docs-src/images/stream-and-property.png"></figure><p>In practice, the only difference between two types of observables
-is that property may have a current value. The process of subscribing
-to values in both types is the same, you call the <a href="#on-value">onValue</a>
+</p><figure><img src="docs-src/images/stream-and-property.png"></figure><p>In practice, the only difference between the two types of observable
+is that properties may have a current value. The process of subscribing
+to both types of observable is the same: you call the <a href="#on-value">onValue</a>
 method, passing to it a callback function. But when you subscribe
-to a property which a has current value, the callback is called
+to a property which has a current value, the callback is called
 immediately (synchronously) with the current value of the property.</p><h2 id="create-stream">Create a stream</h2><p id="emitter"><a href="#emitter" class="header">emitter</a><code>Kefir.emitter()</code><br/>Creates an emitter, that is ordinary stream, but also has additional methods:
 <tt>.emit(value)</tt>, <tt>.error(error)</tt>, and <tt>.end()</tt>.
 Once an emitter was created, one can easily emit all three kind of events to it,
