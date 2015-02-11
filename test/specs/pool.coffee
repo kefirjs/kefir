@@ -5,6 +5,11 @@ describe 'pool', ->
 
   it 'should return stream', ->
     expect(Kefir.pool()).toBeStream()
+    expect(new Kefir.Pool()).toBeStream()
+
+  it 'should return pool', ->
+    expect(Kefir.pool()).toBePool()
+    expect(new Kefir.Pool()).toBePool()
 
   it 'should activate sources', ->
     a = stream()

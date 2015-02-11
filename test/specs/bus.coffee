@@ -7,6 +7,11 @@ describe 'bus', ->
 
   it 'should return stream', ->
     expect(Kefir.bus()).toBeStream()
+    expect(new Kefir.Bus()).toBeStream()
+
+  it 'should return bus', ->
+    expect(Kefir.bus()).toBeBus()
+    expect(new Kefir.Bus()).toBeBus()
 
   it 'should not be ended', ->
     expect(Kefir.bus()).toEmit []

@@ -178,6 +178,7 @@ Observable.prototype.concat = function(other) {
 function Pool() {
   _AbstractPool.call(this);
 }
+Kefir.Pool = Pool;
 
 inherit(Pool, _AbstractPool, {
 
@@ -207,6 +208,7 @@ Kefir.pool = function() {
 function Bus() {
   _AbstractPool.call(this);
 }
+Kefir.Bus = Bus;
 
 inherit(Bus, _AbstractPool, {
 
