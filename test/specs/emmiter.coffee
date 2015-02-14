@@ -4,6 +4,11 @@ describe 'emitter', ->
 
   it 'should return stream', ->
     expect(Kefir.emitter()).toBeStream()
+    expect(new Kefir.Emitter()).toBeStream()
+
+  it 'should return emitter', ->
+    expect(Kefir.emitter()).toBeEmitter()
+    expect(new Kefir.Emitter()).toBeEmitter()
 
   it 'should not be ended', ->
     expect(Kefir.emitter()).toEmit []
