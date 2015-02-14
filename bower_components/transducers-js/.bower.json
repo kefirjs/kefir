@@ -1,0 +1,31 @@
+{
+  "name": "transducers-js",
+  "version": "0.4.135",
+  "description": "A Transducers implementation for JavaScript",
+  "keywords": [
+    "underscore",
+    "lodash",
+    "functional",
+    "util",
+    "server",
+    "client",
+    "browser"
+  ],
+  "author": "Cognitect",
+  "license": "APL",
+  "main": "./transducers.js",
+  "homepage": "https://github.com/cognitect-labs/bower-transducers-js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cognitect-labs/bower-transducers-js.git"
+  },
+  "_release": "0.4.135",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.4.135",
+    "commit": "fe11de79f84df89026903100a0f1c5f9e28a1fa4"
+  },
+  "_source": "git://github.com/cognitect-labs/bower-transducers-js.git",
+  "_target": "0.4.135",
+  "_originalSource": "transducers-js"
+}
