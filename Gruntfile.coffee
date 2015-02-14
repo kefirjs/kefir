@@ -119,7 +119,7 @@ module.exports = (grunt) ->
         options:
           cleanup: true
           verbose: true
-          targetDir: './bower-packages'
+          targetDir: './bower_components'
 
     release:
       options:
