@@ -2,6 +2,7 @@
 
  - The `Bus` and `Pool` classes are exposed as `Kefir.Bus` and `Kefir.Pool`
  - New method `.emitEvent` in Emitter, Emitter Object, and Bus
+ - A bug in `.merge` and `.zip` fixed which may cause them to not unsubscribe from their sources in very rare cases
 
 ## 1.0.0
 

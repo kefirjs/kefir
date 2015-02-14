@@ -75,3 +75,10 @@ describe 'merge', ->
     b = prop()
     c = stream()
     expect(Kefir.merge([a, b, c])).errorsToFlow(c)
+
+  it 'should work correctly when unsuscribing after one sync event', ->
+    a = Kefir.constant(1)
+    b = Kefir.interval(1000, 1)
+    c = a.merge(b)
+    activate(c.take(1))
+    expect(b).not.toBeActive()

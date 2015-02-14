@@ -98,7 +98,11 @@ inherit(_AbstractPool, Stream, {
     var sources = this._curSources
       , i;
     this._activating = true;
-    for (i = 0; i < sources.length; i++) {  this._subscribe(sources[i])  }
+    for (i = 0; i < sources.length; i++) {
+      if (this._active) {
+        this._subscribe(sources[i]);
+      }
+    }
     this._activating = false;
   },
   _onDeactivation: function() {
@@ -373,7 +377,9 @@ inherit(Zip, Stream, {
     this._drainArrays();
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
+      if (this._active) {
+        this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
+      }
     }
   },
 
