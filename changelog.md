@@ -1,3 +1,8 @@
+## next
+
+ - The `Bus` and `Pool` classes are exposed as `Kefir.Bus` and `Kefir.Pool`
+ - New method `.emitEvent` in Emitter, Emitter Object, and Bus
+
 ## 1.0.0
 
  - jQuery plugin moved to a [separate repo](https://github.com/pozadi/kefir-jquery)

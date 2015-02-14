@@ -3,8 +3,10 @@ h2#create-stream Create a stream
 
 +descr-method('emitter', 'emitter', 'Kefir.emitter()').
   Creates an emitter, that is ordinary stream, but also has additional methods:
-  #[tt .emit(value)], #[tt .error(error)], and #[tt .end()].
-  Once an emitter was created, one can easily emit all three kind of events to it,
+  #[tt .emit(value)], #[tt .error(error)], #[tt .end()], and #[tt .emitEvent()].
+  The first three are pretty self-descriptive, and the last one accepts event object with same format
+  as in #[a(href='#on-any') onAny] method and emits the event.
+  Once an emitter was created, one can easily emit all three kind of events from it,
   using these methods.
 
 pre(title='example').

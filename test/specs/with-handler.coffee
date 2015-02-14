@@ -11,6 +11,9 @@ describe 'withHandler', ->
       when 'error' then emitter.error(event.value)
       when 'end' then emitter.end()
 
+  emitEventMirror = (emitter, event) ->
+    emitter.emitEvent(event)
+
 
   duplicate = (emitter, event) ->
     if event.type == 'value'
@@ -52,6 +55,11 @@ describe 'withHandler', ->
         send(a, ['<end>'])
       expect(a.withHandler mirror).toEmit ['<end:current>']
 
+    it 'should support emitter.emitEvent', ->
+      a = stream()
+      expect(a.withHandler emitEventMirror).toEmit [1, {error: 3}, 2, '<end>'], ->
+        send(a, [1, {error: 3}, 2, '<end>'])
+
 
 
   describe 'property', ->
@@ -72,6 +80,11 @@ describe 'withHandler', ->
     it 'should handle events and current (with `duplicate` handler)', ->
       a = send(prop(), [1, {error: 0}])
       expect(a.withHandler duplicate).toEmit [{current: 1}, {currentError: 0}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], ->
+        send(a, [2, {error: 4}, 3, '<end>'])
+
+    it 'should support emitter.emitEvent', ->
+      a = send(prop(), [1, {error: 0}])
+      expect(a.withHandler emitEventMirror).toEmit [{current: 1}, {currentError: 0}, 2, {error: 4}, 3, '<end>'], ->
         send(a, [2, {error: 4}, 3, '<end>'])
 
     it 'should automatically preserve isCurent (end)', ->

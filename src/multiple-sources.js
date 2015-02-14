@@ -234,6 +234,9 @@ inherit(Bus, _AbstractPool, {
   end: function() {
     this._send(END);
     return this;
+  },
+  emitEvent: function(event) {
+    this._send(event.type, event.value);
   }
 
 });
