@@ -1,6 +1,6 @@
 node_modules
 tmp
-bower-packages
+bower_components
 dist
 test/in-browser/spec/KefirSpecs.js
 index.html
