@@ -1,0 +1,13 @@
+node_modules*
+npm-debug.log
+**/.DS_Store
+.DS_Store
+.idea/
+*.iml
+*.exe
+*.nupkg
+browsertest/bundle.js
+src/Testing*
+spec/BaconSpec.coffee
+testing
+performance/performance.js

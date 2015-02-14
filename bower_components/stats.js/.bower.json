@@ -1,0 +1,13 @@
+{
+  "name": "stats.js",
+  "homepage": "https://github.com/mrdoob/stats.js",
+  "_release": "r12",
+  "_resolution": {
+    "type": "tag",
+    "tag": "r12",
+    "commit": "44ad2918f86add4544e0cb01de82c24ac6678f3a"
+  },
+  "_source": "git@github.com:mrdoob/stats.js.git",
+  "_target": "r12",
+  "_originalSource": "git@github.com:mrdoob/stats.js.git"
+}

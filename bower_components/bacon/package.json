@@ -1,0 +1,101 @@
+{
+  "name": "baconjs",
+  "description": "A small functional reactive programming lib for JavaScript.",
+  "version": "0.7.48",
+  "keywords": [
+    "bacon.js",
+    "bacon",
+    "frp",
+    "functional",
+    "reactive",
+    "programming",
+    "stream",
+    "streams",
+    "EventStream",
+    "Rx",
+    "RxJs",
+    "Observable"
+  ],
+  "author": {
+    "name": "Juha Paananen",
+    "email": "juha.paananen@gmail.com",
+    "url": "https://twitter.com/raimohanska"
+  },
+  "contributors": [
+    {
+      "name": "Daniel K",
+      "email": "x.flowwolf@gmail.com",
+      "url": "https://twitter.com/xflowwolf"
+    }
+  ],
+  "licenses": [
+    "MIT"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine-node": "~1.13.1",
+    "coffee-script": "~1.7.1",
+    "grunt": "0.4",
+    "grunt-cli": "0.1.13",
+    "grunt-contrib-coffee": "~0.10.0",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-contrib-watch": "~0.5",
+    "grunt-text-replace": "~0.3.10",
+    "benchmark": "1.0.0",
+    "browserify": "~3.28.1",
+    "coffeeify": "~0.7",
+    "sinon": "~1.8.1",
+    "grunt-contrib-uglify": "~0.3.2",
+    "chai": "1.9.0",
+    "mocha": "1.17.1",
+    "lodash": "~2.4.1",
+    "coffeelint": "~1.5.5",
+    "grunt-coffeelint": "0.0.13",
+    "shelljs": "^0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baconjs/bacon.js.git"
+  },
+  "homepage": "https://github.com/baconjs/bacon.js",
+  "testling": {
+    "browsers": {
+      "ie": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "ff": [
+        12,
+        17,
+        22
+      ],
+      "chrome": [
+        22
+      ],
+      "opera": [
+        12
+      ],
+      "safari": [
+        5.1,
+        6
+      ],
+      "iphone": [
+        6
+      ],
+      "ipad": [
+        6
+      ]
+    },
+    "harness": "mocha",
+    "files": "spec/CompatibilityTest.coffee"
+  },
+  "scripts": {
+    "test": "./runtests",
+    "pre-publish": "grunt"
+  },
+  "main": "dist/Bacon.js"
+}
