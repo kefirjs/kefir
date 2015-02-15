@@ -479,6 +479,30 @@ pre(title='example')
     // still may make sense depend on how we use it.
     result.take(10).log();
 
+p.
+  It's even more dangerous if #[b generator] constantly returns ended observable
+  with no values (e.g. #[a(href='#never') never]).
+  In this case #[tt .take] won't help, because you'll never get any single
+  value from it, but #[b generator] will be called over and over.
+  The only escape path here is to define an escape condition it the
+  #[b generator]:
+
+pre(title='example')
+  :escapehtml
+    var result = Kefir.repeat(function(i) {
+
+      // Defining that a new observable will be spawned at most 10 times
+      if (i >= 10) {
+        return false;
+      }
+
+      return Kefir.never();
+    });
+
+p.
+  So just be careful when using #[b repeat],
+  it's a little dangerous but still a great method.
+
 
 
 h2#create-property Create a property
