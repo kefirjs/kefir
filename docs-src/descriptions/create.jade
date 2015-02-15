@@ -28,7 +28,7 @@ pre(title='events in time').
 div
 
 p.
-  <img data-emoji="point_up"> #[b Emitter] is the easiest way
+  #[img(data-emoji="point_up")] #[b Emitter] is the easiest way
   to create general purpose streams,
   but it doesn't give you control over the #[a(href='#active-state') active state]
   of the stream — it doesn't allows you to monitor if the stream has subscribers or not,
@@ -460,6 +460,24 @@ pre(title='events in time').
   result:     ---0---0---1---1---2---2X
 div
 
+p.
+  #[img(data-emoji="point_up")] Note that with this method
+  it's possible to create an infinite loop. Consider this example:
+
+pre(title='example')
+  :escapehtml
+    var result = Kefir.repeat(function() {
+      return Kefir.constant(1);
+    });
+
+    // When we subscribe to it (directly or via .log)
+    // we already in infinite loop.
+    result.log();
+
+    // But if we limit it with .take or something it'll work just fine.
+    // So the `result` stream defined like this
+    // still may make sense depend on how we use it.
+    result.take(10).log();
 
 
 
