@@ -138,3 +138,19 @@ describe 'zip', ->
     activate(cb)
     deactivate(cb)
     expect(cb).toEmit [{current: [0, 1]}]
+
+
+  it 'should work correctly when unsuscribing after one sync event', ->
+    a0 = stream()
+    a = a0.toProperty(1)
+    b0 = stream()
+    b = b0.toProperty(1)
+    c = Kefir.zip([a, b])
+
+    activate(c1 = c.take(2))
+    send(b0, [1, 1])
+    send(a0, [1])
+    deactivate(c1)
+
+    activate(c.take(1))
+    expect(b).not.toBeActive()

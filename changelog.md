@@ -1,3 +1,10 @@
+## 1.1.0
+
+ - The `Bus` and `Pool` classes are exposed as `Kefir.Bus` and `Kefir.Pool`
+ - A bug in `.merge` and `.zip` fixed which may cause them to not unsubscribe from their sources in very rare cases
+ - New method `.emitEvent` in Emitter, Emitter Object, and Bus
+ - New method `Kefir.repeat`
+
 ## 1.0.0
 
  - jQuery plugin moved to a [separate repo](https://github.com/pozadi/kefir-jquery)
@@ -26,11 +33,10 @@
 ## 0.5.0
 
  - Base errors support added (i.e. errors flow through all kind of transformations/combinations)
+ - Properties now may have a current error (as well as current value)
  - New method `.onError`
  - New method `.offError`
- - Emitter now has `.error` method for emitting errors
- - Emitter object also now has `.error` method
- - Properties now may have a current error (as well as current value)
+ - New method `.error` in Emitter, Emitter Object, and Bus
  - New method `Kefir.constantError`
  - New method `.mapErrors`
  - New method `.filterErrors`

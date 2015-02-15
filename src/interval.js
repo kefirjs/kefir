@@ -9,7 +9,8 @@ withInterval('withInterval', {
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x)  },
       error: function(x) {  $._send(ERROR, x)  },
-      end: function() {  $._send(END)  }
+      end: function() {  $._send(END)  },
+      emitEvent: function(e) {  $._send(e.type, e.value)  }
     }
   },
   _free: function() {

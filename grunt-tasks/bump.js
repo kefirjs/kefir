@@ -26,9 +26,13 @@ module.exports = function(grunt){
     grunt.file.write('bower.json', JSON.stringify(bower, null, '  ') + '\n');
     grunt.log.ok('bumped version in bower.json to ' + pkg.version);
 
-    run('NODE_PATH=./dist grunt'); // lol
+    run('grunt'); // lol
+    run('grunt bower'); // lol
     run('git add .');
     run('git add -f dist');
+    run('git add -f index.html');
+    run('git add -f bower-packages');
+    run('git add -f test/in-browser/spec/KefirSpecs.js');
     run('git commit -m "'+ pkg.version +'"');
     run('git push');
 

@@ -56,7 +56,8 @@ withOneSource('withHandler', {
     this._emitter = {
       emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
       error: function(x) {  $._send(ERROR, x, $._forcedCurrent)  },
-      end: function() {  $._send(END, null, $._forcedCurrent)  }
+      end: function() {  $._send(END, null, $._forcedCurrent)  },
+      emitEvent: function(e) {  $._send(e.type, e.value, $._forcedCurrent)  }
     }
   },
   _free: function() {

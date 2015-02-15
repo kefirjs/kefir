@@ -66,6 +66,21 @@ describe 'fromBinder', ->
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
 
 
+  it 'should support emitter.emitEvent', ->
+    expect(
+      Kefir.fromBinder  (emitter) ->
+        emitter.emitEvent({type: 'value', value: 1, current: true});
+        emitter.emitEvent({type: 'error', value: -1, current: false});
+        emitter.emitEvent({type: 'value', value: 2, current: false});
+        setTimeout ->
+          emitter.emitEvent({type: 'value', value: 3, current: true});
+          emitter.emitEvent({type: 'value', value: 4, current: false});
+          emitter.emitEvent({type: 'end', value: undefined, current: false});
+        , 1000
+        null
+    ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 3], [1000, 4], [1000, '<end>']]
+
+
   # https://github.com/pozadi/kefir/issues/35
   it 'should work with .take(1) and sync emit', ->
 
