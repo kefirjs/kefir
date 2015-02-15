@@ -33,7 +33,7 @@ p.
   but it doesn't give you control over the #[a(href='#active-state') active state]
   of the stream — it doesn't allows you to monitor if the stream has subscribers or not,
   and sub/unsub to your original source or doing other resource management based on
-  whether stream has subscribers or not. If you want to have that control, you should use
+  that. If you want to have that control, you should use
   #[a(href='#from-binder') fromBinder] or #[a(href='#from-sub-unsub') fromSubUnsub].
 
 
@@ -417,6 +417,49 @@ pre(title='console output')
     > first: 2
     > second: 2
 div
+
+
+
+
++descr-method('repeat', 'repeat', 'Kefir.repeat(generator)').
+  Calls #[b generator] function which supposed to return an observable.
+  Emits values and errors from spawned observable, when it ends
+  calls #[b generator] again to get new one and so on.
+
+p.
+  The #[b generator] function is called with one argument — iteration number
+  starting from #[tt 0]. If a falsy value returned
+  from #[b generator] the stream ends.
+
+pre(title='example')
+  :escapehtml
+    var result = Kefir.repeat(function(i) {
+      if (i < 3) {
+        return Kefir.sequentially(100, [i, i]);
+      } else {
+        return false;
+      }
+    });
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [repeat] <value> 0
+    > [repeat] <value> 0
+    > [repeat] <value> 1
+    > [repeat] <value> 1
+    > [repeat] <value> 2
+    > [repeat] <value> 2
+    > [repeat] <end>
+
+pre(title='events in time').
+  spawned 1:  ---0---0X
+  spawned 2:          ---1---1X
+  spawned 3:                  ---2---2X
+
+  result:     ---0---0---1---1---2---2X
+div
+
 
 
 
