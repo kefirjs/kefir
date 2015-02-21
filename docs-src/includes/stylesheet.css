@@ -101,6 +101,12 @@ table, tr, td {
       border-bottom: solid 1px #ddd;
     }
 
+hr {
+  height: 0;
+  border: none;
+  border-bottom: solid 1px #ddd;
+}
+
 ul {
   list-style-type: square;
   padding: 0 0 0 20px;
