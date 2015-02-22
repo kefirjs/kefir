@@ -7,12 +7,12 @@
 | Bacon | Kefir | Comments |
 | ----- | ----- | -------- |
 | `$.fn.asEventStream(eventName, [selector], [eventTransformer])` | `$.fn.asKefirStream(eventName, [selector], [eventTransformer])` | In Kefir this method available not in core but in separate lib [kefir-jquery](https://github.com/pozadi/kefir-jquery) |
-| `Bacon.fromPromise(promise [abort])` | `Kefir.fromPromise(promise)` | No `abort` option in Kefir, and the result is a Property unlike Stream in Bacon |
-| `Bacon.fromEventTarget(target, eventName [eventTransformer])` | `Kefir.fromEvent(target, eventName [eventTransformer])` |  |
-| `Bacon.fromCallback(f [args...])` | `Kefir.fromCallback(fn)` | No `args` argument in Kefir |
-| `Bacon.fromCallback(object, methodName [args...])` | No alt. |  |
-| `Bacon.fromNodeCallback(f [args...])` | `Kefir.fromNodeCallback(fn)` | No `args` argument in Kefir |
-| `Bacon.fromNodeCallback(object, methodName [args...])` | No alt. |  |
+| `Bacon.fromPromise(promise, [abort])` | `Kefir.fromPromise(promise)` | No `abort` option in Kefir, and the result is a Property unlike Stream in Bacon |
+| `Bacon.fromEventTarget(target, eventName, [eventTransformer])` | `Kefir.fromEvent(target, eventName, [eventTransformer])` |  |
+| `Bacon.fromCallback(f, [args...])` | `Kefir.fromCallback(fn)` | No `args` argument in Kefir |
+| `Bacon.fromCallback(object, methodName, [args...])` | No alt. |  |
+| `Bacon.fromNodeCallback(f, [args...])` | `Kefir.fromNodeCallback(fn)` | No `args` argument in Kefir |
+| `Bacon.fromNodeCallback(object, methodName, [args...])` | No alt. |  |
 | `Bacon.fromPoll(interval, fn)` | `Kefir.fromPoll(interval, fn)` | In Kefir there is no feature "Polling ends permanently when f returns Bacon.End" |
 | `Bacon.once(value)` | No alt., considered harmful, use `Kefir.constant(value)` instead |  |
 | `Bacon.fromArray(values)` | No alt., considered harmful, try to use `Kefir.sequentially(0, values)` instead |  |
@@ -37,7 +37,7 @@
 | No alt. | `$.fn.asKefirProperty(eventName, [selector], getter)` | Also from [kefir-jquery](https://github.com/pozadi/kefir-jquery) |
 | `Bacon.constant(value)` | `Kefir.constant(value)` |  |
 | No alt. | `Kefir.constantError(error)` | Bacon properties can't have current error, only values |
-| `Bacon.fromPromise(promise [abort])` | `Kefir.fromPromise(promise)` | This method was alredy mentioned in "Create Stream" section, duplicated here as Kefir's version returns a Property |
+| `Bacon.fromPromise(promise, [abort])` | `Kefir.fromPromise(promise)` | This method was alredy mentioned in "Create Stream" section, duplicated here as Kefir's version returns a Property |
 
 
 ### Convert observables
@@ -66,7 +66,7 @@
 | Use `unsub` function | `obs.offLog([name])` |  |
 | `obs.name(newName)` | `obs.setName(newName)` |  |
 | `observable.withDescription(param...)` | No alt.  |  |
-| `property.assign(obj, method [param...])` | No alt. | This is basically alias for `.onValue` and all magic done by [Function Construction rules](https://github.com/baconjs/bacon.js#function-construction-rules) which Kefir doesn't support |
+| `property.assign(obj, method, [param...])` | No alt. | This is basically alias for `.onValue` and all magic done by [Function Construction rules](https://github.com/baconjs/bacon.js#function-construction-rules) which Kefir doesn't support |
 
 
 
@@ -95,7 +95,7 @@
 | `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` |  |
 | `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Bacon there is also `.fold` alias for `.reduce` |
 | `obs.diff(start, fn)` | `obs.diff([fn], [seed])` |  |
-| `obs.slidingWindow(max [min])` | `obs.slidingWindow(max [min])` |  |
+| `obs.slidingWindow(max, [min])` | `obs.slidingWindow(max, [min])` |  |
 | `obs.map(value)` | `obs.mapTo(value)` | In Bacon the `value` can't be a function or an observable, as `.map` will handle them differently |
 | `obs.map('.foo')` | `obs.pluck(propertyName)` |  |
 | `obs.map('.foo')` where `foo` is a method | `obs.invoke(methodName)` |  |
@@ -142,7 +142,7 @@
 | `obs.flatMapError(fn)` | No alt. |  |
 | `obs.flatMapWithConcurrencyLimit(limit, fn)` | `obs.flatMapConcurLimit([fn], limit)` |  |
 | `obs.flatMapConcat(fn)` | `obs.flatMapConcat([fn])` |  |
-| `Bacon.onValues(a, b [c...], f)` | No alt. |  |
+| `Bacon.onValues(a, b, [c...], f)` | No alt. |  |
 | `Bacon.when()` | No alt. |  |
 | `Bacon.update()` | No alt. |  |
 
