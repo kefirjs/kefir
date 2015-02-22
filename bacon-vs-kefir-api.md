@@ -27,33 +27,6 @@
 | `Bacon.fromBinder(subscribe)` | `Kefir.fromBinder(subscribe)` | In Kefir [emitter object](https://pozadi.github.io/kefir/#emitter-object) used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
 | No alt. | `Kefir.withInterval(interval, handler)` |  |
 | No alt. | `Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])` |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
 
 
 
@@ -65,32 +38,6 @@
 | `Bacon.constant(value)` | `Kefir.constant(value)` |  |
 | No alt. | `Kefir.constantError(error)` | Bacon properties can't have current error, only values |
 | `Bacon.fromPromise(promise [, abort])` | `Kefir.fromPromise(promise)` | This method was alredy mentioned in "Create Stream" section, duplicated here as Kefir's version returns a Property |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
 
 
 ### Convert observables
@@ -100,34 +47,6 @@
 | `property.changes()` | `property.changes()` |  |
 | `property.toEventStream()` | No alt. |  |
 | `stream.toProperty([current])` | `stream.toProperty([current])` |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
 
 
 
@@ -145,35 +64,9 @@
 | use `unsub` function, or `Bacon.noMore` | `obs.offAny(fn)` |  |
 | `obs.log([name])` | `obs.log([name])` | The log format is different. Kefir returns `this` unlike Bacon, that returns `unusb` function |
 | use `unsub` function | `obs.offLog([name])` |  |
-| `observable.name(newName)` | `observable.setName(newName)` |  |
+| `obs.name(newName)` | `obs.setName(newName)` |  |
+| `observable.withDescription(param...)` | No alt.  |  |
 | `property.assign(obj, method [, param...])` | No alt. | This is basically alias for `.onValue` and all magic done by [Function Construction rules](https://github.com/baconjs/bacon.js#function-construction-rules) which Kefir doesn't support |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
 
 
 
@@ -184,7 +77,7 @@
 | ----- | ----- | -------- |
 | `obs.map(fn)` | `obs.map(fn)` |  |
 | `obs.mapError(fn)` | `obs.errorsToValues(fn)` | In Kefir you supposed to return an object with shape `{convert: Bool, value: Any}`, in Bacon you return `Event`. In Kefir there is no way to chnage error content if you not converting it to a value. |
-| No alt. | obs.mapErrors(fn) | Just like `.map` but for errors, doesn't converts errors to values |
+| No alt. | `obs.mapErrors(fn)` | Just like `.map` but for errors. Doesn't convert errors to values or something. |
 | `obs.errors()` | `obs.skipValues()` |  |
 | `obs.skipErrors()` | `obs.skipErrors()` |  |
 | No alt. | `obs.skipEnd()` |  |
@@ -202,7 +95,6 @@
 | `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` |  |
 | `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Bacon there is also `.fold` alias for `.reduce` |
 | `obs.diff(start, fn)` | `obs.diff([fn], [seed])` |  |
-| `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir you can also pass array as `other` arg |
 | `obs.slidingWindow(max [, min])` | `obs.slidingWindow(max [, min])` |  |
 | `obs.map(value)` | `obs.mapTo(value)` | In Bacon the `value` can't be a function or an observable, as `.map` will handle them differently |
 | `obs.map('.foo')` | `obs.pluck(propertyName)` |  |
@@ -211,40 +103,37 @@
 | `obs.skip(n)` | `obs.skip(n)` |  |
 | `obs.skipWhile(predicate)` | `obs.skipWhile([predicate])` |  |
 | `obs.skipDuplicates([comparator])` | `obs.skipDuplicates([comparator])` |  |
-| ??? | `obs.bufferWhile([predicate], [options])` |  |
 | No alt. | `obs.flatten([transformer])` |  |
 | No alt. | `obs.transduce(transducer)` |  |
-| ??? | `obs.valuesToErrors([handler])` |  |
-| ??? | `obs.filterErrors([predicate])` |  |
+| No alt. | `obs.valuesToErrors([handler])` |  |
+| No alt. | `obs.filterErrors([predicate])` |  |
 | `obs.endOnError([predicate])` | `obs.endOnError()` | Bacon allows to provide predicate function to end only on certain errors  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
+| `obs.withStateMachine(initState, f)` | No alt. |  |
+| `obs.decode(mapping)` | No alt. |  |
+| `obs.withHandler(handler)` | `obs.withHandler(handler)` | Same functionality but API (inside `handler`) is pretty different |
+| `obs.startWith(value)` | No alt. |  |
+| No alt. | `obs.bufferWhile([predicate], [options])` |  |
+| `stream.bufferWithTime(delay)` | No alt. |  |
+| `stream.bufferWithTime(f)` | No alt. |  |
+| `stream.bufferWithCount(count)` | No alt. |  |
+| `stream.bufferWithTimeOrCount(delay, count)` | No alt. |  |
+| `property.sample(interval)` | No alt. |  |
+
+
+
 
 ### Combine observables
 
 | Bacon | Kefir | Comments |
 | ----- | ----- | -------- |
-| ??? | `Kefir.combine(obss, [fn])` |  |
-| ??? | `Kefir.and(obss)` |  |
-| ??? | `Kefir.or(obss)` |  |
-| ??? | `Kefir.sampledBy(passiveObss, activeObss, [fn])` |  |
-| ??? | `Kefir.zip(sources, [combinator])` |  |
-| ??? | `Kefir.merge(obss)` |  |
-| ??? | `Kefir.concat(obss)` |  |
+| `Bacon.combineAsArray(obss)`, `Bacon.combineWith(f, obs1, obs2...)` | `Kefir.combine(obss, [fn])` |  |
+| `Bacon.combineTemplate(template)` | No alt. | |
+| No alt. | `Kefir.and(obss)` |  |
+| No alt. | `Kefir.or(obss)` |  |
+| No alt. | `Kefir.sampledBy(passiveObss, activeObss, [fn])` |  |
+| `Bacon.zipAsArray(streams)`, `Bacon.zipWith(streams, f)` | `Kefir.zip(sources, [combinator])` |  |
+| `Bacon.mergeAll(streams)` | `Kefir.merge(obss)` |  |
+| No alt. | `Kefir.concat(obss)` |  |
 | `new Bacon.Bus()` | `Kefir.bus()` | In Kefir there is `emit` method unlike `push` in Bacon |
 | use bus | `Kefir.pool()` |  |
 | `obs.flatMap(fn)` | `obs.flatMap([fn])` |  |
@@ -253,27 +142,12 @@
 | `obs.flatMapError(fn)` | No alt. |  |
 | `obs.flatMapWithConcurrencyLimit(limit, fn)` | `obs.flatMapConcurLimit([fn], limit)` |  |
 | `obs.flatMapConcat(fn)` | `obs.flatMapConcat([fn])` |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
+| `Bacon.onValues(a, b [, c...], f)` | No alt. |  |
+| `Bacon.when()` | No alt. |  |
+| `Bacon.update()` | No alt. |  |
+
+
+
 
 ### Combine two observables
 
@@ -283,35 +157,18 @@
 | `obs.filter(property)` | `obs.filterBy(obs)` |  |
 | `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` |  |
 | `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` |  |
-| ??? | `obs.skipWhileBy(otherObs)` |  |
-| ??? | `obs.skipUntilBy(otherObs)` |  |
-| ??? | `obs.takeUntilBy(otherObs)` |  |
-| ??? | `obs.bufferBy(otherObs, [options])` |  |
-| ??? | `obs.bufferWhileBy(otherObs, [options])` |  |
+| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` |  |
+| `stream.skipUntil(stream2)` | `obs.skipUntilBy(otherObs)` |  |
+| `obs.takeUntil(stream) ` | `obs.takeUntilBy(otherObs)` |  |
+| No alt. | `obs.bufferBy(otherObs, [options])` |  |
 | `obs.awaiting(otherObs)` | `obs.awaiting(otherObs)` |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
+| `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir you can also pass array as `other` arg |
+| `property.sampledBy(obs, [fn])` | `obs.sampledBy(obs, [fn])` |  |
+| `property.and(other)` | `obs.and(other)` |  |
+| `property.or(other)` | `obs.or(other)` |  |
+| `stream.concat(otherStream)` | `obs.concat(otherObs)` |  |
+| `stream.merge(otherStream)` | `obs.merge(otherObs)` |  |
+| `stream.holdWhen(valve)` | `obs.bufferWhileBy(otherObs, [options])` |  |
 
 
 
@@ -322,39 +179,4 @@
 | [Function Construction rules](https://github.com/baconjs/bacon.js#function-construction-rules) | Not supported |  |
 | [Atomic updates](https://github.com/baconjs/bacon.js#atomic-updates) | Not supported |  |
 | Meaningful `.toString` | Partial support | Kefir doesn't shows argumetns only chain of method names |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-
-
-
-
-
-
-
-
-
+| [Lazy evaluation](https://github.com/baconjs/bacon.js#lazy-evaluation) | Not supported |  |
