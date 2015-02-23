@@ -132,8 +132,8 @@
 | No alt. | `Kefir.or(obss)` | Bacon only supports two arity `.or` (see below) |
 | No alt. | `Kefir.sampledBy(passiveObss, activeObss, [fn])` | Bacon only supports two arity `.sampledBy` (see below) |
 | `Bacon.zipAsArray(streams)`, `Bacon.zipWith(streams, f)` | `Kefir.zip(sources, [combinator])` | In Kefir you can also pass ordinary arrays among with observables in `sources` |
-| `Bacon.mergeAll(streams)` | `Kefir.merge(obss)` |  |
-| No alt. | `Kefir.concat(obss)` |  |
+| `Bacon.mergeAll(streams)` | `Kefir.merge(obss)` | Bacon supports only Streams |
+| No alt. | `Kefir.concat(obss)` | Bacon only supports two arity `.concat` (see below) |
 | `new Bacon.Bus()` | `Kefir.bus()` | In Kefir there is `emit` method unlike `push` in Bacon |
 | Use bus | `Kefir.pool()` |  |
 | `obs.flatMap(fn)` | `obs.flatMap([fn])` | In Kefir `fn` optional |
@@ -166,9 +166,9 @@
 | `property.sampledBy(obs, [fn])` | `obs.sampledBy(obs, [fn])` |  |
 | `property.and(other)` | `obs.and(other)` |  |
 | `property.or(other)` | `obs.or(other)` |  |
-| `stream.concat(otherStream)` | `obs.concat(otherObs)` | Bacon supports only streams? |
-| `stream.merge(otherStream)` | `obs.merge(otherObs)` | Bacon supports only streams? |
-| `stream.holdWhen(valve)` | `obs.bufferWhileBy(otherObs, [options])` | Bacon supports only streams? |
+| `stream.concat(otherStream)` | `obs.concat(otherObs)` | Bacon supports only Streams as operands |
+| `stream.merge(otherStream)` | `obs.merge(otherObs)` | Bacon supports only Streams as operands |
+| `stream.holdWhen(property)` | `obs.bufferWhileBy(otherObs, [options])` | Bacon supports only (Stream, Property) pair as operands |
 
 
 
