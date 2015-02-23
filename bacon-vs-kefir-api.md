@@ -8,7 +8,7 @@
 | ----- | ----- | -------- |
 | `$.fn.asEventStream(eventName, [selector], [eventTransformer])` | `$.fn.asKefirStream(eventName, [selector], [eventTransformer])` | In Kefir this method available not in core but in separate lib [kefir-jquery](https://github.com/pozadi/kefir-jquery) |
 | `Bacon.fromPromise(promise, [abort])` | `Kefir.fromPromise(promise)` | No `abort` option in Kefir, and the result is a Property unlike Stream in Bacon |
-| `Bacon.fromEventTarget(target, eventName, [eventTransformer])` | `Kefir.fromEvent(target, eventName, [eventTransformer])` |  |
+| `Bacon.fromEvent(target, eventName, [eventTransformer])` | `Kefir.fromEvent(target, eventName, [eventTransformer])` |  |
 | `Bacon.fromCallback(f, [args...])` | `Kefir.fromCallback(fn)` | No `args` argument in Kefir |
 | `Bacon.fromCallback(object, methodName, [args...])` | No alt. |  |
 | `Bacon.fromNodeCallback(f, [args...])` | `Kefir.fromNodeCallback(fn)` | No `args` argument in Kefir |
@@ -22,7 +22,7 @@
 | `Bacon.repeat(fn)` | `Kefir.repeat(fn)` |  |
 | `Bacon.never()` | `Kefir.never()` |  |
 | `Bacon.later(delay, value)` | `Kefir.later(delay, value)` |  |
-| `new Bacon.EventStream(subscribe)` | No alt., is `Kefir.fromBinder(subscribe)` a worthy alternative? |  |
+| `new Bacon.EventStream(subscribe)` | `Kefir.fromBinder(subscribe)` is a worthy alternative |  |
 | Use bus | `Kefir.emitter()` |  |
 | `Bacon.fromBinder(subscribe)` | `Kefir.fromBinder(subscribe)` | In Kefir [emitter object](https://pozadi.github.io/kefir/#emitter-object) used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
 | No alt. | `Kefir.withInterval(interval, handler)` |  |
@@ -155,11 +155,11 @@
 | ----- | ----- | -------- |
 | `stream.map(property)` | Use `.sampledBy()` |  |
 | `obs.filter(property)` | `obs.filterBy(obs)` |  |
-| `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` | Only property supported in Bacon? |
+| `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` | Bacon supports property or predicate, Kefir supports any observable |
 | `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` | In Kefir `fn` optional |
-| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` | Only property supported in Bacon? |
-| `stream.skipUntil(stream2)` | `obs.skipUntilBy(otherObs)` | Only stream supported in Bacon? |
-| `obs.takeUntil(stream) ` | `obs.takeUntilBy(otherObs)` | Only stream supported in Bacon? |
+| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` | Bacon supports property or predicate, Kefir supports any observable |
+| `stream.skipUntil(stream2)` | `obs.skipUntilBy(otherObs)` |  |
+| `obs.takeUntil(stream) ` | `obs.takeUntilBy(otherObs)` |  |
 | No alt. | `obs.bufferBy(otherObs, [options])` |  |
 | `obs.awaiting(otherObs)` | `obs.awaiting(otherObs)` |  |
 | `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir `fn` optional, and you can also pass array as `other` arg |
@@ -178,5 +178,5 @@
 | ----- | ----- | -------- |
 | [Function Construction rules](https://github.com/baconjs/bacon.js#function-construction-rules) | Not supported |  |
 | [Atomic updates](https://github.com/baconjs/bacon.js#atomic-updates) | Not supported |  |
-| Meaningful `.toString` | Partial support | Kefir doesn't shows argumetns only chain of method names |
+| Meaningful `.toString` | Partial support | Kefir doesn't shows arguments only chain of method names |
 | [Lazy evaluation](https://github.com/baconjs/bacon.js#lazy-evaluation) | Not supported |  |
