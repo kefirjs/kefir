@@ -22,7 +22,7 @@
 | `Bacon.repeat(fn)` | `Kefir.repeat(fn)` |  |
 | `Bacon.never()` | `Kefir.never()` |  |
 | `Bacon.later(delay, value)` | `Kefir.later(delay, value)` |  |
-| `new Bacon.EventStream(subscribe)` | `Kefir.fromBinder(subscribe)` is a worthy alternative |  |
+| `new Bacon.EventStream(subscribe)` | Use `Kefir.fromBinder` |  |
 | Use bus | `Kefir.emitter()` |  |
 | `Bacon.fromBinder(subscribe)` | `Kefir.fromBinder(subscribe)` | In Kefir [emitter object](https://pozadi.github.io/kefir/#emitter-object) used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
 | No alt. | `Kefir.withInterval(interval, handler)` |  |
@@ -82,8 +82,8 @@
 | `obs.skipErrors()` | `obs.skipErrors()` |  |
 | No alt. | `obs.skipEnd()` |  |
 | `obs.mapEnd(fn)` | `obs.mapEnd(fn)` |  |
-| `obs.filter(fn)` | `obs.filter(fn)` |  |
-| `obs.takeWhile(fn)` | `obs.takeWhile(fn)` |  |
+| `obs.filter(predicate)` | `obs.filter(predicate)` |  |
+| `obs.takeWhile(predicate)` | `obs.takeWhile(predicate)` |  |
 | `obs.take(n)` | `obs.take(n)` |  |
 | `obs.delay(delay)` | `obs.delay(delay)` |  |
 | `obs.throttle(delay)` | `obs.throttle(delay, [options])` | Kefir accepts underscore-like options object |
@@ -155,11 +155,11 @@
 | ----- | ----- | -------- |
 | `stream.map(property)` | Use `.sampledBy()` |  |
 | `obs.filter(property)` | `obs.filterBy(obs)` |  |
-| `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` | Bacon supports property or predicate, Kefir supports any observable |
+| `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` | Bacon supports only Property in second position. See also `obs.takeWhile(predicate)` above. |
 | `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` | In Kefir `fn` optional |
-| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` | Bacon supports property or predicate, Kefir supports any observable |
-| `stream.skipUntil(stream2)` | `obs.skipUntilBy(otherObs)` |  |
-| `obs.takeUntil(stream) ` | `obs.takeUntilBy(otherObs)` |  |
+| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` | Bacon supports only (Stream, Property) pair as operands. See also `obs.skipWhile(predicate)` above. |
+| `stream.skipUntil(otherObs)` | `obs.skipUntilBy(otherObs)` | Bacon supports only Streams in first position. |
+| `stream.takeUntil(otherObs) ` | `obs.takeUntilBy(otherObs)` | Bacon supports only Streams in first position. |
 | No alt. | `obs.bufferBy(otherObs, [options])` |  |
 | `obs.awaiting(otherObs)` | `obs.awaiting(otherObs)` |  |
 | `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir `fn` optional, and you can also pass array as `other` arg |
