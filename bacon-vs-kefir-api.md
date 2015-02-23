@@ -76,7 +76,7 @@
 | Bacon | Kefir | Comments |
 | ----- | ----- | -------- |
 | `obs.map(fn)` | `obs.map(fn)` |  |
-| `obs.mapError(fn)` | `obs.errorsToValues(fn)` | In Kefir you supposed to return an object with shape `{convert: Bool, value: Any}`, in Bacon you return `Event`. In Kefir there is no way to chnage error content if you not converting it to a value. |
+| `obs.mapError(fn)` | `obs.errorsToValues(fn)` | In Kefir you supposed to return an object with shape `{convert: Bool, value: Any}`, in Bacon you return `Event`. |
 | No alt. | `obs.mapErrors(fn)` | Just like `.map` but for errors. Doesn't convert errors to values or something. |
 | `obs.errors()` | `obs.skipValues()` |  |
 | `obs.skipErrors()` | `obs.skipErrors()` |  |
@@ -92,16 +92,16 @@
 | `obs.bufferingThrottle(minimumInterval)` | No alt. |  |
 | `obs.doAction(fn)` | `obs.tap(fn)` |  |
 | `obs.not()` | `obs.not()` |  |
-| `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` |  |
-| `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Bacon there is also `.fold` alias for `.reduce` |
-| `obs.diff(start, fn)` | `obs.diff([fn], [seed])` |  |
+| `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` | In Kefir, `seed` does second and optional. |
+| `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Kefir, `seed` does second and optional. In Bacon there is also `.fold` alias for `.reduce` |
+| `obs.diff(start, fn)` | `obs.diff([fn], [seed])` | In Kefir both args optional, and with different order. |
 | `obs.slidingWindow(max, [min])` | `obs.slidingWindow(max, [min])` |  |
 | `obs.map(value)` | `obs.mapTo(value)` | In Bacon the `value` can't be a function or an observable, as `.map` will handle them differently |
 | `obs.map('.foo')` | `obs.pluck(propertyName)` |  |
 | `obs.map('.foo')` where `foo` is a method | `obs.invoke(methodName)` |  |
 | No alt. | `obs.timestamp()` |  |
 | `obs.skip(n)` | `obs.skip(n)` |  |
-| `obs.skipWhile(predicate)` | `obs.skipWhile([predicate])` |  |
+| `obs.skipWhile(predicate)` | `obs.skipWhile([predicate])` | In Kefir `predicate` optional |
 | `obs.skipDuplicates([comparator])` | `obs.skipDuplicates([comparator])` |  |
 | No alt. | `obs.flatten([transformer])` |  |
 | No alt. | `obs.transduce(transducer)` |  |
@@ -128,20 +128,20 @@
 | ----- | ----- | -------- |
 | `Bacon.combineAsArray(obss)`, `Bacon.combineWith(f, obs1, obs2...)` | `Kefir.combine(obss, [fn])` |  |
 | `Bacon.combineTemplate(template)` | No alt. | |
-| No alt. | `Kefir.and(obss)` |  |
-| No alt. | `Kefir.or(obss)` |  |
-| No alt. | `Kefir.sampledBy(passiveObss, activeObss, [fn])` |  |
-| `Bacon.zipAsArray(streams)`, `Bacon.zipWith(streams, f)` | `Kefir.zip(sources, [combinator])` |  |
+| No alt. | `Kefir.and(obss)` | Bacon only supports two arity `.and` (see below) |
+| No alt. | `Kefir.or(obss)` | Bacon only supports two arity `.or` (see below) |
+| No alt. | `Kefir.sampledBy(passiveObss, activeObss, [fn])` | Bacon only supports two arity `.sampledBy` (see below) |
+| `Bacon.zipAsArray(streams)`, `Bacon.zipWith(streams, f)` | `Kefir.zip(sources, [combinator])` | In Kefir you can also pass ordinary arrays among with observables in `sources` |
 | `Bacon.mergeAll(streams)` | `Kefir.merge(obss)` |  |
 | No alt. | `Kefir.concat(obss)` |  |
 | `new Bacon.Bus()` | `Kefir.bus()` | In Kefir there is `emit` method unlike `push` in Bacon |
 | Use bus | `Kefir.pool()` |  |
-| `obs.flatMap(fn)` | `obs.flatMap([fn])` |  |
-| `obs.flatMapLatest(fn)` | `obs.flatMapLatest([fn])` |  |
-| `obs.flatMapFirst(fn)` | `obs.flatMapFirst([fn])` |  |
+| `obs.flatMap(fn)` | `obs.flatMap([fn])` | In Kefir `fn` optional |
+| `obs.flatMapLatest(fn)` | `obs.flatMapLatest([fn])` | In Kefir `fn` optional |
+| `obs.flatMapFirst(fn)` | `obs.flatMapFirst([fn])` | In Kefir `fn` optional |
 | `obs.flatMapError(fn)` | No alt. |  |
-| `obs.flatMapWithConcurrencyLimit(limit, fn)` | `obs.flatMapConcurLimit([fn], limit)` |  |
-| `obs.flatMapConcat(fn)` | `obs.flatMapConcat([fn])` |  |
+| `obs.flatMapWithConcurrencyLimit(limit, fn)` | `obs.flatMapConcurLimit([fn], limit)` | In Kefir `fn` optional, diff args order |
+| `obs.flatMapConcat(fn)` | `obs.flatMapConcat([fn])` | In Kefir `fn` optional |
 | `Bacon.onValues(a, b, [c...], f)` | No alt. |  |
 | `Bacon.when()` | No alt. |  |
 | `Bacon.update()` | No alt. |  |
@@ -153,22 +153,22 @@
 
 | Bacon | Kefir | Comments |
 | ----- | ----- | -------- |
-| `stream.map(property)` | `property.sampledBy(stream)` |  |
+| `stream.map(property)` | Use `.sampledBy()` |  |
 | `obs.filter(property)` | `obs.filterBy(obs)` |  |
-| `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` |  |
-| `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` |  |
-| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` |  |
-| `stream.skipUntil(stream2)` | `obs.skipUntilBy(otherObs)` |  |
-| `obs.takeUntil(stream) ` | `obs.takeUntilBy(otherObs)` |  |
+| `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` | Only property supported in Bacon? |
+| `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` | In Kefir `fn` optional |
+| `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` | Only property supported in Bacon? |
+| `stream.skipUntil(stream2)` | `obs.skipUntilBy(otherObs)` | Only stream supported in Bacon? |
+| `obs.takeUntil(stream) ` | `obs.takeUntilBy(otherObs)` | Only stream supported in Bacon? |
 | No alt. | `obs.bufferBy(otherObs, [options])` |  |
 | `obs.awaiting(otherObs)` | `obs.awaiting(otherObs)` |  |
-| `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir you can also pass array as `other` arg |
+| `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir `fn` optional, and you can also pass array as `other` arg |
 | `property.sampledBy(obs, [fn])` | `obs.sampledBy(obs, [fn])` |  |
 | `property.and(other)` | `obs.and(other)` |  |
 | `property.or(other)` | `obs.or(other)` |  |
-| `stream.concat(otherStream)` | `obs.concat(otherObs)` |  |
-| `stream.merge(otherStream)` | `obs.merge(otherObs)` |  |
-| `stream.holdWhen(valve)` | `obs.bufferWhileBy(otherObs, [options])` |  |
+| `stream.concat(otherStream)` | `obs.concat(otherObs)` | Bacon supports only streams? |
+| `stream.merge(otherStream)` | `obs.merge(otherObs)` | Bacon supports only streams? |
+| `stream.holdWhen(valve)` | `obs.bufferWhileBy(otherObs, [options])` | Bacon supports only streams? |
 
 
 
