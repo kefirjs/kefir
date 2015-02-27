@@ -448,7 +448,7 @@ stream.onEnd(function() {
 </p><p id="on-any"><a href="#on-any" class="header">onAny</a><code>obs.onAny(callback)</code><br/>Subscribes <b>callback</b> to all three types of events.
 Callback is called with <b>event object</b> as argument. Each event object
 contains three attributes — <b>type</b>, <b>value</b>, and <b>current</b>.
-</p><ul><li><b>type</b> — a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string</li><li><b>value</b> — the emitted <b>value</b> or <b>error</b> (<tt>undefined</tt> if <tt>event.type === 'end'</tt>)</li><li><b>current</b> — a boolean, that equals <tt>true</tt> if callback is called with current value/error of a property, or if the event represents an <b>end</b> of already ended observable (note that <a href="#current-in-streams">stremas also may emit current</a> values or errors)</li></ul><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
+</p><ul><li><b>type</b> — a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string</li><li><b>value</b> — the emitted <b>value</b> or <b>error</b> (<tt>undefined</tt> if <tt>event.type === 'end'</tt>)</li><li><b>current</b> — a boolean, that equals <tt>true</tt> if callback is called with current value/error of a property, or if the event represents an <b>end</b> of already ended observable (note that <a href="#current-in-streams">streams also may emit current</a> values or errors)</li></ul><pre title="example">var stream = Kefir.sequentially(1000, [1, 2]);
 stream.onAny(function(event) {
   console.log('event:', event);
 });
