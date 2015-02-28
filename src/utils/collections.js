@@ -15,6 +15,16 @@ function concat(a, b) {
   return result;
 }
 
+function circleShift(arr, distance) {
+  var length = arr.length
+    , result = new Array(length)
+    , i;
+  for (i = 0; i < length; i++) {
+    result[(i + distance) % length] = arr[i];
+  }
+  return result;
+}
+
 function find(arr, value) {
   var length = arr.length
     , i;

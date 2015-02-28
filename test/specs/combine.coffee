@@ -93,3 +93,95 @@ describe 'combine', ->
     b = prop()
     c = stream()
     expect(Kefir.combine([a, b, c])).errorsToFlow(c)
+
+
+
+  describe 'sampledBy functionality (3 arity combine)', ->
+
+    it 'should return stream', ->
+      expect(Kefir.combine([], [])).toBeStream()
+      expect(Kefir.combine([stream(), prop()], [stream(), prop()])).toBeStream()
+
+    it 'should be ended if empty array provided', ->
+      expect(Kefir.combine([stream(), prop()], [])).toEmit []
+      expect(Kefir.combine([], [stream(), prop()])).toEmit ['<end:current>']
+
+    it 'should be ended if array of ended observables provided', ->
+      a = send(stream(), ['<end>'])
+      b = send(prop(), ['<end>'])
+      c = send(stream(), ['<end>'])
+      expect(Kefir.combine([a, b, c], [stream(), prop()])).toEmit ['<end:current>']
+
+    it 'should be ended and emmit current (once) if array of ended properties provided and each of them has current', ->
+      a = send(prop(), [1, '<end>'])
+      b = send(prop(), [2, '<end>'])
+      c = send(prop(), [3, '<end>'])
+      s1 = Kefir.combine([a, b], [c])
+      expect(s1).toEmit [{current: [1, 2, 3]}, '<end:current>']
+      expect(s1).toEmit ['<end:current>']
+
+    it 'should activate sources', ->
+      a = stream()
+      b = prop()
+      c = stream()
+      expect(Kefir.combine([a, b], [c])).toActivate(a, b, c)
+
+    it 'should handle events and current from observables', ->
+      a = stream()
+      b = send(prop(), [0])
+      c = stream()
+      d = stream()
+      expect(Kefir.combine([c, d], [a, b])).toEmit [[2, 3, 1, 0], [5, 3, 1, 4], [6, 3, 1, 4], [6, 7, 1, 4], '<end>'], ->
+        send(a, [1])
+        send(c, [2])
+        send(d, [3])
+        send(b, [4, '<end>'])
+        send(c, [5, 6, '<end>'])
+        send(d, [7, '<end>'])
+
+
+    it 'should accept optional combinator function', ->
+      join = (args...) -> args.join('+')
+      a = stream()
+      b = send(prop(), [0])
+      c = stream()
+      d = stream()
+      expect(Kefir.combine([c, d], [a, b], join)).toEmit ['2+3+1+0', '5+3+1+4', '6+3+1+4', '6+7+1+4', '<end>'], ->
+        send(a, [1])
+        send(c, [2])
+        send(d, [3])
+        send(b, [4, '<end>'])
+        send(c, [5, 6, '<end>'])
+        send(d, [7, '<end>'])
+
+
+    it 'when activating second time and has 2+ properties in sources, should emit current value at most once', ->
+      a = send(prop(), [0])
+      b = send(prop(), [1])
+      c = send(prop(), [2])
+      sb = Kefir.combine([a, b], [c])
+      activate(sb)
+      deactivate(sb)
+      expect(sb).toEmit [{current: [0, 1, 2]}]
+
+    it 'errors should flow', ->
+      a = stream()
+      b = prop()
+      c = stream()
+      d = prop()
+      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(a)
+      a = stream()
+      b = prop()
+      c = stream()
+      d = prop()
+      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b)
+      a = stream()
+      b = prop()
+      c = stream()
+      d = prop()
+      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(c)
+      a = stream()
+      b = prop()
+      c = stream()
+      d = prop()
+      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(d)

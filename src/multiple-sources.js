@@ -461,15 +461,15 @@ Observable.prototype.zip = function(other, combinator) {
 
 
 
-// .sampledBy()
+// .combine()
 
-function SampledBy(passive, active, combinator) {
+function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
     this._send(END);
   } else {
-    this._passiveCount = passive.length;
-    this._sources = concat(passive, active);
+    this._activeCount = active.length;
+    this._sources = concat(active, passive);
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
@@ -481,14 +481,14 @@ function SampledBy(passive, active, combinator) {
 }
 
 
-inherit(SampledBy, Stream, {
+inherit(Combine, Stream, {
 
-  _name: 'sampledBy',
+  _name: 'combine',
 
   _onActivation: function() {
     var length = this._sources.length,
         i;
-    this._aliveCount = length - this._passiveCount;
+    this._aliveCount = this._activeCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
       this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
@@ -527,7 +527,7 @@ inherit(SampledBy, Stream, {
   _handleAny: function(i, event) {
     if (event.type === VALUE) {
       this._currents[i] = event.value;
-      if (i >= this._passiveCount) {
+      if (i < this._activeCount) {
         if (this._activating) {
           this._emitAfterActivation = true;
         } else {
@@ -539,7 +539,7 @@ inherit(SampledBy, Stream, {
       this._send(ERROR, event.value, event.current);
     }
     if (event.type === END) {
-      if (i >= this._passiveCount) {
+      if (i < this._activeCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
           if (this._activating) {
@@ -561,23 +561,57 @@ inherit(SampledBy, Stream, {
 
 });
 
-Kefir.sampledBy = function(passive, active, combinator) {
-  return new SampledBy(passive, active, combinator);
-}
-
-Observable.prototype.sampledBy = function(other, combinator) {
-  return Kefir.sampledBy([this], [other], combinator || id);
-}
-
-
-
-
-// .combine()
-
-Kefir.combine = function(sources, combinator) {
-  return new SampledBy([], sources, combinator).setName('combine');
+Kefir.combine = function(active, passive, combinator) {
+  if (isFn(passive)) {
+    combinator = passive;
+    passive = null;
+  }
+  if (!passive) {
+    passive = [];
+  }
+  return new Combine(active, passive, combinator);
 }
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
+}
+
+
+
+// .sampledBy()
+
+Kefir.DISABLE_SAMPLEDBY_WARNING = false;
+
+Kefir.sampledBy = function(passive, active, combinator) {
+
+  if (!Kefir.DISABLE_SAMPLEDBY_WARNING) {
+    log('Kefir.sampledBy() is deprecated, and to be removed in v3.0.0.\n' +
+      'Use Kefir.combine(active, passive, combinator) instead, ' +
+      'but note than active/passive order is different.\n' +
+      'To disable this warning set Kefir.DISABLE_SAMPLEDBY_WARNING to true.');
+  }
+
+  // we need to flip `passive` and `active` in combinator function
+  var _combinator = combinator;
+  if (passive.length > 0) {
+    var passiveLength = passive.length;
+    _combinator = function() {
+      var args = circleShift(arguments, passiveLength);
+      return combinator ? apply(combinator, null, args) : args;
+    }
+  }
+
+  return new Combine(active, passive, _combinator).setName('sampledBy');
+}
+
+Observable.prototype.sampledBy = function(other, combinator) {
+  var _combinator;
+  if (combinator) {
+    _combinator = function(active, passive) {
+      return combinator(passive, active);
+    }
+  } else {
+    _combinator = id2;
+  }
+  return new Combine([other], [this], _combinator).setName('sampledBy');
 }
