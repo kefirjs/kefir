@@ -51,6 +51,7 @@
     "semver": "2.3.0",
     "shelljs": "0.3.0",
     "sinon": "1.12.2",
+    "time-grunt": "^1.1.0",
     "transducers-js": "0.4.135",
     "transducers.js": "0.2.3"
   }

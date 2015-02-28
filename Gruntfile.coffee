@@ -37,6 +37,8 @@ module.exports = (grunt) ->
     }(this));
   """
 
+  require('time-grunt')(grunt)
+
   grunt.initConfig(
 
     browserify:
