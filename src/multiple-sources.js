@@ -566,15 +566,15 @@ Kefir.combine = function(active, passive, combinator) {
     combinator = passive;
     passive = null;
   }
-  if (!passive) {
-    passive = [];
-  }
-  return new Combine(active, passive, combinator);
+  return new Combine(active, passive || [], combinator);
 }
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
 }
+
+
+
 
 
 
@@ -610,8 +610,6 @@ Observable.prototype.sampledBy = function(other, combinator) {
     _combinator = function(active, passive) {
       return combinator(passive, active);
     }
-  } else {
-    _combinator = id2;
   }
-  return new Combine([other], [this], _combinator).setName('sampledBy');
+  return new Combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
 }
