@@ -1,6 +1,6 @@
 ## next
 
- - Kefir.sampledBy is deprecated in favor of 3 arity Kefir.combine
+ - `Kefir.sampledBy` is deprecated in favor of 3 arity `Kefir.combine`
 
 ## 1.1.0
 
