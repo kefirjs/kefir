@@ -32,7 +32,7 @@ extend(Dispatcher.prototype, {
     this._items = removeByPred(this._items, pred);
     return this._items.length;
   },
-  callAll: function(event) {
+  dispatch: function(event) {
     var items = this._items;
     for (var i = 0; i < items.length; i++) {
       callSubscriber(items[i].type, items[i].fn, event);
@@ -94,7 +94,7 @@ extend(Observable.prototype, {
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._dispatcher.callAll(Event(type, x, isCurrent));
+      this._dispatcher.dispatch(Event(type, x, isCurrent));
       if (type === END) {  this._clear()  }
     }
   },
@@ -178,7 +178,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._dispatcher.callAll(Event(type, x));
+        this._dispatcher.dispatch(Event(type, x));
       }
       if (type === VALUE) {  this._current = x  }
       if (type === ERROR) {  this._currentError = x  }
