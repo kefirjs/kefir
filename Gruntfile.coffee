@@ -160,7 +160,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'default', [
     'clean', 'build-docs', 'build-kefir', 'build-browser-tests', 'test']
 
-  grunt.registerTask 'build-light', [
+  grunt.registerTask 'light', [
     'concat:kefir'
     'test'
   ]

@@ -1,59 +1,47 @@
-// Subscribers
+// Dispatcher
 
-function Subscribers() {
+function callSubscriber(sType, sFn, event) {
+  if (sType === ANY) {
+    sFn(event);
+  } else if (sType === event.type) {
+    if (sType === VALUE || sType === ERROR) {
+      sFn(event.value);
+    } else {
+      sFn();
+    }
+  }
+}
+
+function Dispatcher() {
   this._items = [];
 }
 
-extend(Subscribers, {
-  callOne: function(fnData, event) {
-    if (fnData.type === ANY) {
-      fnData.fn(event);
-    } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE || fnData.type === ERROR) {
-        fnData.fn(event.value);
-      } else {
-        fnData.fn();
-      }
-    }
-  },
-  callOnce: function(type, fn, event) {
-    if (type === ANY) {
-      fn(event);
-    } else if (type === event.type) {
-      if (type === VALUE || type === ERROR) {
-        fn(event.value);
-      } else {
-        fn();
-      }
-    }
-  }
-});
-
-
-extend(Subscribers.prototype, {
+extend(Dispatcher.prototype, {
   add: function(type, fn, _key) {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
       key: _key || null
     }]);
+    return this._items.length;
   },
   remove: function(type, fn, _key) {
     var pred = isArray(_key) ?
       function(fnData) {return fnData.type === type && isEqualArrays(fnData.key, _key)} :
       function(fnData) {return fnData.type === type && fnData.fn === fn};
     this._items = removeByPred(this._items, pred);
+    return this._items.length;
   },
   callAll: function(event) {
     var items = this._items;
     for (var i = 0; i < items.length; i++) {
-      Subscribers.callOne(items[i], event);
+      callSubscriber(items[i].type, items[i].fn, event);
     }
-  },
-  isEmpty: function() {
-    return this._items.length === 0;
   }
 });
+
+
+
 
 
 
@@ -74,7 +62,7 @@ var CURRENT_END = Event(END, undefined, true);
 // Observable
 
 function Observable() {
-  this._subscribers = new Subscribers();
+  this._dispatcher = new Dispatcher();
   this._active = false;
   this._alive = true;
 }
@@ -101,30 +89,30 @@ extend(Observable.prototype, {
   _clear: function() {
     this._setActive(false);
     this._alive = false;
-    this._subscribers = null;
+    this._dispatcher = null;
   },
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._subscribers.callAll(Event(type, x, isCurrent));
+      this._dispatcher.callAll(Event(type, x, isCurrent));
       if (type === END) {  this._clear()  }
     }
   },
 
   _on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn, _key);
+      this._dispatcher.add(type, fn, _key);
       this._setActive(true);
     } else {
-      Subscribers.callOnce(type, fn, CURRENT_END);
+      callSubscriber(type, fn, CURRENT_END);
     }
     return this;
   },
 
   _off: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.remove(type, fn, _key);
-      if (this._subscribers.isEmpty()) {
+      var count = this._dispatcher.remove(type, fn, _key);
+      if (count === 0) {
         this._setActive(false);
       }
     }
@@ -190,7 +178,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.callAll(Event(type, x));
+        this._dispatcher.callAll(Event(type, x));
       }
       if (type === VALUE) {  this._current = x  }
       if (type === ERROR) {  this._currentError = x  }
@@ -200,17 +188,17 @@ inherit(Property, Observable, {
 
   _on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn, _key);
+      this._dispatcher.add(type, fn, _key);
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      Subscribers.callOnce(type, fn, Event(VALUE, this._current, true));
+      callSubscriber(type, fn, Event(VALUE, this._current, true));
     }
     if (this._currentError !== NOTHING) {
-      Subscribers.callOnce(type, fn, Event(ERROR, this._currentError, true));
+      callSubscriber(type, fn, Event(ERROR, this._currentError, true));
     }
     if (!this._alive) {
-      Subscribers.callOnce(type, fn, CURRENT_END);
+      callSubscriber(type, fn, CURRENT_END);
     }
     return this;
   }
