@@ -1,3 +1,7 @@
+## next
+
+ - `Kefir.sampledBy` is deprecated in favor of 3 arity `Kefir.combine`
+
 ## 1.1.0
 
  - The `Bus` and `Pool` classes are exposed as `Kefir.Bus` and `Kefir.Pool`

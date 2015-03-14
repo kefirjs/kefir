@@ -2,9 +2,8 @@ h2#combine-two Combine two observables
 
 p.
   Just like in <a href="#modify">"Modify an observable"</a> section,
-  all methods in this section return observables of same type as an original
-  observable (on which method was called). With one exception
-  for <a href="#awaiting">awaiting</a>, that always returns a property.
+  most of methods in this section return observables of same type as an original
+  observable (on which method was called).
 
 
 
@@ -28,9 +27,45 @@ pre(title='console output')
 
 pre(title='events in time').
   foo:     ----1----2----3----4----5----6----7----8X
-  bar:     t----------f---------t---------fX
+  bar:    t-----------f---------t---------fX
 
   result:  ----1----2--------------5----6----------X
+div
+
+
+
+
++descr-method('obs-sampled-by', 'sampledBy', 'obs.sampledBy(otherObs, [combinator])').
+  Returns a stream that emits latest value from #[b obs] observable
+  on each value from #[b otherObs]. Ends when #[b otherObs] ends.
+
+p.
+  You can also provide
+  #[b combinator] function which will be used to form the value emited
+  by result stream. It is called with latest values
+  from #[b obs] and #[b otherObs] as argumets. The default #[b combinator]
+  function is #[tt function(a,&nbsp;b)&nbsp;{return&nbsp;a}].
+
+pre(title='example').
+  var a = Kefir.sequentially(200, [2, 3]).toProperty(1);
+  var b = Kefir.interval(100, 0).delay(40).take(5);
+  var result = a.sampledBy(b);
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.toProperty.sampledBy] <value> 1
+    > [sequentially.toProperty.sampledBy] <value> 2
+    > [sequentially.toProperty.sampledBy] <value> 2
+    > [sequentially.toProperty.sampledBy] <value> 3
+    > [sequentially.toProperty.sampledBy] <value> 3
+    > [sequentially.toProperty.sampledBy] <end>
+
+pre(title='events in time').
+  a:      1---------2---------3X
+  b:       ------0----0----0----0----0X
+
+  result:  ------1----2----2----3----3X
 div
 
 
