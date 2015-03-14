@@ -1,4 +1,4 @@
-/*! Kefir.js v1.1.0
+/*! Kefir.js v1.2.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -42,6 +42,16 @@ function concat(a, b) {
   length = b.length;
   for (i = 0; i < length; i++, j++) {
     result[j] = b[i];
+  }
+  return result;
+}
+
+function circleShift(arr, distance) {
+  var length = arr.length
+    , result = new Array(length)
+    , i;
+  for (i = 0; i < length; i++) {
+    result[(i + distance) % length] = arr[i];
   }
   return result;
 }
@@ -247,6 +257,10 @@ function id(x) {
   return x;
 }
 
+function id2(_, x) {
+  return x;
+}
+
 function strictEqual(a, b) {
   return a === b;
 }
@@ -258,6 +272,10 @@ function defaultDiff(a, b) {
 var now = Date.now ?
   function() { return Date.now() } :
   function() { return new Date().getTime() };
+
+var log = ((typeof console !== undefined) && isFn(console.log)) ?
+  function(m) {console.log(m)} :
+  noop;
 
 function isFn(fn) {
   return typeof fn === 'function';
@@ -515,62 +533,50 @@ function withTwoSources(name, mixin /*, options*/) {
 
 }
 
-// Subscribers
+// Dispatcher
 
-function Subscribers() {
+function callSubscriber(sType, sFn, event) {
+  if (sType === ANY) {
+    sFn(event);
+  } else if (sType === event.type) {
+    if (sType === VALUE || sType === ERROR) {
+      sFn(event.value);
+    } else {
+      sFn();
+    }
+  }
+}
+
+function Dispatcher() {
   this._items = [];
 }
 
-extend(Subscribers, {
-  callOne: function(fnData, event) {
-    if (fnData.type === ANY) {
-      fnData.fn(event);
-    } else if (fnData.type === event.type) {
-      if (fnData.type === VALUE || fnData.type === ERROR) {
-        fnData.fn(event.value);
-      } else {
-        fnData.fn();
-      }
-    }
-  },
-  callOnce: function(type, fn, event) {
-    if (type === ANY) {
-      fn(event);
-    } else if (type === event.type) {
-      if (type === VALUE || type === ERROR) {
-        fn(event.value);
-      } else {
-        fn();
-      }
-    }
-  }
-});
-
-
-extend(Subscribers.prototype, {
+extend(Dispatcher.prototype, {
   add: function(type, fn, _key) {
     this._items = concat(this._items, [{
       type: type,
       fn: fn,
       key: _key || null
     }]);
+    return this._items.length;
   },
   remove: function(type, fn, _key) {
     var pred = isArray(_key) ?
       function(fnData) {return fnData.type === type && isEqualArrays(fnData.key, _key)} :
       function(fnData) {return fnData.type === type && fnData.fn === fn};
     this._items = removeByPred(this._items, pred);
+    return this._items.length;
   },
-  callAll: function(event) {
+  dispatch: function(event) {
     var items = this._items;
     for (var i = 0; i < items.length; i++) {
-      Subscribers.callOne(items[i], event);
+      callSubscriber(items[i].type, items[i].fn, event);
     }
-  },
-  isEmpty: function() {
-    return this._items.length === 0;
   }
 });
+
+
+
 
 
 
@@ -591,7 +597,7 @@ var CURRENT_END = Event(END, undefined, true);
 // Observable
 
 function Observable() {
-  this._subscribers = new Subscribers();
+  this._dispatcher = new Dispatcher();
   this._active = false;
   this._alive = true;
 }
@@ -618,30 +624,30 @@ extend(Observable.prototype, {
   _clear: function() {
     this._setActive(false);
     this._alive = false;
-    this._subscribers = null;
+    this._dispatcher = null;
   },
 
   _send: function(type, x, isCurrent) {
     if (this._alive) {
-      this._subscribers.callAll(Event(type, x, isCurrent));
+      this._dispatcher.dispatch(Event(type, x, isCurrent));
       if (type === END) {  this._clear()  }
     }
   },
 
   _on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn, _key);
+      this._dispatcher.add(type, fn, _key);
       this._setActive(true);
     } else {
-      Subscribers.callOnce(type, fn, CURRENT_END);
+      callSubscriber(type, fn, CURRENT_END);
     }
     return this;
   },
 
   _off: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.remove(type, fn, _key);
-      if (this._subscribers.isEmpty()) {
+      var count = this._dispatcher.remove(type, fn, _key);
+      if (count === 0) {
         this._setActive(false);
       }
     }
@@ -707,7 +713,7 @@ inherit(Property, Observable, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       if (!isCurrent) {
-        this._subscribers.callAll(Event(type, x));
+        this._dispatcher.dispatch(Event(type, x));
       }
       if (type === VALUE) {  this._current = x  }
       if (type === ERROR) {  this._currentError = x  }
@@ -717,17 +723,17 @@ inherit(Property, Observable, {
 
   _on: function(type, fn, _key) {
     if (this._alive) {
-      this._subscribers.add(type, fn, _key);
+      this._dispatcher.add(type, fn, _key);
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
-      Subscribers.callOnce(type, fn, Event(VALUE, this._current, true));
+      callSubscriber(type, fn, Event(VALUE, this._current, true));
     }
     if (this._currentError !== NOTHING) {
-      Subscribers.callOnce(type, fn, Event(ERROR, this._currentError, true));
+      callSubscriber(type, fn, Event(ERROR, this._currentError, true));
     }
     if (!this._alive) {
-      Subscribers.callOnce(type, fn, CURRENT_END);
+      callSubscriber(type, fn, CURRENT_END);
     }
     return this;
   }
@@ -1347,15 +1353,15 @@ Observable.prototype.zip = function(other, combinator) {
 
 
 
-// .sampledBy()
+// .combine()
 
-function SampledBy(passive, active, combinator) {
+function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
     this._send(END);
   } else {
-    this._passiveCount = passive.length;
-    this._sources = concat(passive, active);
+    this._activeCount = active.length;
+    this._sources = concat(active, passive);
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
     this._currents = new Array(this._sources.length);
@@ -1367,14 +1373,14 @@ function SampledBy(passive, active, combinator) {
 }
 
 
-inherit(SampledBy, Stream, {
+inherit(Combine, Stream, {
 
-  _name: 'sampledBy',
+  _name: 'combine',
 
   _onActivation: function() {
     var length = this._sources.length,
         i;
-    this._aliveCount = length - this._passiveCount;
+    this._aliveCount = this._activeCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
       this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
@@ -1413,7 +1419,7 @@ inherit(SampledBy, Stream, {
   _handleAny: function(i, event) {
     if (event.type === VALUE) {
       this._currents[i] = event.value;
-      if (i >= this._passiveCount) {
+      if (i < this._activeCount) {
         if (this._activating) {
           this._emitAfterActivation = true;
         } else {
@@ -1425,7 +1431,7 @@ inherit(SampledBy, Stream, {
       this._send(ERROR, event.value, event.current);
     }
     if (event.type === END) {
-      if (i >= this._passiveCount) {
+      if (i < this._activeCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
           if (this._activating) {
@@ -1447,25 +1453,57 @@ inherit(SampledBy, Stream, {
 
 });
 
-Kefir.sampledBy = function(passive, active, combinator) {
-  return new SampledBy(passive, active, combinator);
-}
-
-Observable.prototype.sampledBy = function(other, combinator) {
-  return Kefir.sampledBy([this], [other], combinator || id);
-}
-
-
-
-
-// .combine()
-
-Kefir.combine = function(sources, combinator) {
-  return new SampledBy([], sources, combinator).setName('combine');
+Kefir.combine = function(active, passive, combinator) {
+  if (isFn(passive)) {
+    combinator = passive;
+    passive = null;
+  }
+  return new Combine(active, passive || [], combinator);
 }
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
+}
+
+
+
+
+
+
+// .sampledBy()
+
+Kefir.DISABLE_SAMPLEDBY_WARNING = false;
+
+Kefir.sampledBy = function(passive, active, combinator) {
+
+  if (!Kefir.DISABLE_SAMPLEDBY_WARNING) {
+    log('Kefir.sampledBy() is deprecated, and to be removed in v3.0.0.\n' +
+      'Use Kefir.combine(active, passive, combinator) instead, ' +
+      'but note than active/passive order is different.\n' +
+      'To disable this warning set Kefir.DISABLE_SAMPLEDBY_WARNING to true.');
+  }
+
+  // we need to flip `passive` and `active` in combinator function
+  var _combinator = combinator;
+  if (passive.length > 0) {
+    var passiveLength = passive.length;
+    _combinator = function() {
+      var args = circleShift(arguments, passiveLength);
+      return combinator ? apply(combinator, null, args) : args;
+    }
+  }
+
+  return new Combine(active, passive, _combinator).setName('sampledBy');
+}
+
+Observable.prototype.sampledBy = function(other, combinator) {
+  var _combinator;
+  if (combinator) {
+    _combinator = function(active, passive) {
+      return combinator(passive, active);
+    }
+  }
+  return new Combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
 }
 
 function produceStream(StreamClass, PropertyClass) {
