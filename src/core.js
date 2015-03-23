@@ -17,19 +17,17 @@ function Dispatcher() {
 }
 
 extend(Dispatcher.prototype, {
-  add: function(type, fn, _key) {
+  add: function(type, fn) {
     this._items = concat(this._items, [{
       type: type,
-      fn: fn,
-      key: _key || null
+      fn: fn
     }]);
     return this._items.length;
   },
-  remove: function(type, fn, _key) {
-    var pred = isArray(_key) ?
-      function(fnData) {return fnData.type === type && isEqualArrays(fnData.key, _key)} :
-      function(fnData) {return fnData.type === type && fnData.fn === fn};
-    this._items = removeByPred(this._items, pred);
+  remove: function(type, fn) {
+    this._items = removeByPred(this._items, function(fnData) {
+      return fnData.type === type && fnData.fn === fn
+    });
     return this._items.length;
   },
   dispatch: function(event) {
@@ -99,9 +97,9 @@ extend(Observable.prototype, {
     }
   },
 
-  _on: function(type, fn, _key) {
+  _on: function(type, fn) {
     if (this._alive) {
-      this._dispatcher.add(type, fn, _key);
+      this._dispatcher.add(type, fn);
       this._setActive(true);
     } else {
       callSubscriber(type, fn, CURRENT_END);
@@ -109,9 +107,9 @@ extend(Observable.prototype, {
     return this;
   },
 
-  _off: function(type, fn, _key) {
+  _off: function(type, fn) {
     if (this._alive) {
-      var count = this._dispatcher.remove(type, fn, _key);
+      var count = this._dispatcher.remove(type, fn);
       if (count === 0) {
         this._setActive(false);
       }
@@ -119,15 +117,15 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn, _key) {  return this._on(VALUE, fn, _key)   },
-  onError:  function(fn, _key) {  return this._on(ERROR, fn, _key)   },
-  onEnd:    function(fn, _key) {  return this._on(END, fn, _key)     },
-  onAny:    function(fn, _key) {  return this._on(ANY, fn, _key)     },
+  onValue:  function(fn) {  return this._on(VALUE, fn)   },
+  onError:  function(fn) {  return this._on(ERROR, fn)   },
+  onEnd:    function(fn) {  return this._on(END, fn)     },
+  onAny:    function(fn) {  return this._on(ANY, fn)     },
 
-  offValue: function(fn, _key) {  return this._off(VALUE, fn, _key)  },
-  offError: function(fn, _key) {  return this._off(ERROR, fn, _key)  },
-  offEnd:   function(fn, _key) {  return this._off(END, fn, _key)    },
-  offAny:   function(fn, _key) {  return this._off(ANY, fn, _key)    }
+  offValue: function(fn) {  return this._off(VALUE, fn)  },
+  offError: function(fn) {  return this._off(ERROR, fn)  },
+  offEnd:   function(fn) {  return this._off(END, fn)    },
+  offAny:   function(fn) {  return this._off(ANY, fn)    }
 
 });
 
@@ -186,9 +184,9 @@ inherit(Property, Observable, {
     }
   },
 
-  _on: function(type, fn, _key) {
+  _on: function(type, fn) {
     if (this._alive) {
-      this._dispatcher.add(type, fn, _key);
+      this._dispatcher.add(type, fn);
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
@@ -214,19 +212,38 @@ inherit(Property, Observable, {
 
 Observable.prototype.log = function(name) {
   name = name || this.toString();
-  this.onAny(function(event) {
+
+  var handler = function(event) {
     var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
     if (event.type === VALUE || event.type === ERROR) {
       console.log(name, typeStr, event.value);
     } else {
       console.log(name, typeStr);
     }
-  }, ['__logKey__', this, name]);
+  };
+
+  if (!this.__logHandlers) {
+    this.__logHandlers = [];
+  }
+  this.__logHandlers.push({name: name, handler: handler});
+
+  this.onAny(handler);
   return this;
 }
 
 Observable.prototype.offLog = function(name) {
   name = name || this.toString();
-  this.offAny(null, ['__logKey__', this, name]);
+
+  if (this.__logHandlers) {
+    var handlerIndex = findByPred(this.__logHandlers, function(obj) {
+      return obj.name === name;
+    });
+    if (handlerIndex !== -1) {
+      var handler = this.__logHandlers[handlerIndex].handler;
+      this.__logHandlers.splice(handlerIndex, 1);
+      this.offAny(handler);
+    }
+  }
+
   return this;
 }

@@ -14,6 +14,8 @@ function _AbstractPool(options) {
   this._queue = [];
   this._curSources = [];
   this._activating = false;
+
+  this._bindedEndHandlers = [];
 }
 
 inherit(_AbstractPool, Stream, {
@@ -52,12 +54,27 @@ inherit(_AbstractPool, Stream, {
   },
   _subscribe: function(obs) {
     var $ = this;
+
+    var onEnd = function() {
+      $._removeCur(obs)
+    }
+
+    this._bindedEndHandlers.push({obs: obs, handler: onEnd});
+
     obs.onAny(this._$handleSubAny);
-    obs.onEnd(function() {  $._removeCur(obs)  }, [this, obs]);
+    obs.onEnd(onEnd);
   },
   _unsubscribe: function(obs) {
     obs.offAny(this._$handleSubAny);
-    obs.offEnd(null, [this, obs]);
+
+    var onEndI = findByPred(this._bindedEndHandlers, function(obj) {
+      return obj.obs === obs;
+    });
+    if (onEndI !== -1) {
+      var onEnd = this._bindedEndHandlers[onEndI].handler;
+      this._bindedEndHandlers.splice(onEndI, 1);
+      obs.offEnd(onEnd);
+    }
   },
   _handleSubAny: function(event) {
     if (event.type === VALUE || event.type === ERROR) {
@@ -119,6 +136,7 @@ inherit(_AbstractPool, Stream, {
     this._queue = null;
     this._curSources = null;
     this._$handleSubAny = null;
+    this._bindedEndHandlers = null;
   }
 
 });
@@ -364,6 +382,12 @@ function Zip(sources, combinator) {
     });
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
+
+    this._bindedHandlers = Array(this._sources.length);
+    for (var i = 0; i < this._sources.length; i++) {
+      this._bindedHandlers[i] = this._bindHandleAny(i);
+    }
+
   }
 }
 
@@ -378,14 +402,14 @@ inherit(Zip, Stream, {
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
       if (this._active) {
-        this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
+        this._sources[i].onAny(this._bindedHandlers[i]);
       }
     }
   },
 
   _onDeactivation: function() {
     for (var i = 0; i < this._sources.length; i++) {
-      this._sources[i].offAny(null, [this, i]);
+      this._sources[i].offAny(this._bindedHandlers[i]);
     }
   },
 
@@ -444,6 +468,7 @@ inherit(Zip, Stream, {
     this._sources = null;
     this._buffers = null;
     this._combinator = null;
+    this._bindedHandlers = null;
   }
 
 });
@@ -477,6 +502,12 @@ function Combine(active, passive, combinator) {
     this._activating = false;
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
+
+    this._bindedHandlers = Array(this._sources.length);
+    for (var i = 0; i < this._sources.length; i++) {
+      this._bindedHandlers[i] = this._bindHandleAny(i);
+    }
+
   }
 }
 
@@ -491,7 +522,7 @@ inherit(Combine, Stream, {
     this._aliveCount = this._activeCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
+      this._sources[i].onAny(this._bindedHandlers[i]);
     }
     this._activating = false;
     if (this._emitAfterActivation) {
@@ -507,7 +538,7 @@ inherit(Combine, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].offAny(null, [this, i]);
+      this._sources[i].offAny(this._bindedHandlers[i]);
     }
   },
 
@@ -557,6 +588,7 @@ inherit(Combine, Stream, {
     this._sources = null;
     this._currents = null;
     this._combinator = null;
+    this._bindedHandlers = null;
   }
 
 });
