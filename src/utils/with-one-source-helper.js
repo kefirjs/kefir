@@ -3,10 +3,14 @@ function withOneSource(name, mixin, options) {
 
   options = extend({
     streamMethod: function(StreamClass, PropertyClass) {
-      return function() {  return new StreamClass(this, arguments)  }
+      return function() {
+        return new StreamClass(this, arguments);
+      };
     },
     propertyMethod: function(StreamClass, PropertyClass) {
-      return function() {  return new PropertyClass(this, arguments)  }
+      return function() {
+        return new PropertyClass(this, arguments);
+      };
     }
   }, options || {});
 
@@ -16,9 +20,15 @@ function withOneSource(name, mixin, options) {
     _init: function(args) {},
     _free: function() {},
 
-    _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
-    _handleError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
-    _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
+    _handleValue: function(x, isCurrent) {
+      this._send(VALUE, x, isCurrent);
+    },
+    _handleError: function(x, isCurrent) {
+      this._send(ERROR, x, isCurrent);
+    },
+    _handleEnd: function(__, isCurrent) {
+      this._send(END, null, isCurrent);
+    },
 
     _handleAny: function(event) {
       switch (event.type) {
@@ -45,7 +55,9 @@ function withOneSource(name, mixin, options) {
       this._name = source._name + '.' + name;
       this._init(args);
       var $ = this;
-      this._$handleAny = function(event) {  $._handleAny(event)  }
+      this._$handleAny = function(event) {
+        $._handleAny(event);
+      };
     }
 
     inherit(AnonymousObservable, BaseClass, {

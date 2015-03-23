@@ -26,7 +26,7 @@ extend(Dispatcher.prototype, {
   },
   remove: function(type, fn) {
     this._items = removeByPred(this._items, function(fnData) {
-      return fnData.type === type && fnData.fn === fn
+      return fnData.type === type && fnData.fn === fn;
     });
     return this._items.length;
   },
@@ -93,7 +93,9 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       this._dispatcher.dispatch(Event(type, x, isCurrent));
-      if (type === END) {  this._clear()  }
+      if (type === END) {
+        this._clear();
+      }
     }
   },
 
@@ -117,21 +119,39 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn) {  return this._on(VALUE, fn)   },
-  onError:  function(fn) {  return this._on(ERROR, fn)   },
-  onEnd:    function(fn) {  return this._on(END, fn)     },
-  onAny:    function(fn) {  return this._on(ANY, fn)     },
+  onValue: function(fn) {
+    return this._on(VALUE, fn);
+  },
+  onError: function(fn) {
+    return this._on(ERROR, fn);
+  },
+  onEnd: function(fn) {
+    return this._on(END, fn);
+  },
+  onAny: function(fn) {
+    return this._on(ANY, fn);
+  },
 
-  offValue: function(fn) {  return this._off(VALUE, fn)  },
-  offError: function(fn) {  return this._off(ERROR, fn)  },
-  offEnd:   function(fn) {  return this._off(END, fn)    },
-  offAny:   function(fn) {  return this._off(ANY, fn)    }
+  offValue: function(fn) {
+    return this._off(VALUE, fn);
+  },
+  offError: function(fn) {
+    return this._off(ERROR, fn);
+  },
+  offEnd: function(fn) {
+    return this._off(END, fn);
+  },
+  offAny: function(fn) {
+    return this._off(ANY, fn);
+  }
 
 });
 
 
 // extend() can't handle `toString` in IE8
-Observable.prototype.toString = function() {  return '[' + this._name + ']'  };
+Observable.prototype.toString = function() {
+  return '[' + this._name + ']';
+};
 
 
 
@@ -178,9 +198,15 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._dispatcher.dispatch(Event(type, x));
       }
-      if (type === VALUE) {  this._current = x  }
-      if (type === ERROR) {  this._currentError = x  }
-      if (type === END) {  this._clear()  }
+      if (type === VALUE) {
+        this._current = x;
+      }
+      if (type === ERROR) {
+        this._currentError = x;
+      }
+      if (type === END) {
+        this._clear();
+      }
     }
   },
 
@@ -229,7 +255,7 @@ Observable.prototype.log = function(name) {
 
   this.onAny(handler);
   return this;
-}
+};
 
 Observable.prototype.offLog = function(name) {
   name = name || this.toString();
@@ -246,4 +272,4 @@ Observable.prototype.offLog = function(name) {
   }
 
   return this;
-}
+};

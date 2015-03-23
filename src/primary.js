@@ -14,14 +14,22 @@ inherit(FromBinder, Stream, {
     var $ = this
       , isCurrent = true
       , emitter = {
-        emit: function(x) {  $._send(VALUE, x, isCurrent)  },
-        error: function(x) {  $._send(ERROR, x, isCurrent)  },
-        end: function() {  $._send(END, null, isCurrent)  },
-        emitEvent: function(e) {  $._send(e.type, e.value, isCurrent)  }
+        emit: function(x) {
+          $._send(VALUE, x, isCurrent);
+        },
+        error: function(x) {
+          $._send(ERROR, x, isCurrent);
+        },
+        end: function() {
+          $._send(END, null, isCurrent);
+        },
+        emitEvent: function(e) {
+          $._send(e.type, e.value, isCurrent);
+        }
       };
     this._unsubscribe = this._fn(emitter) || null;
 
-    // work around https://github.com/pozadi/kefir/issues/35
+    // fix https://github.com/pozadi/kefir/issues/35
     if (!this._active && this._unsubscribe !== null) {
       this._unsubscribe();
       this._unsubscribe = null;
@@ -41,11 +49,11 @@ inherit(FromBinder, Stream, {
     this._fn = null;
   }
 
-})
+});
 
 Kefir.fromBinder = function(fn) {
   return new FromBinder(fn);
-}
+};
 
 
 
@@ -79,7 +87,7 @@ inherit(Emitter, Stream, {
 
 Kefir.emitter = function() {
   return new Emitter();
-}
+};
 
 Kefir.Emitter = Emitter;
 
@@ -94,7 +102,9 @@ Kefir.Emitter = Emitter;
 var neverObj = new Stream();
 neverObj._send(END);
 neverObj._name = 'never';
-Kefir.never = function() {  return neverObj  }
+Kefir.never = function() {
+  return neverObj;
+};
 
 
 
@@ -110,11 +120,11 @@ function Constant(x) {
 
 inherit(Constant, Property, {
   _name: 'constant'
-})
+});
 
 Kefir.constant = function(x) {
   return new Constant(x);
-}
+};
 
 
 
@@ -129,11 +139,11 @@ function ConstantError(x) {
 
 inherit(ConstantError, Property, {
   _name: 'constantError'
-})
+});
 
 Kefir.constantError = function(x) {
   return new ConstantError(x);
-}
+};
 
 
 
@@ -209,6 +219,6 @@ inherit(Repeat, Stream, {
 
 Kefir.repeat = function(generator) {
   return new Repeat(generator);
-}
+};
 
 

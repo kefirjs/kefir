@@ -9,7 +9,9 @@ function _AbstractPool(options) {
   }
 
   var $ = this;
-  this._$handleSubAny = function(event) {  $._handleSubAny(event)  };
+  this._$handleSubAny = function(event) {
+    $._handleSubAny(event);
+  };
 
   this._queue = [];
   this._curSources = [];
@@ -37,7 +39,9 @@ inherit(_AbstractPool, Stream, {
   },
   _addAll: function(obss) {
     var $ = this;
-    forEach(obss, function(obs) {  $._add(obs)  });
+    forEach(obss, function(obs) {
+      $._add(obs);
+    });
   },
   _remove: function(obs) {
     if (this._removeCur(obs) === -1) {
@@ -50,14 +54,16 @@ inherit(_AbstractPool, Stream, {
   },
   _addToCur: function(obs) {
     this._curSources = concat(this._curSources, [obs]);
-    if (this._active) {  this._subscribe(obs)  }
+    if (this._active) {
+      this._subscribe(obs);
+    }
   },
   _subscribe: function(obs) {
     var $ = this;
 
     var onEnd = function() {
-      $._removeCur(obs)
-    }
+      $._removeCur(obs);
+    };
 
     this._bindedEndHandlers.push({obs: obs, handler: onEnd});
 
@@ -88,7 +94,9 @@ inherit(_AbstractPool, Stream, {
     return index;
   },
   _removeCur: function(obs) {
-    if (this._active) {  this._unsubscribe(obs)  }
+    if (this._active) {
+      this._unsubscribe(obs);
+    }
     var index = find(this._curSources, obs);
     this._curSources = remove(this._curSources, index);
     if (index !== -1) {
@@ -125,10 +133,14 @@ inherit(_AbstractPool, Stream, {
   _onDeactivation: function() {
     var sources = this._curSources
       , i;
-    for (i = 0; i < sources.length; i++) {  this._unsubscribe(sources[i])  }
+    for (i = 0; i < sources.length; i++) {
+      this._unsubscribe(sources[i]);
+    }
   },
 
-  _isEmpty: function() {  return this._curSources.length === 0  },
+  _isEmpty: function() {
+    return this._curSources.length === 0;
+  },
   _onEmpty: function() {},
 
   _clear: function() {
@@ -149,13 +161,19 @@ inherit(_AbstractPool, Stream, {
 
 var MergeLike = {
   _onEmpty: function() {
-    if (this._initialised) {  this._send(END, null, this._activating)  }
+    if (this._initialised) {
+      this._send(END, null, this._activating);
+    }
   }
 };
 
 function Merge(sources) {
   _AbstractPool.call(this);
-  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {
+    this._send(END);
+  } else {
+    this._addAll(sources);
+  }
   this._initialised = true;
 }
 
@@ -163,11 +181,11 @@ inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 Kefir.merge = function(obss) {
   return new Merge(obss);
-}
+};
 
 Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
-}
+};
 
 
 
@@ -176,7 +194,11 @@ Observable.prototype.merge = function(other) {
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {
+    this._send(END);
+  } else {
+    this._addAll(sources);
+  }
   this._initialised = true;
 }
 
@@ -184,11 +206,11 @@ inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
 Kefir.concat = function(obss) {
   return new Concat(obss);
-}
+};
 
 Observable.prototype.concat = function(other) {
   return Kefir.concat([this, other]);
-}
+};
 
 
 
@@ -219,7 +241,7 @@ inherit(Pool, _AbstractPool, {
 
 Kefir.pool = function() {
   return new Pool();
-}
+};
 
 
 
@@ -265,7 +287,7 @@ inherit(Bus, _AbstractPool, {
 
 Kefir.bus = function() {
   return new Bus();
-}
+};
 
 
 
@@ -281,7 +303,9 @@ function FlatMap(source, fn, options) {
   this._lastCurrent = null;
 
   var $ = this;
-  this._$handleMainSource = function(event) {  $._handleMainSource(event)  };
+  this._$handleMainSource = function(event) {
+    $._handleMainSource(event);
+  };
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -319,7 +343,9 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _onEmpty: function() {
-    if (this._mainEnded) {  this._send(END)  }
+    if (this._mainEnded) {
+      this._send(END);
+    }
   },
 
   _clear: function() {
@@ -334,33 +360,35 @@ inherit(FlatMap, _AbstractPool, {
 Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn)
     .setName(this, 'flatMap');
-}
+};
 
 Observable.prototype.flatMapLatest = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
     .setName(this, 'flatMapLatest');
-}
+};
 
 Observable.prototype.flatMapFirst = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1})
     .setName(this, 'flatMapFirst');
-}
+};
 
 Observable.prototype.flatMapConcat = function(fn) {
   return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
     .setName(this, 'flatMapConcat');
-}
+};
 
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
   if (limit === 0) {
     result = Kefir.never();
   } else {
-    if (limit < 0) {  limit = -1  }
+    if (limit < 0) {
+      limit = -1;
+    }
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
   return result.setName(this, 'flatMapConcurLimit');
-}
+};
 
 
 
@@ -444,7 +472,9 @@ inherit(Zip, Stream, {
 
   _bindHandleAny: function(i) {
     var $ = this;
-    return function(event) {  $._handleAny(i, event)  };
+    return function(event) {
+      $._handleAny(i, event);
+    };
   },
 
   _handleAny: function(i, event) {
@@ -475,11 +505,11 @@ inherit(Zip, Stream, {
 
 Kefir.zip = function(sources, combinator) {
   return new Zip(sources, combinator);
-}
+};
 
 Observable.prototype.zip = function(other, combinator) {
   return new Zip([this, other], combinator);
-}
+};
 
 
 
@@ -552,7 +582,9 @@ inherit(Combine, Stream, {
 
   _bindHandleAny: function(i) {
     var $ = this;
-    return function(event) {  $._handleAny(i, event)  };
+    return function(event) {
+      $._handleAny(i, event);
+    };
   },
 
   _handleAny: function(i, event) {
@@ -599,11 +631,11 @@ Kefir.combine = function(active, passive, combinator) {
     passive = null;
   }
   return new Combine(active, passive || [], combinator);
-}
+};
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
-}
+};
 
 
 
@@ -630,18 +662,18 @@ Kefir.sampledBy = function(passive, active, combinator) {
     _combinator = function() {
       var args = circleShift(arguments, passiveLength);
       return combinator ? apply(combinator, null, args) : args;
-    }
+    };
   }
 
   return new Combine(active, passive, _combinator).setName('sampledBy');
-}
+};
 
 Observable.prototype.sampledBy = function(other, combinator) {
   var _combinator;
   if (combinator) {
     _combinator = function(active, passive) {
       return combinator(passive, active);
-    }
+    };
   }
   return new Combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
-}
+};

@@ -3,15 +3,17 @@
 Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
   this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
   return this;
-}
+};
 
 
 
 // .mapTo
 
 Observable.prototype.mapTo = function(value) {
-  return this.map(function() {  return value  }).setName(this, 'mapTo');
-}
+  return this.map(function() {
+    return value;
+  }).setName(this, 'mapTo');
+};
 
 
 
@@ -21,7 +23,7 @@ Observable.prototype.pluck = function(propertyName) {
   return this.map(function(x) {
     return x[propertyName];
   }).setName(this, 'pluck');
-}
+};
 
 
 
@@ -30,10 +32,14 @@ Observable.prototype.pluck = function(propertyName) {
 Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
   var args = rest(arguments, 1);
   return this.map(args ?
-    function(x) {  return apply(x[methodName], x, args)  } :
-    function(x) {  return x[methodName]()  }
+    function(x) {
+      return apply(x[methodName], x, args);
+    } :
+    function(x) {
+      return x[methodName]();
+    }
   ).setName(this, 'invoke');
-}
+};
 
 
 
@@ -41,8 +47,10 @@ Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
 // .timestamp
 
 Observable.prototype.timestamp = function() {
-  return this.map(function(x) {  return {value: x, time: now()}  }).setName(this, 'timestamp');
-}
+  return this.map(function(x) {
+    return {value: x, time: now()};
+  }).setName(this, 'timestamp');
+};
 
 
 
@@ -54,7 +62,7 @@ Observable.prototype.tap = function(fn) {
     fn(x);
     return x;
   }).setName(this, 'tap');
-}
+};
 
 
 
@@ -62,11 +70,11 @@ Observable.prototype.tap = function(fn) {
 
 Kefir.and = function(observables) {
   return Kefir.combine(observables, and).setName('and');
-}
+};
 
 Observable.prototype.and = function(other) {
   return this.combine(other, and).setName('and');
-}
+};
 
 
 
@@ -74,11 +82,11 @@ Observable.prototype.and = function(other) {
 
 Kefir.or = function(observables) {
   return Kefir.combine(observables, or).setName('or');
-}
+};
 
 Observable.prototype.or = function(other) {
   return this.combine(other, or).setName('or');
-}
+};
 
 
 
@@ -86,7 +94,7 @@ Observable.prototype.or = function(other) {
 
 Observable.prototype.not = function() {
   return this.map(not).setName(this, 'not');
-}
+};
 
 
 
@@ -97,7 +105,7 @@ Observable.prototype.awaiting = function(other) {
     this.mapTo(true),
     other.mapTo(false)
   ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
-}
+};
 
 
 
@@ -115,7 +123,7 @@ Kefir.fromCallback = function(callbackConsumer) {
       called = true;
     }
   }).setName('fromCallback');
-}
+};
 
 
 
@@ -137,7 +145,7 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
       called = true;
     }
   }).setName('fromNodeCallback');
-}
+};
 
 
 
@@ -166,7 +174,7 @@ Kefir.fromPromise = function(promise) {
       called = true;
     }
   }).toProperty().setName('fromPromise');
-}
+};
 
 
 
@@ -181,9 +189,11 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
       emitter.emit(apply(transformer, this, arguments));
     } : emitter.emit;
     sub(handler);
-    return function() {  unsub(handler)  };
+    return function() {
+      unsub(handler);
+    };
   });
-}
+};
 
 
 
@@ -214,8 +224,12 @@ Kefir.fromEvent = function(target, eventName, transformer) {
   }
 
   return Kefir.fromSubUnsub(
-    function(handler) {  target[sub](eventName, handler)  },
-    function(handler) {  target[unsub](eventName, handler)  },
+    function(handler) {
+      target[sub](eventName, handler);
+    },
+    function(handler) {
+      target[unsub](eventName, handler);
+    },
     transformer
   ).setName('fromEvent');
-}
+};

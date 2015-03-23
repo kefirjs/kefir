@@ -1,7 +1,11 @@
 function concat(a, b) {
   var result, length, i, j;
-  if (a.length === 0) {  return b  }
-  if (b.length === 0) {  return a  }
+  if (a.length === 0) {
+    return b;
+  }
+  if (b.length === 0) {
+    return a;
+  }
   j = 0;
   result = new Array(a.length + b.length);
   length = a.length;
@@ -29,7 +33,9 @@ function find(arr, value) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
-    if (arr[i] === value) {  return i  }
+    if (arr[i] === value) {
+      return i;
+    }
   }
   return -1;
 }
@@ -38,7 +44,9 @@ function findByPred(arr, pred) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
-    if (pred(arr[i])) {  return i  }
+    if (pred(arr[i])) {
+      return i;
+    }
   }
   return -1;
 }
@@ -91,7 +99,9 @@ function map(input, fn) {
 function forEach(arr, fn) {
   var length = arr.length
     , i;
-  for (i = 0; i < length; i++) {  fn(arr[i])  }
+  for (i = 0; i < length; i++) {
+    fn(arr[i]);
+  }
 }
 
 function fillArray(arr, value) {
