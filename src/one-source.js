@@ -137,20 +137,18 @@ withOneSource('transduce', {
 
 
 
-var withFnArgMixin = {
-  _init: function(args) {  this._fn = args[0] || id  },
-  _free: function() {  this._fn = null  }
-};
 
 
 
 // .map(fn)
 
 withOneSource('map', extend({
+  _init: function(args) {  this._fn = args[0] || id  },
+  _free: function() {  this._fn = null  },
   _handleValue: function(x, isCurrent) {
     this._send(VALUE, this._fn(x), isCurrent);
   }
-}, withFnArgMixin));
+}));
 
 
 
@@ -158,10 +156,12 @@ withOneSource('map', extend({
 // .mapErrors(fn)
 
 withOneSource('mapErrors', extend({
+  _init: function(args) {  this._fn = args[0] || id  },
+  _free: function() {  this._fn = null  },
   _handleError: function(x, isCurrent) {
     this._send(ERROR, this._fn(x), isCurrent);
   }
-}, withFnArgMixin));
+}));
 
 
 
@@ -221,12 +221,14 @@ withOneSource('valuesToErrors', extend({
 // .filter(fn)
 
 withOneSource('filter', extend({
+  _init: function(args) {  this._fn = args[0] || id  },
+  _free: function() {  this._fn = null  },
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(VALUE, x, isCurrent);
     }
   }
-}, withFnArgMixin));
+}));
 
 
 
@@ -234,12 +236,14 @@ withOneSource('filter', extend({
 // .filterErrors(fn)
 
 withOneSource('filterErrors', extend({
+  _init: function(args) {  this._fn = args[0] || id  },
+  _free: function() {  this._fn = null  },
   _handleError: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(ERROR, x, isCurrent);
     }
   }
-}, withFnArgMixin));
+}));
 
 
 
@@ -247,6 +251,8 @@ withOneSource('filterErrors', extend({
 // .takeWhile(fn)
 
 withOneSource('takeWhile', extend({
+  _init: function(args) {  this._fn = args[0] || id  },
+  _free: function() {  this._fn = null  },
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(VALUE, x, isCurrent);
@@ -254,7 +260,7 @@ withOneSource('takeWhile', extend({
       this._send(END, null, isCurrent);
     }
   }
-}, withFnArgMixin));
+}));
 
 
 
