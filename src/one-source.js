@@ -154,7 +154,7 @@ withOneSource('transduce', {
 
 // .map(fn)
 
-withOneSource('map', extend({
+withOneSource('map', {
   _init: function(args) {
     this._fn = args[0] || id;
   },
@@ -164,14 +164,14 @@ withOneSource('map', extend({
   _handleValue: function(x, isCurrent) {
     this._send(VALUE, this._fn(x), isCurrent);
   }
-}));
+});
 
 
 
 
 // .mapErrors(fn)
 
-withOneSource('mapErrors', extend({
+withOneSource('mapErrors', {
   _init: function(args) {
     this._fn = args[0] || id;
   },
@@ -181,7 +181,7 @@ withOneSource('mapErrors', extend({
   _handleError: function(x, isCurrent) {
     this._send(ERROR, this._fn(x), isCurrent);
   }
-}));
+});
 
 
 
@@ -194,7 +194,7 @@ function defaultErrorsToValuesHandler(x) {
   };
 }
 
-withOneSource('errorsToValues', extend({
+withOneSource('errorsToValues', {
   _init: function(args) {
     this._fn = args[0] || defaultErrorsToValuesHandler;
   },
@@ -207,7 +207,7 @@ withOneSource('errorsToValues', extend({
     var newX = result.convert ? result.value : x;
     this._send(type, newX, isCurrent);
   }
-}));
+});
 
 
 
@@ -220,7 +220,7 @@ function defaultValuesToErrorsHandler(x) {
   };
 }
 
-withOneSource('valuesToErrors', extend({
+withOneSource('valuesToErrors', {
   _init: function(args) {
     this._fn = args[0] || defaultValuesToErrorsHandler;
   },
@@ -233,14 +233,14 @@ withOneSource('valuesToErrors', extend({
     var newX = result.convert ? result.error : x;
     this._send(type, newX, isCurrent);
   }
-}));
+});
 
 
 
 
 // .filter(fn)
 
-withOneSource('filter', extend({
+withOneSource('filter', {
   _init: function(args) {
     this._fn = args[0] || id;
   },
@@ -252,14 +252,14 @@ withOneSource('filter', extend({
       this._send(VALUE, x, isCurrent);
     }
   }
-}));
+});
 
 
 
 
 // .filterErrors(fn)
 
-withOneSource('filterErrors', extend({
+withOneSource('filterErrors', {
   _init: function(args) {
     this._fn = args[0] || id;
   },
@@ -271,14 +271,14 @@ withOneSource('filterErrors', extend({
       this._send(ERROR, x, isCurrent);
     }
   }
-}));
+});
 
 
 
 
 // .takeWhile(fn)
 
-withOneSource('takeWhile', extend({
+withOneSource('takeWhile', {
   _init: function(args) {
     this._fn = args[0] || id;
   },
@@ -292,7 +292,7 @@ withOneSource('takeWhile', extend({
       this._send(END, null, isCurrent);
     }
   }
-}));
+});
 
 
 
@@ -504,12 +504,12 @@ withOneSource('skipEnd', {
 
 // .endOnError(fn)
 
-withOneSource('endOnError', extend({
+withOneSource('endOnError', {
   _handleError: function(x, isCurrent) {
     this._send(ERROR, x, isCurrent);
     this._send(END, null, isCurrent);
   }
-}));
+});
 
 
 
