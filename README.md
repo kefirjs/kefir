@@ -8,6 +8,7 @@ and [RxJS](https://github.com/Reactive-Extensions/RxJS)
 with focus on high performance and low memory usage.
 
 For docs visit [pozadi.github.io/kefir](http://pozadi.github.io/kefir).
+See also [Deprecated API docs](https://github.com/pozadi/kefir/blob/master/deprecated-api-docs.md).
 
 
 
@@ -37,7 +38,7 @@ bower install kefir
 
 ### Download
 
-See [downloads](https://pozadi.github.io/kefir/#downloads) section in the docs. 
+See [downloads](https://pozadi.github.io/kefir/#downloads) section in the docs.
 
 
 # Development
