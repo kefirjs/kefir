@@ -502,7 +502,7 @@ withOneSource('skipEnd', {
 
 
 
-// .endOnError(fn)
+// .endOnError()
 
 withOneSource('endOnError', {
   _handleError: function(x, isCurrent) {
