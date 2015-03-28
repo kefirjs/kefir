@@ -274,7 +274,7 @@ isAllTrue:  --------f--t--f--
 
 
 
-### `orKefir.or(obss)`
+### `Kefir.or(obss)`
 
 *Alias*: `obs.or(otherObs)`
 
