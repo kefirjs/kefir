@@ -643,30 +643,24 @@ Observable.prototype.combine = function(other, combinator) {
 
 
 // .sampledBy()
+Kefir.sampledBy = deprecated(
+  'Kefir.sampledBy()',
+  'Kefir.combine(active, passive, combinator)',
+  function(passive, active, combinator) {
 
-Kefir.DISABLE_SAMPLEDBY_WARNING = false;
+    // we need to flip `passive` and `active` in combinator function
+    var _combinator = combinator;
+    if (passive.length > 0) {
+      var passiveLength = passive.length;
+      _combinator = function() {
+        var args = circleShift(arguments, passiveLength);
+        return combinator ? apply(combinator, null, args) : args;
+      };
+    }
 
-Kefir.sampledBy = function(passive, active, combinator) {
-
-  if (!Kefir.DISABLE_SAMPLEDBY_WARNING) {
-    log('Kefir.sampledBy() is deprecated, and to be removed in v3.0.0.\n' +
-      'Use Kefir.combine(active, passive, combinator) instead, ' +
-      'but note than active/passive order is different.\n' +
-      'To disable this warning set Kefir.DISABLE_SAMPLEDBY_WARNING to true.');
+    return new Combine(active, passive, _combinator).setName('sampledBy');
   }
-
-  // we need to flip `passive` and `active` in combinator function
-  var _combinator = combinator;
-  if (passive.length > 0) {
-    var passiveLength = passive.length;
-    _combinator = function() {
-      var args = circleShift(arguments, passiveLength);
-      return combinator ? apply(combinator, null, args) : args;
-    };
-  }
-
-  return new Combine(active, passive, _combinator).setName('sampledBy');
-};
+);
 
 Observable.prototype.sampledBy = function(other, combinator) {
   var _combinator;

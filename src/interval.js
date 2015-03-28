@@ -111,6 +111,12 @@ withInterval('repeatedly', {
   }
 });
 
+Kefir.repeatedly = deprecated(
+  'Kefir.repeatedly()',
+  'Kefir.repeat(() => Kefir.sequentially(...)})',
+  Kefir.repeatedly
+);
+
 
 
 
