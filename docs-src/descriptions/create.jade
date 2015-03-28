@@ -118,31 +118,6 @@ pre(title='events in time').
 div
 
 
-+descr-method('repeatedly', 'repeatedly', 'Kefir.repeatedly(interval, values)').
-  Creates a stream, that produces given #[b values] (array),
-  with given #[b interval] in milliseconds.
-  When all values emitted, it begins to produce them again from the start.
-  Never ends.
-
-pre(title='example').
-  var stream = Kefir.repeatedly(1000, [1, 2, 3]);
-  stream.log();
-
-pre(title='console output')
-  :escapehtml
-    > [repeatedly] <value> 1
-    > [repeatedly] <value> 2
-    > [repeatedly] <value> 3
-    > [repeatedly] <value> 1
-    > [repeatedly] <value> 2
-    > [repeatedly] <value> 3
-    > [repeatedly] <value> 1
-    ...
-
-pre(title='events in time').
-  stream:  ----1----2----3----1----2----3----1---
-div
-
 
 +descr-method('from-poll', 'fromPoll', 'Kefir.fromPoll(interval, fn)').
   Creates a stream, that polls given #[b fn] function,
