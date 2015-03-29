@@ -1,4 +1,4 @@
-/*! Kefir.js v1.2.0
+/*! Kefir.js v1.3.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -31,8 +31,12 @@ function not(x) {
 
 function concat(a, b) {
   var result, length, i, j;
-  if (a.length === 0) {  return b  }
-  if (b.length === 0) {  return a  }
+  if (a.length === 0) {
+    return b;
+  }
+  if (b.length === 0) {
+    return a;
+  }
   j = 0;
   result = new Array(a.length + b.length);
   length = a.length;
@@ -60,7 +64,9 @@ function find(arr, value) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
-    if (arr[i] === value) {  return i  }
+    if (arr[i] === value) {
+      return i;
+    }
   }
   return -1;
 }
@@ -69,7 +75,9 @@ function findByPred(arr, pred) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
-    if (pred(arr[i])) {  return i  }
+    if (pred(arr[i])) {
+      return i;
+    }
   }
   return -1;
 }
@@ -122,7 +130,9 @@ function map(input, fn) {
 function forEach(arr, fn) {
   var length = arr.length
     , i;
-  for (i = 0; i < length; i++) {  fn(arr[i])  }
+  for (i = 0; i < length; i++) {
+    fn(arr[i]);
+  }
 }
 
 function fillArray(arr, value) {
@@ -177,12 +187,12 @@ function isEqualArrays(a, b) {
 
 function spread(fn, length) {
   switch(length) {
-    case 0:  return function(a) {  return fn()  };
-    case 1:  return function(a) {  return fn(a[0])  };
-    case 2:  return function(a) {  return fn(a[0], a[1])  };
-    case 3:  return function(a) {  return fn(a[0], a[1], a[2])  };
-    case 4:  return function(a) {  return fn(a[0], a[1], a[2], a[3])  };
-    default: return function(a) {  return fn.apply(null, a)  };
+    case 0: return function(a) {return fn();};
+    case 1: return function(a) {return fn(a[0]);};
+    case 2: return function(a) {return fn(a[0], a[1]);};
+    case 3: return function(a) {return fn(a[0], a[1], a[2]);};
+    case 4: return function(a) {return fn(a[0], a[1], a[2], a[3]);};
+    default: return function(a) {return fn.apply(null, a);};
   }
 }
 
@@ -190,16 +200,16 @@ function apply(fn, c, a) {
   var aLength = a ? a.length : 0;
   if (c == null) {
     switch (aLength) {
-      case 0:  return fn();
-      case 1:  return fn(a[0]);
-      case 2:  return fn(a[0], a[1]);
-      case 3:  return fn(a[0], a[1], a[2]);
-      case 4:  return fn(a[0], a[1], a[2], a[3]);
+      case 0: return fn();
+      case 1: return fn(a[0]);
+      case 2: return fn(a[0], a[1]);
+      case 3: return fn(a[0], a[1], a[2]);
+      case 4: return fn(a[0], a[1], a[2], a[3]);
       default: return fn.apply(null, a);
     }
   } else {
     switch (aLength) {
-      case 0:  return fn.call(c);
+      case 0: return fn.call(c);
       default: return fn.apply(c, a);
     }
   }
@@ -266,16 +276,38 @@ function strictEqual(a, b) {
 }
 
 function defaultDiff(a, b) {
-  return [a, b]
+  return [a, b];
 }
 
 var now = Date.now ?
-  function() { return Date.now() } :
-  function() { return new Date().getTime() };
+  function() {
+    return Date.now();
+  } :
+  function() {
+    return new Date().getTime();
+  };
 
 var log = ((typeof console !== undefined) && isFn(console.log)) ?
-  function(m) {console.log(m)} :
-  noop;
+  function(m) {
+    console.log(m);
+  } : noop;
+
+
+
+Kefir.DEPRECATION_WARNINGS = true;
+function deprecated(name, alt, fn) {
+  var message = 'Method `' + name + '` is deprecated, and to be removed in v3.0.0.';
+  if (alt) {
+    message += '\nUse `' + alt + '` instead.';
+  }
+  message += '\nTo disable all warnings like this set `Kefir.DEPRECATION_WARNINGS = false`.';
+  return function() {
+    if (Kefir.DEPRECATION_WARNINGS) {
+      log(message);
+    }
+    return fn.apply(this, arguments);
+  };
+}
 
 function isFn(fn) {
   return typeof fn === 'function';
@@ -291,17 +323,17 @@ function isArrayLike(xs) {
 
 var isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
-}
+};
 
 var isArguments = function(xs) {
   return Object.prototype.toString.call(xs) === '[object Arguments]';
-}
+};
 
 // For IE
 if (!isArguments(arguments)) {
   isArguments = function(obj) {
     return !!(obj && own(obj, 'callee'));
-  }
+  };
 }
 
 function withInterval(name, mixin) {
@@ -311,7 +343,9 @@ function withInterval(name, mixin) {
     this._wait = wait;
     this._intervalId = null;
     var $ = this;
-    this._$onTick = function() {  $._onTick()  }
+    this._$onTick = function() {
+      $._onTick();
+    };
     this._init(args);
   }
 
@@ -344,7 +378,7 @@ function withInterval(name, mixin) {
 
   Kefir[name] = function(wait) {
     return new AnonymousStream(wait, rest(arguments, 1, []));
-  }
+  };
 }
 
 function withOneSource(name, mixin, options) {
@@ -352,10 +386,14 @@ function withOneSource(name, mixin, options) {
 
   options = extend({
     streamMethod: function(StreamClass, PropertyClass) {
-      return function() {  return new StreamClass(this, arguments)  }
+      return function() {
+        return new StreamClass(this, arguments);
+      };
     },
     propertyMethod: function(StreamClass, PropertyClass) {
-      return function() {  return new PropertyClass(this, arguments)  }
+      return function() {
+        return new PropertyClass(this, arguments);
+      };
     }
   }, options || {});
 
@@ -365,9 +403,15 @@ function withOneSource(name, mixin, options) {
     _init: function(args) {},
     _free: function() {},
 
-    _handleValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
-    _handleError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
-    _handleEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
+    _handleValue: function(x, isCurrent) {
+      this._send(VALUE, x, isCurrent);
+    },
+    _handleError: function(x, isCurrent) {
+      this._send(ERROR, x, isCurrent);
+    },
+    _handleEnd: function(__, isCurrent) {
+      this._send(END, null, isCurrent);
+    },
 
     _handleAny: function(event) {
       switch (event.type) {
@@ -394,7 +438,9 @@ function withOneSource(name, mixin, options) {
       this._name = source._name + '.' + name;
       this._init(args);
       var $ = this;
-      this._$handleAny = function(event) {  $._handleAny(event)  }
+      this._$handleAny = function(event) {
+        $._handleAny(event);
+      };
     }
 
     inherit(AnonymousObservable, BaseClass, {
@@ -429,12 +475,22 @@ function withTwoSources(name, mixin /*, options*/) {
     _init: function(args) {},
     _free: function() {},
 
-    _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
-    _handlePrimaryError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
-    _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
+    _handlePrimaryValue: function(x, isCurrent) {
+      this._send(VALUE, x, isCurrent);
+    },
+    _handlePrimaryError: function(x, isCurrent) {
+      this._send(ERROR, x, isCurrent);
+    },
+    _handlePrimaryEnd: function(__, isCurrent) {
+      this._send(END, null, isCurrent);
+    },
 
-    _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
-    _handleSecondaryError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
+    _handleSecondaryValue: function(x, isCurrent) {
+      this._lastSecondary = x;
+    },
+    _handleSecondaryError: function(x, isCurrent) {
+      this._send(ERROR, x, isCurrent);
+    },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
@@ -499,8 +555,12 @@ function withTwoSources(name, mixin /*, options*/) {
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
       var $ = this;
-      this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
-      this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
+      this._$handleSecondaryAny = function(event) {
+        $._handleSecondaryAny(event);
+      };
+      this._$handlePrimaryAny = function(event) {
+        $._handlePrimaryAny(event);
+      };
       this._init(args);
     }
 
@@ -525,11 +585,11 @@ function withTwoSources(name, mixin /*, options*/) {
 
   Stream.prototype[name] = function(secondary) {
     return new AnonymousStream(this, secondary, rest(arguments, 1, []));
-  }
+  };
 
   Property.prototype[name] = function(secondary) {
     return new AnonymousProperty(this, secondary, rest(arguments, 1, []));
-  }
+  };
 
 }
 
@@ -552,19 +612,17 @@ function Dispatcher() {
 }
 
 extend(Dispatcher.prototype, {
-  add: function(type, fn, _key) {
+  add: function(type, fn) {
     this._items = concat(this._items, [{
       type: type,
-      fn: fn,
-      key: _key || null
+      fn: fn
     }]);
     return this._items.length;
   },
-  remove: function(type, fn, _key) {
-    var pred = isArray(_key) ?
-      function(fnData) {return fnData.type === type && isEqualArrays(fnData.key, _key)} :
-      function(fnData) {return fnData.type === type && fnData.fn === fn};
-    this._items = removeByPred(this._items, pred);
+  remove: function(type, fn) {
+    this._items = removeByPred(this._items, function(fnData) {
+      return fnData.type === type && fnData.fn === fn;
+    });
     return this._items.length;
   },
   dispatch: function(event) {
@@ -630,13 +688,15 @@ extend(Observable.prototype, {
   _send: function(type, x, isCurrent) {
     if (this._alive) {
       this._dispatcher.dispatch(Event(type, x, isCurrent));
-      if (type === END) {  this._clear()  }
+      if (type === END) {
+        this._clear();
+      }
     }
   },
 
-  _on: function(type, fn, _key) {
+  _on: function(type, fn) {
     if (this._alive) {
-      this._dispatcher.add(type, fn, _key);
+      this._dispatcher.add(type, fn);
       this._setActive(true);
     } else {
       callSubscriber(type, fn, CURRENT_END);
@@ -644,9 +704,9 @@ extend(Observable.prototype, {
     return this;
   },
 
-  _off: function(type, fn, _key) {
+  _off: function(type, fn) {
     if (this._alive) {
-      var count = this._dispatcher.remove(type, fn, _key);
+      var count = this._dispatcher.remove(type, fn);
       if (count === 0) {
         this._setActive(false);
       }
@@ -654,21 +714,39 @@ extend(Observable.prototype, {
     return this;
   },
 
-  onValue:  function(fn, _key) {  return this._on(VALUE, fn, _key)   },
-  onError:  function(fn, _key) {  return this._on(ERROR, fn, _key)   },
-  onEnd:    function(fn, _key) {  return this._on(END, fn, _key)     },
-  onAny:    function(fn, _key) {  return this._on(ANY, fn, _key)     },
+  onValue: function(fn) {
+    return this._on(VALUE, fn);
+  },
+  onError: function(fn) {
+    return this._on(ERROR, fn);
+  },
+  onEnd: function(fn) {
+    return this._on(END, fn);
+  },
+  onAny: function(fn) {
+    return this._on(ANY, fn);
+  },
 
-  offValue: function(fn, _key) {  return this._off(VALUE, fn, _key)  },
-  offError: function(fn, _key) {  return this._off(ERROR, fn, _key)  },
-  offEnd:   function(fn, _key) {  return this._off(END, fn, _key)    },
-  offAny:   function(fn, _key) {  return this._off(ANY, fn, _key)    }
+  offValue: function(fn) {
+    return this._off(VALUE, fn);
+  },
+  offError: function(fn) {
+    return this._off(ERROR, fn);
+  },
+  offEnd: function(fn) {
+    return this._off(END, fn);
+  },
+  offAny: function(fn) {
+    return this._off(ANY, fn);
+  }
 
 });
 
 
 // extend() can't handle `toString` in IE8
-Observable.prototype.toString = function() {  return '[' + this._name + ']'  };
+Observable.prototype.toString = function() {
+  return '[' + this._name + ']';
+};
 
 
 
@@ -715,15 +793,21 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._dispatcher.dispatch(Event(type, x));
       }
-      if (type === VALUE) {  this._current = x  }
-      if (type === ERROR) {  this._currentError = x  }
-      if (type === END) {  this._clear()  }
+      if (type === VALUE) {
+        this._current = x;
+      }
+      if (type === ERROR) {
+        this._currentError = x;
+      }
+      if (type === END) {
+        this._clear();
+      }
     }
   },
 
-  _on: function(type, fn, _key) {
+  _on: function(type, fn) {
     if (this._alive) {
-      this._dispatcher.add(type, fn, _key);
+      this._dispatcher.add(type, fn);
       this._setActive(true);
     }
     if (this._current !== NOTHING) {
@@ -749,22 +833,41 @@ inherit(Property, Observable, {
 
 Observable.prototype.log = function(name) {
   name = name || this.toString();
-  this.onAny(function(event) {
+
+  var handler = function(event) {
     var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
     if (event.type === VALUE || event.type === ERROR) {
       console.log(name, typeStr, event.value);
     } else {
       console.log(name, typeStr);
     }
-  }, ['__logKey__', this, name]);
+  };
+
+  if (!this.__logHandlers) {
+    this.__logHandlers = [];
+  }
+  this.__logHandlers.push({name: name, handler: handler});
+
+  this.onAny(handler);
   return this;
-}
+};
 
 Observable.prototype.offLog = function(name) {
   name = name || this.toString();
-  this.offAny(null, ['__logKey__', this, name]);
+
+  if (this.__logHandlers) {
+    var handlerIndex = findByPred(this.__logHandlers, function(obj) {
+      return obj.name === name;
+    });
+    if (handlerIndex !== -1) {
+      var handler = this.__logHandlers[handlerIndex].handler;
+      this.__logHandlers.splice(handlerIndex, 1);
+      this.offAny(handler);
+    }
+  }
+
   return this;
-}
+};
 
 
 
@@ -775,11 +878,19 @@ withInterval('withInterval', {
     this._fn = args[0];
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send(VALUE, x)  },
-      error: function(x) {  $._send(ERROR, x)  },
-      end: function() {  $._send(END)  },
-      emitEvent: function(e) {  $._send(e.type, e.value)  }
-    }
+      emit: function(x) {
+        $._send(VALUE, x);
+      },
+      error: function(x) {
+        $._send(ERROR, x);
+      },
+      end: function() {
+        $._send(END);
+      },
+      emitEvent: function(e) {
+        $._send(e.type, e.value);
+      }
+    };
   },
   _free: function() {
     this._fn = null;
@@ -835,7 +946,7 @@ withInterval('sequentially', {
   _init: function(args) {
     this._xs = cloneArray(args[0]);
     if (this._xs.length === 0) {
-      this._send(END)
+      this._send(END);
     }
   },
   _free: function() {
@@ -871,6 +982,12 @@ withInterval('repeatedly', {
   }
 });
 
+Kefir.repeatedly = deprecated(
+  'Kefir.repeatedly()',
+  'Kefir.repeat(() => Kefir.sequentially(...)})',
+  Kefir.repeatedly
+);
+
 
 
 
@@ -901,11 +1018,15 @@ function _AbstractPool(options) {
   }
 
   var $ = this;
-  this._$handleSubAny = function(event) {  $._handleSubAny(event)  };
+  this._$handleSubAny = function(event) {
+    $._handleSubAny(event);
+  };
 
   this._queue = [];
   this._curSources = [];
   this._activating = false;
+
+  this._bindedEndHandlers = [];
 }
 
 inherit(_AbstractPool, Stream, {
@@ -927,7 +1048,9 @@ inherit(_AbstractPool, Stream, {
   },
   _addAll: function(obss) {
     var $ = this;
-    forEach(obss, function(obs) {  $._add(obs)  });
+    forEach(obss, function(obs) {
+      $._add(obs);
+    });
   },
   _remove: function(obs) {
     if (this._removeCur(obs) === -1) {
@@ -940,16 +1063,33 @@ inherit(_AbstractPool, Stream, {
   },
   _addToCur: function(obs) {
     this._curSources = concat(this._curSources, [obs]);
-    if (this._active) {  this._subscribe(obs)  }
+    if (this._active) {
+      this._subscribe(obs);
+    }
   },
   _subscribe: function(obs) {
     var $ = this;
+
+    var onEnd = function() {
+      $._removeCur(obs);
+    };
+
+    this._bindedEndHandlers.push({obs: obs, handler: onEnd});
+
     obs.onAny(this._$handleSubAny);
-    obs.onEnd(function() {  $._removeCur(obs)  }, [this, obs]);
+    obs.onEnd(onEnd);
   },
   _unsubscribe: function(obs) {
     obs.offAny(this._$handleSubAny);
-    obs.offEnd(null, [this, obs]);
+
+    var onEndI = findByPred(this._bindedEndHandlers, function(obj) {
+      return obj.obs === obs;
+    });
+    if (onEndI !== -1) {
+      var onEnd = this._bindedEndHandlers[onEndI].handler;
+      this._bindedEndHandlers.splice(onEndI, 1);
+      obs.offEnd(onEnd);
+    }
   },
   _handleSubAny: function(event) {
     if (event.type === VALUE || event.type === ERROR) {
@@ -963,7 +1103,9 @@ inherit(_AbstractPool, Stream, {
     return index;
   },
   _removeCur: function(obs) {
-    if (this._active) {  this._unsubscribe(obs)  }
+    if (this._active) {
+      this._unsubscribe(obs);
+    }
     var index = find(this._curSources, obs);
     this._curSources = remove(this._curSources, index);
     if (index !== -1) {
@@ -1000,10 +1142,14 @@ inherit(_AbstractPool, Stream, {
   _onDeactivation: function() {
     var sources = this._curSources
       , i;
-    for (i = 0; i < sources.length; i++) {  this._unsubscribe(sources[i])  }
+    for (i = 0; i < sources.length; i++) {
+      this._unsubscribe(sources[i]);
+    }
   },
 
-  _isEmpty: function() {  return this._curSources.length === 0  },
+  _isEmpty: function() {
+    return this._curSources.length === 0;
+  },
   _onEmpty: function() {},
 
   _clear: function() {
@@ -1011,6 +1157,7 @@ inherit(_AbstractPool, Stream, {
     this._queue = null;
     this._curSources = null;
     this._$handleSubAny = null;
+    this._bindedEndHandlers = null;
   }
 
 });
@@ -1023,13 +1170,19 @@ inherit(_AbstractPool, Stream, {
 
 var MergeLike = {
   _onEmpty: function() {
-    if (this._initialised) {  this._send(END, null, this._activating)  }
+    if (this._initialised) {
+      this._send(END, null, this._activating);
+    }
   }
 };
 
 function Merge(sources) {
   _AbstractPool.call(this);
-  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {
+    this._send(END);
+  } else {
+    this._addAll(sources);
+  }
   this._initialised = true;
 }
 
@@ -1037,11 +1190,11 @@ inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 Kefir.merge = function(obss) {
   return new Merge(obss);
-}
+};
 
 Observable.prototype.merge = function(other) {
   return Kefir.merge([this, other]);
-}
+};
 
 
 
@@ -1050,7 +1203,11 @@ Observable.prototype.merge = function(other) {
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {  this._send(END)  } else {  this._addAll(sources)  }
+  if (sources.length === 0) {
+    this._send(END);
+  } else {
+    this._addAll(sources);
+  }
   this._initialised = true;
 }
 
@@ -1058,11 +1215,11 @@ inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
 Kefir.concat = function(obss) {
   return new Concat(obss);
-}
+};
 
 Observable.prototype.concat = function(other) {
   return Kefir.concat([this, other]);
-}
+};
 
 
 
@@ -1093,7 +1250,7 @@ inherit(Pool, _AbstractPool, {
 
 Kefir.pool = function() {
   return new Pool();
-}
+};
 
 
 
@@ -1139,7 +1296,7 @@ inherit(Bus, _AbstractPool, {
 
 Kefir.bus = function() {
   return new Bus();
-}
+};
 
 
 
@@ -1155,7 +1312,9 @@ function FlatMap(source, fn, options) {
   this._lastCurrent = null;
 
   var $ = this;
-  this._$handleMainSource = function(event) {  $._handleMainSource(event)  };
+  this._$handleMainSource = function(event) {
+    $._handleMainSource(event);
+  };
 }
 
 inherit(FlatMap, _AbstractPool, {
@@ -1193,7 +1352,9 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _onEmpty: function() {
-    if (this._mainEnded) {  this._send(END)  }
+    if (this._mainEnded) {
+      this._send(END);
+    }
   },
 
   _clear: function() {
@@ -1208,33 +1369,35 @@ inherit(FlatMap, _AbstractPool, {
 Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn)
     .setName(this, 'flatMap');
-}
+};
 
 Observable.prototype.flatMapLatest = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
     .setName(this, 'flatMapLatest');
-}
+};
 
 Observable.prototype.flatMapFirst = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1})
     .setName(this, 'flatMapFirst');
-}
+};
 
 Observable.prototype.flatMapConcat = function(fn) {
   return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
     .setName(this, 'flatMapConcat');
-}
+};
 
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   var result;
   if (limit === 0) {
     result = Kefir.never();
   } else {
-    if (limit < 0) {  limit = -1  }
+    if (limit < 0) {
+      limit = -1;
+    }
     result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
   }
   return result.setName(this, 'flatMapConcurLimit');
-}
+};
 
 
 
@@ -1256,6 +1419,12 @@ function Zip(sources, combinator) {
     });
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
+
+    this._bindedHandlers = Array(this._sources.length);
+    for (var i = 0; i < this._sources.length; i++) {
+      this._bindedHandlers[i] = this._bindHandleAny(i);
+    }
+
   }
 }
 
@@ -1270,14 +1439,14 @@ inherit(Zip, Stream, {
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
       if (this._active) {
-        this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
+        this._sources[i].onAny(this._bindedHandlers[i]);
       }
     }
   },
 
   _onDeactivation: function() {
     for (var i = 0; i < this._sources.length; i++) {
-      this._sources[i].offAny(null, [this, i]);
+      this._sources[i].offAny(this._bindedHandlers[i]);
     }
   },
 
@@ -1312,7 +1481,9 @@ inherit(Zip, Stream, {
 
   _bindHandleAny: function(i) {
     var $ = this;
-    return function(event) {  $._handleAny(i, event)  };
+    return function(event) {
+      $._handleAny(i, event);
+    };
   },
 
   _handleAny: function(i, event) {
@@ -1336,17 +1507,18 @@ inherit(Zip, Stream, {
     this._sources = null;
     this._buffers = null;
     this._combinator = null;
+    this._bindedHandlers = null;
   }
 
 });
 
 Kefir.zip = function(sources, combinator) {
   return new Zip(sources, combinator);
-}
+};
 
 Observable.prototype.zip = function(other, combinator) {
   return new Zip([this, other], combinator);
-}
+};
 
 
 
@@ -1369,6 +1541,12 @@ function Combine(active, passive, combinator) {
     this._activating = false;
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
+
+    this._bindedHandlers = Array(this._sources.length);
+    for (var i = 0; i < this._sources.length; i++) {
+      this._bindedHandlers[i] = this._bindHandleAny(i);
+    }
+
   }
 }
 
@@ -1383,7 +1561,7 @@ inherit(Combine, Stream, {
     this._aliveCount = this._activeCount;
     this._activating = true;
     for (i = 0; i < length; i++) {
-      this._sources[i].onAny(this._bindHandleAny(i), [this, i]);
+      this._sources[i].onAny(this._bindedHandlers[i]);
     }
     this._activating = false;
     if (this._emitAfterActivation) {
@@ -1399,7 +1577,7 @@ inherit(Combine, Stream, {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
-      this._sources[i].offAny(null, [this, i]);
+      this._sources[i].offAny(this._bindedHandlers[i]);
     }
   },
 
@@ -1413,7 +1591,9 @@ inherit(Combine, Stream, {
 
   _bindHandleAny: function(i) {
     var $ = this;
-    return function(event) {  $._handleAny(i, event)  };
+    return function(event) {
+      $._handleAny(i, event);
+    };
   },
 
   _handleAny: function(i, event) {
@@ -1449,6 +1629,7 @@ inherit(Combine, Stream, {
     this._sources = null;
     this._currents = null;
     this._combinator = null;
+    this._bindedHandlers = null;
   }
 
 });
@@ -1459,11 +1640,11 @@ Kefir.combine = function(active, passive, combinator) {
     passive = null;
   }
   return new Combine(active, passive || [], combinator);
-}
+};
 
 Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
-}
+};
 
 
 
@@ -1471,46 +1652,44 @@ Observable.prototype.combine = function(other, combinator) {
 
 
 // .sampledBy()
+Kefir.sampledBy = deprecated(
+  'Kefir.sampledBy()',
+  'Kefir.combine(active, passive, combinator)',
+  function(passive, active, combinator) {
 
-Kefir.DISABLE_SAMPLEDBY_WARNING = false;
-
-Kefir.sampledBy = function(passive, active, combinator) {
-
-  if (!Kefir.DISABLE_SAMPLEDBY_WARNING) {
-    log('Kefir.sampledBy() is deprecated, and to be removed in v3.0.0.\n' +
-      'Use Kefir.combine(active, passive, combinator) instead, ' +
-      'but note than active/passive order is different.\n' +
-      'To disable this warning set Kefir.DISABLE_SAMPLEDBY_WARNING to true.');
-  }
-
-  // we need to flip `passive` and `active` in combinator function
-  var _combinator = combinator;
-  if (passive.length > 0) {
-    var passiveLength = passive.length;
-    _combinator = function() {
-      var args = circleShift(arguments, passiveLength);
-      return combinator ? apply(combinator, null, args) : args;
+    // we need to flip `passive` and `active` in combinator function
+    var _combinator = combinator;
+    if (passive.length > 0) {
+      var passiveLength = passive.length;
+      _combinator = function() {
+        var args = circleShift(arguments, passiveLength);
+        return combinator ? apply(combinator, null, args) : args;
+      };
     }
-  }
 
-  return new Combine(active, passive, _combinator).setName('sampledBy');
-}
+    return new Combine(active, passive, _combinator).setName('sampledBy');
+  }
+);
 
 Observable.prototype.sampledBy = function(other, combinator) {
   var _combinator;
   if (combinator) {
     _combinator = function(active, passive) {
       return combinator(passive, active);
-    }
+    };
   }
   return new Combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
-}
+};
 
 function produceStream(StreamClass, PropertyClass) {
-  return function() {  return new StreamClass(this, arguments)  }
+  return function() {
+    return new StreamClass(this, arguments);
+  };
 }
 function produceProperty(StreamClass, PropertyClass) {
-  return function() {  return new PropertyClass(this, arguments)  }
+  return function() {
+    return new PropertyClass(this, arguments);
+  };
 }
 
 
@@ -1546,7 +1725,7 @@ withOneSource('changes', {
   streamMethod: function() {
     return function() {
       return this;
-    }
+    };
   },
   propertyMethod: produceStream
 });
@@ -1562,11 +1741,19 @@ withOneSource('withHandler', {
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
-      error: function(x) {  $._send(ERROR, x, $._forcedCurrent)  },
-      end: function() {  $._send(END, null, $._forcedCurrent)  },
-      emitEvent: function(e) {  $._send(e.type, e.value, $._forcedCurrent)  }
-    }
+      emit: function(x) {
+        $._send(VALUE, x, $._forcedCurrent);
+      },
+      error: function(x) {
+        $._send(ERROR, x, $._forcedCurrent);
+      },
+      end: function() {
+        $._send(END, null, $._forcedCurrent);
+      },
+      emitEvent: function(e) {
+        $._send(e.type, e.value, $._forcedCurrent);
+      }
+    };
   },
   _free: function() {
     this._handler = null;
@@ -1645,31 +1832,39 @@ withOneSource('transduce', {
 
 
 
-var withFnArgMixin = {
-  _init: function(args) {  this._fn = args[0] || id  },
-  _free: function() {  this._fn = null  }
-};
 
 
 
 // .map(fn)
 
-withOneSource('map', extend({
+withOneSource('map', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     this._send(VALUE, this._fn(x), isCurrent);
   }
-}, withFnArgMixin));
+});
 
 
 
 
 // .mapErrors(fn)
 
-withOneSource('mapErrors', extend({
+withOneSource('mapErrors', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleError: function(x, isCurrent) {
     this._send(ERROR, this._fn(x), isCurrent);
   }
-}, withFnArgMixin));
+});
 
 
 
@@ -1682,7 +1877,7 @@ function defaultErrorsToValuesHandler(x) {
   };
 }
 
-withOneSource('errorsToValues', extend({
+withOneSource('errorsToValues', {
   _init: function(args) {
     this._fn = args[0] || defaultErrorsToValuesHandler;
   },
@@ -1695,7 +1890,7 @@ withOneSource('errorsToValues', extend({
     var newX = result.convert ? result.value : x;
     this._send(type, newX, isCurrent);
   }
-}));
+});
 
 
 
@@ -1708,7 +1903,7 @@ function defaultValuesToErrorsHandler(x) {
   };
 }
 
-withOneSource('valuesToErrors', extend({
+withOneSource('valuesToErrors', {
   _init: function(args) {
     this._fn = args[0] || defaultValuesToErrorsHandler;
   },
@@ -1721,40 +1916,58 @@ withOneSource('valuesToErrors', extend({
     var newX = result.convert ? result.error : x;
     this._send(type, newX, isCurrent);
   }
-}));
+});
 
 
 
 
 // .filter(fn)
 
-withOneSource('filter', extend({
+withOneSource('filter', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(VALUE, x, isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
 
 
 
 // .filterErrors(fn)
 
-withOneSource('filterErrors', extend({
+withOneSource('filterErrors', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleError: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(ERROR, x, isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
 
 
 
 // .takeWhile(fn)
 
-withOneSource('takeWhile', extend({
+withOneSource('takeWhile', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(VALUE, x, isCurrent);
@@ -1762,7 +1975,7 @@ withOneSource('takeWhile', extend({
       this._send(END, null, isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
 
 
@@ -1972,14 +2185,14 @@ withOneSource('skipEnd', {
 
 
 
-// .endOnError(fn)
+// .endOnError()
 
-withOneSource('endOnError', extend({
+withOneSource('endOnError', {
   _handleError: function(x, isCurrent) {
     this._send(ERROR, x, isCurrent);
     this._send(END, null, isCurrent);
   }
-}));
+});
 
 
 
@@ -2051,7 +2264,9 @@ withOneSource('debounce', {
     this._laterValue = null;
     this._endLater = false;
     var $ = this;
-    this._$later = function() {  $._later()  };
+    this._$later = function() {
+      $._later();
+    };
   },
   _free: function() {
     this._laterValue = null;
@@ -2117,7 +2332,9 @@ withOneSource('throttle', {
     this._endLater = false;
     this._lastCallTime = 0;
     var $ = this;
-    this._$trailingCall = function() {  $._trailingCall()  };
+    this._$trailingCall = function() {
+      $._trailingCall();
+    };
   },
   _free: function() {
     this._trailingValue = null;
@@ -2182,7 +2399,9 @@ withOneSource('delay', {
     this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._$shiftBuff = function() {  $._send(VALUE, $._buff.shift())  }
+    this._$shiftBuff = function() {
+      $._send(VALUE, $._buff.shift());
+    };
   },
   _free: function() {
     this._buff = null;
@@ -2201,7 +2420,9 @@ withOneSource('delay', {
       this._send(END, null, isCurrent);
     } else {
       var $ = this;
-      setTimeout(function() {  $._send(END)  }, this._wait);
+      setTimeout(function() {
+        $._send(END);
+      }, this._wait);
     }
   }
 });
@@ -2222,14 +2443,22 @@ inherit(FromBinder, Stream, {
     var $ = this
       , isCurrent = true
       , emitter = {
-        emit: function(x) {  $._send(VALUE, x, isCurrent)  },
-        error: function(x) {  $._send(ERROR, x, isCurrent)  },
-        end: function() {  $._send(END, null, isCurrent)  },
-        emitEvent: function(e) {  $._send(e.type, e.value, isCurrent)  }
+        emit: function(x) {
+          $._send(VALUE, x, isCurrent);
+        },
+        error: function(x) {
+          $._send(ERROR, x, isCurrent);
+        },
+        end: function() {
+          $._send(END, null, isCurrent);
+        },
+        emitEvent: function(e) {
+          $._send(e.type, e.value, isCurrent);
+        }
       };
     this._unsubscribe = this._fn(emitter) || null;
 
-    // work around https://github.com/pozadi/kefir/issues/35
+    // fix https://github.com/pozadi/kefir/issues/35
     if (!this._active && this._unsubscribe !== null) {
       this._unsubscribe();
       this._unsubscribe = null;
@@ -2249,11 +2478,11 @@ inherit(FromBinder, Stream, {
     this._fn = null;
   }
 
-})
+});
 
 Kefir.fromBinder = function(fn) {
   return new FromBinder(fn);
-}
+};
 
 
 
@@ -2287,7 +2516,7 @@ inherit(Emitter, Stream, {
 
 Kefir.emitter = function() {
   return new Emitter();
-}
+};
 
 Kefir.Emitter = Emitter;
 
@@ -2302,7 +2531,9 @@ Kefir.Emitter = Emitter;
 var neverObj = new Stream();
 neverObj._send(END);
 neverObj._name = 'never';
-Kefir.never = function() {  return neverObj  }
+Kefir.never = function() {
+  return neverObj;
+};
 
 
 
@@ -2318,11 +2549,11 @@ function Constant(x) {
 
 inherit(Constant, Property, {
   _name: 'constant'
-})
+});
 
 Kefir.constant = function(x) {
   return new Constant(x);
-}
+};
 
 
 
@@ -2337,11 +2568,11 @@ function ConstantError(x) {
 
 inherit(ConstantError, Property, {
   _name: 'constantError'
-})
+});
 
 Kefir.constantError = function(x) {
   return new ConstantError(x);
-}
+};
 
 
 
@@ -2417,7 +2648,7 @@ inherit(Repeat, Stream, {
 
 Kefir.repeat = function(generator) {
   return new Repeat(generator);
-}
+};
 
 
 
@@ -2426,90 +2657,139 @@ Kefir.repeat = function(generator) {
 Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
   this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
   return this;
-}
+};
 
 
 
 // .mapTo
 
-Observable.prototype.mapTo = function(value) {
-  return this.map(function() {  return value  }).setName(this, 'mapTo');
-}
+Observable.prototype.mapTo = deprecated(
+  '.mapTo()',
+  '.map(() => value)',
+  function(value) {
+    return this.map(function() {
+      return value;
+    }).setName(this, 'mapTo');
+  }
+);
 
 
 
 // .pluck
 
-Observable.prototype.pluck = function(propertyName) {
-  return this.map(function(x) {
-    return x[propertyName];
-  }).setName(this, 'pluck');
-}
+Observable.prototype.pluck = deprecated(
+  '.pluck()',
+  '.map((v) => v.prop)',
+  function(propertyName) {
+    return this.map(function(x) {
+      return x[propertyName];
+    }).setName(this, 'pluck');
+  }
+);
 
 
 
 // .invoke
 
-Observable.prototype.invoke = function(methodName /*, arg1, arg2... */) {
-  var args = rest(arguments, 1);
-  return this.map(args ?
-    function(x) {  return apply(x[methodName], x, args)  } :
-    function(x) {  return x[methodName]()  }
-  ).setName(this, 'invoke');
-}
+Observable.prototype.invoke = deprecated(
+  '.invoke()',
+  '.map((v) => v.method())',
+  function(methodName /*, arg1, arg2... */) {
+    var args = rest(arguments, 1);
+    return this.map(args ?
+      function(x) {
+        return apply(x[methodName], x, args);
+      } :
+      function(x) {
+        return x[methodName]();
+      }
+    ).setName(this, 'invoke');
+  }
+);
 
 
 
 
 // .timestamp
 
-Observable.prototype.timestamp = function() {
-  return this.map(function(x) {  return {value: x, time: now()}  }).setName(this, 'timestamp');
-}
+Observable.prototype.timestamp = deprecated(
+  '.timestamp()',
+  '.map((v) => {value: v, time: (new Date).getTime()})',
+  function() {
+    return this.map(function(x) {
+      return {value: x, time: now()};
+    }).setName(this, 'timestamp');
+  }
+);
 
 
 
 
 // .tap
 
-Observable.prototype.tap = function(fn) {
-  return this.map(function(x) {
-    fn(x);
-    return x;
-  }).setName(this, 'tap');
-}
+Observable.prototype.tap = deprecated(
+  '.tap()',
+  '.map((v) => {fn(v); return v})',
+  function(fn) {
+    return this.map(function(x) {
+      fn(x);
+      return x;
+    }).setName(this, 'tap');
+  }
+);
+
 
 
 
 // .and
 
-Kefir.and = function(observables) {
-  return Kefir.combine(observables, and).setName('and');
-}
+Kefir.and = deprecated(
+  'Kefir.and()',
+  'Kefir.combine([a, b], (a, b) => a && b)',
+  function(observables) {
+    return Kefir.combine(observables, and).setName('and');
+  }
+);
 
-Observable.prototype.and = function(other) {
-  return this.combine(other, and).setName('and');
-}
+Observable.prototype.and = deprecated(
+  '.and()',
+  '.combine(other, (a, b) => a && b)',
+  function(other) {
+    return this.combine(other, and).setName('and');
+  }
+);
 
 
 
 // .or
 
-Kefir.or = function(observables) {
-  return Kefir.combine(observables, or).setName('or');
-}
+Kefir.or = deprecated(
+  'Kefir.or()',
+  'Kefir.combine([a, b], (a, b) => a || b)',
+  function(observables) {
+    return Kefir.combine(observables, or).setName('or');
+  }
+);
 
-Observable.prototype.or = function(other) {
-  return this.combine(other, or).setName('or');
-}
+Observable.prototype.or = deprecated(
+  '.or()',
+  '.combine(other, (a, b) => a || b)',
+  function(other) {
+    return this.combine(other, or).setName('or');
+  }
+);
 
 
 
 // .not
 
-Observable.prototype.not = function() {
-  return this.map(not).setName(this, 'not');
-}
+Observable.prototype.not = deprecated(
+  '.not()',
+  '.map(v => !v)',
+  function() {
+    return this.map(not).setName(this, 'not');
+  }
+);
 
 
 
@@ -2520,7 +2800,7 @@ Observable.prototype.awaiting = function(other) {
     this.mapTo(true),
     other.mapTo(false)
   ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
-}
+};
 
 
 
@@ -2538,7 +2818,7 @@ Kefir.fromCallback = function(callbackConsumer) {
       called = true;
     }
   }).setName('fromCallback');
-}
+};
 
 
 
@@ -2560,7 +2840,7 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
       called = true;
     }
   }).setName('fromNodeCallback');
-}
+};
 
 
 
@@ -2589,7 +2869,7 @@ Kefir.fromPromise = function(promise) {
       called = true;
     }
   }).toProperty().setName('fromPromise');
-}
+};
 
 
 
@@ -2604,9 +2884,11 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
       emitter.emit(apply(transformer, this, arguments));
     } : emitter.emit;
     sub(handler);
-    return function() {  unsub(handler)  };
+    return function() {
+      unsub(handler);
+    };
   });
-}
+};
 
 
 
@@ -2637,11 +2919,15 @@ Kefir.fromEvent = function(target, eventName, transformer) {
   }
 
   return Kefir.fromSubUnsub(
-    function(handler) {  target[sub](eventName, handler)  },
-    function(handler) {  target[unsub](eventName, handler)  },
+    function(handler) {
+      target[sub](eventName, handler);
+    },
+    function(handler) {
+      target[unsub](eventName, handler);
+    },
     transformer
   ).setName('fromEvent');
-}
+};
 
 var withTwoSourcesAndBufferMixin = {
   _init: function(args) {
