@@ -1,7 +1,8 @@
 ## 1.3.0
 
- - Following methods was deprecated (see [#71](https://github.com/pozadi/kefir/issues/71)):
-   repeatedly, mapTo, pluck, invoke, not, timestamp, tap, and, or
+ - Following methods are deprecated:
+   `.repeatedly`, `.mapTo`, `.pluck`, `.invoke`, `.not`, `.timestamp`, `.tap`, `.and`, `.or`
+   (see [#71](https://github.com/pozadi/kefir/issues/71))
 
 ## 1.2.0
 
