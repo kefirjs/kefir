@@ -5,7 +5,9 @@ function withInterval(name, mixin) {
     this._wait = wait;
     this._intervalId = null;
     var $ = this;
-    this._$onTick = function() {  $._onTick()  }
+    this._$onTick = function() {
+      $._onTick();
+    };
     this._init(args);
   }
 
@@ -38,5 +40,5 @@ function withInterval(name, mixin) {
 
   Kefir[name] = function(wait) {
     return new AnonymousStream(wait, rest(arguments, 1, []));
-  }
+  };
 }

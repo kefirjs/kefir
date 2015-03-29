@@ -1,8 +1,12 @@
 function produceStream(StreamClass, PropertyClass) {
-  return function() {  return new StreamClass(this, arguments)  }
+  return function() {
+    return new StreamClass(this, arguments);
+  };
 }
 function produceProperty(StreamClass, PropertyClass) {
-  return function() {  return new PropertyClass(this, arguments)  }
+  return function() {
+    return new PropertyClass(this, arguments);
+  };
 }
 
 
@@ -38,7 +42,7 @@ withOneSource('changes', {
   streamMethod: function() {
     return function() {
       return this;
-    }
+    };
   },
   propertyMethod: produceStream
 });
@@ -54,11 +58,19 @@ withOneSource('withHandler', {
     this._forcedCurrent = false;
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send(VALUE, x, $._forcedCurrent)  },
-      error: function(x) {  $._send(ERROR, x, $._forcedCurrent)  },
-      end: function() {  $._send(END, null, $._forcedCurrent)  },
-      emitEvent: function(e) {  $._send(e.type, e.value, $._forcedCurrent)  }
-    }
+      emit: function(x) {
+        $._send(VALUE, x, $._forcedCurrent);
+      },
+      error: function(x) {
+        $._send(ERROR, x, $._forcedCurrent);
+      },
+      end: function() {
+        $._send(END, null, $._forcedCurrent);
+      },
+      emitEvent: function(e) {
+        $._send(e.type, e.value, $._forcedCurrent);
+      }
+    };
   },
   _free: function() {
     this._handler = null;
@@ -137,31 +149,39 @@ withOneSource('transduce', {
 
 
 
-var withFnArgMixin = {
-  _init: function(args) {  this._fn = args[0] || id  },
-  _free: function() {  this._fn = null  }
-};
 
 
 
 // .map(fn)
 
-withOneSource('map', extend({
+withOneSource('map', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     this._send(VALUE, this._fn(x), isCurrent);
   }
-}, withFnArgMixin));
+});
 
 
 
 
 // .mapErrors(fn)
 
-withOneSource('mapErrors', extend({
+withOneSource('mapErrors', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleError: function(x, isCurrent) {
     this._send(ERROR, this._fn(x), isCurrent);
   }
-}, withFnArgMixin));
+});
 
 
 
@@ -174,7 +194,7 @@ function defaultErrorsToValuesHandler(x) {
   };
 }
 
-withOneSource('errorsToValues', extend({
+withOneSource('errorsToValues', {
   _init: function(args) {
     this._fn = args[0] || defaultErrorsToValuesHandler;
   },
@@ -187,7 +207,7 @@ withOneSource('errorsToValues', extend({
     var newX = result.convert ? result.value : x;
     this._send(type, newX, isCurrent);
   }
-}));
+});
 
 
 
@@ -200,7 +220,7 @@ function defaultValuesToErrorsHandler(x) {
   };
 }
 
-withOneSource('valuesToErrors', extend({
+withOneSource('valuesToErrors', {
   _init: function(args) {
     this._fn = args[0] || defaultValuesToErrorsHandler;
   },
@@ -213,40 +233,58 @@ withOneSource('valuesToErrors', extend({
     var newX = result.convert ? result.error : x;
     this._send(type, newX, isCurrent);
   }
-}));
+});
 
 
 
 
 // .filter(fn)
 
-withOneSource('filter', extend({
+withOneSource('filter', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(VALUE, x, isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
 
 
 
 // .filterErrors(fn)
 
-withOneSource('filterErrors', extend({
+withOneSource('filterErrors', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleError: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(ERROR, x, isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
 
 
 
 // .takeWhile(fn)
 
-withOneSource('takeWhile', extend({
+withOneSource('takeWhile', {
+  _init: function(args) {
+    this._fn = args[0] || id;
+  },
+  _free: function() {
+    this._fn = null;
+  },
   _handleValue: function(x, isCurrent) {
     if (this._fn(x)) {
       this._send(VALUE, x, isCurrent);
@@ -254,7 +292,7 @@ withOneSource('takeWhile', extend({
       this._send(END, null, isCurrent);
     }
   }
-}, withFnArgMixin));
+});
 
 
 
@@ -464,14 +502,14 @@ withOneSource('skipEnd', {
 
 
 
-// .endOnError(fn)
+// .endOnError()
 
-withOneSource('endOnError', extend({
+withOneSource('endOnError', {
   _handleError: function(x, isCurrent) {
     this._send(ERROR, x, isCurrent);
     this._send(END, null, isCurrent);
   }
-}));
+});
 
 
 
@@ -543,7 +581,9 @@ withOneSource('debounce', {
     this._laterValue = null;
     this._endLater = false;
     var $ = this;
-    this._$later = function() {  $._later()  };
+    this._$later = function() {
+      $._later();
+    };
   },
   _free: function() {
     this._laterValue = null;
@@ -609,7 +649,9 @@ withOneSource('throttle', {
     this._endLater = false;
     this._lastCallTime = 0;
     var $ = this;
-    this._$trailingCall = function() {  $._trailingCall()  };
+    this._$trailingCall = function() {
+      $._trailingCall();
+    };
   },
   _free: function() {
     this._trailingValue = null;
@@ -674,7 +716,9 @@ withOneSource('delay', {
     this._wait = Math.max(0, args[0]);
     this._buff = [];
     var $ = this;
-    this._$shiftBuff = function() {  $._send(VALUE, $._buff.shift())  }
+    this._$shiftBuff = function() {
+      $._send(VALUE, $._buff.shift());
+    };
   },
   _free: function() {
     this._buff = null;
@@ -693,7 +737,9 @@ withOneSource('delay', {
       this._send(END, null, isCurrent);
     } else {
       var $ = this;
-      setTimeout(function() {  $._send(END)  }, this._wait);
+      setTimeout(function() {
+        $._send(END);
+      }, this._wait);
     }
   }
 });

@@ -4,12 +4,22 @@ function withTwoSources(name, mixin /*, options*/) {
     _init: function(args) {},
     _free: function() {},
 
-    _handlePrimaryValue: function(x, isCurrent) {  this._send(VALUE, x, isCurrent)  },
-    _handlePrimaryError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
-    _handlePrimaryEnd: function(__, isCurrent) {  this._send(END, null, isCurrent)  },
+    _handlePrimaryValue: function(x, isCurrent) {
+      this._send(VALUE, x, isCurrent);
+    },
+    _handlePrimaryError: function(x, isCurrent) {
+      this._send(ERROR, x, isCurrent);
+    },
+    _handlePrimaryEnd: function(__, isCurrent) {
+      this._send(END, null, isCurrent);
+    },
 
-    _handleSecondaryValue: function(x, isCurrent) {  this._lastSecondary = x  },
-    _handleSecondaryError: function(x, isCurrent) {  this._send(ERROR, x, isCurrent)  },
+    _handleSecondaryValue: function(x, isCurrent) {
+      this._lastSecondary = x;
+    },
+    _handleSecondaryError: function(x, isCurrent) {
+      this._send(ERROR, x, isCurrent);
+    },
     _handleSecondaryEnd: function(__, isCurrent) {},
 
     _handlePrimaryAny: function(event) {
@@ -74,8 +84,12 @@ function withTwoSources(name, mixin /*, options*/) {
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
       var $ = this;
-      this._$handleSecondaryAny = function(event) {  $._handleSecondaryAny(event)  }
-      this._$handlePrimaryAny = function(event) {  $._handlePrimaryAny(event)  }
+      this._$handleSecondaryAny = function(event) {
+        $._handleSecondaryAny(event);
+      };
+      this._$handlePrimaryAny = function(event) {
+        $._handlePrimaryAny(event);
+      };
       this._init(args);
     }
 
@@ -100,10 +114,10 @@ function withTwoSources(name, mixin /*, options*/) {
 
   Stream.prototype[name] = function(secondary) {
     return new AnonymousStream(this, secondary, rest(arguments, 1, []));
-  }
+  };
 
   Property.prototype[name] = function(secondary) {
     return new AnonymousProperty(this, secondary, rest(arguments, 1, []));
-  }
+  };
 
 }

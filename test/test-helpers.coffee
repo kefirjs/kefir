@@ -1,7 +1,7 @@
 Kefir = require("../dist/kefir")
 sinon = require('sinon')
 
-Kefir.DISABLE_SAMPLEDBY_WARNING = true;
+Kefir.DEPRECATION_WARNINGS = false;
 
 exports.Kefir = Kefir
 

@@ -7,11 +7,19 @@ withInterval('withInterval', {
     this._fn = args[0];
     var $ = this;
     this._emitter = {
-      emit: function(x) {  $._send(VALUE, x)  },
-      error: function(x) {  $._send(ERROR, x)  },
-      end: function() {  $._send(END)  },
-      emitEvent: function(e) {  $._send(e.type, e.value)  }
-    }
+      emit: function(x) {
+        $._send(VALUE, x);
+      },
+      error: function(x) {
+        $._send(ERROR, x);
+      },
+      end: function() {
+        $._send(END);
+      },
+      emitEvent: function(e) {
+        $._send(e.type, e.value);
+      }
+    };
   },
   _free: function() {
     this._fn = null;
@@ -67,7 +75,7 @@ withInterval('sequentially', {
   _init: function(args) {
     this._xs = cloneArray(args[0]);
     if (this._xs.length === 0) {
-      this._send(END)
+      this._send(END);
     }
   },
   _free: function() {
@@ -102,6 +110,12 @@ withInterval('repeatedly', {
     }
   }
 });
+
+Kefir.repeatedly = deprecated(
+  'Kefir.repeatedly()',
+  'Kefir.repeat(() => Kefir.sequentially(...)})',
+  Kefir.repeatedly
+);
 
 
 

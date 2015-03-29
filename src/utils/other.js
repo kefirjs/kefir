@@ -19,13 +19,35 @@ function strictEqual(a, b) {
 }
 
 function defaultDiff(a, b) {
-  return [a, b]
+  return [a, b];
 }
 
 var now = Date.now ?
-  function() { return Date.now() } :
-  function() { return new Date().getTime() };
+  function() {
+    return Date.now();
+  } :
+  function() {
+    return new Date().getTime();
+  };
 
 var log = ((typeof console !== undefined) && isFn(console.log)) ?
-  function(m) {console.log(m)} :
-  noop;
+  function(m) {
+    console.log(m);
+  } : noop;
+
+
+
+Kefir.DEPRECATION_WARNINGS = true;
+function deprecated(name, alt, fn) {
+  var message = 'Method `' + name + '` is deprecated, and to be removed in v3.0.0.';
+  if (alt) {
+    message += '\nUse `' + alt + '` instead.';
+  }
+  message += '\nTo disable all warnings like this set `Kefir.DEPRECATION_WARNINGS = false`.';
+  return function() {
+    if (Kefir.DEPRECATION_WARNINGS) {
+      log(message);
+    }
+    return fn.apply(this, arguments);
+  };
+}

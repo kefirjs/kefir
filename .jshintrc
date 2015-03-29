@@ -1,6 +1,4 @@
 {
-  "asi": true,
-  "validthis": true,
   "eqnull": true,
   "laxcomma": true
 }
