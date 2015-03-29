@@ -1,4 +1,9 @@
-## next
+## 1.3.0
+
+ - Following methods was deprecated (see [#71](https://github.com/pozadi/kefir/issues/71)):
+   repeatedly, mapTo, pluck, invoke, not, timestamp, tap, and, or
+
+## 1.2.0
 
  - `Kefir.sampledBy` is deprecated in favor of 3 arity `Kefir.combine`
 
