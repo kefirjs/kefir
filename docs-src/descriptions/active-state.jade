@@ -3,13 +3,13 @@ h2#active-state Active state
 p.
   Each stream or property at any given time may be in one of two states —
   active or inactive. When an observable is in an inactive state, it does not emit any
-  events, and does not subscribe to it's original source.
-  Observables automatically become active when first listener is added,
-  and become inactive when last listener is removed.
+  event, and does not subscribe to it's original source.
+  Observables automatically become active when the first listener is added,
+  and become inactive when the last listener is removed.
 
 p.
   For example #[tt stream = Kefir.fromEvent(el, 'click')] won't
-  immediately subscribe to #[tt 'click'] event on #[tt el],
+  immediately subscribe to the #[tt 'click'] event on #[tt el],
   it will subscribe only when the first listener will be added to the
   #[tt stream]. And it will automatically unsubscribe when the last listener
   will be removed from the #[tt stream].
@@ -20,7 +20,7 @@ pre
     // at this moment event listener to _el_ not added
 
     stream.onValue(someFn);
-    // now 'click' listener added to _el_
+    // now 'click' listener is added to _el_
 
     stream.offValue(someFn);
     // and now it is removed again
@@ -43,8 +43,8 @@ pre
     var mergeAB = Kefir.merge(A, B);
 
 p.
-  In fact active state is just a convention that is strictly
-  followed in Kefir code, for better performance.
+  In fact, active state is just a convention that is strictly
+  followed in the code of Kefir, for better performance.
   But you are free to not follow it in your custom plugins or combinators.
 
 p.
@@ -60,7 +60,7 @@ pre
     var emitter = Kefir.emitter();
     var property = emitter.toProperty(0);
 
-    // 1 and 2 won't become property current value
+    // 1 and 2 won't become the property's current value
     emitter.emit(1);
     emitter.emit(2);
 
@@ -68,7 +68,7 @@ pre
     // and also check current value
     property.onValue(function(x) {  console.log(x)  }) // => 0
 
-    // those values will become property current
+    // these values will become the property's current value
     emitter.emit(3);
     emitter.emit(4);
 
@@ -78,8 +78,8 @@ p.
   This issue applies not only to properties,
   but also to all stateful observables
   (like #[a(href='#take') take], #[a(href='#diff') diff], #[a(href='#scan') scan] etc.).
-  In rare cases you might need to activate an observable by adding
-  a dummy subscriber, to solve this issue. It's ok if you really need this,
+  In some rare cases, to solve this issue, you might need to activate an observable by adding
+  a dummy subscriber. It's ok if you really need this,
   but don't overuse that pattern. For example
-  #[tt obs.map(sideEffect).onValue(function(){})] is a antipattern,
+  #[tt obs.map(sideEffect).onValue(function(){})] is a anti-pattern,
   you should do #[tt obs.onValue(sideEffect)] instead.
