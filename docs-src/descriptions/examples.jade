@@ -1,7 +1,7 @@
 h2#examples Examples
 
 p.
-  Let's start from a little quick example to get you a feel
+  Let's start from a quick little example to get you a feel
   of what is it like to program with Kefir.
   First we create a stream of events
   that will produce three numbers with interval of 100 milliseconds:
@@ -11,7 +11,7 @@ pre(title='example')
     var numbers = Kefir.sequentially(100, [1, 2, 3]);
 
 p.
-  Now let's create another stream based on first one.
+  Now let's create another stream based on the first one.
   As you might guess, it will produce 2, 4, and 6.
 
 pre(title='example')
@@ -27,12 +27,12 @@ p.
 pre(title='example')
   :escapehtml
     var numbers3 = numbers2.filter(function(x) {
-      return x === 4 ? false : true;
+      return x !== 4;
     });
 
 p.
   Ok, I think numbers3 stream is what we want,
-  it's time to subscribe to it and get the values:
+  it's time to subscribe to it and to get the values:
 
 pre(title='example')
   :escapehtml
@@ -41,14 +41,14 @@ pre(title='example')
     });
 
 script.
-  function Logger(domNode, devider) {
+  function Logger(domNode, divider) {
     this.domNode = domNode;
-    this.devider = devider || ' ';
+    this.divider = divider || ' ';
     this.domNode.innerHTML = '';
   }
 
   Logger.prototype.log = function(x) {
-    this.domNode.innerHTML += '' + x + this.devider;
+    this.domNode.innerHTML += '' + x + this.divider;
   }
 
   function runExample1() {
@@ -58,7 +58,7 @@ script.
         return x * 2;
       })
       .filter(function(x) {
-        return x === 4 ? false : true;
+        return x !== 4;
       })
       .onValue(function(x) {
         logger.log(x);
@@ -80,5 +80,5 @@ ul
 
 p.
   #[img(data-emoji="information_desk_person")]
-  Also, almost any code snippet below can be run in browser console, on this page.
-  So you can play with Kefir right now, just open up browser console.
+  Also, almost any code snippet below can be run in the browser console, on this page.
+  So you can play with Kefir right now, just open up the browser console.
