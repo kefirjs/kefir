@@ -48,10 +48,10 @@ pre(title='console output')
 
 
 +descr-method('on-end', 'onEnd', 'obs.onEnd(callback)').
-  Subscribes #[b callback] to ending off an observable.
+  Subscribes #[b callback] to ending of an observable.
 
 p.
-  If observable already ended, #[b callback] will be called immediately (synchronously).
+  If observable is already ended, #[b callback] will be called immediately (synchronously).
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
@@ -64,17 +64,17 @@ pre(title='console output')
     > stream ended
 
 +descr-method('off-end', 'offEnd', 'obs.offEnd(callback)').
-  Unsubscribes #[b callback] from ending off an observable.
+  Unsubscribes #[b callback] from ending of an observable.
 
 +descr-method('on-any', 'onAny', 'obs.onAny(callback)').
   Subscribes #[b callback] to all three types of events.
-  Callback is called with #[b event object] as argument. Each event object
+  Callback is called with an #[b event object] as argument. Each event object
   contains three attributes — #[b type], #[b value], and #[b current].
 
 ul
   li #[b type] — a #[tt 'value'], #[tt 'error'], or #[tt 'end'] string
   li #[b value] — the emitted #[b value] or #[b error] (#[tt undefined] if #[tt event.type === 'end'])
-  li #[b current] — a boolean, that equals #[tt true] if callback is called with current value/error of a property, or if the event represents an #[b end] of already ended observable (note that #[a(href='#current-in-streams') streams also may emit current] values or errors)
+  li #[b current] — a boolean, that equals #[tt true] if the callback is called with the current value/error of a property, or if the event represents an #[b end] of an already ended observable (note that #[a(href='#current-in-streams') streams may also emit current] values or errors)
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
@@ -92,8 +92,8 @@ pre(title='console output')
   Unsubscribes an #[b onAny] subscriber.
 
 +descr-method('log', 'log', 'obs.log([name])').
-  Turns on logging of any events to browser console.
-  Accepts optional #[b name] argument that will be shown in the log if provided.
+  Turns on logging of any event to the browser console.
+  Accepts an optional #[b name] argument that will be shown in the log if provided.
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);

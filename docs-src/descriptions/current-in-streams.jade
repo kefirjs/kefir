@@ -2,21 +2,21 @@ h2#current-in-streams Current values/errors in streams
 
 p.
   Normally only properties have current values,
-  but sometimes streams also may emit them. What it means
-  is that sometimes a stream can emit a value (or error) in response to
-  first subscription (i.e. on #[a(href='#active-state') activation]),
-  and only first subscriber will get the value.
+  but sometimes streams may also emit them.
+  I.e. sometimes a stream can emit a value (or error) in response to
+  a first subscription (i.e. on #[a(href='#active-state') activation]),
+  and only the first subscriber will get the value.
 
 p.
-  In Bacon.js there's even methods that creates such streams (#[tt .once], #[tt .fromArray]),
-  but in Kefir we trying to avoid them as they may cause some confusion
-  for beginners (actually that happens quite a lot for Bacon).
-  So in Kefir it less easier to create streams that emit current values,
-  but there's still situations when they can be created.
+  In Bacon.js there are even methods that create such streams (#[tt .once], #[tt .fromArray]),
+  but in Kefir we are trying to avoid them as they may cause some confusion
+  for beginners (which actually happens quite a lot for Bacon).
+  So in Kefir it is less easier to create streams emitting current values,
+  but there are still situations when they can be created.
 
 p.
   Let see some examples.
-  Each of these streams will emit a value at the moment when first subscriber is added:
+  Each of these streams will emit a value at the moment the first subscriber is added:
 
 pre(title='example')
   :escapehtml
@@ -31,21 +31,21 @@ pre(title='example')
     });
 
 p.
-  When a stream emits a value like this, it internally considered as a #[b current] value.
+  When a stream emits a value like this, it is internally considered as a #[b current] value.
   The #[a(href='#log') log] method will mark it as current,
-  and in #[a(href='#on-any') onAny] subscriber #[tt event.current] will equal #[b true].
+  and in #[a(href='#on-any') onAny] subscriber, #[tt event.current] will be equal to #[b true].
 
 p.
-  There is some issues with all this, but also some benefits.
+  There are some issues with all this, but also some benefits.
   Issue number one is that only the first subscriber gets this value (or error).
   Even if it was an #[b onEnd] subscriber, it'll still eat all current values,
   and further subscribers won't get them.
-  Second issue is that it may be considered as not semantically correct behaviour
-  i.e., the fact that moments when stream emits values depend on when it gets subscribers ...
+  Second issue is that it may be considered as a not semantically correct behaviour,
+  i.e., because the moment when the stream emits values depends on when it gets subscribers...
 
 p.
-  To benefits, first — it allows you to define current value in
-  #[a(href='#from-binder') fromBinder], it's easier to show in example:
+  First benefit — it allows you to define the current value in
+  #[a(href='#from-binder') fromBinder]. It is easier as shown in this example:
 
 pre(title='example')
   :escapehtml
@@ -75,25 +75,25 @@ pre(title='console output')
     > [fromBinder.toProperty] <value> 23
 
 p.
-  Defining current value this way is better than
+  Defining a current value this way is better than
   #[tt scrollYStream.toProperty(getScrollY())]
-  because in #[b fromBinder] example the current value will be pulled
-  in moment of subscription, and with #[tt .toProperty(getScrollY())]
-  it will be pulled at the moment of property creation and might
-  become obsolete when property will be used.
+  because in the #[b fromBinder] example the current value will be pulled
+  at the moment of subscription, and with #[tt .toProperty(getScrollY())]
+  it will be pulled at the moment of property creation, and might
+  become obsolete when the property will be used.
 
 p.
-  Second benefit is that it makes it possible to not lose
+  The second benefit is that it makes possible to not lose
   current values when converting properties to streams and then back to properties.
   For example, #[a(href='#combine') combine] always returns a stream
   (#[a(href='https://github.com/pozadi/kefir/issues/44#issuecomment-72875317') why?])
-  but it'll still emit current value.
+  but it'll still emit the current value.
   So one can do #[tt Kefir.combine([p1, p2], fn).toProperty()],
-  and get a property combined from two other properties with correct current value.
+  and get a property combined from two other properties with the correct current value.
 
 p.
-  Also it's a good practise to convert all streams that might
-  emit current values to properties using #[b toProperty] method.
+  Also it's a good practice to convert all streams that might
+  emit current values to properties by using the #[b toProperty] method.
   That should make your code more reliable as all subscribers will get current values.
   And it's just better semantically as current values should live in the properties.
 
