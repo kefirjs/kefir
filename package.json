@@ -4,7 +4,7 @@
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt concat && jasmine-node --coffee --matchall test/specs"
   },
   "keywords": [
     "frp",
@@ -40,10 +40,7 @@
     "grunt-contrib-clean": "0.6.0",
     "grunt-contrib-concat": "0.5.1",
     "grunt-contrib-jade": "0.14.1",
-    "grunt-contrib-jshint": "0.11.1",
     "grunt-contrib-uglify": "0.8.1",
-    "grunt-contrib-watch": "0.6.1",
-    "grunt-jasmine-node": "git+https://git@github.com/pozadi/grunt-jasmine-node.git",
     "grunt-release": "0.7.0",
     "jasmine-node": "1.14.5",
     "load-grunt-tasks": "3.1.0",
