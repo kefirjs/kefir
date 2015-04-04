@@ -111,36 +111,60 @@ withOneSource('flatten', {
 
 // .transduce(transducer)
 
+var TRANSFORM_METHODS_OLD = {
+  step: 'step',
+  result: 'result'
+};
+
+var TRANSFORM_METHODS_NEW = {
+  step: '@@transducer/step',
+  result: '@@transducer/result'
+};
+
+
 function xformForObs(obs) {
+  function step(res, input) {
+    obs._send(VALUE, input, obs._forcedCurrent);
+    return null;
+  }
+  function result(res) {
+    obs._send(END, null, obs._forcedCurrent);
+    return null;
+  }
   return {
-    step: function(res, input) {
-      obs._send(VALUE, input, obs._forcedCurrent);
-      return null;
-    },
-    result: function(res) {
-      obs._send(END, null, obs._forcedCurrent);
-      return null;
-    }
+    step: step,
+    result: result,
+    '@@transducer/step': step,
+    '@@transducer/result': result
   };
 }
 
 withOneSource('transduce', {
   _init: function(args) {
-    this._xform = args[0](xformForObs(this));
+    var xf = args[0](xformForObs(this));
+    if (isFn(xf[TRANSFORM_METHODS_NEW.step]) && isFn(xf[TRANSFORM_METHODS_NEW.result])) {
+      this._transformMethods = TRANSFORM_METHODS_NEW;
+    } else if (isFn(xf[TRANSFORM_METHODS_OLD.step]) && isFn(xf[TRANSFORM_METHODS_OLD.result])) {
+      this._transformMethods = TRANSFORM_METHODS_OLD;
+    } else {
+      throw new Error('Unsuported transducers protocol');
+    }
+    this._xform = xf;
   },
   _free: function() {
     this._xform = null;
+    this._transformMethods = null;
   },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    if (this._xform.step(null, x) !== null) {
-      this._xform.result(null);
+    if (this._xform[this._transformMethods.step](null, x) !== null) {
+      this._xform[this._transformMethods.result](null);
     }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._xform.result(null);
+    this._xform[this._transformMethods.result](null);
     this._forcedCurrent = false;
   }
 });
