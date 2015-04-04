@@ -11,7 +11,7 @@
     }
   };
 
-  Bacon.version = '0.7.52';
+  Bacon.version = '0.7.53';
 
   Exception = (typeof global !== "undefined" && global !== null ? global : this).Error;
 
@@ -2405,8 +2405,15 @@
   };
 
   Bacon.later = function(delay, value) {
-    return withDescription(Bacon, "later", delay, value, Bacon.fromPoll(delay, function() {
-      return [value, endEvent()];
+    return withDescription(Bacon, "later", delay, value, Bacon.fromBinder(function(sink) {
+      var id, sender;
+      sender = function() {
+        return sink([value, endEvent()]);
+      };
+      id = Bacon.scheduler.setTimeout(sender, delay);
+      return function() {
+        return Bacon.scheduler.clearTimeout(id);
+      };
     }));
   };
 

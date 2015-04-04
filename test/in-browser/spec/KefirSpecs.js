@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v1.3.0
+/*! Kefir.js v1.3.1
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1795,36 +1795,60 @@ withOneSource('flatten', {
 
 // .transduce(transducer)
 
+var TRANSFORM_METHODS_OLD = {
+  step: 'step',
+  result: 'result'
+};
+
+var TRANSFORM_METHODS_NEW = {
+  step: '@@transducer/step',
+  result: '@@transducer/result'
+};
+
+
 function xformForObs(obs) {
+  function step(res, input) {
+    obs._send(VALUE, input, obs._forcedCurrent);
+    return null;
+  }
+  function result(res) {
+    obs._send(END, null, obs._forcedCurrent);
+    return null;
+  }
   return {
-    step: function(res, input) {
-      obs._send(VALUE, input, obs._forcedCurrent);
-      return null;
-    },
-    result: function(res) {
-      obs._send(END, null, obs._forcedCurrent);
-      return null;
-    }
+    step: step,
+    result: result,
+    '@@transducer/step': step,
+    '@@transducer/result': result
   };
 }
 
 withOneSource('transduce', {
   _init: function(args) {
-    this._xform = args[0](xformForObs(this));
+    var xf = args[0](xformForObs(this));
+    if (isFn(xf[TRANSFORM_METHODS_NEW.step]) && isFn(xf[TRANSFORM_METHODS_NEW.result])) {
+      this._transformMethods = TRANSFORM_METHODS_NEW;
+    } else if (isFn(xf[TRANSFORM_METHODS_OLD.step]) && isFn(xf[TRANSFORM_METHODS_OLD.result])) {
+      this._transformMethods = TRANSFORM_METHODS_OLD;
+    } else {
+      throw new Error('Unsuported transducers protocol');
+    }
+    this._xform = xf;
   },
   _free: function() {
     this._xform = null;
+    this._transformMethods = null;
   },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    if (this._xform.step(null, x) !== null) {
-      this._xform.result(null);
+    if (this._xform[this._transformMethods.step](null, x) !== null) {
+      this._xform[this._transformMethods.result](null);
     }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._xform.result(null);
+    this._xform[this._transformMethods.result](null);
     this._forcedCurrent = false;
   }
 });
@@ -3176,6 +3200,7 @@ process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -3848,7 +3873,7 @@ var sinon = (function () {
 /**
  * @depend times_in_words.js
  * @depend util/core.js
- * @depend stub.js
+ * @depend match.js
  * @depend format.js
  */
 /**
@@ -3877,13 +3902,18 @@ var sinon = (function () {
                     assert.fail("fake is not a spy");
                 }
 
-                if (typeof method != "function") {
-                    assert.fail(method + " is not a function");
+                if (method.proxy) {
+                    verifyIsStub(method.proxy);
+                } else {
+                    if (typeof method != "function") {
+                        assert.fail(method + " is not a function");
+                    }
+
+                    if (typeof method.getCall != "function") {
+                        assert.fail(method + " is not stubbed");
+                    }
                 }
 
-                if (typeof method.getCall != "function") {
-                    assert.fail(method + " is not stubbed");
-                }
             }
         }
 
@@ -3913,7 +3943,7 @@ var sinon = (function () {
                 }
 
                 if (failed) {
-                    failAssertion(this, fake.printf.apply(fake, [message].concat(args)));
+                    failAssertion(this, (fake.printf || fake.proxy.printf).apply(fake, [message].concat(args)));
                 } else {
                     assert.pass(name);
                 }
@@ -4039,6 +4069,7 @@ var sinon = (function () {
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
         require("./match");
+        require("./format");
         module.exports = makeApi(sinon);
     }
 
@@ -4055,7 +4086,7 @@ var sinon = (function () {
 }(typeof sinon == "object" && sinon || null, typeof window != "undefined" ? window : (typeof self != "undefined") ? self : global));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./match":14,"./util/core":23}],8:[function(require,module,exports){
+},{"./format":12,"./match":14,"./util/core":23}],8:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -4075,6 +4106,8 @@ var sinon = (function () {
 (function (sinon) {
     var slice = Array.prototype.slice;
     var join = Array.prototype.join;
+    var useLeftMostCallback = -1;
+    var useRightMostCallback = -2;
 
     var nextTick = (function () {
         if (typeof process === "object" && typeof process.nextTick === "function") {
@@ -4104,24 +4137,34 @@ var sinon = (function () {
     function getCallback(behavior, args) {
         var callArgAt = behavior.callArgAt;
 
-        if (callArgAt < 0) {
-            var callArgProp = behavior.callArgProp;
-
-            for (var i = 0, l = args.length; i < l; ++i) {
-                if (!callArgProp && typeof args[i] == "function") {
-                    return args[i];
-                }
-
-                if (callArgProp && args[i] &&
-                    typeof args[i][callArgProp] == "function") {
-                    return args[i][callArgProp];
-                }
-            }
-
-            return null;
+        if (callArgAt >= 0) {
+            return args[callArgAt];
         }
 
-        return args[callArgAt];
+        var argumentList;
+
+        if (callArgAt === useLeftMostCallback) {
+            argumentList = args;
+        }
+
+        if (callArgAt === useRightMostCallback) {
+            argumentList = slice.call(args).reverse();
+        }
+
+        var callArgProp = behavior.callArgProp;
+
+        for (var i = 0, l = argumentList.length; i < l; ++i) {
+            if (!callArgProp && typeof argumentList[i] == "function") {
+                return argumentList[i];
+            }
+
+            if (callArgProp && argumentList[i] &&
+                typeof argumentList[i][callArgProp] == "function") {
+                return argumentList[i][callArgProp];
+            }
+        }
+
+        return null;
     }
 
     function makeApi(sinon) {
@@ -4281,7 +4324,17 @@ var sinon = (function () {
             },
 
             yields: function () {
-                this.callArgAt = -1;
+                this.callArgAt = useLeftMostCallback;
+                this.callbackArguments = slice.call(arguments, 0);
+                this.callbackContext = undefined;
+                this.callArgProp = undefined;
+                this.callbackAsync = false;
+
+                return this;
+            },
+
+            yieldsRight: function () {
+                this.callArgAt = useRightMostCallback;
                 this.callbackArguments = slice.call(arguments, 0);
                 this.callbackContext = undefined;
                 this.callArgProp = undefined;
@@ -4295,7 +4348,7 @@ var sinon = (function () {
                     throw new TypeError("argument context is not an object");
                 }
 
-                this.callArgAt = -1;
+                this.callArgAt = useLeftMostCallback;
                 this.callbackArguments = slice.call(arguments, 1);
                 this.callbackContext = context;
                 this.callArgProp = undefined;
@@ -4305,7 +4358,7 @@ var sinon = (function () {
             },
 
             yieldsTo: function (prop) {
-                this.callArgAt = -1;
+                this.callArgAt = useLeftMostCallback;
                 this.callbackArguments = slice.call(arguments, 1);
                 this.callbackContext = undefined;
                 this.callArgProp = prop;
@@ -4319,7 +4372,7 @@ var sinon = (function () {
                     throw new TypeError("argument context is not an object");
                 }
 
-                this.callArgAt = -1;
+                this.callArgAt = useLeftMostCallback;
                 this.callbackArguments = slice.call(arguments, 2);
                 this.callbackContext = context;
                 this.callArgProp = prop;
@@ -4380,6 +4433,7 @@ var sinon = (function () {
 
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
+        require("./extend");
         module.exports = makeApi(sinon);
     }
 
@@ -4395,7 +4449,7 @@ var sinon = (function () {
 }(typeof sinon == "object" && sinon || null));
 
 }).call(this,require('_process'))
-},{"./util/core":23,"_process":3}],9:[function(require,module,exports){
+},{"./extend":11,"./util/core":23,"_process":3}],9:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -4434,7 +4488,11 @@ var sinon = (function () {
             },
 
             calledWith: function calledWith() {
-                for (var i = 0, l = arguments.length; i < l; i += 1) {
+                var l = arguments.length;
+                if (l > this.args.length) {
+                    return false;
+                }
+                for (var i = 0; i < l; i += 1) {
                     if (!sinon.deepEqual(arguments[i], this.args[i])) {
                         return false;
                     }
@@ -4444,7 +4502,11 @@ var sinon = (function () {
             },
 
             calledWithMatch: function calledWithMatch() {
-                for (var i = 0, l = arguments.length; i < l; i += 1) {
+                var l = arguments.length;
+                if (l > this.args.length) {
+                    return false;
+                }
+                for (var i = 0; i < l; i += 1) {
                     var actual = this.args[i];
                     var expectation = arguments[i];
                     if (!sinon.match || !sinon.match(expectation).test(actual)) {
@@ -4593,6 +4655,7 @@ var sinon = (function () {
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
         require("./match");
+        require("./format");
         module.exports = makeApi(sinon);
     }
 
@@ -4607,9 +4670,10 @@ var sinon = (function () {
     }
 }(typeof sinon == "object" && sinon || null));
 
-},{"./match":14,"./util/core":23}],10:[function(require,module,exports){
+},{"./format":12,"./match":14,"./util/core":23}],10:[function(require,module,exports){
 /**
  * @depend util/core.js
+ * @depend spy.js
  * @depend stub.js
  * @depend mock.js
  */
@@ -4777,7 +4841,7 @@ var sinon = (function () {
 
 },{"./mock":15,"./spy":17,"./stub":18,"./util/core":23}],11:[function(require,module,exports){
 /**
- * @depend ../sinon.js
+ * @depend util/core.js
  */
 "use strict";
 
@@ -4882,7 +4946,7 @@ var sinon = (function () {
 
 },{"./util/core":23}],12:[function(require,module,exports){
 /**
- * @depend ../sinon.js
+ * @depend util/core.js
  */
 /**
  * Format functions
@@ -4970,9 +5034,9 @@ var sinon = (function () {
     (typeof formatio == "object" && formatio)
 ));
 
-},{"./util/core":23,"formatio":28,"util":5}],13:[function(require,module,exports){
+},{"./util/core":23,"formatio":30,"util":5}],13:[function(require,module,exports){
 /**
- * @depend ../sinon.js
+ * @depend util/core.js
  */
 /**
  * Logs errors
@@ -5281,6 +5345,7 @@ var sinon = (function () {
 
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
+        require("./typeOf");
         module.exports = makeApi(sinon);
     }
 
@@ -5295,11 +5360,14 @@ var sinon = (function () {
     }
 }(typeof sinon == "object" && sinon || null));
 
-},{"./util/core":23}],15:[function(require,module,exports){
+},{"./typeOf":22,"./util/core":23}],15:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
+ * @depend call.js
  * @depend extend.js
+ * @depend match.js
+ * @depend spy.js
  * @depend stub.js
  * @depend format.js
  */
@@ -5728,9 +5796,14 @@ var sinon = (function () {
 
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
+        require("./times_in_words");
         require("./call");
+        require("./extend");
         require("./match");
         require("./spy");
+        require("./stub");
+        require("./format");
+
         module.exports = makeApi(sinon);
     }
 
@@ -5745,7 +5818,7 @@ var sinon = (function () {
     }
 }(typeof sinon == "object" && sinon || null));
 
-},{"./call":9,"./match":14,"./spy":17,"./util/core":23}],16:[function(require,module,exports){
+},{"./call":9,"./extend":11,"./format":12,"./match":14,"./spy":17,"./stub":18,"./times_in_words":21,"./util/core":23}],16:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -5891,7 +5964,8 @@ var sinon = (function () {
 
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
-        require("./util/fake_server");
+        require("./extend");
+        require("./util/fake_server_with_clock");
         require("./util/fake_timers");
         require("./collection");
         module.exports = makeApi(sinon);
@@ -5908,7 +5982,7 @@ var sinon = (function () {
     }
 }());
 
-},{"./collection":10,"./util/core":23,"./util/fake_server":25,"./util/fake_timers":26}],17:[function(require,module,exports){
+},{"./collection":10,"./extend":11,"./util/core":23,"./util/fake_server_with_clock":26,"./util/fake_timers":27}],17:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -5927,12 +6001,13 @@ var sinon = (function () {
 "use strict";
 
 (function (sinon) {
+
     function makeApi(sinon) {
         var push = Array.prototype.push;
         var slice = Array.prototype.slice;
         var callId = 0;
 
-        function spy(object, property) {
+        function spy(object, property, types) {
             if (!property && typeof object == "function") {
                 return spy.create(object);
             }
@@ -5941,8 +6016,16 @@ var sinon = (function () {
                 return spy.create(function () { });
             }
 
-            var method = object[property];
-            return sinon.wrapMethod(object, property, spy.create(method));
+            if (types) {
+                var methodDesc = sinon.getPropertyDescriptor(object, property);
+                for (var i = 0; i < types.length; i++) {
+                    methodDesc[types[i]] = spy.create(methodDesc[types[i]]);
+                }
+                return sinon.wrapMethod(object, property, methodDesc);
+            } else {
+                var method = object[property];
+                return sinon.wrapMethod(object, property, spy.create(method));
+            }
         }
 
         function matchingFake(fakes, args, strict) {
@@ -5974,11 +6057,11 @@ var sinon = (function () {
         }
 
         var vars = "a,b,c,d,e,f,g,h,i,j,k,l";
-        function createProxy(func) {
+        function createProxy(func, proxyLength) {
             // Retain the function length:
             var p;
-            if (func.length) {
-                eval("p = (function proxy(" + vars.substring(0, func.length * 2 - 1) +
+            if (proxyLength) {
+                eval("p = (function proxy(" + vars.substring(0, proxyLength * 2 - 1) +
                     ") { return p.invoke(func, this, slice.call(arguments)); });");
             } else {
                 p = function proxy() {
@@ -6020,9 +6103,11 @@ var sinon = (function () {
                         this.fakes[i].reset();
                     }
                 }
+
+                return this;
             },
 
-            create: function create(func) {
+            create: function create(func, spyLength) {
                 var name;
 
                 if (typeof func != "function") {
@@ -6031,7 +6116,11 @@ var sinon = (function () {
                     name = sinon.functionName(func);
                 }
 
-                var proxy = createProxy(func);
+                if (!spyLength) {
+                    spyLength = func.length;
+                }
+
+                var proxy = createProxy(func, spyLength);
 
                 sinon.extend(proxy, spy);
                 delete proxy.create;
@@ -6332,6 +6421,9 @@ var sinon = (function () {
     function loadDependencies(require, exports, module) {
         var sinon = require("./util/core");
         require("./call");
+        require("./extend");
+        require("./times_in_words");
+        require("./format");
         module.exports = makeApi(sinon);
     }
 
@@ -6346,7 +6438,7 @@ var sinon = (function () {
     }
 }(typeof sinon == "object" && sinon || null));
 
-},{"./call":9,"./util/core":23}],18:[function(require,module,exports){
+},{"./call":9,"./extend":11,"./format":12,"./times_in_words":21,"./util/core":23}],18:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -6366,16 +6458,30 @@ var sinon = (function () {
 (function (sinon) {
     function makeApi(sinon) {
         function stub(object, property, func) {
-            if (!!func && typeof func != "function") {
-                throw new TypeError("Custom stub should be function");
+            if (!!func && typeof func != "function" && typeof func != "object") {
+                throw new TypeError("Custom stub should be a function or a property descriptor");
             }
 
             var wrapper;
 
             if (func) {
-                wrapper = sinon.spy && sinon.spy.create ? sinon.spy.create(func) : func;
+                if (typeof func == "function") {
+                    wrapper = sinon.spy && sinon.spy.create ? sinon.spy.create(func) : func;
+                } else {
+                    wrapper = func;
+                    if (sinon.spy && sinon.spy.create) {
+                        var types = sinon.objectKeys(wrapper);
+                        for (var i = 0; i < types.length; i++) {
+                            wrapper[types[i]] = sinon.spy.create(wrapper[types[i]]);
+                        }
+                    }
+                }
             } else {
-                wrapper = stub.create();
+                var stubLength = 0;
+                if (typeof object == "object" && typeof object[property] == "function") {
+                    stubLength = object[property].length;
+                }
+                wrapper = stub.create(stubLength);
             }
 
             if (!object && typeof property === "undefined") {
@@ -6411,14 +6517,14 @@ var sinon = (function () {
         var uuid = 0;
 
         var proto = {
-            create: function create() {
+            create: function create(stubLength) {
                 var functionStub = function () {
                     return getCurrentBehavior(functionStub).invoke(this, arguments);
                 };
 
                 functionStub.id = "stub#" + uuid++;
                 var orig = functionStub;
-                functionStub = sinon.spy.create(functionStub);
+                functionStub = sinon.spy.create(functionStub, stubLength);
                 functionStub.func = orig;
 
                 sinon.extend(functionStub, stub);
@@ -6499,6 +6605,7 @@ var sinon = (function () {
         var sinon = require("./util/core");
         require("./behavior");
         require("./spy");
+        require("./extend");
         module.exports = makeApi(sinon);
     }
 
@@ -6513,11 +6620,9 @@ var sinon = (function () {
     }
 }(typeof sinon == "object" && sinon || null));
 
-},{"./behavior":8,"./spy":17,"./util/core":23}],19:[function(require,module,exports){
+},{"./behavior":8,"./extend":11,"./spy":17,"./util/core":23}],19:[function(require,module,exports){
 /**
  * @depend util/core.js
- * @depend stub.js
- * @depend mock.js
  * @depend sandbox.js
  */
 /**
@@ -6532,6 +6637,8 @@ var sinon = (function () {
 
 (function (sinon) {
     function makeApi(sinon) {
+        var slice = Array.prototype.slice;
+
         function test(callback) {
             var type = typeof callback;
 
@@ -6543,12 +6650,12 @@ var sinon = (function () {
                 var config = sinon.getConfig(sinon.config);
                 config.injectInto = config.injectIntoThis && this || config.injectInto;
                 var sandbox = sinon.sandbox.create(config);
+                var args = slice.call(arguments);
+                var oldDone = args.length && args[args.length - 1];
                 var exception, result;
-                var doneIsWrapped = false;
-                var argumentsCopy = Array.prototype.slice.call(arguments);
-                if (argumentsCopy.length > 0 && typeof argumentsCopy[arguments.length - 1] == "function") {
-                    var oldDone = argumentsCopy[arguments.length - 1];
-                    argumentsCopy[arguments.length - 1] = function done(result) {
+
+                if (typeof oldDone == "function") {
+                    args[args.length - 1] = function sinonDone(result) {
                         if (result) {
                             sandbox.restore();
                             throw exception;
@@ -6556,19 +6663,16 @@ var sinon = (function () {
                             sandbox.verifyAndRestore();
                         }
                         oldDone(result);
-                    }
-                    doneIsWrapped = true;
+                    };
                 }
 
-                var args = argumentsCopy.concat(sandbox.args);
-
                 try {
-                    result = callback.apply(this, args);
+                    result = callback.apply(this, args.concat(sandbox.args));
                 } catch (e) {
                     exception = e;
                 }
 
-                if (!doneIsWrapped) {
+                if (typeof oldDone != "function") {
                     if (typeof exception !== "undefined") {
                         sandbox.restore();
                         throw exception;
@@ -6578,7 +6682,7 @@ var sinon = (function () {
                 }
 
                 return result;
-            };
+            }
 
             if (callback.length) {
                 return function sinonAsyncSandboxedTest(callback) {
@@ -6614,9 +6718,7 @@ var sinon = (function () {
         define(loadDependencies);
     } else if (isNode) {
         loadDependencies(require, module.exports, module);
-    } else if (!sinon) {
-        return;
-    } else {
+    } else if (sinon) {
         makeApi(sinon);
     }
 }(typeof sinon == "object" && sinon || null));
@@ -6728,7 +6830,7 @@ var sinon = (function () {
 
 },{"./test":19,"./util/core":23}],21:[function(require,module,exports){
 /**
- * @depend ../sinon.js
+ * @depend util/core.js
  */
 "use strict";
 
@@ -6773,7 +6875,7 @@ var sinon = (function () {
 
 },{"./util/core":23}],22:[function(require,module,exports){
 /**
- * @depend ../sinon.js
+ * @depend util/core.js
  */
 /**
  * Format functions
@@ -6884,41 +6986,82 @@ var sinon = (function () {
         return typeof obj === "function" && typeof obj.restore === "function" && obj.restore.sinon;
     }
 
+    // Cheap way to detect if we have ES5 support.
+    var hasES5Support = "keys" in Object;
+
     function makeApi(sinon) {
         sinon.wrapMethod = function wrapMethod(object, property, method) {
             if (!object) {
                 throw new TypeError("Should wrap property of object");
             }
 
-            if (typeof method != "function") {
-                throw new TypeError("Method wrapper should be function");
+            if (typeof method != "function" && typeof method != "object") {
+                throw new TypeError("Method wrapper should be a function or a property descriptor");
             }
 
-            var wrappedMethod = object[property],
-                error;
-
-            if (!isFunction(wrappedMethod)) {
-                error = new TypeError("Attempted to wrap " + (typeof wrappedMethod) + " property " +
-                                    property + " as function");
-            } else if (wrappedMethod.restore && wrappedMethod.restore.sinon) {
-                error = new TypeError("Attempted to wrap " + property + " which is already wrapped");
-            } else if (wrappedMethod.calledBefore) {
-                var verb = !!wrappedMethod.returns ? "stubbed" : "spied on";
-                error = new TypeError("Attempted to wrap " + property + " which is already " + verb);
-            }
-
-            if (error) {
-                if (wrappedMethod && wrappedMethod.stackTrace) {
-                    error.stack += "\n--------------\n" + wrappedMethod.stackTrace;
+            function checkWrappedMethod(wrappedMethod) {
+                if (!isFunction(wrappedMethod)) {
+                    error = new TypeError("Attempted to wrap " + (typeof wrappedMethod) + " property " +
+                                        property + " as function");
+                } else if (wrappedMethod.restore && wrappedMethod.restore.sinon) {
+                    error = new TypeError("Attempted to wrap " + property + " which is already wrapped");
+                } else if (wrappedMethod.calledBefore) {
+                    var verb = !!wrappedMethod.returns ? "stubbed" : "spied on";
+                    error = new TypeError("Attempted to wrap " + property + " which is already " + verb);
                 }
-                throw error;
+
+                if (error) {
+                    if (wrappedMethod && wrappedMethod.stackTrace) {
+                        error.stack += "\n--------------\n" + wrappedMethod.stackTrace;
+                    }
+                    throw error;
+                }
             }
+
+            var error, wrappedMethod;
 
             // IE 8 does not support hasOwnProperty on the window object and Firefox has a problem
             // when using hasOwn.call on objects from other frames.
             var owned = object.hasOwnProperty ? object.hasOwnProperty(property) : hasOwn.call(object, property);
-            object[property] = method;
+
+            if (hasES5Support) {
+                var methodDesc = (typeof method == "function") ? {value: method} : method,
+                    wrappedMethodDesc = sinon.getPropertyDescriptor(object, property),
+                    i;
+
+                if (!wrappedMethodDesc) {
+                    error = new TypeError("Attempted to wrap " + (typeof wrappedMethod) + " property " +
+                                        property + " as function");
+                } else if (wrappedMethodDesc.restore && wrappedMethodDesc.restore.sinon) {
+                    error = new TypeError("Attempted to wrap " + property + " which is already wrapped");
+                }
+                if (error) {
+                    if (wrappedMethodDesc && wrappedMethodDesc.stackTrace) {
+                        error.stack += "\n--------------\n" + wrappedMethodDesc.stackTrace;
+                    }
+                    throw error;
+                }
+
+                var types = sinon.objectKeys(methodDesc);
+                for (i = 0; i < types.length; i++) {
+                    wrappedMethod = wrappedMethodDesc[types[i]];
+                    checkWrappedMethod(wrappedMethod);
+                }
+
+                mirrorProperties(methodDesc, wrappedMethodDesc);
+                for (i = 0; i < types.length; i++) {
+                    mirrorProperties(methodDesc[types[i]], wrappedMethodDesc[types[i]]);
+                }
+                Object.defineProperty(object, property, methodDesc);
+            } else {
+                wrappedMethod = object[property];
+                checkWrappedMethod(wrappedMethod);
+                object[property] = method;
+                method.displayName = property;
+            }
+
             method.displayName = property;
+
             // Set up a stack trace which can be used later to find what line of
             // code the original method was created on.
             method.stackTrace = (new Error("Stack Trace for original")).stack;
@@ -6928,15 +7071,30 @@ var sinon = (function () {
                 // If this fails (ex: localStorage on mobile safari) then force a reset
                 // via direct assignment.
                 if (!owned) {
-                    delete object[property];
+                    try {
+                        delete object[property];
+                    } catch (e) {}
+                    // For native code functions `delete` fails without throwing an error
+                    // on Chrome < 43, PhantomJS, etc.
+                    // Use strict equality comparison to check failures then force a reset
+                    // via direct assignment.
+                    if (object[property] === method) {
+                        object[property] = wrappedMethod;
+                    }
+                } else if (hasES5Support) {
+                    Object.defineProperty(object, property, wrappedMethodDesc);
                 }
-                if (object[property] === method) {
+
+                if (!hasES5Support && object[property] === method) {
                     object[property] = wrappedMethod;
                 }
             };
 
             method.restore.sinon = true;
-            mirrorProperties(method, wrappedMethod);
+
+            if (!hasES5Support) {
+                mirrorProperties(method, wrappedMethod);
+            }
 
             return method;
         };
@@ -7043,6 +7201,30 @@ var sinon = (function () {
 
             return this.displayName || "sinon fake";
         };
+
+        sinon.objectKeys = function objectKeys(obj) {
+            if (obj !== Object(obj)) {
+                throw new TypeError("sinon.objectKeys called on a non-object");
+            }
+
+            var keys = [];
+            var key;
+            for (key in obj) {
+                if (hasOwn.call(obj, key)) {
+                    keys.push(key);
+                }
+            }
+
+            return keys;
+        };
+
+        sinon.getPropertyDescriptor = function getPropertyDescriptor(object, property) {
+            var proto = object, descriptor;
+            while (proto && !(descriptor = Object.getOwnPropertyDescriptor(proto, property))) {
+                proto = Object.getPrototypeOf(proto);
+            }
+            return descriptor;
+        }
 
         sinon.getConfig = function (custom) {
             var config = {};
@@ -7181,6 +7363,7 @@ if (typeof sinon == "undefined") {
             this.initEvent(type, false, false, target);
             this.loaded = progressEventRaw.loaded || null;
             this.total = progressEventRaw.total || null;
+            this.lengthComputable = !!progressEventRaw.total;
         };
 
         sinon.ProgressEvent.prototype = new sinon.Event();
@@ -7249,6 +7432,7 @@ if (typeof sinon == "undefined") {
 
 },{"./core":23}],25:[function(require,module,exports){
 /**
+ * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
  * @depend ../format.js
  * @depend ../log_error.js
@@ -7330,7 +7514,11 @@ if (typeof sinon == "undefined") {
         sinon.fakeServer = {
             create: function () {
                 var server = create(this);
-                this.xhr = sinon.useFakeXMLHttpRequest();
+                if (!sinon.xhr.supportsCORS) {
+                    this.xhr = sinon.useFakeXDomainRequest();
+                } else {
+                    this.xhr = sinon.useFakeXMLHttpRequest();
+                }
                 server.requests = [];
 
                 this.xhr.onCreate = function (xhrObj) {
@@ -7347,7 +7535,9 @@ if (typeof sinon == "undefined") {
                 xhrObj.onSend = function () {
                     server.handleRequest(this);
 
-                    if (server.autoRespond && !server.responding) {
+                    if (server.respondImmediately) {
+                        server.respond();
+                    } else if (server.autoRespond && !server.responding) {
                         setTimeout(function () {
                             server.responding = false;
                             server.respond();
@@ -7466,7 +7656,9 @@ if (typeof sinon == "undefined") {
 
     function loadDependencies(require, exports, module) {
         var sinon = require("./core");
+        require("./fake_xdomain_request");
         require("./fake_xml_http_request");
+        require("../format");
         makeApi(sinon);
         module.exports = sinon;
     }
@@ -7480,7 +7672,110 @@ if (typeof sinon == "undefined") {
     }
 }());
 
-},{"./core":23,"./fake_xml_http_request":27}],26:[function(require,module,exports){
+},{"../format":12,"./core":23,"./fake_xdomain_request":28,"./fake_xml_http_request":29}],26:[function(require,module,exports){
+/**
+ * @depend fake_server.js
+ * @depend fake_timers.js
+ */
+/**
+ * Add-on for sinon.fakeServer that automatically handles a fake timer along with
+ * the FakeXMLHttpRequest. The direct inspiration for this add-on is jQuery
+ * 1.3.x, which does not use xhr object's onreadystatehandler at all - instead,
+ * it polls the object for completion with setInterval. Dispite the direct
+ * motivation, there is nothing jQuery-specific in this file, so it can be used
+ * in any environment where the ajax implementation depends on setInterval or
+ * setTimeout.
+ *
+ * @author Christian Johansen (christian@cjohansen.no)
+ * @license BSD
+ *
+ * Copyright (c) 2010-2013 Christian Johansen
+ */
+"use strict";
+
+(function () {
+    function makeApi(sinon) {
+        function Server() {}
+        Server.prototype = sinon.fakeServer;
+
+        sinon.fakeServerWithClock = new Server();
+
+        sinon.fakeServerWithClock.addRequest = function addRequest(xhr) {
+            if (xhr.async) {
+                if (typeof setTimeout.clock == "object") {
+                    this.clock = setTimeout.clock;
+                } else {
+                    this.clock = sinon.useFakeTimers();
+                    this.resetClock = true;
+                }
+
+                if (!this.longestTimeout) {
+                    var clockSetTimeout = this.clock.setTimeout;
+                    var clockSetInterval = this.clock.setInterval;
+                    var server = this;
+
+                    this.clock.setTimeout = function (fn, timeout) {
+                        server.longestTimeout = Math.max(timeout, server.longestTimeout || 0);
+
+                        return clockSetTimeout.apply(this, arguments);
+                    };
+
+                    this.clock.setInterval = function (fn, timeout) {
+                        server.longestTimeout = Math.max(timeout, server.longestTimeout || 0);
+
+                        return clockSetInterval.apply(this, arguments);
+                    };
+                }
+            }
+
+            return sinon.fakeServer.addRequest.call(this, xhr);
+        };
+
+        sinon.fakeServerWithClock.respond = function respond() {
+            var returnVal = sinon.fakeServer.respond.apply(this, arguments);
+
+            if (this.clock) {
+                this.clock.tick(this.longestTimeout || 0);
+                this.longestTimeout = 0;
+
+                if (this.resetClock) {
+                    this.clock.restore();
+                    this.resetClock = false;
+                }
+            }
+
+            return returnVal;
+        };
+
+        sinon.fakeServerWithClock.restore = function restore() {
+            if (this.clock) {
+                this.clock.restore();
+            }
+
+            return sinon.fakeServer.restore.apply(this, arguments);
+        };
+    }
+
+    var isNode = typeof module !== "undefined" && module.exports && typeof require == "function";
+    var isAMD = typeof define === "function" && typeof define.amd === "object" && define.amd;
+
+    function loadDependencies(require) {
+        var sinon = require("./core");
+        require("./fake_server");
+        require("./fake_timers");
+        makeApi(sinon);
+    }
+
+    if (isAMD) {
+        define(loadDependencies);
+    } else if (isNode) {
+        loadDependencies(require);
+    } else {
+        makeApi(sinon);
+    }
+}());
+
+},{"./core":23,"./fake_server":25,"./fake_timers":27}],27:[function(require,module,exports){
 (function (global){
 /*global lolex */
 
@@ -7545,9 +7840,235 @@ if (typeof sinon == "undefined") {
     var isNode = typeof module !== "undefined" && module.exports && typeof require == "function";
     var isAMD = typeof define === "function" && typeof define.amd === "object" && define.amd;
 
-    function loadDependencies(require, epxorts, module) {
+    function loadDependencies(require, epxorts, module, lolex) {
         var sinon = require("./core");
-        makeApi(sinon, require("lolex"));
+        makeApi(sinon, lolex);
+        module.exports = sinon;
+    }
+
+    if (isAMD) {
+        define(loadDependencies);
+    } else if (isNode) {
+        loadDependencies(require, module.exports, module, require("lolex"));
+    } else {
+        makeApi(sinon);
+    }
+}(typeof global != "undefined" && typeof global !== "function" ? global : this));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./core":23,"lolex":32}],28:[function(require,module,exports){
+/**
+ * @depend core.js
+ * @depend ../extend.js
+ * @depend event.js
+ * @depend ../log_error.js
+ */
+/**
+ * Fake XDomainRequest object
+ */
+"use strict";
+
+if (typeof sinon == "undefined") {
+    this.sinon = {};
+}
+
+// wrapper for global
+(function (global) {
+    var xdr = { XDomainRequest: global.XDomainRequest };
+    xdr.GlobalXDomainRequest = global.XDomainRequest;
+    xdr.supportsXDR = typeof xdr.GlobalXDomainRequest != "undefined";
+    xdr.workingXDR = xdr.supportsXDR ? xdr.GlobalXDomainRequest :  false;
+
+    function makeApi(sinon) {
+        sinon.xdr = xdr;
+
+        function FakeXDomainRequest() {
+            this.readyState = FakeXDomainRequest.UNSENT;
+            this.requestBody = null;
+            this.requestHeaders = {};
+            this.status = 0;
+            this.timeout = null;
+
+            if (typeof FakeXDomainRequest.onCreate == "function") {
+                FakeXDomainRequest.onCreate(this);
+            }
+        }
+
+        function verifyState(xdr) {
+            if (xdr.readyState !== FakeXDomainRequest.OPENED) {
+                throw new Error("INVALID_STATE_ERR");
+            }
+
+            if (xdr.sendFlag) {
+                throw new Error("INVALID_STATE_ERR");
+            }
+        }
+
+        function verifyRequestSent(xdr) {
+            if (xdr.readyState == FakeXDomainRequest.UNSENT) {
+                throw new Error("Request not sent");
+            }
+            if (xdr.readyState == FakeXDomainRequest.DONE) {
+                throw new Error("Request done");
+            }
+        }
+
+        function verifyResponseBodyType(body) {
+            if (typeof body != "string") {
+                var error = new Error("Attempted to respond to fake XDomainRequest with " +
+                                    body + ", which is not a string.");
+                error.name = "InvalidBodyException";
+                throw error;
+            }
+        }
+
+        sinon.extend(FakeXDomainRequest.prototype, sinon.EventTarget, {
+            open: function open(method, url) {
+                this.method = method;
+                this.url = url;
+
+                this.responseText = null;
+                this.sendFlag = false;
+
+                this.readyStateChange(FakeXDomainRequest.OPENED);
+            },
+
+            readyStateChange: function readyStateChange(state) {
+                this.readyState = state;
+                var eventName = "";
+                switch (this.readyState) {
+                case FakeXDomainRequest.UNSENT:
+                    break;
+                case FakeXDomainRequest.OPENED:
+                    break;
+                case FakeXDomainRequest.LOADING:
+                    if (this.sendFlag) {
+                        //raise the progress event
+                        eventName = "onprogress";
+                    }
+                    break;
+                case FakeXDomainRequest.DONE:
+                    if (this.isTimeout) {
+                        eventName = "ontimeout"
+                    } else if (this.errorFlag || (this.status < 200 || this.status > 299)) {
+                        eventName = "onerror";
+                    } else {
+                        eventName = "onload"
+                    }
+                    break;
+                }
+
+                // raising event (if defined)
+                if (eventName) {
+                    if (typeof this[eventName] == "function") {
+                        try {
+                            this[eventName]();
+                        } catch (e) {
+                            sinon.logError("Fake XHR " + eventName + " handler", e);
+                        }
+                    }
+                }
+            },
+
+            send: function send(data) {
+                verifyState(this);
+
+                if (!/^(get|head)$/i.test(this.method)) {
+                    this.requestBody = data;
+                }
+                this.requestHeaders["Content-Type"] = "text/plain;charset=utf-8";
+
+                this.errorFlag = false;
+                this.sendFlag = true;
+                this.readyStateChange(FakeXDomainRequest.OPENED);
+
+                if (typeof this.onSend == "function") {
+                    this.onSend(this);
+                }
+            },
+
+            abort: function abort() {
+                this.aborted = true;
+                this.responseText = null;
+                this.errorFlag = true;
+
+                if (this.readyState > sinon.FakeXDomainRequest.UNSENT && this.sendFlag) {
+                    this.readyStateChange(sinon.FakeXDomainRequest.DONE);
+                    this.sendFlag = false;
+                }
+            },
+
+            setResponseBody: function setResponseBody(body) {
+                verifyRequestSent(this);
+                verifyResponseBodyType(body);
+
+                var chunkSize = this.chunkSize || 10;
+                var index = 0;
+                this.responseText = "";
+
+                do {
+                    this.readyStateChange(FakeXDomainRequest.LOADING);
+                    this.responseText += body.substring(index, index + chunkSize);
+                    index += chunkSize;
+                } while (index < body.length);
+
+                this.readyStateChange(FakeXDomainRequest.DONE);
+            },
+
+            respond: function respond(status, contentType, body) {
+                // content-type ignored, since XDomainRequest does not carry this
+                // we keep the same syntax for respond(...) as for FakeXMLHttpRequest to ease
+                // test integration across browsers
+                this.status = typeof status == "number" ? status : 200;
+                this.setResponseBody(body || "");
+            },
+
+            simulatetimeout: function simulatetimeout() {
+                this.status = 0;
+                this.isTimeout = true;
+                // Access to this should actually throw an error
+                this.responseText = undefined;
+                this.readyStateChange(FakeXDomainRequest.DONE);
+            }
+        });
+
+        sinon.extend(FakeXDomainRequest, {
+            UNSENT: 0,
+            OPENED: 1,
+            LOADING: 3,
+            DONE: 4
+        });
+
+        sinon.useFakeXDomainRequest = function useFakeXDomainRequest() {
+            sinon.FakeXDomainRequest.restore = function restore(keepOnCreate) {
+                if (xdr.supportsXDR) {
+                    global.XDomainRequest = xdr.GlobalXDomainRequest;
+                }
+
+                delete sinon.FakeXDomainRequest.restore;
+
+                if (keepOnCreate !== true) {
+                    delete sinon.FakeXDomainRequest.onCreate;
+                }
+            };
+            if (xdr.supportsXDR) {
+                global.XDomainRequest = sinon.FakeXDomainRequest;
+            }
+            return sinon.FakeXDomainRequest;
+        };
+
+        sinon.FakeXDomainRequest = FakeXDomainRequest;
+    }
+
+    var isNode = typeof module !== "undefined" && module.exports && typeof require == "function";
+    var isAMD = typeof define === "function" && typeof define.amd === "object" && define.amd;
+
+    function loadDependencies(require, exports, module) {
+        var sinon = require("./core");
+        require("../extend");
+        require("./event");
+        require("../log_error");
+        makeApi(sinon);
         module.exports = sinon;
     }
 
@@ -7558,10 +8079,10 @@ if (typeof sinon == "undefined") {
     } else {
         makeApi(sinon);
     }
-}(typeof global != "undefined" && typeof global !== "function" ? global : this));
+})(this);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core":23,"lolex":30}],27:[function(require,module,exports){
+},{"../extend":11,"../log_error":13,"./core":23,"./event":24}],29:[function(require,module,exports){
+(function (global){
 /**
  * @depend core.js
  * @depend ../extend.js
@@ -7938,6 +8459,7 @@ if (typeof sinon == "undefined") {
                         this.upload.dispatchEvent(new sinon.Event("load", false, false, this));
                         if (supportsProgress) {
                             this.upload.dispatchEvent(new sinon.ProgressEvent("progress", {loaded: 100, total: 100}));
+                            this.dispatchEvent(new sinon.ProgressEvent("progress", {loaded: 100, total: 100}));
                         }
                         break;
                 }
@@ -7984,7 +8506,7 @@ if (typeof sinon == "undefined") {
                     if (this.requestHeaders[contentType]) {
                         var value = this.requestHeaders[contentType].split(";");
                         this.requestHeaders[contentType] = value[0] + ";charset=utf-8";
-                    } else {
+                    } else if (!(data instanceof FormData)) {
                         this.requestHeaders["Content-Type"] = "text/plain;charset=utf-8";
                     }
 
@@ -8100,6 +8622,12 @@ if (typeof sinon == "undefined") {
                 }
             },
 
+            downloadProgress: function downloadProgress(progressEventRaw) {
+                if (supportsProgress) {
+                    this.dispatchEvent(new sinon.ProgressEvent("progress", progressEventRaw));
+                }
+            },
+
             uploadError: function uploadError(error) {
                 if (supportsCustomEvent) {
                     this.upload.dispatchEvent(new sinon.CustomEvent("error", {detail: error}));
@@ -8157,7 +8685,9 @@ if (typeof sinon == "undefined") {
 
     function loadDependencies(require, exports, module) {
         var sinon = require("./core");
+        require("../extend");
         require("./event");
+        require("../log_error");
         makeApi(sinon);
         module.exports = sinon;
     }
@@ -8172,9 +8702,10 @@ if (typeof sinon == "undefined") {
         makeApi(sinon);
     }
 
-})(typeof self !== "undefined" ? self : this);
+})(typeof global !== "undefined" ? global : this);
 
-},{"./core":23,"./event":24}],28:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../extend":11,"../log_error":13,"./core":23,"./event":24}],30:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
     define("formatio", ["samsam"], m);
@@ -8391,7 +8922,7 @@ if (typeof sinon == "undefined") {
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"samsam":29}],29:[function(require,module,exports){
+},{"samsam":31}],31:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -8792,7 +9323,7 @@ if (typeof sinon == "undefined") {
     };
 });
 
-},{}],30:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (global){
 /*jslint eqeqeq: false, plusplus: false, evil: true, onevar: false, browser: true, forin: false*/
 /*global global*/
@@ -9218,11 +9749,11 @@ exports.install = function install(target, now, toFake) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],31:[function(require,module,exports){
-// transducers-js 0.4.136
+},{}],33:[function(require,module,exports){
+// transducers-js 0.4.159
 // http://github.com/cognitect-labs/transducers-js
 // 
-// Copyright 2014 Cognitect. All Rights Reserved.
+// Copyright 2014-2015 Cognitect. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -9257,6 +9788,7 @@ goog.DEBUG = !0;
 goog.LOCALE = "en";
 goog.TRUSTED_SITE = !0;
 goog.STRICT_MODE_COMPATIBLE = !1;
+goog.DISALLOW_TEST_ONLY_CODE = COMPILED && !goog.DEBUG;
 goog.provide = function(a) {
   if (!COMPILED && goog.isProvided_(a)) {
     throw Error('Namespace "' + a + '" already declared.');
@@ -9272,8 +9804,9 @@ goog.constructNamespace_ = function(a, b) {
   }
   goog.exportPath_(a, b);
 };
+goog.VALID_MODULE_RE_ = /^[a-zA-Z_$][a-zA-Z0-9._$]*$/;
 goog.module = function(a) {
-  if (!goog.isString(a) || !a) {
+  if (!goog.isString(a) || !a || -1 == a.search(goog.VALID_MODULE_RE_)) {
     throw Error("Invalid module identifier");
   }
   if (!goog.isInModuleLoader_()) {
@@ -9318,7 +9851,7 @@ goog.module.declareLegacyNamespace = function() {
   goog.moduleLoaderState_.declareLegacyNamespace = !0;
 };
 goog.setTestOnly = function(a) {
-  if (COMPILED && !goog.DEBUG) {
+  if (goog.DISALLOW_TEST_ONLY_CODE) {
     throw a = a || "", Error("Importing test-only code into non-debug environment" + (a ? ": " + a : "."));
   }
 };
@@ -9361,6 +9894,7 @@ goog.logToConsole_ = function(a) {
 };
 goog.require = function(a) {
   if (!COMPILED) {
+    goog.ENABLE_DEBUG_LOADER && goog.IS_OLD_IE_ && goog.maybeProcessDeferredDep_(a);
     if (goog.isProvided_(a)) {
       return goog.isInModuleLoader_() ? goog.module.getInternal_(a) : null;
     }
@@ -9398,15 +9932,15 @@ goog.LOAD_MODULE_USING_EVAL = !0;
 goog.SEAL_MODULE_EXPORTS = goog.DEBUG;
 goog.loadedModules_ = {};
 goog.DEPENDENCIES_ENABLED = !COMPILED && goog.ENABLE_DEBUG_LOADER;
-goog.DEPENDENCIES_ENABLED && (goog.included_ = {}, goog.dependencies_ = {pathIsModule:{}, nameToPath:{}, requires:{}, visited:{}, written:{}}, goog.inHtmlDocument_ = function() {
+goog.DEPENDENCIES_ENABLED && (goog.included_ = {}, goog.dependencies_ = {pathIsModule:{}, nameToPath:{}, requires:{}, visited:{}, written:{}, deferred:{}}, goog.inHtmlDocument_ = function() {
   var a = goog.global.document;
   return "undefined" != typeof a && "write" in a;
 }, goog.findBasePath_ = function() {
-  if (goog.global.CLOSURE_BASE_PATH) {
+  if (goog.isDef(goog.global.CLOSURE_BASE_PATH)) {
     goog.basePath = goog.global.CLOSURE_BASE_PATH;
   } else {
     if (goog.inHtmlDocument_()) {
-      for (var a = goog.global.document.getElementsByTagName("script"), b = a.length - 1;0 <= b;--b) {
+      for (var a = goog.global.document.getElementsByTagName("SCRIPT"), b = a.length - 1;0 <= b;--b) {
         var c = a[b].src, d = c.lastIndexOf("?"), d = -1 == d ? c.length : d;
         if ("base.js" == c.substr(d - 7, 7)) {
           goog.basePath = c.substr(0, d - 7);
@@ -9417,30 +9951,9 @@ goog.DEPENDENCIES_ENABLED && (goog.included_ = {}, goog.dependencies_ = {pathIsM
   }
 }, goog.importScript_ = function(a, b) {
   (goog.global.CLOSURE_IMPORT_SCRIPT || goog.writeScriptTag_)(a, b) && (goog.dependencies_.written[a] = !0);
-}, goog.IS_OLD_IE_ = goog.global.document && goog.global.document.all && !goog.global.atob, goog.importModule_ = function(a) {
+}, goog.IS_OLD_IE_ = !(goog.global.atob || !goog.global.document || !goog.global.document.all), goog.importModule_ = function(a) {
   goog.importScript_("", 'goog.retrieveAndExecModule_("' + a + '");') && (goog.dependencies_.written[a] = !0);
-}, goog.queuedModules_ = [], goog.retrieveAndExecModule_ = function(a) {
-  for (var b;-1 != (b = a.indexOf("/./"));) {
-    a = a.substr(0, b) + a.substr(b + 2);
-  }
-  for (;-1 != (b = a.indexOf("/../"));) {
-    var c = a.lastIndexOf("/", b - 1);
-    a = a.substr(0, c) + a.substr(b + 3);
-  }
-  b = goog.global.CLOSURE_IMPORT_SCRIPT || goog.writeScriptTag_;
-  var d = null, c = new goog.global.XMLHttpRequest;
-  c.onload = function() {
-    d = this.responseText;
-  };
-  c.open("get", a, !1);
-  c.send();
-  d = c.responseText;
-  if (null != d) {
-    c = goog.wrapModule_(a, d), goog.IS_OLD_IE_ ? goog.queuedModules_.push(c) : b(a, c), goog.dependencies_.written[a] = !0;
-  } else {
-    throw Error("load of " + a + "failed");
-  }
-}, goog.wrapModule_ = function(a, b) {
+}, goog.queuedModules_ = [], goog.wrapModule_ = function(a, b) {
   return goog.LOAD_MODULE_USING_EVAL && goog.isDef(goog.global.JSON) ? "goog.loadModule(" + goog.global.JSON.stringify(b + "\n//# sourceURL=" + a + "\n") + ");" : 'goog.loadModule(function(exports) {"use strict";' + b + "\n;return exports});\n//# sourceURL=" + a + "\n";
 }, goog.loadQueuedModules_ = function() {
   var a = goog.queuedModules_.length;
@@ -9448,58 +9961,78 @@ goog.DEPENDENCIES_ENABLED && (goog.included_ = {}, goog.dependencies_ = {pathIsM
     var b = goog.queuedModules_;
     goog.queuedModules_ = [];
     for (var c = 0;c < a;c++) {
-      goog.globalEval(b[c]);
+      goog.maybeProcessDeferredPath_(b[c]);
     }
   }
+}, goog.maybeProcessDeferredDep_ = function(a) {
+  goog.isDeferredModule_(a) && goog.allDepsAreAvailable_(a) && (a = goog.getPathFromDeps_(a), goog.maybeProcessDeferredPath_(goog.basePath + a));
+}, goog.isDeferredModule_ = function(a) {
+  return (a = goog.getPathFromDeps_(a)) && goog.dependencies_.pathIsModule[a] ? goog.basePath + a in goog.dependencies_.deferred : !1;
+}, goog.allDepsAreAvailable_ = function(a) {
+  if ((a = goog.getPathFromDeps_(a)) && a in goog.dependencies_.requires) {
+    for (var b in goog.dependencies_.requires[a]) {
+      if (!goog.isProvided_(b) && !goog.isDeferredModule_(b)) {
+        return !1;
+      }
+    }
+  }
+  return !0;
+}, goog.maybeProcessDeferredPath_ = function(a) {
+  if (a in goog.dependencies_.deferred) {
+    var b = goog.dependencies_.deferred[a];
+    delete goog.dependencies_.deferred[a];
+    goog.globalEval(b);
+  }
 }, goog.loadModule = function(a) {
+  var b = goog.moduleLoaderState_;
   try {
     goog.moduleLoaderState_ = {moduleName:void 0, declareTestMethods:!1};
-    var b;
+    var c;
     if (goog.isFunction(a)) {
-      b = a.call(goog.global, {});
+      c = a.call(goog.global, {});
     } else {
       if (goog.isString(a)) {
-        b = goog.loadModuleFromSource_.call(goog.global, a);
+        c = goog.loadModuleFromSource_.call(goog.global, a);
       } else {
         throw Error("Invalid module definition");
       }
     }
-    var c = goog.moduleLoaderState_.moduleName;
-    if (!goog.isString(c) || !c) {
-      throw Error('Invalid module name "' + c + '"');
+    var d = goog.moduleLoaderState_.moduleName;
+    if (!goog.isString(d) || !d) {
+      throw Error('Invalid module name "' + d + '"');
     }
-    goog.moduleLoaderState_.declareLegacyNamespace ? goog.constructNamespace_(c, b) : goog.SEAL_MODULE_EXPORTS && Object.seal && Object.seal(b);
-    goog.loadedModules_[c] = b;
+    goog.moduleLoaderState_.declareLegacyNamespace ? goog.constructNamespace_(d, c) : goog.SEAL_MODULE_EXPORTS && Object.seal && Object.seal(c);
+    goog.loadedModules_[d] = c;
     if (goog.moduleLoaderState_.declareTestMethods) {
-      for (var d in b) {
-        if (0 === d.indexOf("test", 0) || "tearDown" == d || "setup" == d) {
-          goog.global[d] = b[d];
+      for (var e in c) {
+        if (0 === e.indexOf("test", 0) || "tearDown" == e || "setUp" == e || "setUpPage" == e || "tearDownPage" == e) {
+          goog.global[e] = c[e];
         }
       }
     }
   } finally {
-    goog.moduleLoaderState_ = null;
+    goog.moduleLoaderState_ = b;
   }
 }, goog.loadModuleFromSource_ = function(a) {
   eval(a);
-  return{};
+  return {};
 }, goog.writeScriptTag_ = function(a, b) {
   if (goog.inHtmlDocument_()) {
     var c = goog.global.document;
     if ("complete" == c.readyState) {
       if (/\bdeps.js$/.test(a)) {
-        return!1;
+        return !1;
       }
       throw Error('Cannot write "' + a + '" after document load');
     }
     var d = goog.IS_OLD_IE_;
     void 0 === b ? d ? (d = " onreadystatechange='goog.onScriptLoad_(this, " + ++goog.lastNonModuleScriptIndex_ + ")' ", c.write('<script type="text/javascript" src="' + a + '"' + d + ">\x3c/script>")) : c.write('<script type="text/javascript" src="' + a + '">\x3c/script>') : c.write('<script type="text/javascript">' + b + "\x3c/script>");
-    return!0;
+    return !0;
   }
-  return!1;
+  return !1;
 }, goog.lastNonModuleScriptIndex_ = 0, goog.onScriptLoad_ = function(a, b) {
   "complete" == a.readyState && goog.lastNonModuleScriptIndex_ == b && goog.loadQueuedModules_();
-  return!0;
+  return !0;
 }, goog.writeScripts_ = function() {
   function a(e) {
     if (!(e in d.written)) {
@@ -9537,6 +10070,31 @@ goog.DEPENDENCIES_ENABLED && (goog.included_ = {}, goog.dependencies_ = {pathIsM
 }, goog.getPathFromDeps_ = function(a) {
   return a in goog.dependencies_.nameToPath ? goog.dependencies_.nameToPath[a] : null;
 }, goog.findBasePath_(), goog.global.CLOSURE_NO_DEPS || goog.importScript_(goog.basePath + "deps.js"));
+goog.normalizePath_ = function(a) {
+  a = a.split("/");
+  for (var b = 0;b < a.length;) {
+    "." == a[b] ? a.splice(b, 1) : b && ".." == a[b] && a[b - 1] && ".." != a[b - 1] ? a.splice(--b, 2) : b++;
+  }
+  return a.join("/");
+};
+goog.retrieveAndExecModule_ = function(a) {
+  if (!COMPILED) {
+    var b = a;
+    a = goog.normalizePath_(a);
+    var c = goog.global.CLOSURE_IMPORT_SCRIPT || goog.writeScriptTag_, d = null, e = new goog.global.XMLHttpRequest;
+    e.onload = function() {
+      d = this.responseText;
+    };
+    e.open("get", a, !1);
+    e.send();
+    d = e.responseText;
+    if (null != d) {
+      e = goog.wrapModule_(a, d), goog.IS_OLD_IE_ ? (goog.dependencies_.deferred[b] = e, goog.queuedModules_.push(b)) : c(a, e);
+    } else {
+      throw Error("load of " + a + "failed");
+    }
+  }
+};
 goog.typeOf = function(a) {
   var b = typeof a;
   if ("object" == b) {
@@ -9603,7 +10161,7 @@ goog.getUid = function(a) {
   return a[goog.UID_PROPERTY_] || (a[goog.UID_PROPERTY_] = ++goog.uidCounter_);
 };
 goog.hasUid = function(a) {
-  return!!a[goog.UID_PROPERTY_];
+  return !!a[goog.UID_PROPERTY_];
 };
 goog.removeUid = function(a) {
   "removeAttribute" in a && a.removeAttribute(goog.UID_PROPERTY_);
@@ -9667,7 +10225,7 @@ goog.mixin = function(a, b) {
   }
 };
 goog.now = goog.TRUSTED_SITE && Date.now || function() {
-  return+new Date;
+  return +new Date;
 };
 goog.globalEval = function(a) {
   if (goog.global.execScript) {
@@ -9677,7 +10235,7 @@ goog.globalEval = function(a) {
       if (null == goog.evalWorksForGlobals_ && (goog.global.eval("var _et_ = 1;"), "undefined" != typeof goog.global._et_ ? (delete goog.global._et_, goog.evalWorksForGlobals_ = !0) : goog.evalWorksForGlobals_ = !1), goog.evalWorksForGlobals_) {
         goog.global.eval(a);
       } else {
-        var b = goog.global.document, c = b.createElement("script");
+        var b = goog.global.document, c = b.createElement("SCRIPT");
         c.type = "text/javascript";
         c.defer = !1;
         c.appendChild(b.createTextNode(a));
@@ -9732,7 +10290,9 @@ goog.inherits = function(a, b) {
   a.prototype = new c;
   a.prototype.constructor = a;
   a.base = function(a, c, f) {
-    var g = Array.prototype.slice.call(arguments, 2);
+    for (var g = Array(arguments.length - 2), h = 2;h < arguments.length;h++) {
+      g[h - 2] = arguments[h];
+    }
     return b.prototype[c].apply(a, g);
   };
 };
@@ -9742,9 +10302,16 @@ goog.base = function(a, b, c) {
     throw Error("arguments.caller not defined.  goog.base() cannot be used with strict mode code. See http://www.ecma-international.org/ecma-262/5.1/#sec-C");
   }
   if (d.superClass_) {
-    return d.superClass_.constructor.apply(a, Array.prototype.slice.call(arguments, 1));
+    for (var e = Array(arguments.length - 1), f = 1;f < arguments.length;f++) {
+      e[f - 1] = arguments[f];
+    }
+    return d.superClass_.constructor.apply(a, e);
   }
-  for (var e = Array.prototype.slice.call(arguments, 2), f = !1, g = a.constructor;g;g = g.superClass_ && g.superClass_.constructor) {
+  e = Array(arguments.length - 2);
+  for (f = 2;f < arguments.length;f++) {
+    e[f - 2] = arguments[f];
+  }
+  for (var f = !1, g = a.constructor;g;g = g.superClass_ && g.superClass_.constructor) {
     if (g.prototype[b] === d) {
       f = !0;
     } else {
@@ -9804,1084 +10371,21 @@ goog.tagUnsealableClass = function(a) {
   !COMPILED && goog.defineClass.SEAL_CLASS_INSTANCES && (a.prototype[goog.UNSEALABLE_CONSTRUCTOR_PROPERTY_] = !0);
 };
 goog.UNSEALABLE_CONSTRUCTOR_PROPERTY_ = "goog_defineClass_legacy_unsealable";
-goog.debug = {};
-goog.debug.Error = function(a) {
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, goog.debug.Error);
-  } else {
-    var b = Error().stack;
-    b && (this.stack = b);
-  }
-  a && (this.message = String(a));
-};
-goog.inherits(goog.debug.Error, Error);
-goog.debug.Error.prototype.name = "CustomError";
-goog.dom = {};
-goog.dom.NodeType = {ELEMENT:1, ATTRIBUTE:2, TEXT:3, CDATA_SECTION:4, ENTITY_REFERENCE:5, ENTITY:6, PROCESSING_INSTRUCTION:7, COMMENT:8, DOCUMENT:9, DOCUMENT_TYPE:10, DOCUMENT_FRAGMENT:11, NOTATION:12};
-goog.string = {};
-goog.string.DETECT_DOUBLE_ESCAPING = !1;
-goog.string.Unicode = {NBSP:"\u00a0"};
-goog.string.startsWith = function(a, b) {
-  return 0 == a.lastIndexOf(b, 0);
-};
-goog.string.endsWith = function(a, b) {
-  var c = a.length - b.length;
-  return 0 <= c && a.indexOf(b, c) == c;
-};
-goog.string.caseInsensitiveStartsWith = function(a, b) {
-  return 0 == goog.string.caseInsensitiveCompare(b, a.substr(0, b.length));
-};
-goog.string.caseInsensitiveEndsWith = function(a, b) {
-  return 0 == goog.string.caseInsensitiveCompare(b, a.substr(a.length - b.length, b.length));
-};
-goog.string.caseInsensitiveEquals = function(a, b) {
-  return a.toLowerCase() == b.toLowerCase();
-};
-goog.string.subs = function(a, b) {
-  for (var c = a.split("%s"), d = "", e = Array.prototype.slice.call(arguments, 1);e.length && 1 < c.length;) {
-    d += c.shift() + e.shift();
-  }
-  return d + c.join("%s");
-};
-goog.string.collapseWhitespace = function(a) {
-  return a.replace(/[\s\xa0]+/g, " ").replace(/^\s+|\s+$/g, "");
-};
-goog.string.isEmptyOrWhitespace = function(a) {
-  return/^[\s\xa0]*$/.test(a);
-};
-goog.string.isEmptyString = function(a) {
-  return 0 == a.length;
-};
-goog.string.isEmpty = goog.string.isEmptyOrWhitespace;
-goog.string.isEmptyOrWhitespaceSafe = function(a) {
-  return goog.string.isEmptyOrWhitespace(goog.string.makeSafe(a));
-};
-goog.string.isEmptySafe = goog.string.isEmptyOrWhitespaceSafe;
-goog.string.isBreakingWhitespace = function(a) {
-  return!/[^\t\n\r ]/.test(a);
-};
-goog.string.isAlpha = function(a) {
-  return!/[^a-zA-Z]/.test(a);
-};
-goog.string.isNumeric = function(a) {
-  return!/[^0-9]/.test(a);
-};
-goog.string.isAlphaNumeric = function(a) {
-  return!/[^a-zA-Z0-9]/.test(a);
-};
-goog.string.isSpace = function(a) {
-  return " " == a;
-};
-goog.string.isUnicodeChar = function(a) {
-  return 1 == a.length && " " <= a && "~" >= a || "\u0080" <= a && "\ufffd" >= a;
-};
-goog.string.stripNewlines = function(a) {
-  return a.replace(/(\r\n|\r|\n)+/g, " ");
-};
-goog.string.canonicalizeNewlines = function(a) {
-  return a.replace(/(\r\n|\r|\n)/g, "\n");
-};
-goog.string.normalizeWhitespace = function(a) {
-  return a.replace(/\xa0|\s/g, " ");
-};
-goog.string.normalizeSpaces = function(a) {
-  return a.replace(/\xa0|[ \t]+/g, " ");
-};
-goog.string.collapseBreakingSpaces = function(a) {
-  return a.replace(/[\t\r\n ]+/g, " ").replace(/^[\t\r\n ]+|[\t\r\n ]+$/g, "");
-};
-goog.string.trim = goog.TRUSTED_SITE && String.prototype.trim ? function(a) {
-  return a.trim();
-} : function(a) {
-  return a.replace(/^[\s\xa0]+|[\s\xa0]+$/g, "");
-};
-goog.string.trimLeft = function(a) {
-  return a.replace(/^[\s\xa0]+/, "");
-};
-goog.string.trimRight = function(a) {
-  return a.replace(/[\s\xa0]+$/, "");
-};
-goog.string.caseInsensitiveCompare = function(a, b) {
-  var c = String(a).toLowerCase(), d = String(b).toLowerCase();
-  return c < d ? -1 : c == d ? 0 : 1;
-};
-goog.string.numerateCompareRegExp_ = /(\.\d+)|(\d+)|(\D+)/g;
-goog.string.numerateCompare = function(a, b) {
-  if (a == b) {
-    return 0;
-  }
-  if (!a) {
-    return-1;
-  }
-  if (!b) {
-    return 1;
-  }
-  for (var c = a.toLowerCase().match(goog.string.numerateCompareRegExp_), d = b.toLowerCase().match(goog.string.numerateCompareRegExp_), e = Math.min(c.length, d.length), f = 0;f < e;f++) {
-    var g = c[f], h = d[f];
-    if (g != h) {
-      return c = parseInt(g, 10), !isNaN(c) && (d = parseInt(h, 10), !isNaN(d) && c - d) ? c - d : g < h ? -1 : 1;
-    }
-  }
-  return c.length != d.length ? c.length - d.length : a < b ? -1 : 1;
-};
-goog.string.urlEncode = function(a) {
-  return encodeURIComponent(String(a));
-};
-goog.string.urlDecode = function(a) {
-  return decodeURIComponent(a.replace(/\+/g, " "));
-};
-goog.string.newLineToBr = function(a, b) {
-  return a.replace(/(\r\n|\r|\n)/g, b ? "<br />" : "<br>");
-};
-goog.string.htmlEscape = function(a, b) {
-  if (b) {
-    a = a.replace(goog.string.AMP_RE_, "&amp;").replace(goog.string.LT_RE_, "&lt;").replace(goog.string.GT_RE_, "&gt;").replace(goog.string.QUOT_RE_, "&quot;").replace(goog.string.SINGLE_QUOTE_RE_, "&#39;").replace(goog.string.NULL_RE_, "&#0;"), goog.string.DETECT_DOUBLE_ESCAPING && (a = a.replace(goog.string.E_RE_, "&#101;"));
-  } else {
-    if (!goog.string.ALL_RE_.test(a)) {
-      return a;
-    }
-    -1 != a.indexOf("&") && (a = a.replace(goog.string.AMP_RE_, "&amp;"));
-    -1 != a.indexOf("<") && (a = a.replace(goog.string.LT_RE_, "&lt;"));
-    -1 != a.indexOf(">") && (a = a.replace(goog.string.GT_RE_, "&gt;"));
-    -1 != a.indexOf('"') && (a = a.replace(goog.string.QUOT_RE_, "&quot;"));
-    -1 != a.indexOf("'") && (a = a.replace(goog.string.SINGLE_QUOTE_RE_, "&#39;"));
-    -1 != a.indexOf("\x00") && (a = a.replace(goog.string.NULL_RE_, "&#0;"));
-    goog.string.DETECT_DOUBLE_ESCAPING && -1 != a.indexOf("e") && (a = a.replace(goog.string.E_RE_, "&#101;"));
-  }
-  return a;
-};
-goog.string.AMP_RE_ = /&/g;
-goog.string.LT_RE_ = /</g;
-goog.string.GT_RE_ = />/g;
-goog.string.QUOT_RE_ = /"/g;
-goog.string.SINGLE_QUOTE_RE_ = /'/g;
-goog.string.NULL_RE_ = /\x00/g;
-goog.string.E_RE_ = /e/g;
-goog.string.ALL_RE_ = goog.string.DETECT_DOUBLE_ESCAPING ? /[\x00&<>"'e]/ : /[\x00&<>"']/;
-goog.string.unescapeEntities = function(a) {
-  return goog.string.contains(a, "&") ? "document" in goog.global ? goog.string.unescapeEntitiesUsingDom_(a) : goog.string.unescapePureXmlEntities_(a) : a;
-};
-goog.string.unescapeEntitiesWithDocument = function(a, b) {
-  return goog.string.contains(a, "&") ? goog.string.unescapeEntitiesUsingDom_(a, b) : a;
-};
-goog.string.unescapeEntitiesUsingDom_ = function(a, b) {
-  var c = {"&amp;":"&", "&lt;":"<", "&gt;":">", "&quot;":'"'}, d;
-  d = b ? b.createElement("div") : goog.global.document.createElement("div");
-  return a.replace(goog.string.HTML_ENTITY_PATTERN_, function(a, b) {
-    var g = c[a];
-    if (g) {
-      return g;
-    }
-    if ("#" == b.charAt(0)) {
-      var h = Number("0" + b.substr(1));
-      isNaN(h) || (g = String.fromCharCode(h));
-    }
-    g || (d.innerHTML = a + " ", g = d.firstChild.nodeValue.slice(0, -1));
-    return c[a] = g;
-  });
-};
-goog.string.unescapePureXmlEntities_ = function(a) {
-  return a.replace(/&([^;]+);/g, function(a, c) {
-    switch(c) {
-      case "amp":
-        return "&";
-      case "lt":
-        return "<";
-      case "gt":
-        return ">";
-      case "quot":
-        return'"';
-      default:
-        if ("#" == c.charAt(0)) {
-          var d = Number("0" + c.substr(1));
-          if (!isNaN(d)) {
-            return String.fromCharCode(d);
-          }
-        }
-        return a;
-    }
-  });
-};
-goog.string.HTML_ENTITY_PATTERN_ = /&([^;\s<&]+);?/g;
-goog.string.whitespaceEscape = function(a, b) {
-  return goog.string.newLineToBr(a.replace(/  /g, " &#160;"), b);
-};
-goog.string.preserveSpaces = function(a) {
-  return a.replace(/(^|[\n ]) /g, "$1" + goog.string.Unicode.NBSP);
-};
-goog.string.stripQuotes = function(a, b) {
-  for (var c = b.length, d = 0;d < c;d++) {
-    var e = 1 == c ? b : b.charAt(d);
-    if (a.charAt(0) == e && a.charAt(a.length - 1) == e) {
-      return a.substring(1, a.length - 1);
-    }
-  }
-  return a;
-};
-goog.string.truncate = function(a, b, c) {
-  c && (a = goog.string.unescapeEntities(a));
-  a.length > b && (a = a.substring(0, b - 3) + "...");
-  c && (a = goog.string.htmlEscape(a));
-  return a;
-};
-goog.string.truncateMiddle = function(a, b, c, d) {
-  c && (a = goog.string.unescapeEntities(a));
-  if (d && a.length > b) {
-    d > b && (d = b);
-    var e = a.length - d;
-    a = a.substring(0, b - d) + "..." + a.substring(e);
-  } else {
-    a.length > b && (d = Math.floor(b / 2), e = a.length - d, a = a.substring(0, d + b % 2) + "..." + a.substring(e));
-  }
-  c && (a = goog.string.htmlEscape(a));
-  return a;
-};
-goog.string.specialEscapeChars_ = {"\x00":"\\0", "\b":"\\b", "\f":"\\f", "\n":"\\n", "\r":"\\r", "\t":"\\t", "\x0B":"\\x0B", '"':'\\"', "\\":"\\\\"};
-goog.string.jsEscapeCache_ = {"'":"\\'"};
-goog.string.quote = function(a) {
-  a = String(a);
-  if (a.quote) {
-    return a.quote();
-  }
-  for (var b = ['"'], c = 0;c < a.length;c++) {
-    var d = a.charAt(c), e = d.charCodeAt(0);
-    b[c + 1] = goog.string.specialEscapeChars_[d] || (31 < e && 127 > e ? d : goog.string.escapeChar(d));
-  }
-  b.push('"');
-  return b.join("");
-};
-goog.string.escapeString = function(a) {
-  for (var b = [], c = 0;c < a.length;c++) {
-    b[c] = goog.string.escapeChar(a.charAt(c));
-  }
-  return b.join("");
-};
-goog.string.escapeChar = function(a) {
-  if (a in goog.string.jsEscapeCache_) {
-    return goog.string.jsEscapeCache_[a];
-  }
-  if (a in goog.string.specialEscapeChars_) {
-    return goog.string.jsEscapeCache_[a] = goog.string.specialEscapeChars_[a];
-  }
-  var b = a, c = a.charCodeAt(0);
-  if (31 < c && 127 > c) {
-    b = a;
-  } else {
-    if (256 > c) {
-      if (b = "\\x", 16 > c || 256 < c) {
-        b += "0";
-      }
-    } else {
-      b = "\\u", 4096 > c && (b += "0");
-    }
-    b += c.toString(16).toUpperCase();
-  }
-  return goog.string.jsEscapeCache_[a] = b;
-};
-goog.string.contains = function(a, b) {
-  return-1 != a.indexOf(b);
-};
-goog.string.caseInsensitiveContains = function(a, b) {
-  return goog.string.contains(a.toLowerCase(), b.toLowerCase());
-};
-goog.string.countOf = function(a, b) {
-  return a && b ? a.split(b).length - 1 : 0;
-};
-goog.string.removeAt = function(a, b, c) {
-  var d = a;
-  0 <= b && b < a.length && 0 < c && (d = a.substr(0, b) + a.substr(b + c, a.length - b - c));
-  return d;
-};
-goog.string.remove = function(a, b) {
-  var c = new RegExp(goog.string.regExpEscape(b), "");
-  return a.replace(c, "");
-};
-goog.string.removeAll = function(a, b) {
-  var c = new RegExp(goog.string.regExpEscape(b), "g");
-  return a.replace(c, "");
-};
-goog.string.regExpEscape = function(a) {
-  return String(a).replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1").replace(/\x08/g, "\\x08");
-};
-goog.string.repeat = function(a, b) {
-  return Array(b + 1).join(a);
-};
-goog.string.padNumber = function(a, b, c) {
-  a = goog.isDef(c) ? a.toFixed(c) : String(a);
-  c = a.indexOf(".");
-  -1 == c && (c = a.length);
-  return goog.string.repeat("0", Math.max(0, b - c)) + a;
-};
-goog.string.makeSafe = function(a) {
-  return null == a ? "" : String(a);
-};
-goog.string.buildString = function(a) {
-  return Array.prototype.join.call(arguments, "");
-};
-goog.string.getRandomString = function() {
-  return Math.floor(2147483648 * Math.random()).toString(36) + Math.abs(Math.floor(2147483648 * Math.random()) ^ goog.now()).toString(36);
-};
-goog.string.compareVersions = function(a, b) {
-  for (var c = 0, d = goog.string.trim(String(a)).split("."), e = goog.string.trim(String(b)).split("."), f = Math.max(d.length, e.length), g = 0;0 == c && g < f;g++) {
-    var h = d[g] || "", k = e[g] || "", l = RegExp("(\\d*)(\\D*)", "g"), p = RegExp("(\\d*)(\\D*)", "g");
-    do {
-      var m = l.exec(h) || ["", "", ""], n = p.exec(k) || ["", "", ""];
-      if (0 == m[0].length && 0 == n[0].length) {
-        break;
-      }
-      var c = 0 == m[1].length ? 0 : parseInt(m[1], 10), q = 0 == n[1].length ? 0 : parseInt(n[1], 10), c = goog.string.compareElements_(c, q) || goog.string.compareElements_(0 == m[2].length, 0 == n[2].length) || goog.string.compareElements_(m[2], n[2]);
-    } while (0 == c);
-  }
-  return c;
-};
-goog.string.compareElements_ = function(a, b) {
-  return a < b ? -1 : a > b ? 1 : 0;
-};
-goog.string.HASHCODE_MAX_ = 4294967296;
-goog.string.hashCode = function(a) {
-  for (var b = 0, c = 0;c < a.length;++c) {
-    b = 31 * b + a.charCodeAt(c), b %= goog.string.HASHCODE_MAX_;
-  }
-  return b;
-};
-goog.string.uniqueStringCounter_ = 2147483648 * Math.random() | 0;
-goog.string.createUniqueString = function() {
-  return "goog_" + goog.string.uniqueStringCounter_++;
-};
-goog.string.toNumber = function(a) {
-  var b = Number(a);
-  return 0 == b && goog.string.isEmpty(a) ? NaN : b;
-};
-goog.string.isLowerCamelCase = function(a) {
-  return/^[a-z]+([A-Z][a-z]*)*$/.test(a);
-};
-goog.string.isUpperCamelCase = function(a) {
-  return/^([A-Z][a-z]*)+$/.test(a);
-};
-goog.string.toCamelCase = function(a) {
-  return String(a).replace(/\-([a-z])/g, function(a, c) {
-    return c.toUpperCase();
-  });
-};
-goog.string.toSelectorCase = function(a) {
-  return String(a).replace(/([A-Z])/g, "-$1").toLowerCase();
-};
-goog.string.toTitleCase = function(a, b) {
-  var c = goog.isString(b) ? goog.string.regExpEscape(b) : "\\s";
-  return a.replace(new RegExp("(^" + (c ? "|[" + c + "]+" : "") + ")([a-z])", "g"), function(a, b, c) {
-    return b + c.toUpperCase();
-  });
-};
-goog.string.parseInt = function(a) {
-  isFinite(a) && (a = String(a));
-  return goog.isString(a) ? /^\s*-?0x/i.test(a) ? parseInt(a, 16) : parseInt(a, 10) : NaN;
-};
-goog.string.splitLimit = function(a, b, c) {
-  a = a.split(b);
-  for (var d = [];0 < c && a.length;) {
-    d.push(a.shift()), c--;
-  }
-  a.length && d.push(a.join(b));
-  return d;
-};
-goog.asserts = {};
-goog.asserts.ENABLE_ASSERTS = goog.DEBUG;
-goog.asserts.AssertionError = function(a, b) {
-  b.unshift(a);
-  goog.debug.Error.call(this, goog.string.subs.apply(null, b));
-  b.shift();
-  this.messagePattern = a;
-};
-goog.inherits(goog.asserts.AssertionError, goog.debug.Error);
-goog.asserts.AssertionError.prototype.name = "AssertionError";
-goog.asserts.DEFAULT_ERROR_HANDLER = function(a) {
-  throw a;
-};
-goog.asserts.errorHandler_ = goog.asserts.DEFAULT_ERROR_HANDLER;
-goog.asserts.doAssertFailure_ = function(a, b, c, d) {
-  var e = "Assertion failed";
-  if (c) {
-    var e = e + (": " + c), f = d
-  } else {
-    a && (e += ": " + a, f = b);
-  }
-  a = new goog.asserts.AssertionError("" + e, f || []);
-  goog.asserts.errorHandler_(a);
-};
-goog.asserts.setErrorHandler = function(a) {
-  goog.asserts.ENABLE_ASSERTS && (goog.asserts.errorHandler_ = a);
-};
-goog.asserts.assert = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !a && goog.asserts.doAssertFailure_("", null, b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.fail = function(a, b) {
-  goog.asserts.ENABLE_ASSERTS && goog.asserts.errorHandler_(new goog.asserts.AssertionError("Failure" + (a ? ": " + a : ""), Array.prototype.slice.call(arguments, 1)));
-};
-goog.asserts.assertNumber = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !goog.isNumber(a) && goog.asserts.doAssertFailure_("Expected number but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertString = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !goog.isString(a) && goog.asserts.doAssertFailure_("Expected string but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertFunction = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !goog.isFunction(a) && goog.asserts.doAssertFailure_("Expected function but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertObject = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !goog.isObject(a) && goog.asserts.doAssertFailure_("Expected object but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertArray = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !goog.isArray(a) && goog.asserts.doAssertFailure_("Expected array but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertBoolean = function(a, b, c) {
-  goog.asserts.ENABLE_ASSERTS && !goog.isBoolean(a) && goog.asserts.doAssertFailure_("Expected boolean but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertElement = function(a, b, c) {
-  !goog.asserts.ENABLE_ASSERTS || goog.isObject(a) && a.nodeType == goog.dom.NodeType.ELEMENT || goog.asserts.doAssertFailure_("Expected Element but got %s: %s.", [goog.typeOf(a), a], b, Array.prototype.slice.call(arguments, 2));
-  return a;
-};
-goog.asserts.assertInstanceof = function(a, b, c, d) {
-  !goog.asserts.ENABLE_ASSERTS || a instanceof b || goog.asserts.doAssertFailure_("instanceof check failed.", null, c, Array.prototype.slice.call(arguments, 3));
-  return a;
-};
-goog.asserts.assertObjectPrototypeIsIntact = function() {
-  for (var a in Object.prototype) {
-    goog.asserts.fail(a + " should not be enumerable in Object.prototype.");
-  }
-};
-goog.array = {};
-goog.NATIVE_ARRAY_PROTOTYPES = goog.TRUSTED_SITE;
-goog.array.ASSUME_NATIVE_FUNCTIONS = !1;
-goog.array.peek = function(a) {
-  return a[a.length - 1];
-};
-goog.array.last = goog.array.peek;
-goog.array.ARRAY_PROTOTYPE_ = Array.prototype;
-goog.array.indexOf = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.indexOf) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.indexOf.call(a, b, c);
-} : function(a, b, c) {
-  c = null == c ? 0 : 0 > c ? Math.max(0, a.length + c) : c;
-  if (goog.isString(a)) {
-    return goog.isString(b) && 1 == b.length ? a.indexOf(b, c) : -1;
-  }
-  for (;c < a.length;c++) {
-    if (c in a && a[c] === b) {
-      return c;
-    }
-  }
-  return-1;
-};
-goog.array.lastIndexOf = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.lastIndexOf) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.lastIndexOf.call(a, b, null == c ? a.length - 1 : c);
-} : function(a, b, c) {
-  c = null == c ? a.length - 1 : c;
-  0 > c && (c = Math.max(0, a.length + c));
-  if (goog.isString(a)) {
-    return goog.isString(b) && 1 == b.length ? a.lastIndexOf(b, c) : -1;
-  }
-  for (;0 <= c;c--) {
-    if (c in a && a[c] === b) {
-      return c;
-    }
-  }
-  return-1;
-};
-goog.array.forEach = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.forEach) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  goog.array.ARRAY_PROTOTYPE_.forEach.call(a, b, c);
-} : function(a, b, c) {
-  for (var d = a.length, e = goog.isString(a) ? a.split("") : a, f = 0;f < d;f++) {
-    f in e && b.call(c, e[f], f, a);
-  }
-};
-goog.array.forEachRight = function(a, b, c) {
-  for (var d = a.length, e = goog.isString(a) ? a.split("") : a, d = d - 1;0 <= d;--d) {
-    d in e && b.call(c, e[d], d, a);
-  }
-};
-goog.array.filter = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.filter) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.filter.call(a, b, c);
-} : function(a, b, c) {
-  for (var d = a.length, e = [], f = 0, g = goog.isString(a) ? a.split("") : a, h = 0;h < d;h++) {
-    if (h in g) {
-      var k = g[h];
-      b.call(c, k, h, a) && (e[f++] = k);
-    }
-  }
-  return e;
-};
-goog.array.map = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.map) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.map.call(a, b, c);
-} : function(a, b, c) {
-  for (var d = a.length, e = Array(d), f = goog.isString(a) ? a.split("") : a, g = 0;g < d;g++) {
-    g in f && (e[g] = b.call(c, f[g], g, a));
-  }
-  return e;
-};
-goog.array.reduce = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.reduce) ? function(a, b, c, d) {
-  goog.asserts.assert(null != a.length);
-  d && (b = goog.bind(b, d));
-  return goog.array.ARRAY_PROTOTYPE_.reduce.call(a, b, c);
-} : function(a, b, c, d) {
-  var e = c;
-  goog.array.forEach(a, function(c, g) {
-    e = b.call(d, e, c, g, a);
-  });
-  return e;
-};
-goog.array.reduceRight = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.reduceRight) ? function(a, b, c, d) {
-  goog.asserts.assert(null != a.length);
-  d && (b = goog.bind(b, d));
-  return goog.array.ARRAY_PROTOTYPE_.reduceRight.call(a, b, c);
-} : function(a, b, c, d) {
-  var e = c;
-  goog.array.forEachRight(a, function(c, g) {
-    e = b.call(d, e, c, g, a);
-  });
-  return e;
-};
-goog.array.some = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.some) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.some.call(a, b, c);
-} : function(a, b, c) {
-  for (var d = a.length, e = goog.isString(a) ? a.split("") : a, f = 0;f < d;f++) {
-    if (f in e && b.call(c, e[f], f, a)) {
-      return!0;
-    }
-  }
-  return!1;
-};
-goog.array.every = goog.NATIVE_ARRAY_PROTOTYPES && (goog.array.ASSUME_NATIVE_FUNCTIONS || goog.array.ARRAY_PROTOTYPE_.every) ? function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.every.call(a, b, c);
-} : function(a, b, c) {
-  for (var d = a.length, e = goog.isString(a) ? a.split("") : a, f = 0;f < d;f++) {
-    if (f in e && !b.call(c, e[f], f, a)) {
-      return!1;
-    }
-  }
-  return!0;
-};
-goog.array.count = function(a, b, c) {
-  var d = 0;
-  goog.array.forEach(a, function(a, f, g) {
-    b.call(c, a, f, g) && ++d;
-  }, c);
-  return d;
-};
-goog.array.find = function(a, b, c) {
-  b = goog.array.findIndex(a, b, c);
-  return 0 > b ? null : goog.isString(a) ? a.charAt(b) : a[b];
-};
-goog.array.findIndex = function(a, b, c) {
-  for (var d = a.length, e = goog.isString(a) ? a.split("") : a, f = 0;f < d;f++) {
-    if (f in e && b.call(c, e[f], f, a)) {
-      return f;
-    }
-  }
-  return-1;
-};
-goog.array.findRight = function(a, b, c) {
-  b = goog.array.findIndexRight(a, b, c);
-  return 0 > b ? null : goog.isString(a) ? a.charAt(b) : a[b];
-};
-goog.array.findIndexRight = function(a, b, c) {
-  for (var d = a.length, e = goog.isString(a) ? a.split("") : a, d = d - 1;0 <= d;d--) {
-    if (d in e && b.call(c, e[d], d, a)) {
-      return d;
-    }
-  }
-  return-1;
-};
-goog.array.contains = function(a, b) {
-  return 0 <= goog.array.indexOf(a, b);
-};
-goog.array.isEmpty = function(a) {
-  return 0 == a.length;
-};
-goog.array.clear = function(a) {
-  if (!goog.isArray(a)) {
-    for (var b = a.length - 1;0 <= b;b--) {
-      delete a[b];
-    }
-  }
-  a.length = 0;
-};
-goog.array.insert = function(a, b) {
-  goog.array.contains(a, b) || a.push(b);
-};
-goog.array.insertAt = function(a, b, c) {
-  goog.array.splice(a, c, 0, b);
-};
-goog.array.insertArrayAt = function(a, b, c) {
-  goog.partial(goog.array.splice, a, c, 0).apply(null, b);
-};
-goog.array.insertBefore = function(a, b, c) {
-  var d;
-  2 == arguments.length || 0 > (d = goog.array.indexOf(a, c)) ? a.push(b) : goog.array.insertAt(a, b, d);
-};
-goog.array.remove = function(a, b) {
-  var c = goog.array.indexOf(a, b), d;
-  (d = 0 <= c) && goog.array.removeAt(a, c);
-  return d;
-};
-goog.array.removeAt = function(a, b) {
-  goog.asserts.assert(null != a.length);
-  return 1 == goog.array.ARRAY_PROTOTYPE_.splice.call(a, b, 1).length;
-};
-goog.array.removeIf = function(a, b, c) {
-  b = goog.array.findIndex(a, b, c);
-  return 0 <= b ? (goog.array.removeAt(a, b), !0) : !1;
-};
-goog.array.removeAllIf = function(a, b, c) {
-  var d = 0;
-  goog.array.forEachRight(a, function(e, f) {
-    b.call(c, e, f, a) && goog.array.removeAt(a, f) && d++;
-  });
-  return d;
-};
-goog.array.concat = function(a) {
-  return goog.array.ARRAY_PROTOTYPE_.concat.apply(goog.array.ARRAY_PROTOTYPE_, arguments);
-};
-goog.array.join = function(a) {
-  return goog.array.ARRAY_PROTOTYPE_.concat.apply(goog.array.ARRAY_PROTOTYPE_, arguments);
-};
-goog.array.toArray = function(a) {
-  var b = a.length;
-  if (0 < b) {
-    for (var c = Array(b), d = 0;d < b;d++) {
-      c[d] = a[d];
-    }
-    return c;
-  }
-  return[];
-};
-goog.array.clone = goog.array.toArray;
-goog.array.extend = function(a, b) {
-  for (var c = 1;c < arguments.length;c++) {
-    var d = arguments[c], e;
-    if (goog.isArray(d) || (e = goog.isArrayLike(d)) && Object.prototype.hasOwnProperty.call(d, "callee")) {
-      a.push.apply(a, d);
-    } else {
-      if (e) {
-        for (var f = a.length, g = d.length, h = 0;h < g;h++) {
-          a[f + h] = d[h];
-        }
-      } else {
-        a.push(d);
-      }
-    }
-  }
-};
-goog.array.splice = function(a, b, c, d) {
-  goog.asserts.assert(null != a.length);
-  return goog.array.ARRAY_PROTOTYPE_.splice.apply(a, goog.array.slice(arguments, 1));
-};
-goog.array.slice = function(a, b, c) {
-  goog.asserts.assert(null != a.length);
-  return 2 >= arguments.length ? goog.array.ARRAY_PROTOTYPE_.slice.call(a, b) : goog.array.ARRAY_PROTOTYPE_.slice.call(a, b, c);
-};
-goog.array.removeDuplicates = function(a, b, c) {
-  b = b || a;
-  var d = function(a) {
-    return goog.isObject(g) ? "o" + goog.getUid(g) : (typeof g).charAt(0) + g;
-  };
-  c = c || d;
-  for (var d = {}, e = 0, f = 0;f < a.length;) {
-    var g = a[f++], h = c(g);
-    Object.prototype.hasOwnProperty.call(d, h) || (d[h] = !0, b[e++] = g);
-  }
-  b.length = e;
-};
-goog.array.binarySearch = function(a, b, c) {
-  return goog.array.binarySearch_(a, c || goog.array.defaultCompare, !1, b);
-};
-goog.array.binarySelect = function(a, b, c) {
-  return goog.array.binarySearch_(a, b, !0, void 0, c);
-};
-goog.array.binarySearch_ = function(a, b, c, d, e) {
-  for (var f = 0, g = a.length, h;f < g;) {
-    var k = f + g >> 1, l;
-    l = c ? b.call(e, a[k], k, a) : b(d, a[k]);
-    0 < l ? f = k + 1 : (g = k, h = !l);
-  }
-  return h ? f : ~f;
-};
-goog.array.sort = function(a, b) {
-  a.sort(b || goog.array.defaultCompare);
-};
-goog.array.stableSort = function(a, b) {
-  for (var c = 0;c < a.length;c++) {
-    a[c] = {index:c, value:a[c]};
-  }
-  var d = b || goog.array.defaultCompare;
-  goog.array.sort(a, function(a, b) {
-    return d(a.value, b.value) || a.index - b.index;
-  });
-  for (c = 0;c < a.length;c++) {
-    a[c] = a[c].value;
-  }
-};
-goog.array.sortByKey = function(a, b, c) {
-  var d = c || goog.array.defaultCompare;
-  goog.array.sort(a, function(a, c) {
-    return d(b(a), b(c));
-  });
-};
-goog.array.sortObjectsByKey = function(a, b, c) {
-  goog.array.sortByKey(a, function(a) {
-    return a[b];
-  }, c);
-};
-goog.array.isSorted = function(a, b, c) {
-  b = b || goog.array.defaultCompare;
-  for (var d = 1;d < a.length;d++) {
-    var e = b(a[d - 1], a[d]);
-    if (0 < e || 0 == e && c) {
-      return!1;
-    }
-  }
-  return!0;
-};
-goog.array.equals = function(a, b, c) {
-  if (!goog.isArrayLike(a) || !goog.isArrayLike(b) || a.length != b.length) {
-    return!1;
-  }
-  var d = a.length;
-  c = c || goog.array.defaultCompareEquality;
-  for (var e = 0;e < d;e++) {
-    if (!c(a[e], b[e])) {
-      return!1;
-    }
-  }
-  return!0;
-};
-goog.array.compare3 = function(a, b, c) {
-  c = c || goog.array.defaultCompare;
-  for (var d = Math.min(a.length, b.length), e = 0;e < d;e++) {
-    var f = c(a[e], b[e]);
-    if (0 != f) {
-      return f;
-    }
-  }
-  return goog.array.defaultCompare(a.length, b.length);
-};
-goog.array.defaultCompare = function(a, b) {
-  return a > b ? 1 : a < b ? -1 : 0;
-};
-goog.array.defaultCompareEquality = function(a, b) {
-  return a === b;
-};
-goog.array.binaryInsert = function(a, b, c) {
-  c = goog.array.binarySearch(a, b, c);
-  return 0 > c ? (goog.array.insertAt(a, b, -(c + 1)), !0) : !1;
-};
-goog.array.binaryRemove = function(a, b, c) {
-  b = goog.array.binarySearch(a, b, c);
-  return 0 <= b ? goog.array.removeAt(a, b) : !1;
-};
-goog.array.bucket = function(a, b, c) {
-  for (var d = {}, e = 0;e < a.length;e++) {
-    var f = a[e], g = b.call(c, f, e, a);
-    goog.isDef(g) && (d[g] || (d[g] = [])).push(f);
-  }
-  return d;
-};
-goog.array.toObject = function(a, b, c) {
-  var d = {};
-  goog.array.forEach(a, function(e, f) {
-    d[b.call(c, e, f, a)] = e;
-  });
-  return d;
-};
-goog.array.range = function(a, b, c) {
-  var d = [], e = 0, f = a;
-  c = c || 1;
-  void 0 !== b && (e = a, f = b);
-  if (0 > c * (f - e)) {
-    return[];
-  }
-  if (0 < c) {
-    for (a = e;a < f;a += c) {
-      d.push(a);
-    }
-  } else {
-    for (a = e;a > f;a += c) {
-      d.push(a);
-    }
-  }
-  return d;
-};
-goog.array.repeat = function(a, b) {
-  for (var c = [], d = 0;d < b;d++) {
-    c[d] = a;
-  }
-  return c;
-};
-goog.array.flatten = function(a) {
-  for (var b = [], c = 0;c < arguments.length;c++) {
-    var d = arguments[c];
-    goog.isArray(d) ? b.push.apply(b, goog.array.flatten.apply(null, d)) : b.push(d);
-  }
-  return b;
-};
-goog.array.rotate = function(a, b) {
-  goog.asserts.assert(null != a.length);
-  a.length && (b %= a.length, 0 < b ? goog.array.ARRAY_PROTOTYPE_.unshift.apply(a, a.splice(-b, b)) : 0 > b && goog.array.ARRAY_PROTOTYPE_.push.apply(a, a.splice(0, -b)));
-  return a;
-};
-goog.array.moveItem = function(a, b, c) {
-  goog.asserts.assert(0 <= b && b < a.length);
-  goog.asserts.assert(0 <= c && c < a.length);
-  b = goog.array.ARRAY_PROTOTYPE_.splice.call(a, b, 1);
-  goog.array.ARRAY_PROTOTYPE_.splice.call(a, c, 0, b[0]);
-};
-goog.array.zip = function(a) {
-  if (!arguments.length) {
-    return[];
-  }
-  for (var b = [], c = 0;;c++) {
-    for (var d = [], e = 0;e < arguments.length;e++) {
-      var f = arguments[e];
-      if (c >= f.length) {
-        return b;
-      }
-      d.push(f[c]);
-    }
-    b.push(d);
-  }
-};
-goog.array.shuffle = function(a, b) {
-  for (var c = b || Math.random, d = a.length - 1;0 < d;d--) {
-    var e = Math.floor(c() * (d + 1)), f = a[d];
-    a[d] = a[e];
-    a[e] = f;
-  }
-};
-goog.object = {};
-goog.object.forEach = function(a, b, c) {
-  for (var d in a) {
-    b.call(c, a[d], d, a);
-  }
-};
-goog.object.filter = function(a, b, c) {
-  var d = {}, e;
-  for (e in a) {
-    b.call(c, a[e], e, a) && (d[e] = a[e]);
-  }
-  return d;
-};
-goog.object.map = function(a, b, c) {
-  var d = {}, e;
-  for (e in a) {
-    d[e] = b.call(c, a[e], e, a);
-  }
-  return d;
-};
-goog.object.some = function(a, b, c) {
-  for (var d in a) {
-    if (b.call(c, a[d], d, a)) {
-      return!0;
-    }
-  }
-  return!1;
-};
-goog.object.every = function(a, b, c) {
-  for (var d in a) {
-    if (!b.call(c, a[d], d, a)) {
-      return!1;
-    }
-  }
-  return!0;
-};
-goog.object.getCount = function(a) {
-  var b = 0, c;
-  for (c in a) {
-    b++;
-  }
-  return b;
-};
-goog.object.getAnyKey = function(a) {
-  for (var b in a) {
-    return b;
-  }
-};
-goog.object.getAnyValue = function(a) {
-  for (var b in a) {
-    return a[b];
-  }
-};
-goog.object.contains = function(a, b) {
-  return goog.object.containsValue(a, b);
-};
-goog.object.getValues = function(a) {
-  var b = [], c = 0, d;
-  for (d in a) {
-    b[c++] = a[d];
-  }
-  return b;
-};
-goog.object.getKeys = function(a) {
-  var b = [], c = 0, d;
-  for (d in a) {
-    b[c++] = d;
-  }
-  return b;
-};
-goog.object.getValueByKeys = function(a, b) {
-  for (var c = goog.isArrayLike(b), d = c ? b : arguments, c = c ? 0 : 1;c < d.length && (a = a[d[c]], goog.isDef(a));c++) {
-  }
-  return a;
-};
-goog.object.containsKey = function(a, b) {
-  return b in a;
-};
-goog.object.containsValue = function(a, b) {
-  for (var c in a) {
-    if (a[c] == b) {
-      return!0;
-    }
-  }
-  return!1;
-};
-goog.object.findKey = function(a, b, c) {
-  for (var d in a) {
-    if (b.call(c, a[d], d, a)) {
-      return d;
-    }
-  }
-};
-goog.object.findValue = function(a, b, c) {
-  return(b = goog.object.findKey(a, b, c)) && a[b];
-};
-goog.object.isEmpty = function(a) {
-  for (var b in a) {
-    return!1;
-  }
-  return!0;
-};
-goog.object.clear = function(a) {
-  for (var b in a) {
-    delete a[b];
-  }
-};
-goog.object.remove = function(a, b) {
-  var c;
-  (c = b in a) && delete a[b];
-  return c;
-};
-goog.object.add = function(a, b, c) {
-  if (b in a) {
-    throw Error('The object already contains the key "' + b + '"');
-  }
-  goog.object.set(a, b, c);
-};
-goog.object.get = function(a, b, c) {
-  return b in a ? a[b] : c;
-};
-goog.object.set = function(a, b, c) {
-  a[b] = c;
-};
-goog.object.setIfUndefined = function(a, b, c) {
-  return b in a ? a[b] : a[b] = c;
-};
-goog.object.equals = function(a, b) {
-  if (!goog.array.equals(goog.object.getKeys(a), goog.object.getKeys(b))) {
-    return!1;
-  }
-  for (var c in a) {
-    if (a[c] !== b[c]) {
-      return!1;
-    }
-  }
-  return!0;
-};
-goog.object.clone = function(a) {
-  var b = {}, c;
-  for (c in a) {
-    b[c] = a[c];
-  }
-  return b;
-};
-goog.object.unsafeClone = function(a) {
-  var b = goog.typeOf(a);
-  if ("object" == b || "array" == b) {
-    if (a.clone) {
-      return a.clone();
-    }
-    var b = "array" == b ? [] : {}, c;
-    for (c in a) {
-      b[c] = goog.object.unsafeClone(a[c]);
-    }
-    return b;
-  }
-  return a;
-};
-goog.object.transpose = function(a) {
-  var b = {}, c;
-  for (c in a) {
-    b[a[c]] = c;
-  }
-  return b;
-};
-goog.object.PROTOTYPE_FIELDS_ = "constructor hasOwnProperty isPrototypeOf propertyIsEnumerable toLocaleString toString valueOf".split(" ");
-goog.object.extend = function(a, b) {
-  for (var c, d, e = 1;e < arguments.length;e++) {
-    d = arguments[e];
-    for (c in d) {
-      a[c] = d[c];
-    }
-    for (var f = 0;f < goog.object.PROTOTYPE_FIELDS_.length;f++) {
-      c = goog.object.PROTOTYPE_FIELDS_[f], Object.prototype.hasOwnProperty.call(d, c) && (a[c] = d[c]);
-    }
-  }
-};
-goog.object.create = function(a) {
-  var b = arguments.length;
-  if (1 == b && goog.isArray(arguments[0])) {
-    return goog.object.create.apply(null, arguments[0]);
-  }
-  if (b % 2) {
-    throw Error("Uneven number of arguments");
-  }
-  for (var c = {}, d = 0;d < b;d += 2) {
-    c[arguments[d]] = arguments[d + 1];
-  }
-  return c;
-};
-goog.object.createSet = function(a) {
-  var b = arguments.length;
-  if (1 == b && goog.isArray(arguments[0])) {
-    return goog.object.createSet.apply(null, arguments[0]);
-  }
-  for (var c = {}, d = 0;d < b;d++) {
-    c[arguments[d]] = !0;
-  }
-  return c;
-};
-goog.object.createImmutableView = function(a) {
-  var b = a;
-  Object.isFrozen && !Object.isFrozen(a) && (b = Object.create(a), Object.freeze(b));
-  return b;
-};
-goog.object.isImmutableView = function(a) {
-  return!!Object.isFrozen && Object.isFrozen(a);
-};
 var com = {cognitect:{}};
 com.cognitect.transducers = {};
 var TRANSDUCERS_DEV = !0, TRANSDUCERS_NODE_TARGET = !0, TRANSDUCERS_BROWSER_TARGET = !1, TRANSDUCERS_BROWSER_AMD_TARGET = !1;
+com.cognitect.transducers.ITransformer = function() {
+};
+com.cognitect.transducers.ITransformer.prototype["@@transducer/init"] = function() {
+};
+com.cognitect.transducers.ITransformer.prototype["@@transducer/result"] = function(a) {
+};
+com.cognitect.transducers.ITransformer.prototype["@@transducer/step"] = function(a, b) {
+};
+com.cognitect.transducers.IReduced = function() {
+};
 com.cognitect.transducers.isString = function(a) {
-  return "string" == typeof x;
+  return "string" == typeof a;
 };
 com.cognitect.transducers.isArray = "undefined" != typeof Array.isArray ? function(a) {
   return Array.isArray(a);
@@ -10899,39 +10403,39 @@ com.cognitect.transducers.slice = function(a, b, c) {
 };
 com.cognitect.transducers.complement = function(a) {
   return function(b) {
-    return!a.apply(null, com.cognitect.transducers.slice(arguments, 0));
+    return !a.apply(null, com.cognitect.transducers.slice(arguments, 0));
   };
 };
 com.cognitect.transducers.Wrap = function(a) {
   this.stepFn = a;
 };
-com.cognitect.transducers.Wrap.prototype.init = function() {
+com.cognitect.transducers.Wrap.prototype["@@transducer/init"] = function() {
   throw Error("init not implemented");
 };
-com.cognitect.transducers.Wrap.prototype.result = function(a) {
+com.cognitect.transducers.Wrap.prototype["@@transducer/result"] = function(a) {
   return a;
 };
-com.cognitect.transducers.Wrap.prototype.step = function(a, b) {
+com.cognitect.transducers.Wrap.prototype["@@transducer/step"] = function(a, b) {
   return this.stepFn(a, b);
 };
 com.cognitect.transducers.wrap = function(a) {
   return "function" == typeof a ? new com.cognitect.transducers.Wrap(a) : a;
 };
 com.cognitect.transducers.Reduced = function(a) {
-  this.__transducers_reduced__ = !0;
-  this.value = a;
+  this["@@transducer/reduced"] = !0;
+  this["@@transducer/value"] = a;
 };
 com.cognitect.transducers.reduced = function(a) {
   return new com.cognitect.transducers.Reduced(a);
 };
 com.cognitect.transducers.isReduced = function(a) {
-  return a instanceof com.cognitect.transducers.Reduced || a && a.__transducers_reduced__;
+  return a instanceof com.cognitect.transducers.Reduced || a && a["@@transducer/reduced"];
 };
 com.cognitect.transducers.ensureReduced = function(a) {
   return com.cognitect.transducers.isReduced(a) ? a : com.cognitect.transducers.reduced(a);
 };
 com.cognitect.transducers.deref = function(a) {
-  return a.value;
+  return a["@@transducer/value"];
 };
 com.cognitect.transducers.unreduced = function(a) {
   return com.cognitect.transducers.isReduced(a) ? com.cognitect.transducers.deref(a) : a;
@@ -10958,14 +10462,14 @@ com.cognitect.transducers.Map = function(a, b) {
   this.f = a;
   this.xf = b;
 };
-com.cognitect.transducers.Map.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.Map.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.Map.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.Map.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.Map.prototype.step = function(a, b) {
-  return this.xf.step(a, this.f(b));
+com.cognitect.transducers.Map.prototype["@@transducer/step"] = function(a, b) {
+  return this.xf["@@transducer/step"](a, this.f(b));
 };
 com.cognitect.transducers.map = function(a) {
   if (TRANSDUCERS_DEV && null == a) {
@@ -10979,14 +10483,14 @@ com.cognitect.transducers.Filter = function(a, b) {
   this.pred = a;
   this.xf = b;
 };
-com.cognitect.transducers.Filter.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.Filter.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.Filter.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.Filter.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.Filter.prototype.step = function(a, b) {
-  return this.pred(b) ? this.xf.step(a, b) : a;
+com.cognitect.transducers.Filter.prototype["@@transducer/step"] = function(a, b) {
+  return this.pred(b) ? this.xf["@@transducer/step"](a, b) : a;
 };
 com.cognitect.transducers.filter = function(a) {
   if (TRANSDUCERS_DEV && "function" != typeof a) {
@@ -11006,14 +10510,14 @@ com.cognitect.transducers.Take = function(a, b) {
   this.n = a;
   this.xf = b;
 };
-com.cognitect.transducers.Take.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.Take.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.Take.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.Take.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.Take.prototype.step = function(a, b) {
-  a = 0 < this.n ? this.xf.step(a, b) : com.cognitect.transducers.ensureReduced(a);
+com.cognitect.transducers.Take.prototype["@@transducer/step"] = function(a, b) {
+  a = 0 < this.n ? this.xf["@@transducer/step"](a, b) : com.cognitect.transducers.ensureReduced(a);
   this.n--;
   return a;
 };
@@ -11029,14 +10533,14 @@ com.cognitect.transducers.TakeWhile = function(a, b) {
   this.pred = a;
   this.xf = b;
 };
-com.cognitect.transducers.TakeWhile.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.TakeWhile.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.TakeWhile.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.TakeWhile.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.TakeWhile.prototype.step = function(a, b) {
-  return this.pred(b) ? this.xf.step(a, b) : com.cognitect.transducers.reduced(a);
+com.cognitect.transducers.TakeWhile.prototype["@@transducer/step"] = function(a, b) {
+  return this.pred(b) ? this.xf["@@transducer/step"](a, b) : com.cognitect.transducers.reduced(a);
 };
 com.cognitect.transducers.takeWhile = function(a) {
   if (TRANSDUCERS_DEV && "function" != typeof a) {
@@ -11051,15 +10555,15 @@ com.cognitect.transducers.TakeNth = function(a, b) {
   this.n = a;
   this.xf = b;
 };
-com.cognitect.transducers.TakeNth.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.TakeNth.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.TakeNth.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.TakeNth.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.TakeNth.prototype.step = function(a, b) {
+com.cognitect.transducers.TakeNth.prototype["@@transducer/step"] = function(a, b) {
   this.i++;
-  return 0 == this.i % this.n ? this.xf.step(a, b) : a;
+  return 0 == this.i % this.n ? this.xf["@@transducer/step"](a, b) : a;
 };
 com.cognitect.transducers.takeNth = function(a) {
   if (TRANSDUCERS_DEV && "number" != typeof a) {
@@ -11073,14 +10577,14 @@ com.cognitect.transducers.Drop = function(a, b) {
   this.n = a;
   this.xf = b;
 };
-com.cognitect.transducers.Drop.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.Drop.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.Drop.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.Drop.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.Drop.prototype.step = function(a, b) {
-  return 0 < this.n ? (this.n--, a) : this.xf.step(a, b);
+com.cognitect.transducers.Drop.prototype["@@transducer/step"] = function(a, b) {
+  return 0 < this.n ? (this.n--, a) : this.xf["@@transducer/step"](a, b);
 };
 com.cognitect.transducers.drop = function(a) {
   if (TRANSDUCERS_DEV && "number" !== typeof a) {
@@ -11095,18 +10599,18 @@ com.cognitect.transducers.DropWhile = function(a, b) {
   this.pred = a;
   this.xf = b;
 };
-com.cognitect.transducers.DropWhile.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.DropWhile.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.DropWhile.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.DropWhile.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.DropWhile.prototype.step = function(a, b) {
+com.cognitect.transducers.DropWhile.prototype["@@transducer/step"] = function(a, b) {
   if (this.drop && this.pred(b)) {
     return a;
   }
   this.drop && (this.drop = !1);
-  return this.xf.step(a, b);
+  return this.xf["@@transducer/step"](a, b);
 };
 com.cognitect.transducers.dropWhile = function(a) {
   if (TRANSDUCERS_DEV && "function" != typeof a) {
@@ -11123,20 +10627,20 @@ com.cognitect.transducers.PartitionBy = function(a, b) {
   this.a = [];
   this.pval = com.cognitect.transducers.NONE;
 };
-com.cognitect.transducers.PartitionBy.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.PartitionBy.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.PartitionBy.prototype.result = function(a) {
-  0 < this.a.length && (a = com.cognitect.transducers.unreduced(this.xf.step(a, this.a)), this.a = []);
-  return this.xf.result(a);
+com.cognitect.transducers.PartitionBy.prototype["@@transducer/result"] = function(a) {
+  0 < this.a.length && (a = com.cognitect.transducers.unreduced(this.xf["@@transducer/step"](a, this.a)), this.a = []);
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.PartitionBy.prototype.step = function(a, b) {
-  var c = this.pval;
-  this.pval = val = this.f(b);
-  if (c == com.cognitect.transducers.NONE || c == val) {
+com.cognitect.transducers.PartitionBy.prototype["@@transducer/step"] = function(a, b) {
+  var c = this.pval, d = this.f(b);
+  this.pval = d;
+  if (c == com.cognitect.transducers.NONE || c == d) {
     return this.a.push(b), a;
   }
-  c = this.xf.step(a, this.a);
+  c = this.xf["@@transducer/step"](a, this.a);
   this.a = [];
   com.cognitect.transducers.isReduced(c) || this.a.push(b);
   return c;
@@ -11154,19 +10658,19 @@ com.cognitect.transducers.PartitionAll = function(a, b) {
   this.xf = b;
   this.a = [];
 };
-com.cognitect.transducers.PartitionAll.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.PartitionAll.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.PartitionAll.prototype.result = function(a) {
-  0 < this.a.length && (a = com.cognitect.transducers.unreduced(this.xf.step(a, this.a)), this.a = []);
-  return this.xf.result(a);
+com.cognitect.transducers.PartitionAll.prototype["@@transducer/result"] = function(a) {
+  0 < this.a.length && (a = com.cognitect.transducers.unreduced(this.xf["@@transducer/step"](a, this.a)), this.a = []);
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.PartitionAll.prototype.step = function(a, b) {
+com.cognitect.transducers.PartitionAll.prototype["@@transducer/step"] = function(a, b) {
   this.a.push(b);
   if (this.n == this.a.length) {
     var c = this.a;
     this.a = [];
-    return this.xf.step(a, c);
+    return this.xf["@@transducer/step"](a, c);
   }
   return a;
 };
@@ -11182,14 +10686,14 @@ com.cognitect.transducers.Keep = function(a, b) {
   this.f = a;
   this.xf = b;
 };
-com.cognitect.transducers.Keep.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.Keep.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.Keep.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.Keep.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.Keep.prototype.step = function(a, b) {
-  return null == this.f(b) ? a : this.xf.step(a, b);
+com.cognitect.transducers.Keep.prototype["@@transducer/step"] = function(a, b) {
+  return null == this.f(b) ? a : this.xf["@@transducer/step"](a, b);
 };
 com.cognitect.transducers.keep = function(a) {
   if (TRANSDUCERS_DEV && "function" != typeof a) {
@@ -11204,15 +10708,15 @@ com.cognitect.transducers.KeepIndexed = function(a, b) {
   this.f = a;
   this.xf = b;
 };
-com.cognitect.transducers.KeepIndexed.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.KeepIndexed.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.KeepIndexed.prototype.result = function(a) {
-  return this.xf.result(a);
+com.cognitect.transducers.KeepIndexed.prototype["@@transducer/result"] = function(a) {
+  return this.xf["@@transducer/result"](a);
 };
-com.cognitect.transducers.KeepIndexed.prototype.step = function(a, b) {
+com.cognitect.transducers.KeepIndexed.prototype["@@transducer/step"] = function(a, b) {
   this.i++;
-  return null == this.f(this.i, b) ? a : this.xf.step(a, b);
+  return null == this.f(this.i, b) ? a : this.xf["@@transducer/step"](a, b);
 };
 com.cognitect.transducers.keepIndexed = function(a) {
   if (TRANSDUCERS_DEV && "function" != typeof a) {
@@ -11223,22 +10727,22 @@ com.cognitect.transducers.keepIndexed = function(a) {
   };
 };
 com.cognitect.transducers.preservingReduced = function(a) {
-  return{init:function() {
-    return a.init();
-  }, result:function(a) {
+  return {"@@transducer/init":function() {
+    return a["@@transducer/init"]();
+  }, "@@transducer/result":function(a) {
     return a;
-  }, step:function(b, c) {
-    var d = a.step(b, c);
+  }, "@@transducer/step":function(b, c) {
+    var d = a["@@transducer/step"](b, c);
     return com.cognitect.transducers.isReduced(d) ? com.cognitect.transducers.reduced(d) : d;
   }};
 };
 com.cognitect.transducers.cat = function(a) {
   var b = com.cognitect.transducers.preservingReduced(a);
-  return{init:function() {
-    return a.init();
-  }, result:function(b) {
-    return a.result(b);
-  }, step:function(a, d) {
+  return {"@@transducer/init":function() {
+    return a["@@transducer/init"]();
+  }, "@@transducer/result":function(b) {
+    return a["@@transducer/result"](b);
+  }, "@@transducer/step":function(a, d) {
     return com.cognitect.transducers.reduce(b, a, d);
   }};
 };
@@ -11247,42 +10751,42 @@ com.cognitect.transducers.mapcat = function(a) {
 };
 com.cognitect.transducers.stringReduce = function(a, b, c) {
   for (var d = 0;d < c.length;d++) {
-    if (b = a.step(b, c.charAt(d)), com.cognitect.transducers.isReduced(b)) {
+    if (b = a["@@transducer/step"](b, c.charAt(d)), com.cognitect.transducers.isReduced(b)) {
       b = com.cognitect.transducers.deref(b);
       break;
     }
   }
-  return a.result(b);
+  return a["@@transducer/result"](b);
 };
 com.cognitect.transducers.arrayReduce = function(a, b, c) {
   for (var d = 0;d < c.length;d++) {
-    if (b = a.step(b, c[d]), com.cognitect.transducers.isReduced(b)) {
+    if (b = a["@@transducer/step"](b, c[d]), com.cognitect.transducers.isReduced(b)) {
       b = com.cognitect.transducers.deref(b);
       break;
     }
   }
-  return a.result(b);
+  return a["@@transducer/result"](b);
 };
 com.cognitect.transducers.objectReduce = function(a, b, c) {
   for (var d in c) {
-    if (c.hasOwnProperty(d) && (b = a.step(b, [d, c[d]]), com.cognitect.transducers.isReduced(b))) {
+    if (c.hasOwnProperty(d) && (b = a["@@transducer/step"](b, [d, c[d]]), com.cognitect.transducers.isReduced(b))) {
       b = com.cognitect.transducers.deref(b);
       break;
     }
   }
-  return a.result(b);
+  return a["@@transducer/result"](b);
 };
 com.cognitect.transducers.iterableReduce = function(a, b, c) {
   c["@@iterator"] && (c = c["@@iterator"]());
   for (var d = c.next();!d.done;) {
-    b = a.step(b, d.value);
+    b = a["@@transducer/step"](b, d.value);
     if (com.cognitect.transducers.isReduced(b)) {
       b = com.cognitect.transducers.deref(b);
       break;
     }
     d = c.next();
   }
-  return a.result(b);
+  return a["@@transducer/result"](b);
 };
 com.cognitect.transducers.reduce = function(a, b, c) {
   if (c) {
@@ -11333,14 +10837,14 @@ com.cognitect.transducers.Completing = function(a, b) {
   this.cf = a;
   this.xf = b;
 };
-com.cognitect.transducers.Completing.prototype.init = function() {
-  return this.xf.init();
+com.cognitect.transducers.Completing.prototype["@@transducer/init"] = function() {
+  return this.xf["@@transducer/init"]();
 };
-com.cognitect.transducers.Completing.prototype.result = function(a) {
+com.cognitect.transducers.Completing.prototype["@@transducer/result"] = function(a) {
   return this.cf(a);
 };
-com.cognitect.transducers.Completing.prototype.step = function(a, b) {
-  return this.xf.step(a, b);
+com.cognitect.transducers.Completing.prototype["@@transducer/step"] = function(a, b) {
+  return this.xf["@@transducer/step"](a, b);
 };
 com.cognitect.transducers.completing = function(a, b) {
   a = "function" == typeof a ? com.cognitect.transducers.wrap(a) : a;
@@ -11353,7 +10857,7 @@ com.cognitect.transducers.completing = function(a, b) {
 com.cognitect.transducers.toFn = function(a, b) {
   "function" == typeof b && (b = com.cognitect.transducers.wrap(b));
   var c = a(b);
-  return c.step.bind(c);
+  return c["@@transducer/step"].bind(c);
 };
 com.cognitect.transducers.first = com.cognitect.transducers.wrap(function(a, b) {
   return com.cognitect.transducers.reduced(b);
@@ -11364,22 +10868,21 @@ com.cognitect.transducers.Keep), goog.exportSymbol("transducers.keepIndexed", co
 goog.exportSymbol("transducers.takeNth", com.cognitect.transducers.takeNth), goog.exportSymbol("transducers.TakeNth", com.cognitect.transducers.TakeNth), goog.exportSymbol("transducers.drop", com.cognitect.transducers.drop), goog.exportSymbol("transducers.Drop", com.cognitect.transducers.Drop), goog.exportSymbol("transducers.dropWhile", com.cognitect.transducers.dropWhile), goog.exportSymbol("transducers.DropWhile", com.cognitect.transducers.DropWhile), goog.exportSymbol("transducers.partitionBy", 
 com.cognitect.transducers.partitionBy), goog.exportSymbol("transducers.PartitionBy", com.cognitect.transducers.PartitionBy), goog.exportSymbol("transducers.partitionAll", com.cognitect.transducers.partitionAll), goog.exportSymbol("transducers.PartitionAll", com.cognitect.transducers.PartitionAll), goog.exportSymbol("transducers.completing", com.cognitect.transducers.completing), goog.exportSymbol("transducers.Completing", com.cognitect.transducers.Completing), goog.exportSymbol("transducers.wrap", 
 com.cognitect.transducers.wrap), goog.exportSymbol("transducers.Wrap", com.cognitect.transducers.Wrap), goog.exportSymbol("transducers.cat", com.cognitect.transducers.cat), goog.exportSymbol("transducers.mapcat", com.cognitect.transducers.mapcat), goog.exportSymbol("transducers.into", com.cognitect.transducers.into), goog.exportSymbol("transducers.toFn", com.cognitect.transducers.toFn), goog.exportSymbol("transducers.first", com.cognitect.transducers.first), goog.exportSymbol("transducers.ensureReduced", 
-com.cognitect.transducers.first), goog.exportSymbol("transducers.unreduced", com.cognitect.transducers.first), goog.exportSymbol("transducers.deref", com.cognitect.transducers.deref));
+com.cognitect.transducers.ensureReduced), goog.exportSymbol("transducers.unreduced", com.cognitect.transducers.unreduced), goog.exportSymbol("transducers.deref", com.cognitect.transducers.deref));
 TRANSDUCERS_NODE_TARGET && (module.exports = {reduced:com.cognitect.transducers.reduced, isReduced:com.cognitect.transducers.isReduced, comp:com.cognitect.transducers.comp, complement:com.cognitect.transducers.complement, map:com.cognitect.transducers.map, Map:com.cognitect.transducers.Map, filter:com.cognitect.transducers.filter, Filter:com.cognitect.transducers.Filter, remove:com.cognitect.transducers.remove, Remove:com.cognitect.transducers.Remove, keep:com.cognitect.transducers.keep, Kemove:com.cognitect.transducers.Keep, 
 keepIndexed:com.cognitect.transducers.keepIndexed, KeepIndexed:com.cognitect.transducers.KeepIndexed, take:com.cognitect.transducers.take, Take:com.cognitect.transducers.Take, takeWhile:com.cognitect.transducers.takeWhile, TakeWhile:com.cognitect.transducers.TakeWhile, takeNth:com.cognitect.transducers.takeNth, TakeNth:com.cognitect.transducers.TakeNth, drop:com.cognitect.transducers.drop, Drop:com.cognitect.transducers.Drop, dropWhile:com.cognitect.transducers.dropWhile, DropWhile:com.cognitect.transducers.DropWhile, 
 partitionBy:com.cognitect.transducers.partitionBy, PartitionBy:com.cognitect.transducers.PartitionBy, partitionAll:com.cognitect.transducers.partitionAll, PartitionAll:com.cognitect.transducers.PartitionAll, completing:com.cognitect.transducers.completing, Completing:com.cognitect.transducers.Completing, wrap:com.cognitect.transducers.wrap, Wrap:com.cognitect.transducers.Wrap, cat:com.cognitect.transducers.cat, mapcat:com.cognitect.transducers.mapcat, transduce:com.cognitect.transducers.transduce, 
 reduce:com.cognitect.transducers.reduce, into:com.cognitect.transducers.into, toFn:com.cognitect.transducers.toFn, first:com.cognitect.transducers.first, ensureReduced:com.cognitect.transducers.ensureReduced, unreduced:com.cognitect.transducers.unreduced, deref:com.cognitect.transducers.deref});
 
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 
 // basic protocol helpers
 
 var symbolExists = typeof Symbol !== 'undefined';
 
 var protocols = {
-  iterator: symbolExists ? Symbol.iterator : '@@iterator',
-  transformer: symbolExists ? Symbol('transformer') : '@@transformer'
+  iterator: symbolExists ? Symbol.iterator : '@@iterator'
 };
 
 function throwProtocolError(name, coll) {
@@ -11478,16 +10981,16 @@ function isNumber(x) {
 }
 
 function Reduced(value) {
-  this.__transducers_reduced__ = true;
-  this.value = value;
+  this['@@transducer/reduced'] = true;
+  this['@@transducer/value'] = value;
 }
 
 function isReduced(x) {
-  return (x instanceof Reduced) || (x && x.__transducers_reduced__);
+  return (x instanceof Reduced) || (x && x['@@transducer/reduced']);
 }
 
 function deref(x) {
-  return x.value;
+  return x['@@transducer/value'];
 }
 
 /**
@@ -11521,27 +11024,27 @@ function reduce(coll, xform, init) {
     var index = -1;
     var len = coll.length;
     while(++index < len) {
-      result = xform.step(result, coll[index]);
+      result = xform['@@transducer/step'](result, coll[index]);
       if(isReduced(result)) {
         result = deref(result);
         break;
       }
     }
-    return xform.result(result);
+    return xform['@@transducer/result'](result);
   }
   else if(isObject(coll) || fulfillsProtocol(coll, 'iterator')) {
     var result = init;
     var iter = iterator(coll);
     var val = iter.next();
     while(!val.done) {
-      result = xform.step(result, val.value);
+      result = xform['@@transducer/step'](result, val.value);
       if(isReduced(result)) {
         result = deref(result);
         break;
       }
       val = iter.next();
     }
-    return xform.result(result);
+    return xform['@@transducer/result'](result);
   }
   throwProtocolError('iterate', coll);
 }
@@ -11549,7 +11052,7 @@ function reduce(coll, xform, init) {
 function transduce(coll, xform, reducer, init) {
   xform = xform(reducer);
   if(init === undefined) {
-    init = xform.init();
+    init = xform['@@transducer/init']();
   }
   return reduce(coll, xform, init);
 }
@@ -11568,15 +11071,15 @@ function compose() {
 // transformations
 
 function transformer(f) {
-  return {
-    init: function() {
-      throw new Error('init value unavailable');
-    },
-    result: function(v) {
-      return v;
-    },
-    step: f
+  var t = {};
+  t['@@transducer/init'] = function() {
+    throw new Error('init value unavailable');
   };
+  t['@@transducer/result'] = function(v) {
+    return v;
+  };
+  t['@@transducer/step'] = f;
+  return t;
 }
 
 function bound(f, ctx, count) {
@@ -11631,16 +11134,16 @@ function Map(f, xform) {
   this.f = f;
 }
 
-Map.prototype.init = function() {
-  return this.xform.init();
+Map.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Map.prototype.result = function(v) {
-  return this.xform.result(v);
+Map.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-Map.prototype.step = function(res, input) {
-  return this.xform.step(res, this.f(input));
+Map.prototype['@@transducer/step'] = function(res, input) {
+  return this.xform['@@transducer/step'](res, this.f(input));
 };
 
 function map(coll, f, ctx) {
@@ -11664,17 +11167,17 @@ function Filter(f, xform) {
   this.f = f;
 }
 
-Filter.prototype.init = function() {
-  return this.xform.init();
+Filter.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Filter.prototype.result = function(v) {
-  return this.xform.result(v);
+Filter.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-Filter.prototype.step = function(res, input) {
+Filter.prototype['@@transducer/step'] = function(res, input) {
   if(this.f(input)) {
-    return this.xform.step(res, input);
+    return this.xform['@@transducer/step'](res, input);
   }
   return res;
 };
@@ -11710,18 +11213,18 @@ function Dedupe(xform) {
   this.last = undefined;
 }
 
-Dedupe.prototype.init = function() {
-  return this.xform.init();
+Dedupe.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Dedupe.prototype.result = function(v) {
-  return this.xform.result(v);
+Dedupe.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-Dedupe.prototype.step = function(result, input) {
+Dedupe.prototype['@@transducer/step'] = function(result, input) {
   if(input !== this.last) {
     this.last = input;
-    return this.xform.step(result, input);
+    return this.xform['@@transducer/step'](result, input);
   }
   return result;
 };
@@ -11741,17 +11244,17 @@ function TakeWhile(f, xform) {
   this.f = f;
 }
 
-TakeWhile.prototype.init = function() {
-  return this.xform.init();
+TakeWhile.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-TakeWhile.prototype.result = function(v) {
-  return this.xform.result(v);
+TakeWhile.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-TakeWhile.prototype.step = function(result, input) {
+TakeWhile.prototype['@@transducer/step'] = function(result, input) {
   if(this.f(input)) {
-    return this.xform.step(result, input);
+    return this.xform['@@transducer/step'](result, input);
   }
   return new Reduced(result);
 };
@@ -11775,17 +11278,17 @@ function Take(n, xform) {
   this.xform = xform;
 }
 
-Take.prototype.init = function() {
-  return this.xform.init();
+Take.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Take.prototype.result = function(v) {
-  return this.xform.result(v);
+Take.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-Take.prototype.step = function(result, input) {
+Take.prototype['@@transducer/step'] = function(result, input) {
   if (this.i < this.n) {
-    result = this.xform.step(result, input);
+    result = this.xform['@@transducer/step'](result, input);
     if(this.i + 1 >= this.n) {
       // Finish reducing on the same step as the final value. TODO:
       // double-check that this doesn't break any semantics
@@ -11814,19 +11317,19 @@ function Drop(n, xform) {
   this.xform = xform;
 }
 
-Drop.prototype.init = function() {
-  return this.xform.init();
+Drop.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Drop.prototype.result = function(v) {
-  return this.xform.result(v);
+Drop.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-Drop.prototype.step = function(result, input) {
+Drop.prototype['@@transducer/step'] = function(result, input) {
   if(this.i++ < this.n) {
     return result;
   }
-  return this.xform.step(result, input);
+  return this.xform['@@transducer/step'](result, input);
 };
 
 function drop(coll, n) {
@@ -11847,15 +11350,15 @@ function DropWhile(f, xform) {
   this.dropping = true;
 }
 
-DropWhile.prototype.init = function() {
-  return this.xform.init();
+DropWhile.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-DropWhile.prototype.result = function(v) {
-  return this.xform.result(v);
+DropWhile.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-DropWhile.prototype.step = function(result, input) {
+DropWhile.prototype['@@transducer/step'] = function(result, input) {
   if(this.dropping) {
     if(this.f(input)) {
       return result;
@@ -11864,7 +11367,7 @@ DropWhile.prototype.step = function(result, input) {
       this.dropping = false;
     }
   }
-  return this.xform.step(result, input);
+  return this.xform['@@transducer/step'](result, input);
 };
 
 function dropWhile(coll, f, ctx) {
@@ -11887,25 +11390,25 @@ function Partition(n, xform) {
   this.part = new Array(n);
 }
 
-Partition.prototype.init = function() {
-  return this.xform.init();
+Partition.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Partition.prototype.result = function(v) {
+Partition.prototype['@@transducer/result'] = function(v) {
   if (this.i > 0) {
-    return ensureUnreduced(this.xform.step(v, this.part.slice(0, this.i)));
+    return ensureUnreduced(this.xform['@@transducer/step'](v, this.part.slice(0, this.i)));
   }
-  return this.xform.result(v);
+  return this.xform['@@transducer/result'](v);
 };
 
-Partition.prototype.step = function(result, input) {
+Partition.prototype['@@transducer/step'] = function(result, input) {
   this.part[this.i] = input;
   this.i += 1;
   if (this.i === this.n) {
     var out = this.part.slice(0, this.n);
     this.part = new Array(this.n);
     this.i = 0;
-    return this.xform.step(result, out);
+    return this.xform['@@transducer/step'](result, out);
   }
   return result;
 };
@@ -11935,24 +11438,24 @@ function PartitionBy(f, xform) {
   this.last = NOTHING;
 }
 
-PartitionBy.prototype.init = function() {
-  return this.xform.init();
+PartitionBy.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-PartitionBy.prototype.result = function(v) {
+PartitionBy.prototype['@@transducer/result'] = function(v) {
   var l = this.part.length;
   if (l > 0) {
-    return ensureUnreduced(this.xform.step(v, this.part.slice(0, l)));
+    return ensureUnreduced(this.xform['@@transducer/step'](v, this.part.slice(0, l)));
   }
-  return this.xform.result(v);
+  return this.xform['@@transducer/result'](v);
 };
 
-PartitionBy.prototype.step = function(result, input) {
+PartitionBy.prototype['@@transducer/step'] = function(result, input) {
   var current = this.f(input);
   if (current === this.last || this.last === NOTHING) {
     this.part.push(input);
   } else {
-    result = this.xform.step(result, this.part);
+    result = this.xform['@@transducer/step'](result, this.part);
     this.part = [input];
   }
   this.last = current;
@@ -11972,34 +11475,152 @@ function partitionBy(coll, f, ctx) {
   };
 }
 
+function Interpose(sep, xform) {
+  this.sep = sep;
+  this.xform = xform;
+  this.started = false;
+}
+
+Interpose.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
+};
+
+Interpose.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
+};
+
+Interpose.prototype['@@transducer/step'] = function(result, input) {
+  if (this.started) {
+    var withSep = this.xform['@@transducer/step'](result, this.sep);
+    if (isReduced(withSep)) {
+      return withSep;
+    } else {
+      return this.xform['@@transducer/step'](withSep, input);
+    }
+  } else {
+    this.started = true;
+    return this.xform['@@transducer/step'](result, input);
+  }
+};
+
+/**
+ * Returns a new collection containing elements of the given
+ * collection, separated by the specified separator. Returns a
+ * transducer if a collection is not provided.
+ */
+function interpose(coll, separator) {
+  if (arguments.length === 1) {
+    separator = coll;
+    return function(xform) {
+      return new Interpose(separator, xform);
+    };
+  }
+  return seq(coll, interpose(separator));
+}
+
+function Repeat(n, xform) {
+  this.xform = xform;
+  this.n = n;
+}
+
+Repeat.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
+};
+
+Repeat.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
+};
+
+Repeat.prototype['@@transducer/step'] = function(result, input) {
+  var n = this.n;
+  var r = result;
+  for (var i = 0; i < n; i++) {
+    r = this.xform['@@transducer/step'](r, input);
+    if (isReduced(r)) {
+      break;
+    }
+  }
+  return r;
+};
+
+/**
+ * Returns a new collection containing elements of the given
+ * collection, each repeated n times. Returns a transducer if a
+ * collection is not provided.
+ */
+function repeat(coll, n) {
+  if (arguments.length === 1) {
+    n = coll;
+    return function(xform) {
+      return new Repeat(n, xform);
+    };
+  }
+  return seq(coll, repeat(n));
+}
+
+function TakeNth(n, xform) {
+  this.xform = xform;
+  this.n = n;
+  this.i = -1;
+}
+
+TakeNth.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
+};
+
+TakeNth.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
+};
+
+TakeNth.prototype['@@transducer/step'] = function(result, input) {
+  this.i += 1;
+  if (this.i % this.n === 0) {
+    return this.xform['@@transducer/step'](result, input);
+  }
+  return result;
+};
+
+/**
+ * Returns a new collection of every nth element of the given
+ * collection. Returns a transducer if a collection is not provided.
+ */
+function takeNth(coll, nth) {
+  if (arguments.length === 1) {
+    nth = coll;
+    return function(xform) {
+      return new TakeNth(nth, xform);
+    };
+  }
+  return seq(coll, takeNth(nth));
+}
+
 // pure transducers (cannot take collections)
 
 function Cat(xform) {
   this.xform = xform;
 }
 
-Cat.prototype.init = function() {
-  return this.xform.init();
+Cat.prototype['@@transducer/init'] = function() {
+  return this.xform['@@transducer/init']();
 };
 
-Cat.prototype.result = function(v) {
-  return this.xform.result(v);
+Cat.prototype['@@transducer/result'] = function(v) {
+  return this.xform['@@transducer/result'](v);
 };
 
-Cat.prototype.step = function(result, input) {
+Cat.prototype['@@transducer/step'] = function(result, input) {
   var xform = this.xform;
-  var newxform = {
-    init: function() {
-      return xform.init();
-    },
-    result: function(v) {
-      return v;
-    },
-    step: function(result, input) {
-      var val = xform.step(result, input);
-      return isReduced(val) ? deref(val) : val;
-    }
-  }
+  var newxform = {};
+  newxform['@@transducer/init'] = function() {
+    return xform['@@transducer/init']();
+  };
+  newxform['@@transducer/result'] = function(v) {
+    return v;
+  };
+  newxform['@@transducer/step'] = function(result, input) {
+    var val = xform['@@transducer/step'](result, input);
+    return isReduced(val) ? deref(val) : val;
+  };
 
   return reduce(input, newxform, result);
 };
@@ -12034,38 +11655,23 @@ function merge(obj, x) {
   return obj;
 }
 
-var arrayReducer = {
-  init: function() {
-    return [];
-  },
-  result: function(v) {
-    return v;
-  },
-  step: push
-}
-
-var objReducer = {
-  init: function() {
-    return {};
-  },
-  result: function(v) {
-    return v;
-  },
-  step: merge
+var arrayReducer = {};
+arrayReducer['@@transducer/init'] = function() {
+  return [];
 };
+arrayReducer['@@transducer/result'] = function(v) {
+  return v;
+};
+arrayReducer['@@transducer/step'] = push;
 
-function getReducer(coll) {
-  if(isArray(coll)) {
-    return arrayReducer;
-  }
-  else if(isObject(coll)) {
-    return objReducer;
-  }
-  else if(fulfillsProtocol(coll, 'transformer')) {
-    return getProtocolProperty(coll, 'transformer');
-  }
-  throwProtocolError('getReducer', coll);
-}
+var objReducer = {};
+objReducer['@@transducer/init'] = function() {
+  return {};
+};
+objReducer['@@transducer/result'] = function(v) {
+  return v;
+};
+objReducer['@@transducer/step'] = merge;
 
 // building new collections
 
@@ -12097,9 +11703,16 @@ function seq(coll, xform) {
   else if(isObject(coll)) {
     return transduce(coll, xform, objReducer, {});
   }
-  else if(fulfillsProtocol(coll, 'transformer')) {
-    var transformer = getProtocolProperty(coll, 'transformer');
-    return transduce(coll, xform, transformer, transformer.init());
+  else if(coll['@@transducer/step']) {
+    var init;
+    if(coll['@@transducer/init']) {
+      init = coll['@@transducer/init']();
+    }
+    else {
+      init = new coll.constructor();
+    }
+
+    return transduce(coll, xform, coll, init);
   }
   else if(fulfillsProtocol(coll, 'iterator')) {
     return new LazyTransformer(xform, coll);
@@ -12114,10 +11727,10 @@ function into(to, xform, from) {
   else if(isObject(to)) {
     return transduce(from, xform, objReducer, to);
   }
-  else if(fulfillsProtocol(to, 'transformer')) {
+  else if(to['@@transducer/step']) {
     return transduce(from,
                      xform,
-                     getProtocolProperty(to, 'transformer'),
+                     to,
                      to);
   }
   throwProtocolError('into', to);
@@ -12125,33 +11738,32 @@ function into(to, xform, from) {
 
 // laziness
 
-var stepper = {
-  result: function(v) {
-    return isReduced(v) ? deref(v) : v;
-  },
-  step: function(lt, x) {
-    lt.items.push(x);
-    return lt.rest;
-  }
-}
+var stepper = {};
+stepper['@@transducer/result'] = function(v) {
+  return isReduced(v) ? deref(v) : v;
+};
+stepper['@@transducer/step'] = function(lt, x) {
+  lt.items.push(x);
+  return lt.rest;
+};
 
 function Stepper(xform, iter) {
   this.xform = xform(stepper);
   this.iter = iter;
 }
 
-Stepper.prototype.step = function(lt) {
+Stepper.prototype['@@transducer/step'] = function(lt) {
   var len = lt.items.length;
   while(lt.items.length === len) {
     var n = this.iter.next();
     if(n.done || isReduced(n.value)) {
       // finalize
-      this.xform.result(this);
+      this.xform['@@transducer/result'](this);
       break;
     }
 
     // step
-    this.xform.step(lt, n.value);
+    this.xform['@@transducer/step'](lt, n.value);
   }
 }
 
@@ -12166,7 +11778,7 @@ LazyTransformer.prototype[protocols.iterator] = function() {
 }
 
 LazyTransformer.prototype.next = function() {
-  this.step();
+  this['@@transducer/step']();
 
   if(this.items.length) {
     return {
@@ -12179,9 +11791,9 @@ LazyTransformer.prototype.next = function() {
   }
 };
 
-LazyTransformer.prototype.step = function() {
+LazyTransformer.prototype['@@transducer/step'] = function() {
   if(!this.items.length) {
-    this.stepper.step(this);
+    this.stepper['@@transducer/step'](this);
   }
 }
 
@@ -12195,11 +11807,11 @@ function range(n) {
   return arr;
 }
 
-
 module.exports = {
   reduce: reduce,
   transformer: transformer,
   Reduced: Reduced,
+  isReduced: isReduced,
   iterator: iterator,
   push: push,
   merge: merge,
@@ -12219,17 +11831,19 @@ module.exports = {
   dedupe: dedupe,
   take: take,
   takeWhile: takeWhile,
+  takeNth: takeNth,
   drop: drop,
   dropWhile: dropWhile,
   partition: partition,
   partitionBy: partitionBy,
+  interpose: interpose,
+  repeat: repeat,
   range: range,
 
-  protocols: protocols,
   LazyTransformer: LazyTransformer
 };
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -12392,7 +12006,7 @@ describe('bufferBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],34:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -12600,7 +12214,7 @@ describe('bufferWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],35:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],37:[function(require,module,exports){
 var Kefir, not3, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -12701,7 +12315,7 @@ describe('bufferWhile', function() {
 
 
 
-},{"../test-helpers.coffee":102}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],38:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -12901,7 +12515,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":102}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],39:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -12950,7 +12564,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":102}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],40:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -13188,7 +12802,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":102}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -13315,7 +12929,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":102}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],42:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -13335,7 +12949,7 @@ describe('constantError', function() {
 
 
 
-},{"../../dist/kefir":1}],41:[function(require,module,exports){
+},{"../../dist/kefir":1}],43:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -13355,7 +12969,7 @@ describe('constant', function() {
 
 
 
-},{"../../dist/kefir":1}],42:[function(require,module,exports){
+},{"../../dist/kefir":1}],44:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13556,7 +13170,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":102}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],45:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13630,7 +13244,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":102}],44:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],46:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13740,7 +13354,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":102}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],47:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -13811,7 +13425,7 @@ describe('emitter', function() {
 
 
 
-},{"../../dist/kefir":1}],46:[function(require,module,exports){
+},{"../../dist/kefir":1}],48:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13924,7 +13538,7 @@ describe('endOnError', function() {
 
 
 
-},{"../test-helpers.coffee":102}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],49:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14087,7 +13701,7 @@ describe('errorsToValues', function() {
 
 
 
-},{"../test-helpers.coffee":102}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],50:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14365,7 +13979,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],51:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14562,7 +14176,7 @@ describe('filterErrors', function() {
 
 
 
-},{"../test-helpers.coffee":102}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],52:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14711,7 +14325,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":102}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],53:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14846,7 +14460,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":102}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],54:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15001,7 +14615,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":102}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],55:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15135,7 +14749,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":102}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],56:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15266,7 +14880,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":102}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],57:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15483,7 +15097,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":102}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],58:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15623,7 +15237,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":102}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],59:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15795,7 +15409,7 @@ describe('fromBinder', function() {
 
 
 
-},{"../test-helpers.coffee":102}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],60:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15858,7 +15472,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":102}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],61:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15991,7 +15605,7 @@ describe('fromEvent', function() {
 
 
 
-},{"../test-helpers.coffee":102}],60:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],62:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16074,7 +15688,7 @@ describe('fromNodeCallback', function() {
 
 
 
-},{"../test-helpers.coffee":102}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],63:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16094,7 +15708,7 @@ describe('fromPoll', function() {
 
 
 
-},{"../../dist/kefir":1}],62:[function(require,module,exports){
+},{"../../dist/kefir":1}],64:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16219,7 +15833,7 @@ describe('fromPromise', function() {
 
 
 
-},{"../test-helpers.coffee":102}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],65:[function(require,module,exports){
 var Kefir, activate, deactivate, noop, ref,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -16309,7 +15923,7 @@ describe('fromSubUnsub', function() {
 
 
 
-},{"../test-helpers.coffee":102}],64:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],66:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16325,7 +15939,7 @@ describe('interval', function() {
 
 
 
-},{"../../dist/kefir":1}],65:[function(require,module,exports){
+},{"../../dist/kefir":1}],67:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16341,7 +15955,7 @@ describe('later', function() {
 
 
 
-},{"../../dist/kefir":1}],66:[function(require,module,exports){
+},{"../../dist/kefir":1}],68:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16428,7 +16042,7 @@ describe('mapEnd', function() {
 
 
 
-},{"../test-helpers.coffee":102}],67:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],69:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16514,7 +16128,7 @@ describe('mapErrors', function() {
 
 
 
-},{"../test-helpers.coffee":102}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],70:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16592,7 +16206,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":102}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],71:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16711,7 +16325,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":102}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],72:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16727,7 +16341,7 @@ describe('never', function() {
 
 
 
-},{"../../dist/kefir":1}],71:[function(require,module,exports){
+},{"../../dist/kefir":1}],73:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16850,7 +16464,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":102}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],74:[function(require,module,exports){
 var Kefir, activate, prop, ref, send;
 
 ref = require('../test-helpers.coffee'), prop = ref.prop, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -17060,7 +16674,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":102}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],75:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17166,7 +16780,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":102}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],76:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17300,7 +16914,7 @@ describe('repeat', function() {
 
 
 
-},{"../test-helpers.coffee":102}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],77:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -17319,7 +16933,7 @@ describe('repeatedly', function() {
 
 
 
-},{"../../dist/kefir":1}],76:[function(require,module,exports){
+},{"../../dist/kefir":1}],78:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -17479,7 +17093,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],79:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17579,7 +17193,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":102}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],80:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -17598,7 +17212,7 @@ describe('sequentially', function() {
 
 
 
-},{"../../dist/kefir":1}],79:[function(require,module,exports){
+},{"../../dist/kefir":1}],81:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17695,7 +17309,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":102}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],82:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17764,7 +17378,7 @@ describe('skipEnd', function() {
 
 
 
-},{"../test-helpers.coffee":102}],81:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],83:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17834,7 +17448,7 @@ describe('skipErrors', function() {
 
 
 
-},{"../test-helpers.coffee":102}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],84:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -18127,7 +17741,7 @@ describe('skipUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],83:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],85:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18207,7 +17821,7 @@ describe('skipValues', function() {
 
 
 
-},{"../test-helpers.coffee":102}],84:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],86:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -18503,7 +18117,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],85:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],87:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18641,7 +18255,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":102}],86:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],88:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18751,7 +18365,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":102}],87:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],89:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18857,7 +18471,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":102}],88:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],90:[function(require,module,exports){
 var Kefir, activate, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -19128,7 +18742,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":102}],89:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],91:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19380,7 +18994,7 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":102}],90:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],92:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19653,7 +19267,7 @@ describe('takeUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],91:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],93:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19931,7 +19545,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":102}],92:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],94:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20078,7 +19692,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":102}],93:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],95:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20173,7 +19787,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":102}],94:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],96:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20457,7 +20071,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":102}],95:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],97:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20546,7 +20160,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":102}],96:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],98:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20673,7 +20287,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":102}],97:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],99:[function(require,module,exports){
 var Kefir, comp, noop, prop, ref, send, stream, testWithLib,
   slice = [].slice;
 
@@ -20943,7 +20557,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":102,"transducers-js":31,"transducers.js":32}],98:[function(require,module,exports){
+},{"../test-helpers.coffee":104,"transducers-js":33,"transducers.js":34}],100:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21106,7 +20720,7 @@ describe('valuesToErrors', function() {
 
 
 
-},{"../test-helpers.coffee":102}],99:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],101:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21331,7 +20945,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":102}],100:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],102:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -21406,7 +21020,7 @@ describe('withInterval', function() {
 
 
 
-},{"../../dist/kefir":1}],101:[function(require,module,exports){
+},{"../../dist/kefir":1}],103:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -21588,7 +21202,7 @@ describe('zip', function() {
 
 
 
-},{"../test-helpers.coffee":102}],102:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],104:[function(require,module,exports){
 var Kefir, _activateHelper, logItem, sinon,
   slice = [].slice;
 
@@ -21962,4 +21576,4 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":6}]},{},[33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101]);
+},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103]);
