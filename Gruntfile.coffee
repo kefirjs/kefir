@@ -102,28 +102,15 @@ module.exports = (grunt) ->
           verbose: true
           targetDir: './bower-packages'
 
-    release:
-      options:
-        bump: false
-        add: false
-        commit: false
-        push: false
-
-
-
   )
 
   require('load-grunt-tasks')(grunt)
-  grunt.loadTasks('grunt-tasks')
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
   grunt.registerTask 'build-docs', ['jade:docs']
 
-  grunt.registerTask 'release-patch', ['bump', 'release', 'post-release']
-  grunt.registerTask 'release-minor', ['bump:minor', 'release', 'post-release']
-  grunt.registerTask 'release-major', ['bump:major', 'release', 'post-release']
-  grunt.registerTask 'release-pre', ['bump:prerelease', 'release', 'post-release']
+
 
   grunt.registerTask 'default', ['clean', 'build-docs', 'build-kefir', 'build-browser-tests']
 
