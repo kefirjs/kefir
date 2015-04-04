@@ -76,19 +76,6 @@ module.exports = (grunt) ->
             'src/*.js'
           ]
 
-    jasmine_node:
-      main:
-        options:
-          specFolders: ['test/specs']
-          matchall: true
-          verbose: true
-          coffee: true
-
-    jshint:
-      options:
-        jshintrc: true
-      main: ['src/**']
-
     jade:
       docs:
         options:
@@ -104,14 +91,6 @@ module.exports = (grunt) ->
         files:
           'index.html': 'docs-src/index.jade'
 
-    watch:
-      docs:
-        files: 'docs-src/**/*'
-        tasks: ['build-docs']
-      src_and_tests:
-        files: ['test/specs/*', 'test/test-helpers*', 'src/*.js']
-        tasks: ['concat:kefir', 'test']
-
     clean:
       main:
         src: ['dist', 'index.html']
@@ -125,23 +104,11 @@ module.exports = (grunt) ->
 
     release:
       options:
-        bump: false, # default: true
-        # file: 'component.json', # default: package.json
-        add: false, # default: true
-        commit: false, # default: true
-        # tag: false, # default: true
-        push: false, # default: true
-        # pushTags: false, # default: true
-        # npm: false, # default: true
-        # npmtag: true, # default: no tag
-        # folder: 'folder/to/publish/to/npm', # default project root
-        # tagName: 'some-tag-<%= version %>', # default: '<%= version %>'
-        # commitMessage: 'check out my release <%= version %>', # default: 'release <%= version %>'
-        # tagMessage: 'tagging version <%= version %>', # default: 'Version <%= version %>',
-        # github:
-        #   repo: 'pozadi/kefir', //put your user/repo here
-        #   usernameVar: 'GITHUB_USERNAME', //ENVIRONMENT VARIABLE that contains Github username
-        #   passwordVar: 'GITHUB_PASSWORD' //ENVIRONMENT VARIABLE that contains Github password
+        bump: false
+        add: false
+        commit: false
+        push: false
+
 
 
   )
@@ -151,17 +118,13 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
   grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
-  grunt.registerTask 'test', ['jasmine_node:main', 'jshint:main']
   grunt.registerTask 'build-docs', ['jade:docs']
+
   grunt.registerTask 'release-patch', ['bump', 'release', 'post-release']
   grunt.registerTask 'release-minor', ['bump:minor', 'release', 'post-release']
   grunt.registerTask 'release-major', ['bump:major', 'release', 'post-release']
   grunt.registerTask 'release-pre', ['bump:prerelease', 'release', 'post-release']
-  grunt.registerTask 'default', [
-    'clean', 'build-docs', 'build-kefir', 'build-browser-tests', 'test']
 
-  grunt.registerTask 'light', [
-    'concat:kefir'
-    'test'
-  ]
+  grunt.registerTask 'default', ['clean', 'build-docs', 'build-kefir', 'build-browser-tests']
+
 
