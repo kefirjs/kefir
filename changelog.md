@@ -1,3 +1,8 @@
+## 1.3.1
+
+ - The `.transduce` method updated to add support of new protocol [#78](https://github.com/pozadi/kefir/issues/78)
+
+
 ## 1.3.0
 
  - Following methods are deprecated:
