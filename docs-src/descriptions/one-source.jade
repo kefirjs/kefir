@@ -316,111 +316,67 @@ div
 
 
 
-
-+descr-method('map-end', 'mapEnd', 'obs.mapEnd(fn)').
-  Allows you to insert an additional value just before the observable ends.
-  #[b fn] will be called on #[b obs]' end with no arguments,
-  and whatever it return will be emitted in the result stream before end.
++descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
+  For this method it's expected that the source observable emits arrays.
+  The result observable will then emit each element of these arrays.
 
 pre(title='example')
   :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3]);
-    var result = source.mapEnd(function() {  return 0  });
+    var source = Kefir.sequentially(100, [[1], [], [2,3]]);
+    var result = source.flatten();
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.mapEnd] <value> 1
-    > [sequentially.mapEnd] <value> 2
-    > [sequentially.mapEnd] <value> 3
-    > [sequentially.mapEnd] <value> 0
-    > [sequentially.mapEnd] <end>
+    > [sequentially.flatten] <value> 1
+    > [sequentially.flatten] <value> 2
+    > [sequentially.flatten] <value> 3
+    > [sequentially.flatten] <end>
 
 pre(title='events in time').
-  source:  ---1---2---3 X
-  result:  ---1---3---30X
+  source:  --------•--------•-------- •X
+                 [1]       []     [2,3]
+  result:  --------1-----------------23X
 div
-
-
-
-
-+descr-method('skip-end', 'skipEnd', 'obs.skipEnd()').
-  Ignores end of source observable.
-
-pre(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3]);
-    var result = source.skipEnd();
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.skipEnd] <value> 1
-    > [sequentially.skipEnd] <value> 2
-    > [sequentially.skipEnd] <value> 3
-
-pre(title='events in time').
-  source:  ---1---2---3X
-  result:  ---1---2---3---
-div
-
-
-
-+descr-method('sliding-window', 'slidingWindow', 'obs.slidingWindow(max, [min])').
-  Will emit arrays containing the last #[b n] values from the #[b obs] observable,
-  where #[b n] is between #[b max] and #[b min] arguments.
-  By default #[b min] equals #[tt 0].
-
-pre(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
-    var result = source.slidingWindow(3, 2)
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.slidingWindow] <value> [1, 2]
-    > [sequentially.slidingWindow] <value> [1, 2, 3]
-    > [sequentially.slidingWindow] <value> [2, 3, 4]
-    > [sequentially.slidingWindow] <value> [3, 4, 5]
-    > [sequentially.slidingWindow] <end>
-
-pre(title='events in time').
-  source:  --------1--------2--------3--------4--------5X
-  result:  -----------------•--------•--------•--------•X
-                        [1,2]  [1,2,3]  [2,3,4]  [3,4,5]
-div
-
-
-
-+descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate], [options])').
-  Passes every value from the source observable to the #[b predicate] function.
-  If it returns #[tt true], adds the value to the buffer, otherwise flushes the buffer.
-  Also flushes the buffer before end, but you can disable that
-  by passing #[tt {flushOnEnd: false}] as #[b options].
 
 p.
-  The default #[b predicate] is #[tt function(x) {return x}].
-  If you want to omit #[b predicate] but pass #[b options],
-  pass #[tt null] as #[b predicate].
+  You can also provide the #[b transformer] function
+  which will be applied to each value from #[b obs] observable,
+  and which is supposed to return an array. This makes #[b flatten] to be a
+  pretty powerful transformation method.
+  It allows you to do three kinds
+  of transformations on each value: change value (like map), skip value (like filter),
+  and respond with several values to a single value.
+  If you want to skip a value, return an empty array,
+  to change the value — return an array with a single new value,
+  to emit several values — return them in an array.
 
 pre(title='example')
   :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
-    var result = source.bufferWhile(function(x) {return x !== 3});
+    var source = Kefir.sequentially(100, [1, 2, 3, 4]);
+    var result = source.flatten(function(x) {
+      if (x % 2 === 0) {
+        return [x * 10];
+      } else {
+        return [];
+      }
+    });
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.bufferWhile] <value> [1, 2, 3]
-    > [sequentially.bufferWhile] <value> [4, 5]
-    > [sequentially.bufferWhile] <end>
+    > [sequentially.flatten] <value> 20
+    > [sequentially.flatten] <value> 40
+    > [sequentially.flatten] <end>
 
 pre(title='events in time').
-  source:  ---1---2---3---4---5 X
-  result:  -----------•--------•X
-                [1,2,3]    [4,5]
+  source:  ---1---2---3---4X
+  result:  -------•-------•X
+                 20      40
 div
+
+p.
+  See also <a href="#flat-map">flatMap</a>
 
 
 
@@ -488,7 +444,6 @@ div
 
 
 
-
 +descr-method('debounce', 'debounce', 'obs.debounce(wait, [options])').
   Creates a new debounced version of the original observable.
   Will emit a value only after #[b wait] milliseconds period of no events.
@@ -514,168 +469,6 @@ div
 pre(title='events in time').
   source:  ---1---2---3---------------4---5---6X
   result:  ----------------------3---------------------6X
-div
-
-
-
-
-
-+descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
-  For this method it's expected that the source observable emits arrays.
-  The result observable will then emit each element of these arrays.
-
-pre(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [[1], [], [2,3]]);
-    var result = source.flatten();
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.flatten] <value> 1
-    > [sequentially.flatten] <value> 2
-    > [sequentially.flatten] <value> 3
-    > [sequentially.flatten] <end>
-
-pre(title='events in time').
-  source:  --------•--------•-------- •X
-                 [1]       []     [2,3]
-  result:  --------1-----------------23X
-div
-
-p.
-  You can also provide the #[b transformer] function
-  which will be applied to each value from #[b obs] observable,
-  and which is supposed to return an array. This makes #[b flatten] to be a
-  pretty powerful transformation method.
-  It allows you to do three kinds
-  of transformations on each value: change value (like map), skip value (like filter),
-  and respond with several values to a single value.
-  If you want to skip a value, return an empty array,
-  to change the value — return an array with a single new value,
-  to emit several values — return them in an array.
-
-pre(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3, 4]);
-    var result = source.flatten(function(x) {
-      if (x % 2 === 0) {
-        return [x * 10];
-      } else {
-        return [];
-      }
-    });
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.flatten] <value> 20
-    > [sequentially.flatten] <value> 40
-    > [sequentially.flatten] <end>
-
-pre(title='events in time').
-  source:  ---1---2---3---4X
-  result:  -------•-------•X
-                 20      40
-div
-
-p.
-  See also <a href="#flat-map">flatMap</a>
-
-
-
-
-
-
-+descr-method('transduce', 'transduce', 'obs.transduce(transducer)').
-  This method allows you to use transducers in Kefir.
-  It supports any transducers implementation that follows
-  <a href="https://github.com/cognitect-labs/transducers-js#the-transducer-protocol">the transducer protocol</a>, for example
-  <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a> or
-  <a href="https://github.com/jlongster/transducers.js">jlongster/transducers.js</a>.
-  To learn more about transducers please visit these library pages.
-
-p.
-  In the example the
-  <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a>
-  library is used.
-
-pre(title='example')
-  :escapehtml
-    var t = transducers;
-    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
-    var myTransducer = t.comp(
-      t.map(function(x) {return x + 10}),
-      t.filter(function(x) {return x % 2 === 0}),
-      t.take(2)
-    );
-    var result = source.transduce(myTransducer);
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.transduce] <value> 12
-    > [sequentially.transduce] <value> 14
-    > [sequentially.transduce] <end>
-
-pre(title='events in time').
-  source:  ---1---2---3---4---5---6X
-  result:  -------•-------•X
-                 12      14
-div
-
-
-
-
-
-+descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
-  The most general transformation method. All other transformation methods above
-  can be implemented via #[b withHandler].
-  Will call the #[b handler] function on each event from #[b obs] observable,
-  passing to it two arguments: an <a href="#emitter-object">emitter object</a>,
-  and an event object (with same format as in <a href="#on-any">onAny</a> callback).
-
-p.
-  By default, it will not emit any values or errors, and it will not end when #[b obs]
-  observable ends. Instead you should implement the desired behaviour in
-  the #[b handler] function, i.e. analyse #[b event object] and call
-  #[b emitter] methods if necessary. You can call
-  the #[b emitter] methods several times in each #[b handler] execution,
-  and you can also call them any time later, for example to implement
-  <a href="#delay">delay</a>.
-
-pre(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [0, 1, 2, 3]);
-    var result = source.withHandler(function(emitter, event) {
-      if (event.type === 'end') {
-        emitter.emit('bye');
-        emitter.end();
-      }
-      if (event.type === 'value') {
-        for (var i = 0; i < event.value; i++) {
-          emitter.emit(event.value);
-        }
-      }
-    });
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.withHandler] <value> 1
-    > [sequentially.withHandler] <value> 2
-    > [sequentially.withHandler] <value> 2
-    > [sequentially.withHandler] <value> 3
-    > [sequentially.withHandler] <value> 3
-    > [sequentially.withHandler] <value> 3
-    > [sequentially.withHandler] <value> bye
-    > [sequentially.withHandler] <end>
-div
-
-pre(title='events in time').
-  source:  ---0---1--- 2---  3 X
-  result:  -------•---••---••••X
-                  1   22   333bye
 div
 
 
@@ -813,8 +606,9 @@ div
 
 
 
-+descr-method('skip-errors', 'skipErrors', 'obs.skipErrors()').
-  Ignores all errors from the original observable, emitting only values and end.
+
++descr-method('end-on-error', 'endOnError', 'obs.endOnError()').
+  Makes an observable to end on first error.
 
 pre(title='example')
   :escapehtml
@@ -822,22 +616,23 @@ pre(title='example')
       .valuesToErrors(function(x) {
         return {convert: x < 0, error: x};
       });
-    var result = source.skipErrors()
+    var result = source.endOnError()
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.valuesToErrors.skipErrors] <value> 0
-    > [sequentially.valuesToErrors.skipErrors] <value> 2
-    > [sequentially.valuesToErrors.skipErrors] <end>
+    > [sequentially.valuesToErrors.endOnError] <value> 0
+    > [sequentially.valuesToErrors.endOnError] <error> -1
+    > [sequentially.valuesToErrors.endOnError] <end>
 
 pre(title='events in time')
   :escapehtml
     source:  ---•---e---•---eX
                 0  -1   2  -3
-    result:  ---•-------•----X
-                0       2
+    result:  ---•---eX
+                0  -1
 div
+
 
 
 
@@ -870,8 +665,8 @@ div
 
 
 
-+descr-method('end-on-error', 'endOnError', 'obs.endOnError()').
-  Makes an observable to end on first error.
++descr-method('skip-errors', 'skipErrors', 'obs.skipErrors()').
+  Ignores all errors from the original observable, emitting only values and end.
 
 pre(title='example')
   :escapehtml
@@ -879,21 +674,220 @@ pre(title='example')
       .valuesToErrors(function(x) {
         return {convert: x < 0, error: x};
       });
-    var result = source.endOnError()
+    var result = source.skipErrors()
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.valuesToErrors.endOnError] <value> 0
-    > [sequentially.valuesToErrors.endOnError] <error> -1
-    > [sequentially.valuesToErrors.endOnError] <end>
+    > [sequentially.valuesToErrors.skipErrors] <value> 0
+    > [sequentially.valuesToErrors.skipErrors] <value> 2
+    > [sequentially.valuesToErrors.skipErrors] <end>
 
 pre(title='events in time')
   :escapehtml
     source:  ---•---e---•---eX
                 0  -1   2  -3
-    result:  ---•---eX
-                0  -1
+    result:  ---•-------•----X
+                0       2
 div
 
 
+
++descr-method('skip-end', 'skipEnd', 'obs.skipEnd()').
+  Ignores end of source observable.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.skipEnd();
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.skipEnd] <value> 1
+    > [sequentially.skipEnd] <value> 2
+    > [sequentially.skipEnd] <value> 3
+
+pre(title='events in time').
+  source:  ---1---2---3X
+  result:  ---1---2---3---
+div
+
+
+
+
++descr-method('map-end', 'mapEnd', 'obs.mapEnd(fn)').
+  Allows you to insert an additional value just before the observable ends.
+  #[b fn] will be called on #[b obs]' end with no arguments,
+  and whatever it return will be emitted in the result stream before end.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.mapEnd(function() {  return 0  });
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.mapEnd] <value> 1
+    > [sequentially.mapEnd] <value> 2
+    > [sequentially.mapEnd] <value> 3
+    > [sequentially.mapEnd] <value> 0
+    > [sequentially.mapEnd] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3 X
+  result:  ---1---3---30X
+div
+
+
+
+
++descr-method('sliding-window', 'slidingWindow', 'obs.slidingWindow(max, [min])').
+  Will emit arrays containing the last #[b n] values from the #[b obs] observable,
+  where #[b n] is between #[b max] and #[b min] arguments.
+  By default #[b min] equals #[tt 0].
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
+    var result = source.slidingWindow(3, 2)
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.slidingWindow] <value> [1, 2]
+    > [sequentially.slidingWindow] <value> [1, 2, 3]
+    > [sequentially.slidingWindow] <value> [2, 3, 4]
+    > [sequentially.slidingWindow] <value> [3, 4, 5]
+    > [sequentially.slidingWindow] <end>
+
+pre(title='events in time').
+  source:  --------1--------2--------3--------4--------5X
+  result:  -----------------•--------•--------•--------•X
+                        [1,2]  [1,2,3]  [2,3,4]  [3,4,5]
+div
+
+
+
++descr-method('buffer-while', 'bufferWhile', 'obs.bufferWhile([predicate], [options])').
+  Passes every value from the source observable to the #[b predicate] function.
+  If it returns #[tt true], adds the value to the buffer, otherwise flushes the buffer.
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
+
+p.
+  The default #[b predicate] is #[tt function(x) {return x}].
+  If you want to omit #[b predicate] but pass #[b options],
+  pass #[tt null] as #[b predicate].
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
+    var result = source.bufferWhile(function(x) {return x !== 3});
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWhile] <value> [1, 2, 3]
+    > [sequentially.bufferWhile] <value> [4, 5]
+    > [sequentially.bufferWhile] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3---4---5 X
+  result:  -----------•--------•X
+                [1,2,3]    [4,5]
+div
+
+
+
+
++descr-method('transduce', 'transduce', 'obs.transduce(transducer)').
+  This method allows you to use transducers in Kefir.
+  It supports any transducers implementation that follows
+  <a href="https://github.com/cognitect-labs/transducers-js#the-transducer-protocol">the transducer protocol</a>, for example
+  <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a> or
+  <a href="https://github.com/jlongster/transducers.js">jlongster/transducers.js</a>.
+  To learn more about transducers please visit these library pages.
+
+p.
+  In the example the
+  <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a>
+  library is used.
+
+pre(title='example')
+  :escapehtml
+    var t = transducers;
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
+    var myTransducer = t.comp(
+      t.map(function(x) {return x + 10}),
+      t.filter(function(x) {return x % 2 === 0}),
+      t.take(2)
+    );
+    var result = source.transduce(myTransducer);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.transduce] <value> 12
+    > [sequentially.transduce] <value> 14
+    > [sequentially.transduce] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3---4---5---6X
+  result:  -------•-------•X
+                 12      14
+div
+
+
+
+
++descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
+  The most general transformation method. All other transformation methods above
+  can be implemented via #[b withHandler].
+  Will call the #[b handler] function on each event from #[b obs] observable,
+  passing to it two arguments: an <a href="#emitter-object">emitter object</a>,
+  and an event object (with same format as in <a href="#on-any">onAny</a> callback).
+
+p.
+  By default, it will not emit any values or errors, and it will not end when #[b obs]
+  observable ends. Instead you should implement the desired behaviour in
+  the #[b handler] function, i.e. analyse #[b event object] and call
+  #[b emitter] methods if necessary. You can call
+  the #[b emitter] methods several times in each #[b handler] execution,
+  and you can also call them any time later, for example to implement
+  <a href="#delay">delay</a>.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [0, 1, 2, 3]);
+    var result = source.withHandler(function(emitter, event) {
+      if (event.type === 'end') {
+        emitter.emit('bye');
+        emitter.end();
+      }
+      if (event.type === 'value') {
+        for (var i = 0; i < event.value; i++) {
+          emitter.emit(event.value);
+        }
+      }
+    });
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.withHandler] <value> 1
+    > [sequentially.withHandler] <value> 2
+    > [sequentially.withHandler] <value> 2
+    > [sequentially.withHandler] <value> 3
+    > [sequentially.withHandler] <value> 3
+    > [sequentially.withHandler] <value> 3
+    > [sequentially.withHandler] <value> bye
+    > [sequentially.withHandler] <end>
+div
+
+pre(title='events in time').
+  source:  ---0---1--- 2---  3 X
+  result:  -------•---••---••••X
+                  1   22   333bye
+div
