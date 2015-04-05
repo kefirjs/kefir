@@ -1,4 +1,4 @@
-var inquirer = require("inquirer");
+var inquirer = require('inquirer');
 var semver = require('semver');
 var shell = require('shelljs');
 var fs = require('fs');

@@ -41,6 +41,7 @@
     "grunt-contrib-concat": "0.5.1",
     "grunt-contrib-jade": "0.14.1",
     "grunt-contrib-uglify": "0.8.1",
+    "inquirer": "0.8.2",
     "jasmine-node": "1.14.5",
     "load-grunt-tasks": "3.1.0",
     "rx": "2.4.10",
