@@ -1,6 +1,12 @@
+## 2.0.0
+
+ - Removed support of old transducers protocol in the `.transduce` (see [#79](https://github.com/pozadi/kefir/issues/79))
+ - `stream.changes()` now returns a new stream with current values/errors removed (see [#56](https://github.com/pozadi/kefir/issues/56))
+
+
 ## 1.3.1 (2015-04-04)
 
- - The `.transduce` method updated to add support of new protocol [#78](https://github.com/pozadi/kefir/issues/78)
+ - The `.transduce` method updated to add support of new protocol (see [#78](https://github.com/pozadi/kefir/issues/78))
 
 
 ## 1.3.0 (2015-03-29)
