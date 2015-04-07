@@ -35,11 +35,12 @@ div
 
 +descr-method('changes', 'changes', 'property.changes()').
   Converts a property to a stream.
-  If the property has a current value, it will be ignored
+  If the property has a current value (or error), it will be ignored
   (subscribers of the stream won't get it).
 
 p.
-  If you call #[b changes] on a stream, it'll just return the same stream.
+  If you call #[b changes] on a stream, it will return a new stream with
+  #[a(href='#current-in-streams') current values/errors] removed.
 
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);

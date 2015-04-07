@@ -39,11 +39,7 @@ withOneSource('changes', {
     }
   }
 }, {
-  streamMethod: function() {
-    return function() {
-      return this;
-    };
-  },
+  streamMethod: produceStream,
   propertyMethod: produceStream
 });
 
