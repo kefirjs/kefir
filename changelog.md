@@ -2,6 +2,7 @@
 
  - Removed support of old transducers protocol in the `.transduce` (see [#79](https://github.com/pozadi/kefir/issues/79))
  - `stream.changes()` now returns a new stream with current values/errors removed (see [#56](https://github.com/pozadi/kefir/issues/56))
+ - Properties now can't have both current value and current error at same time (see [#55](https://github.com/pozadi/kefir/issues/55))
 
 
 ## 1.3.1 (2015-04-04)

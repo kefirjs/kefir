@@ -79,9 +79,8 @@ describe 'filterErrors', ->
       expect(send(prop(), ['<end>']).filterErrors ->).toEmit ['<end:current>']
 
     it 'should handle events and current', ->
-      a = send(prop(), [-1, {error: 5}])
+      a = send(prop(), [{error: 5}])
       expect(a.filterErrors (x) -> x > 3).toEmit [
-        {current: -1}
         {currentError: 5}
         {error: 4}
         -2
@@ -100,13 +99,12 @@ describe 'filterErrors', ->
         ])
 
     it 'should handle current (not pass)', ->
-      a = send(prop(), [1, {error: 0}])
-      expect(a.filterErrors (x) -> x > 2).toEmit [{current: 1}]
+      a = send(prop(), [{error: 0}])
+      expect(a.filterErrors (x) -> x > 2).toEmit []
 
     it 'shoud use id as default predicate', ->
-      a = send(prop(), [-1, {error: 5}])
+      a = send(prop(), [{error: 5}])
       expect(a.filterErrors()).toEmit [
-        {current: -1}
         {currentError: 5}
         {error: 4}
         -2
@@ -123,5 +121,5 @@ describe 'filterErrors', ->
           {error: 6}
           '<end>'
         ])
-      a = send(prop(), [1, {error: 0}])
-      expect(a.filterErrors()).toEmit [{current: 1}]
+      a = send(prop(), [{error: 0}])
+      expect(a.filterErrors()).toEmit []

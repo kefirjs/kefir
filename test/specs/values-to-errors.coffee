@@ -75,13 +75,8 @@ describe 'valuesToErrors', ->
       expect(a.valuesToErrors handler).toEmit([current: 2])
       a = send(prop(), [-2])
       expect(a.valuesToErrors handler).toEmit([currentError: -6])
-      a = send(prop(), [-5, {error: -2}])
-      expect(a.valuesToErrors handler).toEmit([{currentError: -2}])
-      a = send(prop(), [{error: -2}, -5])
-      expect(a.valuesToErrors handler).toEmit([{currentError: -2}])
       a = send(prop(), [{error: -2}])
       expect(a.valuesToErrors handler).toEmit([{currentError: -2}])
-      a = send(prop(), [1, {error: -2}])
-      expect(a.valuesToErrors handler).toEmit([{current: 1}, {currentError: -2}])
+
 
 

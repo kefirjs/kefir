@@ -25,7 +25,7 @@ describe 'toProperty', ->
       p = a.toProperty(0)
       expect(p).toEmit [{current: 0}, 1, {error: 3}, 2, '<end>'], ->
         send(a, [1, {error: 3}, 2, '<end>'])
-      expect(p).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+      expect(p).toEmit [{current: 2}, '<end:current>']
 
 
   describe 'property', ->
@@ -46,13 +46,13 @@ describe 'toProperty', ->
       b = a.toProperty(0)
       expect(b).toEmit [{current: 1}, 2, {error: 3}, '<end>'], ->
         send(a, [2, {error: 3}, '<end>'])
-      expect(b).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+      expect(b).toEmit [{currentError: 3}, '<end:current>']
 
       a = prop()
       b = a.toProperty(0)
-      expect(b).toEmit [{current: 0}, 2, {error: 3}, '<end>'], ->
-        send(a, [2, {error: 3}, '<end>'])
-      expect(b).toEmit [{current: 2}, {currentError: 3}, '<end:current>']
+      expect(b).toEmit [{current: 0}, 2, {error: 3}, 4, '<end>'], ->
+        send(a, [2, {error: 3}, 4, '<end>'])
+      expect(b).toEmit [{current: 4}, '<end:current>']
 
     it 'if original property has no current, and .toProperty called with no arguments, then result should have no current', ->
       expect(prop().toProperty()).toEmit []

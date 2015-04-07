@@ -420,8 +420,8 @@ withOneSource('scan', {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._current !== NOTHING) {
-      x = this._fn(this._current, x);
+    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
+      x = this._fn(this._currentEvent.value, x);
     }
     this._send(VALUE, x, isCurrent);
   }

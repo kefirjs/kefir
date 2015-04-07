@@ -48,9 +48,11 @@ describe 'endOnError', ->
         send(a, [2, '<end>'])
 
     it 'should handle currents', ->
-      a = send(prop(), [1, {error: -1}])
-      expect(a.endOnError()).toEmit [{current: 1}, {currentError: -1}, '<end:current>']
-      a = send(prop(), [1, {error: -1}, '<end>'])
-      expect(a.endOnError()).toEmit [{current: 1}, {currentError: -1}, '<end:current>']
+      a = send(prop(), [{error: -1}])
+      expect(a.endOnError()).toEmit [{currentError: -1}, '<end:current>']
+      a = send(prop(), [{error: -1}, '<end>'])
+      expect(a.endOnError()).toEmit [{currentError: -1}, '<end:current>']
+      a = send(prop(), [1])
+      expect(a.endOnError()).toEmit [{current: 1}]
       a = send(prop(), [1, '<end>'])
       expect(a.endOnError()).toEmit [{current: 1}, '<end:current>']

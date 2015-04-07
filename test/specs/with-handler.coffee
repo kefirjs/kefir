@@ -78,14 +78,18 @@ describe 'withHandler', ->
       expect(send(prop(), ['<end>']).withHandler mirror).toEmit ['<end:current>']
 
     it 'should handle events and current (with `duplicate` handler)', ->
-      a = send(prop(), [1, {error: 0}])
-      expect(a.withHandler duplicate).toEmit [{current: 1}, {currentError: 0}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], ->
+      a = send(prop(), [1])
+      expect(a.withHandler duplicate).toEmit [{current: 1}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], ->
+        send(a, [2, {error: 4}, 3, '<end>'])
+      a = send(prop(), [{error: 0}])
+      expect(a.withHandler duplicate).toEmit [{currentError: 0}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], ->
         send(a, [2, {error: 4}, 3, '<end>'])
 
     it 'should support emitter.emitEvent', ->
-      a = send(prop(), [1, {error: 0}])
-      expect(a.withHandler emitEventMirror).toEmit [{current: 1}, {currentError: 0}, 2, {error: 4}, 3, '<end>'], ->
+      a = send(prop(), [1])
+      expect(a.withHandler emitEventMirror).toEmit [{current: 1}, 2, {error: 4}, 3, '<end>'], ->
         send(a, [2, {error: 4}, 3, '<end>'])
+      expect(send(prop(), [{error: -1}]).withHandler emitEventMirror).toEmit [{currentError: -1}]
 
     it 'should automatically preserve isCurent (end)', ->
       a = prop()

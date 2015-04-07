@@ -136,3 +136,15 @@ describe 'Property', ->
       expect(count).toBe(0)
       s.onEnd -> count = arguments.length
       expect(count).toBe(0)
+
+    it 'can\'t have current value and error at same time', ->
+      p = send(prop(), [0])
+      expect(p).toEmit [{current: 0}]
+      send(p, [{error: 1}])
+      expect(p).toEmit [{currentError: 1}]
+      send(p, [2])
+      expect(p).toEmit [{current: 2}]
+
+
+
+
