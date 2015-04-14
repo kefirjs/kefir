@@ -94,6 +94,40 @@ describe 'combine', ->
     c = stream()
     expect(Kefir.combine([a, b, c])).errorsToFlow(c)
 
+  it 'should handle errors correctly', ->
+    # a:      ---e---v---v-----
+    #            1
+    # b:      ----v---e----v---
+    #                 2
+    # c:      -----v---e--v----
+    #                  3
+    # result: ---eee-vee-eev--
+    #            111  23 32
+
+    a = stream()
+    b = stream()
+    c = stream()
+    expect(Kefir.combine([a, b, c])).toEmit [
+      {error: -1},
+      {error: -1},
+      {error: -1},
+      [3, 1, 2],
+      {error: -2},
+      {error: -3},
+      {error: -3},
+      {error: -2},
+      [4, 6, 5]
+    ], ->
+      send(a, [{error: -1}])
+      send(b, [1])
+      send(c, [2])
+      send(a, [3])
+      send(b, [{error: -2}])
+      send(c, [{error: -3}])
+      send(a, [4])
+      send(c, [5])
+      send(b, [6])
+
 
 
   describe 'sampledBy functionality (3 arity combine)', ->
@@ -175,13 +209,3 @@ describe 'combine', ->
       c = stream()
       d = prop()
       expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b)
-      a = stream()
-      b = prop()
-      c = stream()
-      d = prop()
-      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(c)
-      a = stream()
-      b = prop()
-      c = stream()
-      d = prop()
-      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(d)

@@ -518,6 +518,18 @@ Observable.prototype.zip = function(other, combinator) {
 
 // .combine()
 
+function defaultErrorsCombinator(errors) {
+  var latestError;
+  for (var i = 0; i < errors.length; i++) {
+    if (errors[i] !== undefined) {
+      if (latestError === undefined || latestError.index < errors[i].index) {
+        latestError = errors[i];
+      }
+    }
+  }
+  return latestError.error;
+}
+
 function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
@@ -527,11 +539,13 @@ function Combine(active, passive, combinator) {
     this._sources = concat(active, passive);
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
-    this._currents = new Array(this._sources.length);
-    fillArray(this._currents, NOTHING);
+    this._latestValues = new Array(this._sources.length);
+    this._latestErrors = new Array(this._sources.length);
+    fillArray(this._latestValues, NOTHING);
     this._activating = false;
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
+    this._latestErrorIndex = 0;
 
     this._bindedHandlers = Array(this._sources.length);
     for (var i = 0; i < this._sources.length; i++) {
@@ -573,10 +587,30 @@ inherit(Combine, Stream, {
   },
 
   _emitIfFull: function(isCurrent) {
-    if (!contains(this._currents, NOTHING)) {
-      var combined = cloneArray(this._currents);
-      combined = this._combinator(combined);
-      this._send(VALUE, combined, isCurrent);
+    var hasAllValues = true;
+    var hasErrors = false;
+    var length = this._latestValues.length;
+    var valuesCopy = new Array(length);
+    var errorsCopy = new Array(length);;
+
+    for (var i = 0; i < length; i++) {
+      valuesCopy[i] = this._latestValues[i];
+      errorsCopy[i] = this._latestErrors[i];
+
+      if (valuesCopy[i] === NOTHING) {
+        hasAllValues = false;
+      }
+
+      if (errorsCopy[i] !== undefined) {
+        hasErrors = true;
+      }
+    }
+
+    if (hasAllValues) {
+      this._send(VALUE, this._combinator(valuesCopy), isCurrent);
+    }
+    if (hasErrors) {
+      this._send(ERROR, defaultErrorsCombinator(errorsCopy), isCurrent);
     }
   },
 
@@ -588,8 +622,21 @@ inherit(Combine, Stream, {
   },
 
   _handleAny: function(i, event) {
-    if (event.type === VALUE) {
-      this._currents[i] = event.value;
+
+    if (event.type === VALUE || event.type === ERROR) {
+
+      if (event.type === VALUE) {
+        this._latestValues[i] = event.value;
+        this._latestErrors[i] = undefined;
+      }
+      if (event.type === ERROR) {
+        this._latestValues[i] = NOTHING;
+        this._latestErrors[i] = {
+          index: this._latestErrorIndex++,
+          error: event.value
+        };
+      }
+
       if (i < this._activeCount) {
         if (this._activating) {
           this._emitAfterActivation = true;
@@ -597,11 +644,9 @@ inherit(Combine, Stream, {
           this._emitIfFull(event.current);
         }
       }
-    }
-    if (event.type === ERROR) {
-      this._send(ERROR, event.value, event.current);
-    }
-    if (event.type === END) {
+
+    } else { // END
+
       if (i < this._activeCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
@@ -612,13 +657,15 @@ inherit(Combine, Stream, {
           }
         }
       }
+
     }
   },
 
   _clear: function() {
     Stream.prototype._clear.call(this);
     this._sources = null;
-    this._currents = null;
+    this._latestValues = null;
+    this._latestErrors = null;
     this._combinator = null;
     this._bindedHandlers = null;
   }
