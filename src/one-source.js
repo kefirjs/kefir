@@ -14,11 +14,28 @@ function produceProperty(StreamClass, PropertyClass) {
 // .toProperty()
 
 withOneSource('toProperty', {
+
   _init: function(args) {
-    if (args.length > 0) {
-      this._send(VALUE, args[0]);
+    if (args[0] !== undefined) {
+      if (isFn(args[0])) {
+        this._getInitialCurrent = args[0];
+      } else {
+        throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
+      }
+    } else {
+      this._getInitialCurrent = null;
     }
+  },
+
+  // redefining `_onActivation` from `withOneSource`
+  _onActivation: function() {
+    if (this._getInitialCurrent !== null) {
+      var fn = this._getInitialCurrent;
+      this._send(VALUE, fn(), true);
+    }
+    this._source.onAny(this._$handleAny); // copied from `withOneSource` impl of `_onActivation`
   }
+
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
 
 

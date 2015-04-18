@@ -141,11 +141,15 @@ Observable.prototype.not = deprecated(
 
 // .awaiting
 
+function returnsFalse() {
+  return false;
+}
+
 Observable.prototype.awaiting = function(other) {
   return Kefir.merge([
     this.mapTo(true),
     other.mapTo(false)
-  ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
+  ]).skipDuplicates().toProperty(returnsFalse).setName(this, 'awaiting');
 };
 
 
