@@ -2,7 +2,9 @@
 
  - Removed support of old transducers protocol in the `.transduce` (see [#79](https://github.com/pozadi/kefir/issues/79))
  - `stream.changes()` now returns a new stream with current values/errors removed (see [#56](https://github.com/pozadi/kefir/issues/56))
- - Properties now can't have both current value and current error at same time (see [#55](https://github.com/pozadi/kefir/issues/55))
+ - Properties now can't have both current value and current error at the same time (see [#55](https://github.com/pozadi/kefir/issues/55))
+ - Better errors handling in `.combine` (see [#54](https://github.com/pozadi/kefir/issues/54))
+ - The `.toProperty` method now accepts a callbak instead of a simple value (see [#82](https://github.com/pozadi/kefir/issues/82))
 
 
 ## 1.3.1 (2015-04-04)
