@@ -9,7 +9,7 @@
  - The `.toProperty` method now accepts a callbak instead of a simple value (see [#82](https://github.com/pozadi/kefir/issues/82))
  - The method `.fromEvent` renamed to `.fromEvents`
 
- ### Other changes
+### Other changes
 
  - The `.fromSubUnsub` method is deprecated (see [#71](https://github.com/pozadi/kefir/issues/71))
 
