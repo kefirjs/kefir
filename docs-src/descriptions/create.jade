@@ -264,12 +264,6 @@ pre(title='events in time').
       MouseEvent   MouseEvent   MouseEvent
 div
 
-p.
-  Note that it uses #[tt addEventListener()] for DOM events,
-  which is not supported by IE8. If you need IE8 support use the
-  <a href="#jquery">jQuery plugin</a> or call #[b fromEvent]
-  on a jQuery object, e.g. #[tt Kefir.fromEvent($('.foo'), 'click')].
-
 
 
 +descr-method('from-sub-unsub', 'fromSubUnsub', 'Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])').

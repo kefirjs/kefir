@@ -13,9 +13,7 @@ html(lang="en")
     script(src='bower-packages/jquery/jquery.js')
     script(src='bower-packages/transducers-js/transducers.js')
     script(src='dist/kefir.js')
-    script(src='https://rawgit.com/pozadi/kefir-jquery/v1.0.0/kefir-jquery.js')
-    script.
-      KefirJQuery.init(Kefir, $)
+
 
   body
 
@@ -51,15 +49,26 @@ html(lang="en")
 
       var $window = $(window);
       var $document = $(document);
-      var scrollLeft = $window.asKefirProperty('scroll', function() {
+
+      function getScrollLeft() {
         return $window.scrollLeft();
-      });
-      var winWidth = $window.asKefirProperty('resize', function() {
+      }
+
+      function getWinWidth() {
         return $window.width();
-      });
-      var docWidth = $window.asKefirProperty('resize', function() {
+      }
+
+      function getDocWidth() {
         return $document.width();
-      });
+      }
+
+      var scrolls = Kefir.fromEvent($window, 'scroll');
+      var resizes = Kefir.fromEvent($window, 'resize');
+
+      var scrollLeft = scrolls.map(getScrollLeft).toProperty(getScrollLeft).skipDuplicates();
+      var winWidth = resizes.map(getWinWidth).toProperty(getWinWidth).skipDuplicates();
+      var docWidth = resizes.map(getDocWidth).toProperty(getDocWidth).skipDuplicates();
+
       Kefir.combine([scrollLeft, winWidth, docWidth], function(scrollLeft, winWidth, docWidth) {
         return -Math.min(docWidth - winWidth, Math.max(0, scrollLeft));
       }).skipDuplicates().onValue(function(x) {$('.sidebar').css('left', x)});
