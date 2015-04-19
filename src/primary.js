@@ -85,9 +85,9 @@ inherit(Emitter, Stream, {
   }
 });
 
-Kefir.emitter = function() {
+Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function() {
   return new Emitter();
-};
+});
 
 Kefir.Emitter = Emitter;
 

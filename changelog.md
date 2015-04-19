@@ -13,6 +13,7 @@
 ### Other changes
 
  - The `.fromSubUnsub` method is deprecated (see [#71](https://github.com/pozadi/kefir/issues/71))
+ - Methods `Kefir.emitter()` and `Kefir.bus()` are deprecated (see [#88](https://github.com/pozadi/kefir/issues/88))
 
 
 ## 1.3.1 (2015-04-04)

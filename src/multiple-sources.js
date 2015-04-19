@@ -285,9 +285,9 @@ inherit(Bus, _AbstractPool, {
 
 });
 
-Kefir.bus = function() {
+Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function() {
   return new Bus();
-};
+});
 
 
 
