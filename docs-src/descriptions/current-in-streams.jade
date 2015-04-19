@@ -22,7 +22,7 @@ pre(title='example')
   :escapehtml
     var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
 
-    var s2 = Kefir.fromBinder(function(emitter) {
+    var s2 = Kefir.stream(function(emitter) {
       emitter.emit(1);
     });
 
@@ -45,11 +45,11 @@ p.
 
 p.
   First benefit — it allows you to define the current value in
-  #[a(href='#from-binder') fromBinder]. It is easier to show with an example:
+  #[a(href='#stream') Kefir.stream()]. It is easier to show with an example:
 
 pre(title='example')
   :escapehtml
-    var scrollTop = Kefir.fromBinder(function(emitter) {
+    var scrollTop = Kefir.stream(function(emitter) {
 
       function emitScrollY() {
         emitter.emit(window.scrollY);
@@ -69,15 +69,15 @@ pre(title='example')
 
 pre(title='console output')
   :escapehtml
-    > [fromBinder.toProperty] <value:current> 0
-    > [fromBinder.toProperty] <value> 4
-    > [fromBinder.toProperty] <value> 9
-    > [fromBinder.toProperty] <value> 23
+    > [stream.toProperty] <value:current> 0
+    > [stream.toProperty] <value> 4
+    > [stream.toProperty] <value> 9
+    > [stream.toProperty] <value> 23
 
 p.
   Defining a current value this way is better than
   #[tt scrollYStream.toProperty(getScrollY())]
-  because in the #[b fromBinder] example the current value will be pulled
+  because in the #[tt Kefir.stream()] example the current value will be pulled
   at the moment of subscription, and with #[tt .toProperty(getScrollY())]
   it will be pulled at the moment of property creation, and might
   become obsolete when the property will be used.

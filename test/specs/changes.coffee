@@ -2,7 +2,7 @@
 
 
 streamWithCurrent = (event) ->
-  Kefir.fromBinder (emitter) ->
+  Kefir.stream (emitter) ->
     emitter.emitEvent(event)
 
 

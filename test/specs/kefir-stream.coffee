@@ -1,17 +1,17 @@
 {activate, deactivate, Kefir} = require('../test-helpers.coffee')
 
 
-describe 'fromBinder', ->
+describe 'Kefir.stream', ->
 
   it 'should return stream', ->
-    expect(Kefir.fromBinder(->)).toBeStream()
+    expect(Kefir.stream(->)).toBeStream()
 
   it 'should not be ended', ->
-    expect(Kefir.fromBinder(->)).toEmit []
+    expect(Kefir.stream(->)).toEmit []
 
   it 'should emit values, errors, and end', ->
     emitter = null
-    a = Kefir.fromBinder (em) ->
+    a = Kefir.stream (em) ->
       emitter = em
       null
     expect(a).toEmit [1, 2, {error: -1}, 3, '<end>'], ->
@@ -24,7 +24,7 @@ describe 'fromBinder', ->
   it 'should call `subscribe` / `unsubscribe` on activation / deactivation', ->
     subCount = 0
     unsubCount = 0
-    a = Kefir.fromBinder ->
+    a = Kefir.stream ->
       subCount++
       -> unsubCount++
     expect(subCount).toBe(0)
@@ -48,13 +48,13 @@ describe 'fromBinder', ->
   it 'should automatically controll isCurent argument in `send`', ->
 
     expect(
-      Kefir.fromBinder (emitter) ->
+      Kefir.stream (emitter) ->
         emitter.end()
         null
     ).toEmit ['<end:current>']
 
     expect(
-      Kefir.fromBinder  (emitter) ->
+      Kefir.stream  (emitter) ->
         emitter.emit(1)
         emitter.error(-1)
         emitter.emit(2)
@@ -68,7 +68,7 @@ describe 'fromBinder', ->
 
   it 'should support emitter.emitEvent', ->
     expect(
-      Kefir.fromBinder  (emitter) ->
+      Kefir.stream  (emitter) ->
         emitter.emitEvent({type: 'value', value: 1, current: true});
         emitter.emitEvent({type: 'error', value: -1, current: false});
         emitter.emitEvent({type: 'value', value: 2, current: false});
@@ -89,7 +89,7 @@ describe 'fromBinder', ->
 
     log = []
 
-    a = Kefir.fromBinder (emitter) ->
+    a = Kefir.stream (emitter) ->
       logRecord = {sub: 1, unsub: 0}
       log.push(logRecord)
       emitter.emit(1)

@@ -34,7 +34,7 @@ p.
   of the stream — it doesn't allow you to monitor if the stream has subscribers or not,
   and to sub/unsub to your original source, or to do other resource management based on
   that. If you want to have that control, you should use
-  #[a(href='#from-binder') fromBinder] or #[a(href='#from-sub-unsub') fromSubUnsub].
+  #[a(href='#stream') stream] or #[a(href='#from-sub-unsub') fromSubUnsub].
 
 
 
@@ -267,83 +267,46 @@ div
 
 
 
-
-+descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
-  Another method for creation of general purpose stream,
-  along with <a href="#emitter">emitter</a>.
-  Unlike #[b emitter] it gives you control over the
-  <a href="#active-state">active state</a> of the stream.
-
-p.
-  Creates a stream which calls the #[b subscribe] function on each
-  #[a(href="#active-state") activation], passing to it an
-  #[a(href="#emitter-object") emitter object].
-  Then you can call #[b emitter] methods at any time to emit events.
-  You can also return an #[b unsubscribe] function from the #[b subscribe] function.
-  If a function is returned from #[b subscribe], it will be called on #[b deactivation] of the stream.
+a(name='from-binder')
++descr-method('stream', 'stream', 'Kefir.stream(subscribe)').
+  Creates a general purpose stream. The #[b subscribe] callback is
+  called on each #[a(href='#active-state') activation],
+  and if a function is returned from #[b subscribe], it will be called on the following #[b deactivation].
+  The #[b subscribe] function is called with #[a(href="#emitter-object") emitter object] as an argument,
+  which can be used to emit events from the result stream.
 
 pre(title='example')
   :escapehtml
-    var stream = Kefir.fromBinder(function(emitter) {
-      console.log('!activation');
-      var i = 0;
+    var stream = Kefir.stream(function(emitter) {
+
+      var count = 0;
+      emitter.emit(count);
+
       var intervalId = setInterval(function() {
-        emitter.emit(++i);
+        count++;
+        if (count < 4) {
+          emitter.emit(count);
+        } else {
+          emitter.end();
+        }
       }, 1000);
+
       return function() {
-        console.log('!deactivation');
         clearInterval(intervalId);
       }
+
     });
-    stream.log();
-    setTimeout(function() {
-      stream.offLog(); // turn off logging to deactivate stream
-    }, 3500);
 
 pre(title='console output')
   :escapehtml
-    > !activation
-    > [fromBinder] <value> 1
-    > [fromBinder] <value> 2
-    > [fromBinder] <value> 3
-    > !deactivation
+    > [stream] <value:current> 0
+    > [stream] <value> 1
+    > [stream] <value> 2
+    > [stream] <value> 3
+    > [stream] <end>
 
 pre(title='events in time').
-  stream:  ----1----2----3---
-div
-
-p.
-  See also <a href="demos/custom-stream.html">Custom stream demo</a>
-  as another #[b fromBinder] usage example.
-
-p.
-  #[img(data-emoji="point_up")] Note that if you call #[b emitter] methods
-  synchronously in the #[b subscribe] function, the callback passed to #[b on*] methods
-  (#[b onValue] etc.) will be also called synchronously.
-  And only the first subscriber will get values emitted synchronously.
-  But if you convert the stream to a property, this value will become
-  the current value of the property, and all subscribers will get it.
-
-pre(title='example')
-  :escapehtml
-    var stream = Kefir.fromBinder(function(emitter) {
-      emitter.emit(1); // synchronous call
-      setTimeout(function() {emitter.emit(2)}, 0); // asynchronous call
-    });
-    console.log('about to add first subscriber');
-    stream.onValue(function(x) {console.log('first:', x)});
-    console.log('first subscriber added');
-    stream.onValue(function(x) {console.log('second:', x)});
-    console.log('second subscriber added');
-
-pre(title='console output')
-  :escapehtml
-    > about to add first subscriber
-    > first: 1
-    > first subscriber added
-    > second subscriber added
-    > first: 2
-    > second: 2
+  stream:  0----1----2----3----X
 div
 
 
