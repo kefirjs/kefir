@@ -75,14 +75,6 @@ pre(title='console output')
     > [stream.toProperty] <value> 23
 
 p.
-  Defining a current value this way is better than
-  #[tt scrollYStream.toProperty(getScrollY())]
-  because in the #[tt Kefir.stream()] example the current value will be pulled
-  at the moment of subscription, and with #[tt .toProperty(getScrollY())]
-  it will be pulled at the moment of property creation, and might
-  become obsolete when the property will be used.
-
-p.
   The second benefit is that it makes possible to not lose
   current values when converting properties to streams and then back to properties.
   For example, #[a(href='#combine') combine] always returns a stream
