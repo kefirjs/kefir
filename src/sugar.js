@@ -228,7 +228,7 @@ Kefir.fromPromise = function(promise) {
 
 // .fromSubUnsub
 
-Kefir.fromSubUnsub = function(sub, unsub, transformer) {
+function fromSubUnsub(sub, unsub, transformer) {
   return Kefir.fromBinder(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
@@ -238,7 +238,9 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
       unsub(handler);
     };
   });
-};
+}
+
+Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', '.fromBinder()', fromSubUnsub);
 
 
 
@@ -268,7 +270,7 @@ Kefir.fromEvents = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir.fromSubUnsub(
+  return fromSubUnsub(
     function(handler) {
       target[sub](eventName, handler);
     },

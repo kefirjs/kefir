@@ -250,14 +250,15 @@ var c = Kefir.emitter();
 var isAllTrue = Kefir.and([a, b, c]);
 isAllTrue.log();
 
-
-// Output
-
 a.emit(true);
 b.emit(false);
 c.emit(true);
 b.emit(true);
 a.emit(false);
+
+
+// Output
+
 > [and] <value> false
 > [and] <value> true
 > [and] <value> false
@@ -289,14 +290,15 @@ var c = Kefir.emitter();
 var isAnyTrue = Kefir.or([a, b, c]);
 isAnyTrue.log();
 
-
-// Output
-
 a.emit(true);
 b.emit(false);
 c.emit(true);
 b.emit(true);
 a.emit(false);
+
+
+// Output
+
 > [or] <value> true
 > [or] <value> true
 > [or] <value> true
@@ -318,3 +320,49 @@ isAnyTrue:  --------t--t--t--
 Same as [.combine](http://pozadi.github.io/kefir/#combine),
 except passive observables goes as the first argument unlike second in **.combine**,
 and both `passiveObss` and `activeObss` are required.
+
+
+
+### Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])
+
+Creates a stream from **subscribe** and **unsubscribe** functions.
+The **subscribe** function is called on each [activation](http://pozadi.github.io/kefir/#active-state)
+with a callback as argument,
+giving you an opportunity to subscribe with this callback to an original source of values.
+When all subscribers from the stream are removed, the **unsubscribe** function is called
+with the same callback, so you can unsubscribe from your original source.
+
+You can also provide a **transform** function, which will work the same way as in
+[fromEvents](http://pozadi.github.io/kefir/#from-event).
+
+```js
+// Example
+
+function subscribe(callback) {
+  document.body.addEventListener('click', callback);
+}
+
+function unsubscribe(callback) {
+  document.body.removeEventListener('click', callback);
+}
+
+function transform(event) {
+  return event.type + ' on ' + this.tagName;
+}
+
+var stream = Kefir.fromSubUnsub(subscribe, unsubscribe, transform);
+stream.log();
+
+
+// Output
+
+> [fromBinder] <value> click on BODY
+> [fromBinder] <value> click on BODY
+> [fromBinder] <value> click on BODY
+
+
+// Events diagram
+
+stream:  ----•--------------•----•---
+  'click on...'  'click on...'  'click on...'
+```
