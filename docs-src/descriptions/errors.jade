@@ -7,6 +7,14 @@ p.
 
 pre(title='example')
   :escapehtml
+    var foo = Kefir.stream(function(emitter) {
+      emitter.emit(0);
+      emitter.emit(2);
+      emitter.error(-1);
+      emitter.emit(3);
+      emitter.end();
+    });
+
     function add2(x) {
       return x + 2;
     }
@@ -15,24 +23,16 @@ pre(title='example')
       return x > 3;
     }
 
-    var foo = Kefir.emitter();
     var bar = foo.map(add2).filter(gt3);
-
     bar.log();
-
-    foo.emit(0);
-    foo.emit(2);
-    foo.error(-1);
-    foo.emit(3);
-    foo.end();
 
 
 pre(title='console output')
   :escapehtml
-    > [emitter.map.filter] <value> 4
-    > [emitter.map.filter] <error> -1
-    > [emitter.map.filter] <value> 5
-    > [emitter.map.filter] <end>
+    > [stream.map.filter] <value> 4
+    > [stream.map.filter] <error> -1
+    > [stream.map.filter] <value> 5
+    > [stream.map.filter] <end>
 
 pre(title='events in time')
   :escapehtml

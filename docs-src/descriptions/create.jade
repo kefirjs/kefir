@@ -1,41 +1,6 @@
 h2#create-stream Create a stream
 
 
-+descr-method('emitter', 'emitter', 'Kefir.emitter()').
-  Creates an emitter, which is an ordinary stream, but with additional methods:
-  #[tt .emit(value)], #[tt .error(error)], #[tt .end()], and #[tt .emitEvent()].
-  The first three are pretty self-descriptive, and the last one accepts an event object with the same format
-  than in the #[a(href='#on-any') onAny] method, and emits that event.
-  Once an emitter was created, one can easily emit all three kinds of events from it,
-  using these methods.
-
-pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.log(); // log events to console (see <a href="#log">log</a>)
-  emitter.emit(1);
-  emitter.error('Oops!');
-  emitter.end();
-
-pre(title='console output')
-  :escapehtml
-    > [emitter] <value> 1
-    > [emitter] <error> Oops!
-    > [emitter] <end>
-
-pre(title='events in time').
-  emitter:  ----1----e----X
-                     Oops!
-div
-
-p.
-  #[img(data-emoji="point_up")] #[b Emitter] is the easiest way
-  to create general purpose streams,
-  but it doesn't give you control over the #[a(href='#active-state') active state]
-  of the stream — it doesn't allow you to monitor if the stream has subscribers or not,
-  and to sub/unsub to your original source, or to do other resource management based on
-  that. If you want to have that control, you should use
-  #[a(href='#stream') stream] or #[a(href='#from-sub-unsub') fromSubUnsub].
-
 
 
 
@@ -151,7 +116,7 @@ div
   Creates a stream that calls the given #[b handler] function,
   with the given #[b interval] in milliseconds.
   The #[b handler] function is called with one argument —
-  #[a(href="#emitter-object") emitter object].
+  an #[a(href="#emitter-object") emitter].
 
 pre(title='example')
   :escapehtml
@@ -272,7 +237,7 @@ a(name='from-binder')
   Creates a general purpose stream. The #[b subscribe] callback is
   called on each #[a(href='#active-state') activation],
   and if a function is returned from #[b subscribe], it will be called on the following #[b deactivation].
-  The #[b subscribe] function is called with #[a(href="#emitter-object") emitter object] as an argument,
+  The #[b subscribe] function is called with #[a(href="#emitter-object") emitter] as an argument,
   which can be used to emit events from the result stream.
 
 pre(title='example')

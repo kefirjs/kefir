@@ -1,7 +1,7 @@
-h2#emitter-object Emitter object
+h2#emitter-object Emitter
 
 p.
-  The emitter object has four methods for emitting events.
+  Emitter is an object that has four methods for emitting events.
   It is used in several places in Kefir as a proxy to emit events from some observable.
 
 p.
@@ -21,14 +21,7 @@ pre
 div
 
 p.
-  Do not confuse the #[b emitter object] with an <a href="#emitter">emitter stream</a>.
-  They both have similar methods,
-  but the #[b emitter object] isn't actually a stream,
-  it has no stream methods or functionality.
-  The emitter object has only four methods, that's it.
-
-p.
-  All #[b emitter object] methods are bound to its context,
+  All #[b emitter] methods are bound to its context,
   and can be passed safely as callbacks without binding:
 
 pre

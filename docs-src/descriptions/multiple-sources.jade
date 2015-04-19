@@ -124,6 +124,7 @@ pre(title='events in time').
 div
 
 
+
 +descr-method('merge', 'merge', 'Kefir.merge(obss)', 'obs.merge(otherObs)').
   Merges several #[b obss] observables into a single stream
   i.e., simply repeats values from each source observable.
@@ -161,44 +162,34 @@ pre(title='events in time').
 div
 
 
+
+
 +descr-method('concat', 'concat', 'Kefir.concat(obss)', 'obs.concat(otherObs)').
   Concatenates several #[b obss] observables into one stream. Like #[a(href="#merge") merge],
-  but it starts emitting values from the next source only after the previous source ends,
-  ignoring any value from the next sources before that.
+  but switches to the next source only after the previous one end.
 
 pre(title='example').
-  var a = Kefir.emitter();
-  var b = Kefir.emitter();
-  var c = Kefir.emitter();
+  var a = Kefir.sequentially(100, [0, 1, 2]);
+  var b = Kefir.sequentially(100, [3, 4, 5]);
 
-  var abc = Kefir.concat([a, b, c]);
+  var abc = Kefir.concat([a, b]);
   abc.log();
-
-  a.emit(0).emit(1);
-  b.emit(0);
-  a.emit(2).end();
-  c.emit(0);
-  b.emit(1);
-  c.emit(1);
-  b.emit(2).end();
-  c.emit(2).end();
 
 pre(title='console output')
   :escapehtml
     > [concat] <value> 0
     > [concat] <value> 1
     > [concat] <value> 2
-    > [concat] <value> 1
-    > [concat] <value> 2
-    > [concat] <value> 2
+    > [concat] <value> 3
+    > [concat] <value> 4
+    > [concat] <value> 5
     > [concat] <end>
 
 pre(title='events in time').
   a:    ---0---1---2X
-  b:    ---------0-----1---2X
-  c:    -------------0---1---2X
+  b:                ---3---4---5X
 
-  abc:  ---0---1---2---1---2-2X
+  abc:  ---0---1---2---3---4---5X
 div
 
 
@@ -211,70 +202,34 @@ div
   and remove them using #[b unplug]. #[b Pool] never ends.
 
 pre(title='example').
-  var a = Kefir.emitter();
-  var b = Kefir.emitter();
-
+  var a = Kefir.sequentially(100, [0, 1, 2]);
+  var b = Kefir.sequentially(100, [0, 1, 2]).delay(30);
+  var c = Kefir.sequentially(100, [0, 1, 2]).delay(60);
   var pool = Kefir.pool();
+  pool.plug(a);
+  pool.plug(b);
+  pool.plug(c);
   pool.log();
 
-  a.emit(1);
-  b.emit(1);
-  pool.plug(a);
-  a.emit(2);
-  b.emit(2);
-  pool.plug(b);
-  a.emit(3);
-  b.emit(3);
-  pool.unplug(a);
-  a.emit(4);
-  b.emit(4);
-  a.end();
-  b.end();
-
 pre(title='console output')
   :escapehtml
+    > [pool] <value> 0
+    > [pool] <value> 0
+    > [pool] <value> 0
+    > [pool] <value> 1
+    > [pool] <value> 1
+    > [pool] <value> 1
     > [pool] <value> 2
-    > [pool] <value> 3
-    > [pool] <value> 3
-    > [pool] <value> 4
+    > [pool] <value> 2
+    > [pool] <value> 2
+    > [pool] <end>
 
 pre(title='events in time').
-  a:       ---1-----2-----3----4-----X
-  b:       ----1------2------3----4---X
+  a:    ----------0---------1---------2X
+  b:    ------------0---------1---------2X
+  c:    --------------0---------1---------2X
 
-  plug:    ------a------b------------------
-  unplug:  -------------------a------------
-
-  pool:    ---------2-----3--3----4--------
-
-p.
-  In this graph #[b plug] and #[b unplug] are shown just to illustrate
-  moments when we plug and unplug sources. Don't be confused, there are no
-  #[b plug] or #[b unplug] streams somewhere.
-
-
-
-+descr-method('bus', 'bus', 'Kefir.bus()').
-  #[b Bus] is a pool with <a href="#emitter">emitter</a> methods.
-  You can emit values from it directly. It is the best choice to expose
-  an input from a module, so module users could easily send events to your
-  module directly or by plugging an observable.
-
-pre(title='example').
-  var bus = Kefir.bus();
-  var emitter = Kefir.emitter();
-  bus.log();
-
-  bus.plug(emitter);
-  bus.emit(1);
-  emitter.emit(2);
-  bus.end();
-
-pre(title='console output')
-  :escapehtml
-    > [bus] <value> 1
-    > [bus] <value> 2
-    > [bus] <end>
+  pool: ----------0-0-0-----1-1-1-----2-2-2X
 div
 
 
