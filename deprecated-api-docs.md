@@ -366,3 +366,66 @@ stream.log();
 stream:  ----•--------------•----•---
   'click on...'  'click on...'  'click on...'
 ```
+
+
+
+### Kefir.emitter()
+
+Creates an emitter, which is an ordinary stream, but with additional methods:
+`.emit(value)`, `.error(error)`, `.end()`, and `.emitEvent()`.
+The first three are pretty self-descriptive, and the last one accepts an event object with the same format
+than in the [onAny](http://pozadi.github.io/kefir/#on-any) method, and emits that event.
+Once an emitter was created, one can easily emit all three kinds of events from it,
+using these methods.
+
+```js
+// Example
+
+var emitter = Kefir.emitter();
+emitter.log();
+
+emitter.emit(1);
+emitter.error('Oops!');
+emitter.end();
+
+
+// Output
+
+> [emitter] <value> 1
+> [emitter] <error> Oops!
+> [emitter] <end>
+
+
+// Events diagram
+
+emitter:  ----1----e----X
+                   Oops!
+```
+
+
+
+
+### Kefir.bus()
+
+**Bus** is a `Kefir.pool()` with `Kefir.emitter()` methods so one can emit
+values from it directly.
+
+```js
+// Example
+
+var bus = Kefir.bus();
+var emitter = Kefir.emitter();
+bus.log();
+
+bus.plug(emitter);
+bus.emit(1);
+emitter.emit(2);
+bus.end();
+
+
+// Output
+
+> [bus] <value> 1
+> [bus] <value> 2
+> [bus] <end>
+```
