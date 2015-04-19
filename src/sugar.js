@@ -243,7 +243,7 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
 
 
 
-// .fromEvent
+// .fromEvents
 
 var subUnsubPairs = [
   ['addEventListener', 'removeEventListener'],
@@ -251,7 +251,7 @@ var subUnsubPairs = [
   ['on', 'off']
 ];
 
-Kefir.fromEvent = function(target, eventName, transformer) {
+Kefir.fromEvents = function(target, eventName, transformer) {
   var pair, sub, unsub;
 
   for (var i = 0; i < subUnsubPairs.length; i++) {
@@ -276,5 +276,5 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       target[unsub](eventName, handler);
     },
     transformer
-  ).setName('fromEvent');
+  ).setName('fromEvents');
 };

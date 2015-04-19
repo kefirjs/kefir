@@ -62,8 +62,8 @@ html(lang="en")
         return $document.width();
       }
 
-      var scrolls = Kefir.fromEvent($window, 'scroll');
-      var resizes = Kefir.fromEvent($window, 'resize');
+      var scrolls = Kefir.fromEvents($window, 'scroll');
+      var resizes = Kefir.fromEvents($window, 'resize');
 
       var scrollLeft = scrolls.map(getScrollLeft).toProperty(getScrollLeft).skipDuplicates();
       var winWidth = resizes.map(getWinWidth).toProperty(getWinWidth).skipDuplicates();

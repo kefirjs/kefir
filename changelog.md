@@ -5,6 +5,7 @@
  - Properties now can't have both current value and current error at the same time (see [#55](https://github.com/pozadi/kefir/issues/55))
  - Better errors handling in `.combine` (see [#54](https://github.com/pozadi/kefir/issues/54))
  - The `.toProperty` method now accepts a callbak instead of a simple value (see [#82](https://github.com/pozadi/kefir/issues/82))
+ - The method `.fromEvent` renamed to `.fromEvents`
 
 
 ## 1.3.1 (2015-04-04)

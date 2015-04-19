@@ -52,8 +52,8 @@
 
 &lt;script type="text/javascript"&gt;
 
-  var plusClicks = Kefir.fromEvent($('#plus-btn'), 'click');
-  var minusClicks = Kefir.fromEvent($('#minus-btn'), 'click');
+  var plusClicks = Kefir.fromEvents($('#plus-btn'), 'click');
+  var minusClicks = Kefir.fromEvents($('#minus-btn'), 'click');
 
   var counterChanges = Kefir.merge([
     plusClicks.mapTo(1),
@@ -79,8 +79,8 @@
 
       <script type="text/javascript">
 
-        var plusClicks = Kefir.fromEvent($('#plus-btn'), 'click');
-        var minusClicks = Kefir.fromEvent($('#minus-btn'), 'click');
+        var plusClicks = Kefir.fromEvents($('#plus-btn'), 'click');
+        var minusClicks = Kefir.fromEvents($('#minus-btn'), 'click');
 
         var counterChanges = Kefir.merge([
           plusClicks.mapTo(1),

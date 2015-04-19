@@ -237,7 +237,7 @@ div
 
 
 
-+descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
++descr-method('from-event', 'fromEvents', 'Kefir.fromEvents(target, eventName, [transform])').
   Creates a stream from events on a DOM EventTarget or a Node.JS EventEmitter
   object, or an object that supports event listeners using #[tt on/off] methods (e.g. a jQuery object).
 
@@ -250,14 +250,14 @@ p.
 
 pre(title='example')
   :escapehtml
-    var stream = Kefir.fromEvent(document.body, 'click');
+    var stream = Kefir.fromEvents(document.body, 'click');
     stream.log()
 
 pre(title='console output')
   :escapehtml
-    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
-    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 361, x: 751 ...}
-    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
+    > [fromEvents] <value> MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
+    > [fromEvents] <value> MouseEvent {dataTransfer: null, y: 361, x: 751 ...}
+    > [fromEvents] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
 
 pre(title='events in time').
   stream:  ----•-----------•----•---
@@ -275,7 +275,7 @@ div
 
 p.
   You can also provide a #[b transform] function, which will work the same way as in
-  #[a(href='#from-event') fromEvent].
+  #[a(href='#from-event') fromEvents].
 
 pre(title='example')
   :escapehtml
