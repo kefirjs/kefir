@@ -79,14 +79,14 @@ p.
 
 pre(title='example')
   :escapehtml
-    var btnClicks = Kefir.fromEvent(document.querySelector('#ex-2-btn'), 'click');
+    var btnClicks = Kefir.fromEvents(document.querySelector('#ex-2-btn'), 'click');
 
 p.
   Also let's create a stream of a text input value changes:
 
 pre(title='example')
   :escapehtml
-    var inputValue = Kefir.fromEvent(document.querySelector('#ex-2-input'), 'keyup')
+    var inputValue = Kefir.fromEvents(document.querySelector('#ex-2-input'), 'keyup')
       .map(function(event) {
         return event.target.value;
       });
@@ -166,13 +166,13 @@ p
 
 script.
   var clicksCount = Kefir
-    .fromEvent(document.querySelector('#ex-2-btn'), 'click')
+    .fromEvents(document.querySelector('#ex-2-btn'), 'click')
     .scan(function(sum, event) {
       return sum + 1;
     }, 0);
 
   var fixedInputNumber = Kefir
-    .fromEvent(document.querySelector('#ex-2-input'), 'keyup')
+    .fromEvents(document.querySelector('#ex-2-input'), 'keyup')
     .map(function(event) {
       return event.target.value;
     })
@@ -204,10 +204,10 @@ script.
       outputElement.innerHTML = '<span style="color:red">' + error + '</span>';
     });
 
-
+hr
 
 p.
-  See also #[a(href="demos/tree.html") Tree demo] — Bacon.js vs Kefir.js performance comparison.
+  See also the #[a(href="demos/tree.html") "Tree" demo] — Bacon.js vs Kefir.js performance comparison.
 
 p.
   #[img(data-emoji="information_desk_person")]
