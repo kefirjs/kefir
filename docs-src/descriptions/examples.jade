@@ -70,6 +70,151 @@ p
 
 pre(title='logger output' id='example-log-1' style='min-height:18px')
 
+hr
+
+p.
+  Nice, here is another one. Let's this time begin from a streams based on
+  user actions instead of timer. First we create a stream that will contain
+  button click events:
+
+pre(title='example')
+  :escapehtml
+    var btnClicks = Kefir.fromEvent(document.querySelector('#ex-2-btn'), 'click');
+
+p.
+  Also let's create a stream of a text input value changes:
+
+pre(title='example')
+  :escapehtml
+    var inputValue = Kefir.fromEvent(document.querySelector('#ex-2-input'), 'keyup')
+      .map(function(event) {
+        return event.target.value;
+      });
+
+p.
+  That a good begining, we have streams representing user actions,
+  now we can transform and combine them to create our desired result stream.
+  First we want to have a #[a(href='#about-observables') property]
+  representing how many times user clicked the button,
+  we will use #[a(href='#scan') scan] method to create it:
+
+pre(title='example')
+  :escapehtml
+    var clicksCount = btnClicks.scan(function(sum, event) {
+      return sum + 1;
+    }, 0);
+
+p.
+  Now we have two numbers, first is clicks count, and second is text field
+  content, which actually a string, but let's fix that:
+
+pre(title='example')
+  :escapehtml
+    var inputNumber = inputValue.map(function(text) {
+      return parseInt(text, 10);
+    });
+
+p.
+  Done, but now it can produce the #[tt NaN] if user type "banana" or something
+  instead of a number. Let's fix this too
+  using #[a(href='#about-errors') errors handling] that Kefir provides:
+
+pre(title='example')
+  :escapehtml
+    var fixedInputNumber = inputValue.valuesToErrors(function(x) {
+      return {
+        convert: isNaN(x),
+        error: 'banana?'
+      };
+    });
+
+p.
+  Almost done, final step is to combine our two dynamic number values.
+  Suppose we want to multiply them:
+
+pre(title='example')
+  :escapehtml
+    function multiply(a, b) {
+      return a * b;
+    }
+
+    var theResult = Kefir.combine([fixedInputNumber, clicksCount], multiply);
+
+p.
+  Good, let's display the result:
+
+pre(title='example')
+  :escapehtml
+    var outputElement = document.querySelector('#ex-2-output');
+
+    theResult
+      .onValue(function(x) {
+        outputElement.innerHTML = x;
+      })
+      .onError(function(error) {
+        outputElement.innerHTML = '<span style="color:red">' + error + '</span>';
+      });
+
+p
+  button(id='ex-2-btn') click me
+  = ' '
+  span(id='ex-2-count-output')
+  = ' * '
+  input(id='ex-2-input' placeholder='try "banana"')
+  = ' =  '
+  span(id='ex-2-output')
+
+script.
+  var clicksCount = Kefir
+    .fromEvent(document.querySelector('#ex-2-btn'), 'click')
+    .scan(function(sum, event) {
+      return sum + 1;
+    }, 0);
+
+  var fixedInputNumber = Kefir
+    .fromEvent(document.querySelector('#ex-2-input'), 'keyup')
+    .map(function(event) {
+      return event.target.value;
+    })
+    .map(function(text) {
+      return parseInt(text, 10);
+    })
+    .valuesToErrors(function(x) {
+      return {
+        convert: isNaN(x),
+        error: 'banana?'
+      };
+    });
+
+  var theResult = Kefir.combine([fixedInputNumber, clicksCount], function(a, b) {
+    return a * b;
+  });
+
+  var countOutputElement = document.querySelector('#ex-2-count-output');
+  clicksCount.onValue(function(x) {
+    countOutputElement.innerHTML = x;
+  });
+
+  var outputElement = document.querySelector('#ex-2-output');
+  theResult
+    .onValue(function(x) {
+      outputElement.innerHTML = x;
+    })
+    .onError(function(error) {
+      outputElement.innerHTML = '<span style="color:red">' + error + '</span>';
+    });
+
+
+
+
+
+
+
+
+
+
+
+
 h3 More examples
 
 ul
