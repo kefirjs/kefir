@@ -1,19 +1,23 @@
 ## 1.3.1
+2015-04-04
 
  - The `.transduce` method updated to add support of new protocol [#78](https://github.com/pozadi/kefir/issues/78)
 
 
 ## 1.3.0
+2015-03-29
 
  - Following methods are deprecated:
    `.repeatedly`, `.mapTo`, `.pluck`, `.invoke`, `.not`, `.timestamp`, `.tap`, `.and`, `.or`
    (see [#71](https://github.com/pozadi/kefir/issues/71))
 
 ## 1.2.0
+2015-03-14
 
  - `Kefir.sampledBy` is deprecated in favor of 3 arity `Kefir.combine`
 
 ## 1.1.0
+2015-02-15
 
  - The `Bus` and `Pool` classes are exposed as `Kefir.Bus` and `Kefir.Pool`
  - A bug in `.merge` and `.zip` (which may cause them to not unsubscribe from their sources in very rare cases) fixed
@@ -21,20 +25,24 @@
  - New method `Kefir.repeat`
 
 ## 1.0.0
+2015-01-31
 
  - jQuery plugin moved to a [separate repo](https://github.com/pozadi/kefir-jquery)
  - Minor improvement in .skipDuplicates method [#42](https://github.com/pozadi/kefir/issues/42)
  - Deperecated method .withDefault now removed
 
 ## 0.5.3
+2015-01-12
 
  - A bug in .fromBinder fixed (continuation of [#35](https://github.com/pozadi/kefir/issues/35))
 
 ## 0.5.2
+2015-01-12
 
  - A bug in .fromBinder fixed [#35](https://github.com/pozadi/kefir/issues/35)
 
 ## 0.5.1
+2015-01-08
 
  - Undocumented methods `.on/.off` renamed to `._on/._off`
  - The `.changes` method now can be called on a stream
@@ -46,6 +54,7 @@
 
 
 ## 0.5.0
+2015-01-06
 
  - Base errors support added (i.e. errors flow through all kind of transformations/combinations)
  - Properties now may have a current error (as well as current value)
@@ -63,11 +72,13 @@
 
 
 ## 0.4.2
+2014-12-24
 
  - A bug in `.flatMap` fixed [#29](https://github.com/pozadi/kefir/issues/29)
  - Minor perf fixes
 
 ## 0.4.1
+2014-11-30
 
  - New method `.bufferWhile`
  - New method `.bufferBy`
@@ -77,6 +88,7 @@
 
 
 ## 0.4.0
+2014-11-23
 
  - The `seed` argument in `.scan`, `.reduce`, and `.diff` is now optional
  - Removed support of ["array functions"](https://github.com/pozadi/kefir/blob/2edf32a82d5b24ecb6ed99c9bcbd2391b91c8715/docs-src/descriptions/about-callbacks.jade)
@@ -87,6 +99,7 @@
 
 
 ## 0.3.0
+2014-11-19
 
  - Removed undocumented feature of `.merge` and `.concat` that allowed to not wrap observables to array but pass them as individual arguments
  - Changed arguments order in `.scan`, `.reduce`, and `.diff`
@@ -97,6 +110,7 @@
  - Method `source.flatMapFirst(fn)` now won't call `fn` when skiping values from `source`
 
 ## 0.2.11
+2014-11-03
 
  - The `fn` argument of the `.diff` method is now optional
  - New method `.waitFor`
@@ -105,18 +119,21 @@
 
 
 ## 0.2.10
+2014-10-26
 
  - Method `.transform` renamed to `.flatten`
  - New method `.slidingWindow`
 
 
 ## 0.2.9
+2014-10-19
 
  - The `fn` argument of the `.transform` method is now optional
  - New method `.transduce`
 
 
 ## 0.2.8
+2014-10-12
 
  - Method `.flatMapWithConcurrencyLimit` renamed to `.flatMapConcurLimit`
  - New method `.transform`
@@ -125,6 +142,7 @@
 
 
 ## 0.2.7
+2014-10-05
 
 Methods so far:
 
