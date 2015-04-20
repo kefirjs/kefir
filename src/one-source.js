@@ -473,9 +473,9 @@ withOneSource('reduce', {
 
 
 
-// .mapEnd(fn)
+// .beforeEnd(fn)
 
-withOneSource('mapEnd', {
+withOneSource('beforeEnd', {
   _init: function(args) {
     this._fn = args[0];
   },

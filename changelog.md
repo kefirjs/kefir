@@ -9,6 +9,7 @@
  - The `.toProperty` method now accepts a callbak instead of a simple value (see [#82](https://github.com/pozadi/kefir/issues/82))
  - The `.fromEvent` method is renamed to `.fromEvents`
  - The `.fromBinder` method is renamed to `.stream`
+ - The `.mapEnd` method is renamed to `.beforeEnd` (see [#89](https://github.com/pozadi/kefir/issues/89))
 
 ### Other changes
 
