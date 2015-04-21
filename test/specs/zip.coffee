@@ -142,9 +142,9 @@ describe 'zip', ->
 
   it 'should work correctly when unsuscribing after one sync event', ->
     a0 = stream()
-    a = a0.toProperty(1)
+    a = a0.toProperty(-> 1)
     b0 = stream()
-    b = b0.toProperty(1)
+    b = b0.toProperty(-> 1)
     c = Kefir.zip([a, b])
 
     activate(c1 = c.take(2))

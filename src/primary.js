@@ -1,14 +1,14 @@
-// Kefir.fromBinder(fn)
+// Kefir.stream(fn)
 
-function FromBinder(fn) {
+function StreamStream(fn) {
   Stream.call(this);
   this._fn = fn;
   this._unsubscribe = null;
 }
 
-inherit(FromBinder, Stream, {
+inherit(StreamStream, Stream, {
 
-  _name: 'fromBinder',
+  _name: 'stream',
 
   _onActivation: function() {
     var $ = this
@@ -51,8 +51,8 @@ inherit(FromBinder, Stream, {
 
 });
 
-Kefir.fromBinder = function(fn) {
-  return new FromBinder(fn);
+Kefir.stream = function(fn) {
+  return new StreamStream(fn);
 };
 
 
@@ -85,9 +85,9 @@ inherit(Emitter, Stream, {
   }
 });
 
-Kefir.emitter = function() {
+Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function() {
   return new Emitter();
-};
+});
 
 Kefir.Emitter = Emitter;
 

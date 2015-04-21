@@ -22,6 +22,14 @@ function defaultDiff(a, b) {
   return [a, b];
 }
 
+function returnsFalse() {
+  return false;
+}
+
+function returnsTrue() {
+  return true;
+}
+
 var now = Date.now ?
   function() {
     return Date.now();

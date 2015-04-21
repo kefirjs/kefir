@@ -143,9 +143,9 @@ Observable.prototype.not = deprecated(
 
 Observable.prototype.awaiting = function(other) {
   return Kefir.merge([
-    this.mapTo(true),
-    other.mapTo(false)
-  ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
+    this.map(returnsTrue),
+    other.map(returnsFalse)
+  ]).skipDuplicates().toProperty(returnsFalse).setName(this, 'awaiting');
 };
 
 
@@ -155,7 +155,7 @@ Observable.prototype.awaiting = function(other) {
 
 Kefir.fromCallback = function(callbackConsumer) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(x) {
         emitter.emit(x);
@@ -173,7 +173,7 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 Kefir.fromNodeCallback = function(callbackConsumer) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(error, x) {
         if (error) {
@@ -195,7 +195,7 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
 
 Kefir.fromPromise = function(promise) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       var onValue = function(x) {
         emitter.emit(x);
@@ -224,8 +224,8 @@ Kefir.fromPromise = function(promise) {
 
 // .fromSubUnsub
 
-Kefir.fromSubUnsub = function(sub, unsub, transformer) {
-  return Kefir.fromBinder(function(emitter) {
+function fromSubUnsub(sub, unsub, transformer) {
+  return Kefir.stream(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
     } : emitter.emit;
@@ -234,12 +234,14 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
       unsub(handler);
     };
   });
-};
+}
+
+Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
 
 
 
 
-// .fromEvent
+// .fromEvents
 
 var subUnsubPairs = [
   ['addEventListener', 'removeEventListener'],
@@ -247,7 +249,7 @@ var subUnsubPairs = [
   ['on', 'off']
 ];
 
-Kefir.fromEvent = function(target, eventName, transformer) {
+Kefir.fromEvents = function(target, eventName, transformer) {
   var pair, sub, unsub;
 
   for (var i = 0; i < subUnsubPairs.length; i++) {
@@ -264,7 +266,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir.fromSubUnsub(
+  return fromSubUnsub(
     function(handler) {
       target[sub](eventName, handler);
     },
@@ -272,5 +274,5 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       target[unsub](eventName, handler);
     },
     transformer
-  ).setName('fromEvent');
+  ).setName('fromEvents');
 };

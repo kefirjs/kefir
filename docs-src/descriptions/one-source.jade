@@ -716,7 +716,7 @@ div
 
 
 
-+descr-method('map-end', 'mapEnd', 'obs.mapEnd(fn)').
++descr-method('before-end', 'beforeEnd', 'obs.beforeEnd(fn)').
   Allows you to insert an additional value just before the observable ends.
   #[b fn] will be called on #[b obs]' end with no arguments,
   and whatever it return will be emitted in the result stream before end.
@@ -724,16 +724,16 @@ div
 pre(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
-    var result = source.mapEnd(function() {  return 0  });
+    var result = source.beforeEnd(function() {  return 0  });
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.mapEnd] <value> 1
-    > [sequentially.mapEnd] <value> 2
-    > [sequentially.mapEnd] <value> 3
-    > [sequentially.mapEnd] <value> 0
-    > [sequentially.mapEnd] <end>
+    > [sequentially.beforeEnd] <value> 1
+    > [sequentially.beforeEnd] <value> 2
+    > [sequentially.beforeEnd] <value> 3
+    > [sequentially.beforeEnd] <value> 0
+    > [sequentially.beforeEnd] <end>
 
 pre(title='events in time').
   source:  ---1---2---3 X
@@ -846,7 +846,7 @@ div
   The most general transformation method. All other transformation methods above
   can be implemented via #[b withHandler].
   Will call the #[b handler] function on each event from #[b obs] observable,
-  passing to it two arguments: an <a href="#emitter-object">emitter object</a>,
+  passing to it two arguments: an <a href="#emitter-object">emitter</a>,
   and an event object (with same format as in <a href="#on-any">onAny</a> callback).
 
 p.

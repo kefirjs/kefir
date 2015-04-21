@@ -1,41 +1,6 @@
 h2#create-stream Create a stream
 
 
-+descr-method('emitter', 'emitter', 'Kefir.emitter()').
-  Creates an emitter, which is an ordinary stream, but with additional methods:
-  #[tt .emit(value)], #[tt .error(error)], #[tt .end()], and #[tt .emitEvent()].
-  The first three are pretty self-descriptive, and the last one accepts an event object with the same format
-  than in the #[a(href='#on-any') onAny] method, and emits that event.
-  Once an emitter was created, one can easily emit all three kinds of events from it,
-  using these methods.
-
-pre(title='example').
-  var emitter = Kefir.emitter();
-  emitter.log(); // log events to console (see <a href="#log">log</a>)
-  emitter.emit(1);
-  emitter.error('Oops!');
-  emitter.end();
-
-pre(title='console output')
-  :escapehtml
-    > [emitter] <value> 1
-    > [emitter] <error> Oops!
-    > [emitter] <end>
-
-pre(title='events in time').
-  emitter:  ----1----e----X
-                     Oops!
-div
-
-p.
-  #[img(data-emoji="point_up")] #[b Emitter] is the easiest way
-  to create general purpose streams,
-  but it doesn't give you control over the #[a(href='#active-state') active state]
-  of the stream — it doesn't allow you to monitor if the stream has subscribers or not,
-  and to sub/unsub to your original source, or to do other resource management based on
-  that. If you want to have that control, you should use
-  #[a(href='#from-binder') fromBinder] or #[a(href='#from-sub-unsub') fromSubUnsub].
-
 
 
 
@@ -151,7 +116,7 @@ div
   Creates a stream that calls the given #[b handler] function,
   with the given #[b interval] in milliseconds.
   The #[b handler] function is called with one argument —
-  #[a(href="#emitter-object") emitter object].
+  an #[a(href="#emitter-object") emitter].
 
 pre(title='example')
   :escapehtml
@@ -237,7 +202,7 @@ div
 
 
 
-+descr-method('from-event', 'fromEvent', 'Kefir.fromEvent(target, eventName, [transform])').
++descr-method('from-event', 'fromEvents', 'Kefir.fromEvents(target, eventName, [transform])').
   Creates a stream from events on a DOM EventTarget or a Node.JS EventEmitter
   object, or an object that supports event listeners using #[tt on/off] methods (e.g. a jQuery object).
 
@@ -250,233 +215,66 @@ p.
 
 pre(title='example')
   :escapehtml
-    var stream = Kefir.fromEvent(document.body, 'click');
+    var stream = Kefir.fromEvents(document.body, 'click');
     stream.log()
 
 pre(title='console output')
   :escapehtml
-    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
-    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 361, x: 751 ...}
-    > [fromEvent] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
+    > [fromEvents] <value> MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
+    > [fromEvents] <value> MouseEvent {dataTransfer: null, y: 361, x: 751 ...}
+    > [fromEvents] <value> MouseEvent {dataTransfer: null, y: 444, x: 1120 ...}
 
 pre(title='events in time').
   stream:  ----•-----------•----•---
       MouseEvent   MouseEvent   MouseEvent
 div
 
-p.
-  Note that it uses #[tt addEventListener()] for DOM events,
-  which is not supported by IE8. If you need IE8 support use the
-  <a href="#jquery">jQuery plugin</a> or call #[b fromEvent]
-  on a jQuery object, e.g. #[tt Kefir.fromEvent($('.foo'), 'click')].
 
 
 
-+descr-method('from-sub-unsub', 'fromSubUnsub', 'Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])').
-  Creates a stream from #[b subscribe] and #[b unsubscribe] functions.
-  The #[b subscribe] function is called on each #[a(href='#active-state') activation] with a callback as argument,
-  giving you an opportunity to subscribe with this callback to an original source of values.
-  When all subscribers from the stream are removed, the #[b unsubscribe] function is called
-  with the same callback, so you can unsubscribe from your original source.
-
-p.
-  You can also provide a #[b transform] function, which will work the same way as in
-  #[a(href='#from-event') fromEvent].
+a(name='from-binder')
++descr-method('stream', 'stream', 'Kefir.stream(subscribe)').
+  Creates a general purpose stream. The #[b subscribe] callback is
+  called on each #[a(href='#active-state') activation],
+  and if a function is returned from #[b subscribe], it will be called on the following #[b deactivation].
+  The #[b subscribe] function is called with #[a(href="#emitter-object") emitter] as an argument,
+  which can be used to emit events from the result stream.
 
 pre(title='example')
   :escapehtml
-    function subscribe(callback) {
-      document.body.addEventListener('click', callback);
-    }
+    var stream = Kefir.stream(function(emitter) {
 
-    function unsubscribe(callback) {
-      document.body.removeEventListener('click', callback);
-    }
+      var count = 0;
+      emitter.emit(count);
 
-    function transform(event) {
-      return event.type + ' on ' + this.tagName;
-    }
-
-    var stream = Kefir.fromSubUnsub(subscribe, unsubscribe, transform);
-    stream.log();
-
-pre(title='console output')
-  :escapehtml
-    > [fromBinder] <value> click on BODY
-    > [fromBinder] <value> click on BODY
-    > [fromBinder] <value> click on BODY
-
-pre(title='events in time').
-  stream:  ----•--------------•----•---
-    'click on...'  'click on...'  'click on...'
-div
-
-
-
-
-
-+descr-method('from-binder', 'fromBinder', 'Kefir.fromBinder(subscribe)').
-  Another method for creation of general purpose stream,
-  along with <a href="#emitter">emitter</a>.
-  Unlike #[b emitter] it gives you control over the
-  <a href="#active-state">active state</a> of the stream.
-
-p.
-  Creates a stream which calls the #[b subscribe] function on each
-  #[a(href="#active-state") activation], passing to it an
-  #[a(href="#emitter-object") emitter object].
-  Then you can call #[b emitter] methods at any time to emit events.
-  You can also return an #[b unsubscribe] function from the #[b subscribe] function.
-  If a function is returned from #[b subscribe], it will be called on #[b deactivation] of the stream.
-
-pre(title='example')
-  :escapehtml
-    var stream = Kefir.fromBinder(function(emitter) {
-      console.log('!activation');
-      var i = 0;
       var intervalId = setInterval(function() {
-        emitter.emit(++i);
+        count++;
+        if (count < 4) {
+          emitter.emit(count);
+        } else {
+          emitter.end();
+        }
       }, 1000);
+
       return function() {
-        console.log('!deactivation');
         clearInterval(intervalId);
       }
+
     });
-    stream.log();
-    setTimeout(function() {
-      stream.offLog(); // turn off logging to deactivate stream
-    }, 3500);
 
 pre(title='console output')
   :escapehtml
-    > !activation
-    > [fromBinder] <value> 1
-    > [fromBinder] <value> 2
-    > [fromBinder] <value> 3
-    > !deactivation
+    > [stream] <value:current> 0
+    > [stream] <value> 1
+    > [stream] <value> 2
+    > [stream] <value> 3
+    > [stream] <end>
 
 pre(title='events in time').
-  stream:  ----1----2----3---
-div
-
-p.
-  See also <a href="demos/custom-stream.html">Custom stream demo</a>
-  as another #[b fromBinder] usage example.
-
-p.
-  #[img(data-emoji="point_up")] Note that if you call #[b emitter] methods
-  synchronously in the #[b subscribe] function, the callback passed to #[b on*] methods
-  (#[b onValue] etc.) will be also called synchronously.
-  And only the first subscriber will get values emitted synchronously.
-  But if you convert the stream to a property, this value will become
-  the current value of the property, and all subscribers will get it.
-
-pre(title='example')
-  :escapehtml
-    var stream = Kefir.fromBinder(function(emitter) {
-      emitter.emit(1); // synchronous call
-      setTimeout(function() {emitter.emit(2)}, 0); // asynchronous call
-    });
-    console.log('about to add first subscriber');
-    stream.onValue(function(x) {console.log('first:', x)});
-    console.log('first subscriber added');
-    stream.onValue(function(x) {console.log('second:', x)});
-    console.log('second subscriber added');
-
-pre(title='console output')
-  :escapehtml
-    > about to add first subscriber
-    > first: 1
-    > first subscriber added
-    > second subscriber added
-    > first: 2
-    > second: 2
+  stream:  0----1----2----3----X
 div
 
 
-
-
-+descr-method('repeat', 'repeat', 'Kefir.repeat(generator)').
-  Calls the #[b generator] function which is supposed to return an observable.
-  Emits values and errors from the spawned observable; when it ends,
-  calls #[b generator] again to get a new one and so on.
-
-p.
-  The #[b generator] function is called with one argument — iteration number
-  starting from #[tt 0]. If a falsy value is returned
-  from the #[b generator], the stream ends.
-
-pre(title='example')
-  :escapehtml
-    var result = Kefir.repeat(function(i) {
-      if (i < 3) {
-        return Kefir.sequentially(100, [i, i]);
-      } else {
-        return false;
-      }
-    });
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [repeat] <value> 0
-    > [repeat] <value> 0
-    > [repeat] <value> 1
-    > [repeat] <value> 1
-    > [repeat] <value> 2
-    > [repeat] <value> 2
-    > [repeat] <end>
-
-pre(title='events in time').
-  spawned 1:  ---0---0X
-  spawned 2:          ---1---1X
-  spawned 3:                  ---2---2X
-
-  result:     ---0---0---1---1---2---2X
-div
-
-p.
-  #[img(data-emoji="point_up")] Note that with this method
-  it is possible to create an infinite loop. Consider this example:
-
-pre(title='example')
-  :escapehtml
-    var result = Kefir.repeat(function() {
-      return Kefir.constant(1);
-    });
-
-    // When we subscribe to it (directly or via .log)
-    // we already are in an infinite loop.
-    result.log();
-
-    // But if we limit it with .take or something it'll work just fine.
-    // So the `result` stream defined like this
-    // may still make sense, depending on how we use it.
-    result.take(10).log();
-
-p.
-  It is even more dangerous if #[b generator] constantly returns an ended observable
-  with no values (e.g. #[a(href='#never') never]).
-  In this case, #[tt .take] won't help, because you'll never get any single
-  value from it, but #[b generator] will be called over and over.
-  The only escape path here is to define an escape condition in the
-  #[b generator]:
-
-pre(title='example')
-  :escapehtml
-    var result = Kefir.repeat(function(i) {
-
-      // Defining that a new observable will be spawned at most 10 times
-      if (i >= 10) {
-        return false;
-      }
-
-      return Kefir.never();
-    });
-
-p.
-  So just be careful when using #[b repeat],
-  it's a little dangerous but it is still a great method.
 
 
 

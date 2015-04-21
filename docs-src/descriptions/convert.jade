@@ -1,21 +1,16 @@
 h2#convert Convert observables
 
 
-+descr-method('to-property', 'toProperty', 'stream.toProperty([current])').
++descr-method('to-property', 'toProperty', 'stream.toProperty([getCurrent])').
   Converts a stream to a property.
-  Accepts an optional #[b current] argument, which becomes the current value of the
-  property.
-
-p.
-  You can also call #[b toProperty] on a property.
-  If called on a property that already has a current value,
-  it just returns the same property with the same current value.
-  But if the source property has no current value,
-  the specified value will be the current value of the result property.
+  Accepts an optional #[b getCurrent] callback, which will be called on
+  each #[a(href='#active-state') activation] to get the current value at that moment.
 
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
-  var result = source.toProperty(0);
+  var result = source.toProperty(function() {
+    return 0;
+  });
   result.log();
 
 pre(title='console output')
@@ -35,11 +30,12 @@ div
 
 +descr-method('changes', 'changes', 'property.changes()').
   Converts a property to a stream.
-  If the property has a current value, it will be ignored
+  If the property has a current value (or error), it will be ignored
   (subscribers of the stream won't get it).
 
 p.
-  If you call #[b changes] on a stream, it'll just return the same stream.
+  If you call #[b changes] on a stream, it will return a new stream with
+  #[a(href='#current-in-streams') current values/errors] removed.
 
 pre(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);

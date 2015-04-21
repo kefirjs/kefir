@@ -124,6 +124,7 @@ pre(title='events in time').
 div
 
 
+
 +descr-method('merge', 'merge', 'Kefir.merge(obss)', 'obs.merge(otherObs)').
   Merges several #[b obss] observables into a single stream
   i.e., simply repeats values from each source observable.
@@ -161,44 +162,34 @@ pre(title='events in time').
 div
 
 
+
+
 +descr-method('concat', 'concat', 'Kefir.concat(obss)', 'obs.concat(otherObs)').
   Concatenates several #[b obss] observables into one stream. Like #[a(href="#merge") merge],
-  but it starts emitting values from the next source only after the previous source ends,
-  ignoring any value from the next sources before that.
+  but switches to the next source only after the previous one end.
 
 pre(title='example').
-  var a = Kefir.emitter();
-  var b = Kefir.emitter();
-  var c = Kefir.emitter();
+  var a = Kefir.sequentially(100, [0, 1, 2]);
+  var b = Kefir.sequentially(100, [3, 4, 5]);
 
-  var abc = Kefir.concat([a, b, c]);
+  var abc = Kefir.concat([a, b]);
   abc.log();
-
-  a.emit(0).emit(1);
-  b.emit(0);
-  a.emit(2).end();
-  c.emit(0);
-  b.emit(1);
-  c.emit(1);
-  b.emit(2).end();
-  c.emit(2).end();
 
 pre(title='console output')
   :escapehtml
     > [concat] <value> 0
     > [concat] <value> 1
     > [concat] <value> 2
-    > [concat] <value> 1
-    > [concat] <value> 2
-    > [concat] <value> 2
+    > [concat] <value> 3
+    > [concat] <value> 4
+    > [concat] <value> 5
     > [concat] <end>
 
 pre(title='events in time').
   a:    ---0---1---2X
-  b:    ---------0-----1---2X
-  c:    -------------0---1---2X
+  b:                ---3---4---5X
 
-  abc:  ---0---1---2---1---2-2X
+  abc:  ---0---1---2---3---4---5X
 div
 
 
@@ -211,71 +202,120 @@ div
   and remove them using #[b unplug]. #[b Pool] never ends.
 
 pre(title='example').
-  var a = Kefir.emitter();
-  var b = Kefir.emitter();
-
+  var a = Kefir.sequentially(100, [0, 1, 2]);
+  var b = Kefir.sequentially(100, [0, 1, 2]).delay(30);
+  var c = Kefir.sequentially(100, [0, 1, 2]).delay(60);
   var pool = Kefir.pool();
+  pool.plug(a);
+  pool.plug(b);
+  pool.plug(c);
   pool.log();
 
-  a.emit(1);
-  b.emit(1);
-  pool.plug(a);
-  a.emit(2);
-  b.emit(2);
-  pool.plug(b);
-  a.emit(3);
-  b.emit(3);
-  pool.unplug(a);
-  a.emit(4);
-  b.emit(4);
-  a.end();
-  b.end();
-
 pre(title='console output')
   :escapehtml
+    > [pool] <value> 0
+    > [pool] <value> 0
+    > [pool] <value> 0
+    > [pool] <value> 1
+    > [pool] <value> 1
+    > [pool] <value> 1
     > [pool] <value> 2
-    > [pool] <value> 3
-    > [pool] <value> 3
-    > [pool] <value> 4
+    > [pool] <value> 2
+    > [pool] <value> 2
+    > [pool] <end>
 
 pre(title='events in time').
-  a:       ---1-----2-----3----4-----X
-  b:       ----1------2------3----4---X
+  a:    ----------0---------1---------2X
+  b:    ------------0---------1---------2X
+  c:    --------------0---------1---------2X
 
-  plug:    ------a------b------------------
-  unplug:  -------------------a------------
+  pool: ----------0-0-0-----1-1-1-----2-2-2X
+div
 
-  pool:    ---------2-----3--3----4--------
+
+
+
++descr-method('repeat', 'repeat', 'Kefir.repeat(generator)').
+  Calls the #[b generator] function which is supposed to return an observable.
+  Emits values and errors from the spawned observable; when it ends,
+  calls #[b generator] again to get a new one and so on.
 
 p.
-  In this graph #[b plug] and #[b unplug] are shown just to illustrate
-  moments when we plug and unplug sources. Don't be confused, there are no
-  #[b plug] or #[b unplug] streams somewhere.
+  The #[b generator] function is called with one argument — iteration number
+  starting from #[tt 0]. If a falsy value is returned
+  from the #[b generator], the stream ends.
 
-
-
-+descr-method('bus', 'bus', 'Kefir.bus()').
-  #[b Bus] is a pool with <a href="#emitter">emitter</a> methods.
-  You can emit values from it directly. It is the best choice to expose
-  an input from a module, so module users could easily send events to your
-  module directly or by plugging an observable.
-
-pre(title='example').
-  var bus = Kefir.bus();
-  var emitter = Kefir.emitter();
-  bus.log();
-
-  bus.plug(emitter);
-  bus.emit(1);
-  emitter.emit(2);
-  bus.end();
+pre(title='example')
+  :escapehtml
+    var result = Kefir.repeat(function(i) {
+      if (i < 3) {
+        return Kefir.sequentially(100, [i, i]);
+      } else {
+        return false;
+      }
+    });
+    result.log();
 
 pre(title='console output')
   :escapehtml
-    > [bus] <value> 1
-    > [bus] <value> 2
-    > [bus] <end>
+    > [repeat] <value> 0
+    > [repeat] <value> 0
+    > [repeat] <value> 1
+    > [repeat] <value> 1
+    > [repeat] <value> 2
+    > [repeat] <value> 2
+    > [repeat] <end>
+
+pre(title='events in time').
+  spawned 1:  ---0---0X
+  spawned 2:          ---1---1X
+  spawned 3:                  ---2---2X
+
+  result:     ---0---0---1---1---2---2X
 div
+
+p.
+  #[img(data-emoji="point_up")] Note that with this method
+  it is possible to create an infinite loop. Consider this example:
+
+pre(title='example')
+  :escapehtml
+    var result = Kefir.repeat(function() {
+      return Kefir.constant(1);
+    });
+
+    // When we subscribe to it (directly or via .log)
+    // we already are in an infinite loop.
+    result.log();
+
+    // But if we limit it with .take or something it'll work just fine.
+    // So the `result` stream defined like this
+    // may still make sense, depending on how we use it.
+    result.take(10).log();
+
+p.
+  It is even more dangerous if #[b generator] constantly returns an ended observable
+  with no values (e.g. #[a(href='#never') never]).
+  In this case, #[tt .take] won't help, because you'll never get any single
+  value from it, but #[b generator] will be called over and over.
+  The only escape path here is to define an escape condition in the
+  #[b generator]:
+
+pre(title='example')
+  :escapehtml
+    var result = Kefir.repeat(function(i) {
+
+      // Defining that a new observable will be spawned at most 10 times
+      if (i >= 10) {
+        return false;
+      }
+
+      return Kefir.never();
+    });
+
+p.
+  So just be careful when using #[b repeat],
+  it's a little dangerous but it is still a great method.
 
 
 
