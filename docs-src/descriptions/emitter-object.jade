@@ -13,7 +13,7 @@ ul
   li #[tt emitter.end()] accepts no arguments
   li #[tt emitter.emitEvent(event)] accepts one agrument (event object with same format as in #[a(href='#on-any') onAny] method). Note that the #[tt current] property of #[b event object] is ignored and is automatically set to an appropriate value for result event.
 
-pre
+pre(title='example')
   :escapehtml
     emitter.emit(123);
     emitter.error('Oh, snap!');
@@ -21,16 +21,16 @@ pre
 div
 
 p.
-  All #[b emitter] methods are bound to its context,
-  and can be passed safely as callbacks without binding:
+  All #[b emitter] methods are bound to their context,
+  and can be passed as callbacks safely without binding:
 
 pre
   :escapehtml
     // instead of this
-    $('.foo').on('click', emitter.emit.bind(emitter));
+    el.addEventListener('click', emitter.emit.bind(emitter));
 
     // you can do just this
-    $('.foo').on('click', emitter.emit);
+    el.addEventListener('click', emitter.emit);
 div
 
 
