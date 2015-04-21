@@ -19,7 +19,8 @@ var questions = [
     choices: [
       semver.inc(pkg.version, 'patch'),
       semver.inc(pkg.version, 'minor'),
-      semver.inc(pkg.version, 'major')
+      semver.inc(pkg.version, 'major'),
+      semver.inc(pkg.version, 'premajor', 'rc')
     ]
   },
   {
