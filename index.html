@@ -974,12 +974,11 @@ pool.log();
 &gt; [pool] &lt;value&gt; 2
 &gt; [pool] &lt;value&gt; 2
 &gt; [pool] &lt;value&gt; 2
-&gt; [pool] &lt;end&gt;
 </pre><pre title="events in time">a:    ----------0---------1---------2X
 b:    ------------0---------1---------2X
 c:    --------------0---------1---------2X
 
-pool: ----------0-0-0-----1-1-1-----2-2-2X</pre><div></div><p id="repeat"><a href="#repeat" class="header">repeat</a><code>Kefir.repeat(generator)</code><br/>Calls the <b>generator</b> function which is supposed to return an observable.
+pool: ----------0-0-0-----1-1-1-----2-2-2</pre><div></div><p id="repeat"><a href="#repeat" class="header">repeat</a><code>Kefir.repeat(generator)</code><br/>Calls the <b>generator</b> function which is supposed to return an observable.
 Emits values and errors from the spawned observable; when it ends,
 calls <b>generator</b> again to get a new one and so on.
 </p><p>The <b>generator</b> function is called with one argument — iteration number
