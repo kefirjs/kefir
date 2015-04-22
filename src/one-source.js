@@ -14,11 +14,28 @@ function produceProperty(StreamClass, PropertyClass) {
 // .toProperty()
 
 withOneSource('toProperty', {
+
   _init: function(args) {
-    if (args.length > 0) {
-      this._send(VALUE, args[0]);
+    if (args[0] !== undefined) {
+      if (isFn(args[0])) {
+        this._getInitialCurrent = args[0];
+      } else {
+        throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
+      }
+    } else {
+      this._getInitialCurrent = null;
     }
+  },
+
+  // redefining `_onActivation` from `withOneSource`
+  _onActivation: function() {
+    if (this._getInitialCurrent !== null) {
+      var fn = this._getInitialCurrent;
+      this._send(VALUE, fn(), true);
+    }
+    this._source.onAny(this._$handleAny); // copied from `withOneSource` impl of `_onActivation`
   }
+
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
 
 
@@ -39,11 +56,7 @@ withOneSource('changes', {
     }
   }
 }, {
-  streamMethod: function() {
-    return function() {
-      return this;
-    };
-  },
+  streamMethod: produceStream,
   propertyMethod: produceStream
 });
 
@@ -111,60 +124,36 @@ withOneSource('flatten', {
 
 // .transduce(transducer)
 
-var TRANSFORM_METHODS_OLD = {
-  step: 'step',
-  result: 'result'
-};
-
-var TRANSFORM_METHODS_NEW = {
-  step: '@@transducer/step',
-  result: '@@transducer/result'
-};
-
-
 function xformForObs(obs) {
-  function step(res, input) {
-    obs._send(VALUE, input, obs._forcedCurrent);
-    return null;
-  }
-  function result(res) {
-    obs._send(END, null, obs._forcedCurrent);
-    return null;
-  }
   return {
-    step: step,
-    result: result,
-    '@@transducer/step': step,
-    '@@transducer/result': result
+    '@@transducer/step': function(res, input) {
+      obs._send(VALUE, input, obs._forcedCurrent);
+      return null;
+    },
+    '@@transducer/result': function(res) {
+      obs._send(END, null, obs._forcedCurrent);
+      return null;
+    }
   };
 }
 
 withOneSource('transduce', {
   _init: function(args) {
-    var xf = args[0](xformForObs(this));
-    if (isFn(xf[TRANSFORM_METHODS_NEW.step]) && isFn(xf[TRANSFORM_METHODS_NEW.result])) {
-      this._transformMethods = TRANSFORM_METHODS_NEW;
-    } else if (isFn(xf[TRANSFORM_METHODS_OLD.step]) && isFn(xf[TRANSFORM_METHODS_OLD.result])) {
-      this._transformMethods = TRANSFORM_METHODS_OLD;
-    } else {
-      throw new Error('Unsuported transducers protocol');
-    }
-    this._xform = xf;
+    this._xform = args[0](xformForObs(this));
   },
   _free: function() {
     this._xform = null;
-    this._transformMethods = null;
   },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    if (this._xform[this._transformMethods.step](null, x) !== null) {
-      this._xform[this._transformMethods.result](null);
+    if (this._xform['@@transducer/step'](null, x) !== null) {
+      this._xform['@@transducer/result'](null);
     }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._xform[this._transformMethods.result](null);
+    this._xform['@@transducer/result'](null);
     this._forcedCurrent = false;
   }
 });
@@ -448,8 +437,8 @@ withOneSource('scan', {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._current !== NOTHING) {
-      x = this._fn(this._current, x);
+    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
+      x = this._fn(this._currentEvent.value, x);
     }
     this._send(VALUE, x, isCurrent);
   }
@@ -484,9 +473,9 @@ withOneSource('reduce', {
 
 
 
-// .mapEnd(fn)
+// .beforeEnd(fn)
 
-withOneSource('mapEnd', {
+withOneSource('beforeEnd', {
   _init: function(args) {
     this._fn = args[0];
   },

@@ -1,7 +1,6 @@
 a.toc-title(href='#') Kefir.js
 ul.toc-section
   li: a(href='#installation') Installation
-  li: a(href='#jquery') jQuery plugin
 
 a.toc-title(href='#examples') Examples
 
@@ -9,7 +8,6 @@ a.toc-title(href='#about-observables') Intro to  Streams and Properties
 
 a.toc-title(href='#create-stream') Create a stream
 ul.toc-section
-  +method('#emitter', 'emitter')
   +method('#never', 'never')
   +method('#later', 'later')
   +method('#interval', 'interval')
@@ -18,10 +16,8 @@ ul.toc-section
   +method('#with-interval', 'withInterval')
   +method('#from-callback', 'fromCallback')
   +method('#from-node-callback', 'fromNodeCallback')
-  +method('#from-event', 'fromEvent')
-  +method('#from-sub-unsub', 'fromSubUnsub')
-  +method('#from-binder', 'fromBinder')
-  +method('#repeat', 'repeat')
+  +method('#from-event', 'fromEvents')
+  +method('#stream', 'stream')
 
 a.toc-title(href='#create-property') Create a property
 ul.toc-section
@@ -59,23 +55,23 @@ ul.toc-section
   +method('#diff', 'diff')
   +method('#scan', 'scan')
   +method('#reduce', 'reduce')
-  +method('#map-end', 'mapEnd')
-  +method('#skip-end', 'skipEnd')
-  +method('#sliding-window', 'slidingWindow')
-  +method('#buffer-while', 'bufferWhile')
+  +method('#flatten', 'flatten')
   +method('#delay', 'delay')
   +method('#throttle', 'throttle')
   +method('#debounce', 'debounce')
-  +method('#flatten', 'flatten')
-  +method('#transduce', 'transduce')
-  +method('#with-handler', 'withHandler')
   +method('#values-to-errors', 'valuesToErrors')
   +method('#errors-to-values', 'errorsToValues')
   +method('#map-errors', 'mapErrors')
   +method('#filter-errors', 'filterErrors')
-  +method('#skip-errors', 'skipErrors')
-  +method('#skip-values', 'skipValues')
   +method('#end-on-error', 'endOnError')
+  +method('#skip-values', 'skipValues')
+  +method('#skip-errors', 'skipErrors')
+  +method('#skip-end', 'skipEnd')
+  +method('#before-end', 'beforeEnd')
+  +method('#sliding-window', 'slidingWindow')
+  +method('#buffer-while', 'bufferWhile')
+  +method('#transduce', 'transduce')
+  +method('#with-handler', 'withHandler')
 
 a.toc-title(href='#combine-observables') Combine observables
 ul.toc-section
@@ -84,7 +80,7 @@ ul.toc-section
   +method('#merge', 'merge')
   +method('#concat', 'concat')
   +method('#pool', 'pool')
-  +method('#bus', 'bus')
+  +method('#repeat', 'repeat')
   +method('#flat-map', 'flatMap')
   +method('#flat-map-latest', 'flatMapLatest')
   +method('#flat-map-first', 'flatMapFirst')
@@ -103,7 +99,7 @@ ul.toc-section
   +method('#buffer-while-by', 'bufferWhileBy')
   +method('#awaiting', 'awaiting')
 
-a.toc-title(href='#active-state') Active state
-a.toc-title(href='#emitter-object') Emitter object
+a.toc-title(href='#active-state') Activation and deactivation of observables
+a.toc-title(href='#emitter-object') Emitter
 a.toc-title(href='#about-errors') Errors
 a.toc-title(href='#current-in-streams') Current values/errors in streams

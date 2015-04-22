@@ -1,8 +1,8 @@
-h2#emitter-object Emitter object
+h2#emitter-object Emitter
 
 p.
-  The emitter object has four methods for emitting events.
-  It is used in several places in Kefir as a proxy to emit events to some observable.
+  Emitter is an object that has four methods for emitting events.
+  It is used in several places in Kefir as a proxy to emit events from some observable.
 
 p.
   The methods names describe themselves pretty clearly:
@@ -13,7 +13,7 @@ ul
   li #[tt emitter.end()] accepts no arguments
   li #[tt emitter.emitEvent(event)] accepts one agrument (event object with same format as in #[a(href='#on-any') onAny] method). Note that the #[tt current] property of #[b event object] is ignored and is automatically set to an appropriate value for result event.
 
-pre
+pre(title='example')
   :escapehtml
     emitter.emit(123);
     emitter.error('Oh, snap!');
@@ -21,23 +21,16 @@ pre
 div
 
 p.
-  Do not confuse the #[b emitter object] with an <a href="#emitter">emitter stream</a>.
-  They both have similar methods,
-  but the #[b emitter object] isn't actually a stream,
-  it has no stream methods or functionality.
-  The emitter object has only four methods, that's it.
-
-p.
-  All #[b emitter object] methods are bound to its context,
-  and can be passed safely as callbacks without binding:
+  All #[b emitter] methods are bound to their context,
+  and can be passed as callbacks safely without binding:
 
 pre
   :escapehtml
     // instead of this
-    $('.foo').on('click', emitter.emit.bind(emitter));
+    el.addEventListener('click', emitter.emit.bind(emitter));
 
     // you can do just this
-    $('.foo').on('click', emitter.emit);
+    el.addEventListener('click', emitter.emit);
 div
 
 

@@ -250,14 +250,15 @@ var c = Kefir.emitter();
 var isAllTrue = Kefir.and([a, b, c]);
 isAllTrue.log();
 
-
-// Output
-
 a.emit(true);
 b.emit(false);
 c.emit(true);
 b.emit(true);
 a.emit(false);
+
+
+// Output
+
 > [and] <value> false
 > [and] <value> true
 > [and] <value> false
@@ -289,14 +290,15 @@ var c = Kefir.emitter();
 var isAnyTrue = Kefir.or([a, b, c]);
 isAnyTrue.log();
 
-
-// Output
-
 a.emit(true);
 b.emit(false);
 c.emit(true);
 b.emit(true);
 a.emit(false);
+
+
+// Output
+
 > [or] <value> true
 > [or] <value> true
 > [or] <value> true
@@ -318,3 +320,112 @@ isAnyTrue:  --------t--t--t--
 Same as [.combine](http://pozadi.github.io/kefir/#combine),
 except passive observables goes as the first argument unlike second in **.combine**,
 and both `passiveObss` and `activeObss` are required.
+
+
+
+### Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])
+
+Creates a stream from **subscribe** and **unsubscribe** functions.
+The **subscribe** function is called on each [activation](http://pozadi.github.io/kefir/#active-state)
+with a callback as argument,
+giving you an opportunity to subscribe with this callback to an original source of values.
+When all subscribers from the stream are removed, the **unsubscribe** function is called
+with the same callback, so you can unsubscribe from your original source.
+
+You can also provide a **transform** function, which will work the same way as in
+[fromEvents](http://pozadi.github.io/kefir/#from-event).
+
+```js
+// Example
+
+function subscribe(callback) {
+  document.body.addEventListener('click', callback);
+}
+
+function unsubscribe(callback) {
+  document.body.removeEventListener('click', callback);
+}
+
+function transform(event) {
+  return event.type + ' on ' + this.tagName;
+}
+
+var stream = Kefir.fromSubUnsub(subscribe, unsubscribe, transform);
+stream.log();
+
+
+// Output
+
+> [fromBinder] <value> click on BODY
+> [fromBinder] <value> click on BODY
+> [fromBinder] <value> click on BODY
+
+
+// Events diagram
+
+stream:  ----•--------------•----•---
+  'click on...'  'click on...'  'click on...'
+```
+
+
+
+### Kefir.emitter()
+
+Creates an emitter, which is an ordinary stream, but with additional methods:
+`.emit(value)`, `.error(error)`, `.end()`, and `.emitEvent()`.
+The first three are pretty self-descriptive, and the last one accepts an event object with the same format
+than in the [onAny](http://pozadi.github.io/kefir/#on-any) method, and emits that event.
+Once an emitter was created, one can easily emit all three kinds of events from it,
+using these methods.
+
+```js
+// Example
+
+var emitter = Kefir.emitter();
+emitter.log();
+
+emitter.emit(1);
+emitter.error('Oops!');
+emitter.end();
+
+
+// Output
+
+> [emitter] <value> 1
+> [emitter] <error> Oops!
+> [emitter] <end>
+
+
+// Events diagram
+
+emitter:  ----1----e----X
+                   Oops!
+```
+
+
+
+
+### Kefir.bus()
+
+**Bus** is a `Kefir.pool()` with `Kefir.emitter()` methods so one can emit
+values from it directly.
+
+```js
+// Example
+
+var bus = Kefir.bus();
+var emitter = Kefir.emitter();
+bus.log();
+
+bus.plug(emitter);
+bus.emit(1);
+emitter.emit(2);
+bus.end();
+
+
+// Output
+
+> [bus] <value> 1
+> [bus] <value> 2
+> [bus] <end>
+```

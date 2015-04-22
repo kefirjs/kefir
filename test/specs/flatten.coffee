@@ -52,8 +52,11 @@ describe 'flatten', ->
 
     it 'should handle current correctly', ->
       expect(
-        send(prop(), [1, {error: 0}]).flatten (x) -> [1..x]
-      ).toEmit [{current: 1}, {currentError: 0}]
+        send(prop(), [1]).flatten (x) -> [1..x]
+      ).toEmit [{current: 1}]
+      expect(
+        send(prop(), [{error: 0}]).flatten ->
+      ).toEmit [{currentError: 0}]
 
     it 'should handle multiple currents correctly', ->
       expect(

@@ -39,7 +39,10 @@ describe 'skipErrors', ->
       expect(send(prop(), ['<end>']).skipErrors()).toEmit ['<end:current>']
 
     it 'should handle events and current', ->
-      a = send(prop(), [1, {error: -1}])
+      a = send(prop(), [{error: -1}])
+      expect(a.skipErrors()).toEmit [2, 3, '<end>'], ->
+        send(a, [2, {error: -2}, 3, {error: -3}, '<end>'])
+      a = send(prop(), [1])
       expect(a.skipErrors()).toEmit [{current: 1}, 2, 3, '<end>'], ->
         send(a, [2, {error: -2}, 3, {error: -3}, '<end>'])
 

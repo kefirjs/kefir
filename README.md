@@ -43,9 +43,14 @@ See [downloads](https://pozadi.github.io/kefir/#downloads) section in the docs.
 
 # Development
 
-To build `/dist` from `/src` and run tests on Node.js type this in console:
+To build all the things: `/dist`, docs, tests for browser, etc. run:
 
     grunt
+    grunt bower # to also install bower packages which needed for docs and demos
+
+To run unit tests:
+
+    npm test
 
 To run memory tests:
 

@@ -184,8 +184,7 @@ inherit(Stream, Observable, {
 
 function Property() {
   Observable.call(this);
-  this._current = NOTHING;
-  this._currentError = NOTHING;
+  this._currentEvent = null;
 }
 Kefir.Property = Property;
 
@@ -198,11 +197,8 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._dispatcher.dispatch(Event(type, x));
       }
-      if (type === VALUE) {
-        this._current = x;
-      }
-      if (type === ERROR) {
-        this._currentError = x;
+      if (type === VALUE || type === ERROR) {
+        this._currentEvent = Event(type, x, true);
       }
       if (type === END) {
         this._clear();
@@ -215,11 +211,8 @@ inherit(Property, Observable, {
       this._dispatcher.add(type, fn);
       this._setActive(true);
     }
-    if (this._current !== NOTHING) {
-      callSubscriber(type, fn, Event(VALUE, this._current, true));
-    }
-    if (this._currentError !== NOTHING) {
-      callSubscriber(type, fn, Event(ERROR, this._currentError, true));
+    if (this._currentEvent !== null) {
+      callSubscriber(type, fn, this._currentEvent);
     }
     if (!this._alive) {
       callSubscriber(type, fn, CURRENT_END);

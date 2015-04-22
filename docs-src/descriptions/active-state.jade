@@ -1,14 +1,21 @@
-h2#active-state Active state
+h2#active-state Activation and deactivation of observables
 
 p.
-  Each stream or property at any given time may be in one of two states —
-  active or inactive. When an observable is in an inactive state, it does not emit any
-  event, and does not subscribe to it's original source.
-  Observables automatically become active when the first listener is added,
-  and become inactive when the last listener is removed.
+  At the moment one create an observable it's not yet subscribed to its source.
+  Observables subscribe to their sources only when they themself get a first subscriber.
+  In this docs this process is called #[b activation] of an observable.
+  Also when the last subscriber is removed from an observable,
+  the observable #[b deactivates] and unsubscribes from its source.
+  Later it can be #[b activated] again, and so on.
 
 p.
-  For example #[tt stream = Kefir.fromEvent(el, 'click')] won't
+  The #[i source] to which observable subscribe on #[b activation] may
+  be an another observable (for example in #[tt .map]),
+  several other observables (#[tt .combine]),
+  or some external source (#[tt .fromEvents]).
+
+p.
+  For example #[tt stream = Kefir.fromEvents(el, 'click')] won't
   immediately subscribe to the #[tt 'click'] event on #[tt el],
   it will subscribe only when the first listener will be added to the
   #[tt stream]. And it will automatically unsubscribe when the last listener
@@ -16,7 +23,7 @@ p.
 
 pre
   :escapehtml
-    var stream = Kefir.fromEvent(el, 'click');
+    var stream = Kefir.fromEvents(el, 'click');
     // at this moment event listener to _el_ not added
 
     stream.onValue(someFn);
@@ -26,60 +33,7 @@ pre
     // and now it is removed again
 
 p.
-  If one observable depends on another,
-  its active state propagates to its dependencies.
-  For example, in the following code,
-  #[b mapA] will activate #[b A],
-  #[b filterMapA] will activate #[b mapA] and #[b A],
-  #[b mergeAB] will activate #[b A] and #[b B].
-
-pre
-  :escapehtml
-    var A = Kefir.emitter();
-    var B = Kefir.emitter();
-
-    var mapA = A.map(function(){ ... });
-    var filterMapA = mapA.filter(function(){ ... });
-    var mergeAB = Kefir.merge(A, B);
-
-p.
-  In fact, active state is just a convention that is strictly
-  followed in the code of Kefir, for better performance.
-  But you are free to not follow it in your custom plugins or combinators.
-
-p.
-  <img data-emoji="point_up"> Note that the current value of a
-  property won't update when that property is inactive.
-  For example, we convert an #[b emitter] to a property,
-  then emit some values, while the property has no subscribers (i.e. is inactive).
-  In this case the property won't get those values, and it
-  won't update its current value.
-
-pre
-  :escapehtml
-    var emitter = Kefir.emitter();
-    var property = emitter.toProperty(0);
-
-    // 1 and 2 won't become the property's current value
-    emitter.emit(1);
-    emitter.emit(2);
-
-    // now we activate property by subscribing to it,
-    // and also check current value
-    property.onValue(function(x) {  console.log(x)  }) // => 0
-
-    // these values will become the property's current value
-    emitter.emit(3);
-    emitter.emit(4);
-
-    property.onValue(function(x) {  console.log(x)  }) // => 4
-
-p.
-  This issue applies not only to properties,
-  but also to all stateful observables
-  (like #[a(href='#take') take], #[a(href='#diff') diff], #[a(href='#scan') scan] etc.).
-  In some rare cases, to solve this issue, you might need to activate an observable by adding
-  a dummy subscriber. It's ok if you really need this,
-  but don't overuse that pattern. For example
-  #[tt obs.map(sideEffect).onValue(function(){})] is a anti-pattern,
-  you should do #[tt obs.onValue(sideEffect)] instead.
+  As you might already guess #[b activation] and #[b deactivation] propagates up the observables chain.
+  For instance if one create a long chain like #[tt Kefir.fromEvents(...).map(...).filter(...).take(...)],
+  the whole chain will be #[b inactive] until first subscriber is added,
+  and then it will #[b activate] up to #[tt .fromEvents]. Same for #[b deactivation].

@@ -51,7 +51,7 @@ fakeSource =
 
 
 baseKefir = ->
-  Kefir.fromBinder (emitter) ->
+  Kefir.stream (emitter) ->
     fakeSource.subscribe emitter.emit
     -> fakeSource.unsubscribe emitter.emit
 
