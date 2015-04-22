@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v1.3.1
+/*! Kefir.js v2.0.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -278,6 +278,14 @@ function strictEqual(a, b) {
 
 function defaultDiff(a, b) {
   return [a, b];
+}
+
+function returnsFalse() {
+  return false;
+}
+
+function returnsTrue() {
+  return true;
 }
 
 var now = Date.now ?
@@ -780,8 +788,7 @@ inherit(Stream, Observable, {
 
 function Property() {
   Observable.call(this);
-  this._current = NOTHING;
-  this._currentError = NOTHING;
+  this._currentEvent = null;
 }
 Kefir.Property = Property;
 
@@ -794,11 +801,8 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._dispatcher.dispatch(Event(type, x));
       }
-      if (type === VALUE) {
-        this._current = x;
-      }
-      if (type === ERROR) {
-        this._currentError = x;
+      if (type === VALUE || type === ERROR) {
+        this._currentEvent = Event(type, x, true);
       }
       if (type === END) {
         this._clear();
@@ -811,11 +815,8 @@ inherit(Property, Observable, {
       this._dispatcher.add(type, fn);
       this._setActive(true);
     }
-    if (this._current !== NOTHING) {
-      callSubscriber(type, fn, Event(VALUE, this._current, true));
-    }
-    if (this._currentError !== NOTHING) {
-      callSubscriber(type, fn, Event(ERROR, this._currentError, true));
+    if (this._currentEvent !== null) {
+      callSubscriber(type, fn, this._currentEvent);
     }
     if (!this._alive) {
       callSubscriber(type, fn, CURRENT_END);
@@ -1295,9 +1296,9 @@ inherit(Bus, _AbstractPool, {
 
 });
 
-Kefir.bus = function() {
+Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function() {
   return new Bus();
-};
+});
 
 
 
@@ -1528,6 +1529,18 @@ Observable.prototype.zip = function(other, combinator) {
 
 // .combine()
 
+function defaultErrorsCombinator(errors) {
+  var latestError;
+  for (var i = 0; i < errors.length; i++) {
+    if (errors[i] !== undefined) {
+      if (latestError === undefined || latestError.index < errors[i].index) {
+        latestError = errors[i];
+      }
+    }
+  }
+  return latestError.error;
+}
+
 function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
@@ -1537,11 +1550,13 @@ function Combine(active, passive, combinator) {
     this._sources = concat(active, passive);
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
-    this._currents = new Array(this._sources.length);
-    fillArray(this._currents, NOTHING);
+    this._latestValues = new Array(this._sources.length);
+    this._latestErrors = new Array(this._sources.length);
+    fillArray(this._latestValues, NOTHING);
     this._activating = false;
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
+    this._latestErrorIndex = 0;
 
     this._bindedHandlers = Array(this._sources.length);
     for (var i = 0; i < this._sources.length; i++) {
@@ -1583,10 +1598,30 @@ inherit(Combine, Stream, {
   },
 
   _emitIfFull: function(isCurrent) {
-    if (!contains(this._currents, NOTHING)) {
-      var combined = cloneArray(this._currents);
-      combined = this._combinator(combined);
-      this._send(VALUE, combined, isCurrent);
+    var hasAllValues = true;
+    var hasErrors = false;
+    var length = this._latestValues.length;
+    var valuesCopy = new Array(length);
+    var errorsCopy = new Array(length);;
+
+    for (var i = 0; i < length; i++) {
+      valuesCopy[i] = this._latestValues[i];
+      errorsCopy[i] = this._latestErrors[i];
+
+      if (valuesCopy[i] === NOTHING) {
+        hasAllValues = false;
+      }
+
+      if (errorsCopy[i] !== undefined) {
+        hasErrors = true;
+      }
+    }
+
+    if (hasAllValues) {
+      this._send(VALUE, this._combinator(valuesCopy), isCurrent);
+    }
+    if (hasErrors) {
+      this._send(ERROR, defaultErrorsCombinator(errorsCopy), isCurrent);
     }
   },
 
@@ -1598,8 +1633,21 @@ inherit(Combine, Stream, {
   },
 
   _handleAny: function(i, event) {
-    if (event.type === VALUE) {
-      this._currents[i] = event.value;
+
+    if (event.type === VALUE || event.type === ERROR) {
+
+      if (event.type === VALUE) {
+        this._latestValues[i] = event.value;
+        this._latestErrors[i] = undefined;
+      }
+      if (event.type === ERROR) {
+        this._latestValues[i] = NOTHING;
+        this._latestErrors[i] = {
+          index: this._latestErrorIndex++,
+          error: event.value
+        };
+      }
+
       if (i < this._activeCount) {
         if (this._activating) {
           this._emitAfterActivation = true;
@@ -1607,11 +1655,9 @@ inherit(Combine, Stream, {
           this._emitIfFull(event.current);
         }
       }
-    }
-    if (event.type === ERROR) {
-      this._send(ERROR, event.value, event.current);
-    }
-    if (event.type === END) {
+
+    } else { // END
+
       if (i < this._activeCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
@@ -1622,13 +1668,15 @@ inherit(Combine, Stream, {
           }
         }
       }
+
     }
   },
 
   _clear: function() {
     Stream.prototype._clear.call(this);
     this._sources = null;
-    this._currents = null;
+    this._latestValues = null;
+    this._latestErrors = null;
     this._combinator = null;
     this._bindedHandlers = null;
   }
@@ -1698,11 +1746,28 @@ function produceProperty(StreamClass, PropertyClass) {
 // .toProperty()
 
 withOneSource('toProperty', {
+
   _init: function(args) {
-    if (args.length > 0) {
-      this._send(VALUE, args[0]);
+    if (args[0] !== undefined) {
+      if (isFn(args[0])) {
+        this._getInitialCurrent = args[0];
+      } else {
+        throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
+      }
+    } else {
+      this._getInitialCurrent = null;
     }
+  },
+
+  // redefining `_onActivation` from `withOneSource`
+  _onActivation: function() {
+    if (this._getInitialCurrent !== null) {
+      var fn = this._getInitialCurrent;
+      this._send(VALUE, fn(), true);
+    }
+    this._source.onAny(this._$handleAny); // copied from `withOneSource` impl of `_onActivation`
   }
+
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
 
 
@@ -1723,11 +1788,7 @@ withOneSource('changes', {
     }
   }
 }, {
-  streamMethod: function() {
-    return function() {
-      return this;
-    };
-  },
+  streamMethod: produceStream,
   propertyMethod: produceStream
 });
 
@@ -1795,60 +1856,36 @@ withOneSource('flatten', {
 
 // .transduce(transducer)
 
-var TRANSFORM_METHODS_OLD = {
-  step: 'step',
-  result: 'result'
-};
-
-var TRANSFORM_METHODS_NEW = {
-  step: '@@transducer/step',
-  result: '@@transducer/result'
-};
-
-
 function xformForObs(obs) {
-  function step(res, input) {
-    obs._send(VALUE, input, obs._forcedCurrent);
-    return null;
-  }
-  function result(res) {
-    obs._send(END, null, obs._forcedCurrent);
-    return null;
-  }
   return {
-    step: step,
-    result: result,
-    '@@transducer/step': step,
-    '@@transducer/result': result
+    '@@transducer/step': function(res, input) {
+      obs._send(VALUE, input, obs._forcedCurrent);
+      return null;
+    },
+    '@@transducer/result': function(res) {
+      obs._send(END, null, obs._forcedCurrent);
+      return null;
+    }
   };
 }
 
 withOneSource('transduce', {
   _init: function(args) {
-    var xf = args[0](xformForObs(this));
-    if (isFn(xf[TRANSFORM_METHODS_NEW.step]) && isFn(xf[TRANSFORM_METHODS_NEW.result])) {
-      this._transformMethods = TRANSFORM_METHODS_NEW;
-    } else if (isFn(xf[TRANSFORM_METHODS_OLD.step]) && isFn(xf[TRANSFORM_METHODS_OLD.result])) {
-      this._transformMethods = TRANSFORM_METHODS_OLD;
-    } else {
-      throw new Error('Unsuported transducers protocol');
-    }
-    this._xform = xf;
+    this._xform = args[0](xformForObs(this));
   },
   _free: function() {
     this._xform = null;
-    this._transformMethods = null;
   },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    if (this._xform[this._transformMethods.step](null, x) !== null) {
-      this._xform[this._transformMethods.result](null);
+    if (this._xform['@@transducer/step'](null, x) !== null) {
+      this._xform['@@transducer/result'](null);
     }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._xform[this._transformMethods.result](null);
+    this._xform['@@transducer/result'](null);
     this._forcedCurrent = false;
   }
 });
@@ -2132,8 +2169,8 @@ withOneSource('scan', {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._current !== NOTHING) {
-      x = this._fn(this._current, x);
+    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
+      x = this._fn(this._currentEvent.value, x);
     }
     this._send(VALUE, x, isCurrent);
   }
@@ -2168,9 +2205,9 @@ withOneSource('reduce', {
 
 
 
-// .mapEnd(fn)
+// .beforeEnd(fn)
 
-withOneSource('mapEnd', {
+withOneSource('beforeEnd', {
   _init: function(args) {
     this._fn = args[0];
   },
@@ -2452,17 +2489,17 @@ withOneSource('delay', {
   }
 });
 
-// Kefir.fromBinder(fn)
+// Kefir.stream(fn)
 
-function FromBinder(fn) {
+function StreamStream(fn) {
   Stream.call(this);
   this._fn = fn;
   this._unsubscribe = null;
 }
 
-inherit(FromBinder, Stream, {
+inherit(StreamStream, Stream, {
 
-  _name: 'fromBinder',
+  _name: 'stream',
 
   _onActivation: function() {
     var $ = this
@@ -2505,8 +2542,8 @@ inherit(FromBinder, Stream, {
 
 });
 
-Kefir.fromBinder = function(fn) {
-  return new FromBinder(fn);
+Kefir.stream = function(fn) {
+  return new StreamStream(fn);
 };
 
 
@@ -2539,9 +2576,9 @@ inherit(Emitter, Stream, {
   }
 });
 
-Kefir.emitter = function() {
+Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function() {
   return new Emitter();
-};
+});
 
 Kefir.Emitter = Emitter;
 
@@ -2822,9 +2859,9 @@ Observable.prototype.not = deprecated(
 
 Observable.prototype.awaiting = function(other) {
   return Kefir.merge([
-    this.mapTo(true),
-    other.mapTo(false)
-  ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
+    this.map(returnsTrue),
+    other.map(returnsFalse)
+  ]).skipDuplicates().toProperty(returnsFalse).setName(this, 'awaiting');
 };
 
 
@@ -2834,7 +2871,7 @@ Observable.prototype.awaiting = function(other) {
 
 Kefir.fromCallback = function(callbackConsumer) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(x) {
         emitter.emit(x);
@@ -2852,7 +2889,7 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 Kefir.fromNodeCallback = function(callbackConsumer) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(error, x) {
         if (error) {
@@ -2874,7 +2911,7 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
 
 Kefir.fromPromise = function(promise) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       var onValue = function(x) {
         emitter.emit(x);
@@ -2903,8 +2940,8 @@ Kefir.fromPromise = function(promise) {
 
 // .fromSubUnsub
 
-Kefir.fromSubUnsub = function(sub, unsub, transformer) {
-  return Kefir.fromBinder(function(emitter) {
+function fromSubUnsub(sub, unsub, transformer) {
+  return Kefir.stream(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
     } : emitter.emit;
@@ -2913,12 +2950,14 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
       unsub(handler);
     };
   });
-};
+}
+
+Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
 
 
 
 
-// .fromEvent
+// .fromEvents
 
 var subUnsubPairs = [
   ['addEventListener', 'removeEventListener'],
@@ -2926,7 +2965,7 @@ var subUnsubPairs = [
   ['on', 'off']
 ];
 
-Kefir.fromEvent = function(target, eventName, transformer) {
+Kefir.fromEvents = function(target, eventName, transformer) {
   var pair, sub, unsub;
 
   for (var i = 0; i < subUnsubPairs.length; i++) {
@@ -2943,7 +2982,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir.fromSubUnsub(
+  return fromSubUnsub(
     function(handler) {
       target[sub](eventName, handler);
     },
@@ -2951,7 +2990,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       target[unsub](eventName, handler);
     },
     transformer
-  ).setName('fromEvent');
+  ).setName('fromEvents');
 };
 
 var withTwoSourcesAndBufferMixin = {
@@ -9750,7 +9789,7 @@ exports.install = function install(target, now, toFake) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],33:[function(require,module,exports){
-// transducers-js 0.4.159
+// transducers-js 0.4.165
 // http://github.com/cognitect-labs/transducers-js
 // 
 // Copyright 2014-2015 Cognitect. All Rights Reserved.
@@ -10807,6 +10846,13 @@ com.cognitect.transducers.reduce = function(a, b, c) {
   }
 };
 com.cognitect.transducers.transduce = function(a, b, c, d) {
+  if (3 == arguments.length) {
+    d = c;
+    if ("function" == typeof b) {
+      throw Error("If given only three arguments f must satisfy the ITransformer interface.");
+    }
+    c = b["@@transducer/init"]();
+  }
   b = "function" == typeof b ? com.cognitect.transducers.wrap(b) : b;
   a = a(b);
   return com.cognitect.transducers.reduce(a, c, d);
@@ -11844,6 +11890,93 @@ module.exports = {
 };
 
 },{}],35:[function(require,module,exports){
+var Kefir, prop, ref, send, stream;
+
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+
+describe('beforeEnd', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().beforeEnd(function() {})).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.beforeEnd(function() {})).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).beforeEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 42
+        }, '<end:current>'
+      ]);
+    });
+    it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.beforeEnd(function() {
+        return 42;
+      })).toEmit([1, 2, 42, '<end>'], function() {
+        return send(a, [1, 2, '<end>']);
+      });
+    });
+    return it('errors should flow', function() {
+      var a;
+      a = stream();
+      return expect(a.beforeEnd(function() {})).errorsToFlow(a);
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().beforeEnd(function() {})).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.beforeEnd(function() {})).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      expect(send(prop(), ['<end>']).beforeEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 42
+        }, '<end:current>'
+      ]);
+      return expect(send(prop(), [1, '<end>']).beforeEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 42
+        }, '<end:current>'
+      ]);
+    });
+    it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [1]);
+      return expect(a.beforeEnd(function() {
+        return 42;
+      })).toEmit([
+        {
+          current: 1
+        }, 2, 3, 42, '<end>'
+      ], function() {
+        return send(a, [2, 3, '<end>']);
+      });
+    });
+    return it('errors should flow', function() {
+      var a;
+      a = prop();
+      return expect(a.beforeEnd(function() {})).errorsToFlow(a);
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":104}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -12006,7 +12139,7 @@ describe('bufferBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -12214,7 +12347,7 @@ describe('bufferWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],38:[function(require,module,exports){
 var Kefir, not3, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -12315,7 +12448,7 @@ describe('bufferWhile', function() {
 
 
 
-},{"../test-helpers.coffee":104}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],39:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -12515,17 +12648,80 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":104}],39:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
+},{"../test-helpers.coffee":104}],40:[function(require,module,exports){
+var Kefir, prop, ref, send, stream, streamWithCurrent;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
 
+streamWithCurrent = function(event) {
+  return Kefir.stream(function(emitter) {
+    return emitter.emitEvent(event);
+  });
+};
+
 describe('changes', function() {
   describe('stream', function() {
-    return it('should just return same stream', function() {
+    it('should return stream', function() {
+      return expect(stream().changes()).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
       var a;
       a = stream();
-      return expect(a.changes()).toBe(a);
+      return expect(a.changes()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).changes()).toEmit(['<end:current>']);
+    });
+    it('test `streamWithCurrent` helper', function() {
+      expect(streamWithCurrent({
+        type: 'value',
+        value: 1
+      })).toEmit([
+        {
+          current: 1
+        }
+      ]);
+      return expect(streamWithCurrent({
+        type: 'error',
+        value: 1
+      })).toEmit([
+        {
+          currentError: 1
+        }
+      ]);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = streamWithCurrent({
+        type: 'value',
+        value: 1
+      });
+      expect(a.changes()).toEmit([
+        2, {
+          error: 5
+        }, 3, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: 5
+          }, 3, '<end>'
+        ]);
+      });
+      a = streamWithCurrent({
+        type: 'error',
+        value: 1
+      });
+      return expect(a.changes()).toEmit([
+        2, {
+          error: 5
+        }, 3, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: 5
+          }, 3, '<end>'
+        ]);
+      });
     });
   });
   return describe('property', function() {
@@ -12564,7 +12760,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":104}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -12689,6 +12885,51 @@ describe('combine', function() {
     c = stream();
     return expect(Kefir.combine([a, b, c])).errorsToFlow(c);
   });
+  it('should handle errors correctly', function() {
+    var a, b, c;
+    a = stream();
+    b = stream();
+    c = stream();
+    return expect(Kefir.combine([a, b, c])).toEmit([
+      {
+        error: -1
+      }, {
+        error: -1
+      }, {
+        error: -1
+      }, [3, 1, 2], {
+        error: -2
+      }, {
+        error: -3
+      }, {
+        error: -3
+      }, {
+        error: -2
+      }, [4, 6, 5]
+    ], function() {
+      send(a, [
+        {
+          error: -1
+        }
+      ]);
+      send(b, [1]);
+      send(c, [2]);
+      send(a, [3]);
+      send(b, [
+        {
+          error: -2
+        }
+      ]);
+      send(c, [
+        {
+          error: -3
+        }
+      ]);
+      send(a, [4]);
+      send(c, [5]);
+      return send(b, [6]);
+    });
+  });
   return describe('sampledBy functionality (3 arity combine)', function() {
     it('should return stream', function() {
       expect(Kefir.combine([], [])).toBeStream();
@@ -12785,24 +13026,14 @@ describe('combine', function() {
       b = prop();
       c = stream();
       d = prop();
-      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b);
-      a = stream();
-      b = prop();
-      c = stream();
-      d = prop();
-      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(c);
-      a = stream();
-      b = prop();
-      c = stream();
-      d = prop();
-      return expect(Kefir.combine([a, b], [c, d])).errorsToFlow(d);
+      return expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b);
     });
   });
 });
 
 
 
-},{"../test-helpers.coffee":104}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],42:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -12929,7 +13160,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":104}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],43:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -12949,7 +13180,7 @@ describe('constantError', function() {
 
 
 
-},{"../../dist/kefir":1}],43:[function(require,module,exports){
+},{"../../dist/kefir":1}],44:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -12969,7 +13200,7 @@ describe('constant', function() {
 
 
 
-},{"../../dist/kefir":1}],44:[function(require,module,exports){
+},{"../../dist/kefir":1}],45:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13170,7 +13401,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":104}],45:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],46:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13244,7 +13475,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":104}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],47:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13354,7 +13585,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":104}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],48:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -13425,7 +13656,7 @@ describe('emitter', function() {
 
 
 
-},{"../../dist/kefir":1}],48:[function(require,module,exports){
+},{"../../dist/kefir":1}],49:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13503,28 +13734,30 @@ describe('endOnError', function() {
     return it('should handle currents', function() {
       var a;
       a = send(prop(), [
-        1, {
+        {
           error: -1
         }
       ]);
       expect(a.endOnError()).toEmit([
         {
-          current: 1
-        }, {
           currentError: -1
         }, '<end:current>'
       ]);
       a = send(prop(), [
-        1, {
+        {
           error: -1
         }, '<end>'
       ]);
       expect(a.endOnError()).toEmit([
         {
-          current: 1
-        }, {
           currentError: -1
         }, '<end:current>'
+      ]);
+      a = send(prop(), [1]);
+      expect(a.endOnError()).toEmit([
+        {
+          current: 1
+        }
       ]);
       a = send(prop(), [1, '<end>']);
       return expect(a.endOnError()).toEmit([
@@ -13538,7 +13771,7 @@ describe('endOnError', function() {
 
 
 
-},{"../test-helpers.coffee":104}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],50:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13653,46 +13886,10 @@ describe('errorsToValues', function() {
           current: 6
         }
       ]);
-      a = send(prop(), [
-        1, {
-          error: 2
-        }
-      ]);
-      expect(a.errorsToValues(handler)).toEmit([
-        {
-          current: 6
-        }
-      ]);
-      a = send(prop(), [
-        {
-          error: 2
-        }, 1
-      ]);
-      expect(a.errorsToValues(handler)).toEmit([
-        {
-          current: 6
-        }
-      ]);
-      a = send(prop(), [
-        {
-          error: -2
-        }
-      ]);
-      expect(a.errorsToValues(handler)).toEmit([
-        {
-          currentError: -2
-        }
-      ]);
-      a = send(prop(), [
-        1, {
-          error: -2
-        }
-      ]);
+      a = send(prop(), [1]);
       return expect(a.errorsToValues(handler)).toEmit([
         {
           current: 1
-        }, {
-          currentError: -2
         }
       ]);
     });
@@ -13701,7 +13898,7 @@ describe('errorsToValues', function() {
 
 
 
-},{"../test-helpers.coffee":104}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],51:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13979,7 +14176,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],52:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14077,7 +14274,7 @@ describe('filterErrors', function() {
     it('should handle events and current', function() {
       var a;
       a = send(prop(), [
-        -1, {
+        {
           error: 5
         }
       ]);
@@ -14085,8 +14282,6 @@ describe('filterErrors', function() {
         return x > 3;
       })).toEmit([
         {
-          current: -1
-        }, {
           currentError: 5
         }, {
           error: 4
@@ -14114,29 +14309,23 @@ describe('filterErrors', function() {
     it('should handle current (not pass)', function() {
       var a;
       a = send(prop(), [
-        1, {
+        {
           error: 0
         }
       ]);
       return expect(a.filterErrors(function(x) {
         return x > 2;
-      })).toEmit([
-        {
-          current: 1
-        }
-      ]);
+      })).toEmit([]);
     });
     return it('shoud use id as default predicate', function() {
       var a;
       a = send(prop(), [
-        -1, {
+        {
           error: 5
         }
       ]);
       expect(a.filterErrors()).toEmit([
         {
-          current: -1
-        }, {
           currentError: 5
         }, {
           error: 4
@@ -14161,22 +14350,18 @@ describe('filterErrors', function() {
         ]);
       });
       a = send(prop(), [
-        1, {
+        {
           error: 0
         }
       ]);
-      return expect(a.filterErrors()).toEmit([
-        {
-          current: 1
-        }
-      ]);
+      return expect(a.filterErrors()).toEmit([]);
     });
   });
 });
 
 
 
-},{"../test-helpers.coffee":104}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],53:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14241,8 +14426,24 @@ describe('filter', function() {
     });
     it('should handle events and current', function() {
       var a;
+      a = send(prop(), [5]);
+      expect(a.filter(function(x) {
+        return x > 2;
+      })).toEmit([
+        {
+          current: 5
+        }, 4, {
+          error: 7
+        }, 3, '<end>'
+      ], function() {
+        return send(a, [
+          4, {
+            error: 7
+          }, 3, 2, 1, '<end>'
+        ]);
+      });
       a = send(prop(), [
-        5, {
+        {
           error: 0
         }
       ]);
@@ -14250,8 +14451,6 @@ describe('filter', function() {
         return x > 2;
       })).toEmit([
         {
-          current: 5
-        }, {
           currentError: 0
         }, 4, {
           error: 7
@@ -14281,15 +14480,9 @@ describe('filter', function() {
     });
     return it('shoud use id as default predicate', function() {
       var a;
-      a = send(prop(), [
-        0, {
-          error: -1
-        }
-      ]);
+      a = send(prop(), [0]);
       expect(a.filter()).toEmit([
-        {
-          currentError: -1
-        }, 4, {
+        4, {
           error: -2
         }, 5, 6, '<end>'
       ], function() {
@@ -14299,16 +14492,10 @@ describe('filter', function() {
           }, 5, 0, 6, '<end>'
         ]);
       });
-      a = send(prop(), [
-        1, {
-          error: -1
-        }
-      ]);
+      a = send(prop(), [1]);
       return expect(a.filter()).toEmit([
         {
           current: 1
-        }, {
-          currentError: -1
         }, 4, {
           error: -2
         }, 5, 6, '<end>'
@@ -14325,7 +14512,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":104}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],54:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14460,7 +14647,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":104}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],55:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14615,7 +14802,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":104}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],56:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14749,7 +14936,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":104}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],57:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14880,7 +15067,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":104}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],58:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15097,7 +15284,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":104}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":104}],59:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15188,11 +15375,7 @@ describe('flatten', function() {
       });
     });
     it('should handle current correctly', function() {
-      return expect(send(prop(), [
-        1, {
-          error: 0
-        }
-      ]).flatten(function(x) {
+      expect(send(prop(), [1]).flatten(function(x) {
         var i, results;
         return (function() {
           results = [];
@@ -15202,7 +15385,14 @@ describe('flatten', function() {
       })).toEmit([
         {
           current: 1
-        }, {
+        }
+      ]);
+      return expect(send(prop(), [
+        {
+          error: 0
+        }
+      ]).flatten(function() {})).toEmit([
+        {
           currentError: 0
         }
       ]);
@@ -15232,178 +15422,6 @@ describe('flatten', function() {
         return send(a, [[2], [], [3, 4], '<end>']);
       });
     });
-  });
-});
-
-
-
-},{"../test-helpers.coffee":104}],59:[function(require,module,exports){
-var Kefir, activate, deactivate, ref;
-
-ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
-
-describe('fromBinder', function() {
-  it('should return stream', function() {
-    return expect(Kefir.fromBinder(function() {})).toBeStream();
-  });
-  it('should not be ended', function() {
-    return expect(Kefir.fromBinder(function() {})).toEmit([]);
-  });
-  it('should emit values, errors, and end', function() {
-    var a, emitter;
-    emitter = null;
-    a = Kefir.fromBinder(function(em) {
-      emitter = em;
-      return null;
-    });
-    return expect(a).toEmit([
-      1, 2, {
-        error: -1
-      }, 3, '<end>'
-    ], function() {
-      emitter.emit(1);
-      emitter.emit(2);
-      emitter.error(-1);
-      emitter.emit(3);
-      return emitter.end();
-    });
-  });
-  it('should call `subscribe` / `unsubscribe` on activation / deactivation', function() {
-    var a, subCount, unsubCount;
-    subCount = 0;
-    unsubCount = 0;
-    a = Kefir.fromBinder(function() {
-      subCount++;
-      return function() {
-        return unsubCount++;
-      };
-    });
-    expect(subCount).toBe(0);
-    expect(unsubCount).toBe(0);
-    activate(a);
-    expect(subCount).toBe(1);
-    activate(a);
-    expect(subCount).toBe(1);
-    deactivate(a);
-    expect(unsubCount).toBe(0);
-    deactivate(a);
-    expect(unsubCount).toBe(1);
-    expect(subCount).toBe(1);
-    activate(a);
-    expect(subCount).toBe(2);
-    expect(unsubCount).toBe(1);
-    deactivate(a);
-    return expect(unsubCount).toBe(2);
-  });
-  it('should automatically controll isCurent argument in `send`', function() {
-    expect(Kefir.fromBinder(function(emitter) {
-      emitter.end();
-      return null;
-    })).toEmit(['<end:current>']);
-    return expect(Kefir.fromBinder(function(emitter) {
-      emitter.emit(1);
-      emitter.error(-1);
-      emitter.emit(2);
-      setTimeout(function() {
-        emitter.emit(2);
-        return emitter.end();
-      }, 1000);
-      return null;
-    })).toEmitInTime([
-      [
-        0, {
-          current: 1
-        }
-      ], [
-        0, {
-          currentError: -1
-        }
-      ], [
-        0, {
-          current: 2
-        }
-      ], [1000, 2], [1000, '<end>']
-    ]);
-  });
-  it('should support emitter.emitEvent', function() {
-    return expect(Kefir.fromBinder(function(emitter) {
-      emitter.emitEvent({
-        type: 'value',
-        value: 1,
-        current: true
-      });
-      emitter.emitEvent({
-        type: 'error',
-        value: -1,
-        current: false
-      });
-      emitter.emitEvent({
-        type: 'value',
-        value: 2,
-        current: false
-      });
-      setTimeout(function() {
-        emitter.emitEvent({
-          type: 'value',
-          value: 3,
-          current: true
-        });
-        emitter.emitEvent({
-          type: 'value',
-          value: 4,
-          current: false
-        });
-        return emitter.emitEvent({
-          type: 'end',
-          value: void 0,
-          current: false
-        });
-      }, 1000);
-      return null;
-    })).toEmitInTime([
-      [
-        0, {
-          current: 1
-        }
-      ], [
-        0, {
-          currentError: -1
-        }
-      ], [
-        0, {
-          current: 2
-        }
-      ], [1000, 3], [1000, 4], [1000, '<end>']
-    ]);
-  });
-  return it('should work with .take(1) and sync emit', function() {
-    var a, log, subCalls, unsubCalls;
-    subCalls = 0;
-    unsubCalls = 0;
-    log = [];
-    a = Kefir.fromBinder(function(emitter) {
-      var logRecord;
-      logRecord = {
-        sub: 1,
-        unsub: 0
-      };
-      log.push(logRecord);
-      emitter.emit(1);
-      return function() {
-        return logRecord.unsub++;
-      };
-    });
-    a.take(1).onValue(function() {});
-    a.take(1).onValue(function() {});
-    return expect(log).toEqual([
-      {
-        sub: 1,
-        unsub: 1
-      }, {
-        sub: 1,
-        unsub: 1
-      }
-    ]);
   });
 });
 
@@ -15477,7 +15495,7 @@ var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
 
-describe('fromEvent', function() {
+describe('fromEvents', function() {
   var domTarget, nodeTarget, onOffTarget;
   domTarget = function() {
     return {
@@ -15516,29 +15534,29 @@ describe('fromEvent', function() {
     };
   };
   it('should return stream', function() {
-    return expect(Kefir.fromEvent(domTarget(), 'foo')).toBeStream();
+    return expect(Kefir.fromEvents(domTarget(), 'foo')).toBeStream();
   });
   it('should not be ended', function() {
-    return expect(Kefir.fromEvent(domTarget(), 'foo')).toEmit([]);
+    return expect(Kefir.fromEvents(domTarget(), 'foo')).toEmit([]);
   });
   it('should subscribe/unsubscribe from target', function() {
     var a, target;
     target = domTarget();
-    a = Kefir.fromEvent(target, 'foo');
+    a = Kefir.fromEvents(target, 'foo');
     expect(target.fooListener).toBeUndefined();
     activate(a);
     expect(target.fooListener).toEqual(jasmine.any(Function));
     deactivate(a);
     expect(target.fooListener).toBeUndefined();
     target = onOffTarget();
-    a = Kefir.fromEvent(target, 'foo');
+    a = Kefir.fromEvents(target, 'foo');
     expect(target.fooListener).toBeUndefined();
     activate(a);
     expect(target.fooListener).toEqual(jasmine.any(Function));
     deactivate(a);
     expect(target.fooListener).toBeUndefined();
     target = nodeTarget();
-    a = Kefir.fromEvent(target, 'foo');
+    a = Kefir.fromEvents(target, 'foo');
     expect(target.fooListener).toBeUndefined();
     activate(a);
     expect(target.fooListener).toEqual(jasmine.any(Function));
@@ -15548,21 +15566,21 @@ describe('fromEvent', function() {
   it('should emit values', function() {
     var a, target;
     target = domTarget();
-    a = Kefir.fromEvent(target, 'foo');
+    a = Kefir.fromEvents(target, 'foo');
     expect(a).toEmit([1, 2, 3], function() {
       target.fooListener(1);
       target.fooListener(2);
       return target.fooListener(3);
     });
     target = nodeTarget();
-    a = Kefir.fromEvent(target, 'foo');
+    a = Kefir.fromEvents(target, 'foo');
     expect(a).toEmit([1, 2, 3], function() {
       target.fooListener(1);
       target.fooListener(2);
       return target.fooListener(3);
     });
     target = onOffTarget();
-    a = Kefir.fromEvent(target, 'foo');
+    a = Kefir.fromEvents(target, 'foo');
     return expect(a).toEmit([1, 2, 3], function() {
       target.fooListener(1);
       target.fooListener(2);
@@ -15572,7 +15590,7 @@ describe('fromEvent', function() {
   return it('should accept optional transformer and call it properly', function() {
     var a, target;
     target = domTarget();
-    a = Kefir.fromEvent(target, 'foo', function(a, b) {
+    a = Kefir.fromEvents(target, 'foo', function(a, b) {
       return [this, a, b];
     });
     return expect(a).toEmit([
@@ -15940,6 +15958,178 @@ describe('interval', function() {
 
 
 },{"../../dist/kefir":1}],67:[function(require,module,exports){
+var Kefir, activate, deactivate, ref;
+
+ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
+
+describe('Kefir.stream', function() {
+  it('should return stream', function() {
+    return expect(Kefir.stream(function() {})).toBeStream();
+  });
+  it('should not be ended', function() {
+    return expect(Kefir.stream(function() {})).toEmit([]);
+  });
+  it('should emit values, errors, and end', function() {
+    var a, emitter;
+    emitter = null;
+    a = Kefir.stream(function(em) {
+      emitter = em;
+      return null;
+    });
+    return expect(a).toEmit([
+      1, 2, {
+        error: -1
+      }, 3, '<end>'
+    ], function() {
+      emitter.emit(1);
+      emitter.emit(2);
+      emitter.error(-1);
+      emitter.emit(3);
+      return emitter.end();
+    });
+  });
+  it('should call `subscribe` / `unsubscribe` on activation / deactivation', function() {
+    var a, subCount, unsubCount;
+    subCount = 0;
+    unsubCount = 0;
+    a = Kefir.stream(function() {
+      subCount++;
+      return function() {
+        return unsubCount++;
+      };
+    });
+    expect(subCount).toBe(0);
+    expect(unsubCount).toBe(0);
+    activate(a);
+    expect(subCount).toBe(1);
+    activate(a);
+    expect(subCount).toBe(1);
+    deactivate(a);
+    expect(unsubCount).toBe(0);
+    deactivate(a);
+    expect(unsubCount).toBe(1);
+    expect(subCount).toBe(1);
+    activate(a);
+    expect(subCount).toBe(2);
+    expect(unsubCount).toBe(1);
+    deactivate(a);
+    return expect(unsubCount).toBe(2);
+  });
+  it('should automatically controll isCurent argument in `send`', function() {
+    expect(Kefir.stream(function(emitter) {
+      emitter.end();
+      return null;
+    })).toEmit(['<end:current>']);
+    return expect(Kefir.stream(function(emitter) {
+      emitter.emit(1);
+      emitter.error(-1);
+      emitter.emit(2);
+      setTimeout(function() {
+        emitter.emit(2);
+        return emitter.end();
+      }, 1000);
+      return null;
+    })).toEmitInTime([
+      [
+        0, {
+          current: 1
+        }
+      ], [
+        0, {
+          currentError: -1
+        }
+      ], [
+        0, {
+          current: 2
+        }
+      ], [1000, 2], [1000, '<end>']
+    ]);
+  });
+  it('should support emitter.emitEvent', function() {
+    return expect(Kefir.stream(function(emitter) {
+      emitter.emitEvent({
+        type: 'value',
+        value: 1,
+        current: true
+      });
+      emitter.emitEvent({
+        type: 'error',
+        value: -1,
+        current: false
+      });
+      emitter.emitEvent({
+        type: 'value',
+        value: 2,
+        current: false
+      });
+      setTimeout(function() {
+        emitter.emitEvent({
+          type: 'value',
+          value: 3,
+          current: true
+        });
+        emitter.emitEvent({
+          type: 'value',
+          value: 4,
+          current: false
+        });
+        return emitter.emitEvent({
+          type: 'end',
+          value: void 0,
+          current: false
+        });
+      }, 1000);
+      return null;
+    })).toEmitInTime([
+      [
+        0, {
+          current: 1
+        }
+      ], [
+        0, {
+          currentError: -1
+        }
+      ], [
+        0, {
+          current: 2
+        }
+      ], [1000, 3], [1000, 4], [1000, '<end>']
+    ]);
+  });
+  return it('should work with .take(1) and sync emit', function() {
+    var a, log, subCalls, unsubCalls;
+    subCalls = 0;
+    unsubCalls = 0;
+    log = [];
+    a = Kefir.stream(function(emitter) {
+      var logRecord;
+      logRecord = {
+        sub: 1,
+        unsub: 0
+      };
+      log.push(logRecord);
+      emitter.emit(1);
+      return function() {
+        return logRecord.unsub++;
+      };
+    });
+    a.take(1).onValue(function() {});
+    a.take(1).onValue(function() {});
+    return expect(log).toEqual([
+      {
+        sub: 1,
+        unsub: 1
+      }, {
+        sub: 1,
+        unsub: 1
+      }
+    ]);
+  });
+});
+
+
+
+},{"../test-helpers.coffee":104}],68:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -15955,94 +16145,7 @@ describe('later', function() {
 
 
 
-},{"../../dist/kefir":1}],68:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-describe('mapEnd', function() {
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(stream().mapEnd(function() {})).toBeStream();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(a.mapEnd(function() {})).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).mapEnd(function() {
-        return 42;
-      })).toEmit([
-        {
-          current: 42
-        }, '<end:current>'
-      ]);
-    });
-    it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(a.mapEnd(function() {
-        return 42;
-      })).toEmit([1, 2, 42, '<end>'], function() {
-        return send(a, [1, 2, '<end>']);
-      });
-    });
-    return it('errors should flow', function() {
-      var a;
-      a = stream();
-      return expect(a.mapEnd(function() {})).errorsToFlow(a);
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().mapEnd(function() {})).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(a.mapEnd(function() {})).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      expect(send(prop(), ['<end>']).mapEnd(function() {
-        return 42;
-      })).toEmit([
-        {
-          current: 42
-        }, '<end:current>'
-      ]);
-      return expect(send(prop(), [1, '<end>']).mapEnd(function() {
-        return 42;
-      })).toEmit([
-        {
-          current: 42
-        }, '<end:current>'
-      ]);
-    });
-    it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [1]);
-      return expect(a.mapEnd(function() {
-        return 42;
-      })).toEmit([
-        {
-          current: 1
-        }, 2, 3, 42, '<end>'
-      ], function() {
-        return send(a, [2, 3, '<end>']);
-      });
-    });
-    return it('errors should flow', function() {
-      var a;
-      a = prop();
-      return expect(a.mapEnd(function() {})).errorsToFlow(a);
-    });
-  });
-});
-
-
-
-},{"../test-helpers.coffee":104}],69:[function(require,module,exports){
+},{"../../dist/kefir":1}],69:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16096,8 +16199,28 @@ describe('mapErrors', function() {
     });
     return it('should handle events and current', function() {
       var a;
+      a = send(prop(), [1]);
+      expect(a.mapErrors(function(x) {
+        return x * 2;
+      })).toEmit([
+        {
+          current: 1
+        }, 2, {
+          error: -4
+        }, 3, {
+          error: -6
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: -2
+          }, 3, {
+            error: -3
+          }, '<end>'
+        ]);
+      });
       a = send(prop(), [
-        1, {
+        {
           error: -1
         }
       ]);
@@ -16105,8 +16228,6 @@ describe('mapErrors', function() {
         return x * 2;
       })).toEmit([
         {
-          current: 1
-        }, {
           currentError: -2
         }, 2, {
           error: -4
@@ -16178,8 +16299,24 @@ describe('map', function() {
     });
     return it('should handle events and current', function() {
       var a;
+      a = send(prop(), [1]);
+      expect(a.map(function(x) {
+        return x * 2;
+      })).toEmit([
+        {
+          current: 2
+        }, 4, {
+          error: 5
+        }, 6, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: 5
+          }, 3, '<end>'
+        ]);
+      });
       a = send(prop(), [
-        1, {
+        {
           error: 0
         }
       ]);
@@ -16187,8 +16324,6 @@ describe('map', function() {
         return x * 2;
       })).toEmit([
         {
-          current: 2
-        }, {
           currentError: 0
         }, 4, {
           error: 5
@@ -16655,7 +16790,7 @@ describe('Property', function() {
       send(s, [1]);
       return expect(count).toBe(1);
     });
-    return it('onEnd subscribers should be called with 0 arguments', function() {
+    it('onEnd subscribers should be called with 0 arguments', function() {
       var count, s;
       s = send(prop(), [0]);
       count = null;
@@ -16668,6 +16803,31 @@ describe('Property', function() {
         return count = arguments.length;
       });
       return expect(count).toBe(0);
+    });
+    return it('can\'t have current value and error at same time', function() {
+      var p;
+      p = send(prop(), [0]);
+      expect(p).toEmit([
+        {
+          current: 0
+        }
+      ]);
+      send(p, [
+        {
+          error: 1
+        }
+      ]);
+      expect(p).toEmit([
+        {
+          currentError: 1
+        }
+      ]);
+      send(p, [2]);
+      return expect(p).toEmit([
+        {
+          current: 2
+        }
+      ]);
     });
   });
 });
@@ -17072,16 +17232,6 @@ describe('sampledBy', function() {
     b = prop();
     c = stream();
     d = prop();
-    expect(Kefir.sampledBy([a, b], [c, d])).errorsToFlow(a);
-    a = stream();
-    b = prop();
-    c = stream();
-    d = prop();
-    expect(Kefir.sampledBy([a, b], [c, d])).errorsToFlow(b);
-    a = stream();
-    b = prop();
-    c = stream();
-    d = prop();
     expect(Kefir.sampledBy([a, b], [c, d])).errorsToFlow(c);
     a = stream();
     b = prop();
@@ -17425,10 +17575,20 @@ describe('skipErrors', function() {
     return it('should handle events and current', function() {
       var a;
       a = send(prop(), [
-        1, {
+        {
           error: -1
         }
       ]);
+      expect(a.skipErrors()).toEmit([2, 3, '<end>'], function() {
+        return send(a, [
+          2, {
+            error: -2
+          }, 3, {
+            error: -3
+          }, '<end>'
+        ]);
+      });
+      a = send(prop(), [1]);
       return expect(a.skipErrors()).toEmit([
         {
           current: 1
@@ -20161,13 +20321,16 @@ describe('timestamp', function() {
 
 
 },{"../test-helpers.coffee":104}],98:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
+var Kefir, activate, deactivate, prop, ref, send, stream;
 
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
 
 describe('toProperty', function() {
   describe('stream', function() {
     it('should return property', function() {
+      expect(stream().toProperty(function() {
+        return 0;
+      })).toBeProperty();
       return expect(stream().toProperty()).toBeProperty();
     });
     it('should activate/deactivate source', function() {
@@ -20179,16 +20342,20 @@ describe('toProperty', function() {
       return expect(send(stream(), ['<end>']).toProperty()).toEmit(['<end:current>']);
     });
     it('should be ended if source was ended (with current)', function() {
-      return expect(send(stream(), ['<end>']).toProperty(0)).toEmit([
+      return expect(send(stream(), ['<end>']).toProperty(function() {
+        return 0;
+      })).toEmit([
         {
           current: 0
         }, '<end:current>'
       ]);
     });
-    return it('should handle events', function() {
+    it('should handle events', function() {
       var a, p;
       a = stream();
-      p = a.toProperty(0);
+      p = a.toProperty(function() {
+        return 0;
+      });
       expect(p).toEmit([
         {
           current: 0
@@ -20205,28 +20372,72 @@ describe('toProperty', function() {
       return expect(p).toEmit([
         {
           current: 2
-        }, {
-          currentError: 3
         }, '<end:current>'
       ]);
+    });
+    it('should call callback on each activation', function() {
+      var a, count, p;
+      count = 0;
+      a = stream();
+      p = a.toProperty(function() {
+        return count++;
+      });
+      activate(p);
+      expect(count).toBe(1);
+      deactivate(p);
+      expect(count).toBe(1);
+      activate(p);
+      return expect(count).toBe(2);
+    });
+    return it('should reset value by getting new from the callback on each activation', function() {
+      var a, getCurrent, p;
+      getCurrent = function(p) {
+        var getter, result;
+        result = null;
+        getter = function(x) {
+          return result = x;
+        };
+        p.onValue(getter);
+        p.offValue(getter);
+        return result;
+      };
+      a = stream();
+      p = a.toProperty(function() {
+        return 0;
+      });
+      expect(getCurrent(p)).toBe(0);
+      activate(p);
+      send(a, [1]);
+      expect(getCurrent(p)).toBe(1);
+      deactivate(p);
+      return expect(getCurrent(p)).toBe(0);
     });
   });
   return describe('property', function() {
     it('should return property', function() {
-      return expect(prop().toProperty(0)).toBeProperty();
+      expect(prop().toProperty(function() {
+        return 0;
+      })).toBeProperty();
+      return expect(prop().toProperty()).toBeProperty();
     });
     it('should activate/deactivate source', function() {
       var a;
       a = prop();
-      return expect(a.toProperty(0)).toActivate(a);
+      return expect(a.toProperty(function() {
+        return 0;
+      })).toActivate(a);
     });
     it('should be ended if source was ended', function() {
-      expect(send(prop(), ['<end>']).toProperty(0)).toEmit([
+      expect(send(prop(), ['<end>']).toProperty(function() {
+        return 0;
+      })).toEmit([
         {
           current: 0
         }, '<end:current>'
       ]);
-      return expect(send(prop(), [1, '<end>']).toProperty(0)).toEmit([
+      return expect(send(prop(), [1, '<end>']).toProperty(function() {
+        return 0;
+      })).toEmit([
         {
           current: 1
         }, '<end:current>'
@@ -20235,7 +20446,9 @@ describe('toProperty', function() {
     it('should handle events', function() {
       var a, b;
       a = send(prop(), [1]);
-      b = a.toProperty(0);
+      b = a.toProperty(function() {
+        return 0;
+      });
       expect(b).toEmit([
         {
           current: 1
@@ -20251,31 +20464,29 @@ describe('toProperty', function() {
       });
       expect(b).toEmit([
         {
-          current: 2
-        }, {
           currentError: 3
         }, '<end:current>'
       ]);
       a = prop();
-      b = a.toProperty(0);
+      b = a.toProperty(function() {
+        return 0;
+      });
       expect(b).toEmit([
         {
           current: 0
         }, 2, {
           error: 3
-        }, '<end>'
+        }, 4, '<end>'
       ], function() {
         return send(a, [
           2, {
             error: 3
-          }, '<end>'
+          }, 4, '<end>'
         ]);
       });
       return expect(b).toEmit([
         {
-          current: 2
-        }, {
-          currentError: 3
+          current: 4
         }, '<end:current>'
       ]);
     });
@@ -20528,15 +20739,27 @@ describe('transduce', function() {
       });
       return it('should handle events and current', function() {
         var a;
+        a = send(prop(), [1]);
+        expect(a.transduce(noop)).toEmit([
+          {
+            current: 1
+          }, 2, {
+            error: 4
+          }, 3, '<end>'
+        ], function() {
+          return send(a, [
+            2, {
+              error: 4
+            }, 3, '<end>'
+          ]);
+        });
         a = send(prop(), [
-          1, {
+          {
             error: 0
           }
         ]);
         return expect(a.transduce(noop)).toEmit([
           {
-            current: 1
-          }, {
             currentError: 0
           }, 2, {
             error: 4
@@ -20673,44 +20896,12 @@ describe('valuesToErrors', function() {
         }
       ]);
       a = send(prop(), [
-        -5, {
-          error: -2
-        }
-      ]);
-      expect(a.valuesToErrors(handler)).toEmit([
         {
-          currentError: -2
-        }
-      ]);
-      a = send(prop(), [
-        {
-          error: -2
-        }, -5
-      ]);
-      expect(a.valuesToErrors(handler)).toEmit([
-        {
-          currentError: -2
-        }
-      ]);
-      a = send(prop(), [
-        {
-          error: -2
-        }
-      ]);
-      expect(a.valuesToErrors(handler)).toEmit([
-        {
-          currentError: -2
-        }
-      ]);
-      a = send(prop(), [
-        1, {
           error: -2
         }
       ]);
       return expect(a.valuesToErrors(handler)).toEmit([
         {
-          current: 1
-        }, {
           currentError: -2
         }
       ]);
@@ -20828,15 +21019,29 @@ describe('withHandler', function() {
     });
     it('should handle events and current (with `duplicate` handler)', function() {
       var a;
+      a = send(prop(), [1]);
+      expect(a.withHandler(duplicate)).toEmit([
+        {
+          current: 1
+        }, 2, 2, {
+          error: 4
+        }, {
+          error: 4
+        }, 3, 3, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: 4
+          }, 3, '<end>'
+        ]);
+      });
       a = send(prop(), [
-        1, {
+        {
           error: 0
         }
       ]);
       return expect(a.withHandler(duplicate)).toEmit([
         {
-          current: 1
-        }, {
           currentError: 0
         }, 2, 2, {
           error: 4
@@ -20853,16 +21058,10 @@ describe('withHandler', function() {
     });
     it('should support emitter.emitEvent', function() {
       var a;
-      a = send(prop(), [
-        1, {
-          error: 0
-        }
-      ]);
-      return expect(a.withHandler(emitEventMirror)).toEmit([
+      a = send(prop(), [1]);
+      expect(a.withHandler(emitEventMirror)).toEmit([
         {
           current: 1
-        }, {
-          currentError: 0
         }, 2, {
           error: 4
         }, 3, '<end>'
@@ -20873,6 +21072,15 @@ describe('withHandler', function() {
           }, 3, '<end>'
         ]);
       });
+      return expect(send(prop(), [
+        {
+          error: -1
+        }
+      ]).withHandler(emitEventMirror)).toEmit([
+        {
+          currentError: -1
+        }
+      ]);
     });
     it('should automatically preserve isCurent (end)', function() {
       var a;
@@ -21187,9 +21395,13 @@ describe('zip', function() {
   return it('should work correctly when unsuscribing after one sync event', function() {
     var a, a0, b, b0, c, c1;
     a0 = stream();
-    a = a0.toProperty(1);
+    a = a0.toProperty(function() {
+      return 1;
+    });
     b0 = stream();
-    b = b0.toProperty(1);
+    b = b0.toProperty(function() {
+      return 1;
+    });
     c = Kefir.zip([a, b]);
     activate(c1 = c.take(2));
     send(b0, [1, 1]);

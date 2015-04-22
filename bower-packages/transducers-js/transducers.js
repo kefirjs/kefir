@@ -1,4 +1,4 @@
-// transducers-js 0.4.158
+// transducers-js 0.4.164
 // http://github.com/cognitect-labs/transducers-js
 // 
 // Copyright 2014-2015 Cognitect. All Rights Reserved.
@@ -1055,6 +1055,13 @@ com.cognitect.transducers.reduce = function(a, b, c) {
   }
 };
 com.cognitect.transducers.transduce = function(a, b, c, d) {
+  if (3 == arguments.length) {
+    d = c;
+    if ("function" == typeof b) {
+      throw Error("If given only three arguments f must satisfy the ITransformer interface.");
+    }
+    c = b["@@transducer/init"]();
+  }
   b = "function" == typeof b ? com.cognitect.transducers.wrap(b) : b;
   a = a(b);
   return com.cognitect.transducers.reduce(a, c, d);

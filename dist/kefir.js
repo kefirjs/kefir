@@ -1,4 +1,4 @@
-/*! Kefir.js v1.3.1
+/*! Kefir.js v2.0.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -277,6 +277,14 @@ function strictEqual(a, b) {
 
 function defaultDiff(a, b) {
   return [a, b];
+}
+
+function returnsFalse() {
+  return false;
+}
+
+function returnsTrue() {
+  return true;
 }
 
 var now = Date.now ?
@@ -779,8 +787,7 @@ inherit(Stream, Observable, {
 
 function Property() {
   Observable.call(this);
-  this._current = NOTHING;
-  this._currentError = NOTHING;
+  this._currentEvent = null;
 }
 Kefir.Property = Property;
 
@@ -793,11 +800,8 @@ inherit(Property, Observable, {
       if (!isCurrent) {
         this._dispatcher.dispatch(Event(type, x));
       }
-      if (type === VALUE) {
-        this._current = x;
-      }
-      if (type === ERROR) {
-        this._currentError = x;
+      if (type === VALUE || type === ERROR) {
+        this._currentEvent = Event(type, x, true);
       }
       if (type === END) {
         this._clear();
@@ -810,11 +814,8 @@ inherit(Property, Observable, {
       this._dispatcher.add(type, fn);
       this._setActive(true);
     }
-    if (this._current !== NOTHING) {
-      callSubscriber(type, fn, Event(VALUE, this._current, true));
-    }
-    if (this._currentError !== NOTHING) {
-      callSubscriber(type, fn, Event(ERROR, this._currentError, true));
+    if (this._currentEvent !== null) {
+      callSubscriber(type, fn, this._currentEvent);
     }
     if (!this._alive) {
       callSubscriber(type, fn, CURRENT_END);
@@ -1294,9 +1295,9 @@ inherit(Bus, _AbstractPool, {
 
 });
 
-Kefir.bus = function() {
+Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function() {
   return new Bus();
-};
+});
 
 
 
@@ -1527,6 +1528,18 @@ Observable.prototype.zip = function(other, combinator) {
 
 // .combine()
 
+function defaultErrorsCombinator(errors) {
+  var latestError;
+  for (var i = 0; i < errors.length; i++) {
+    if (errors[i] !== undefined) {
+      if (latestError === undefined || latestError.index < errors[i].index) {
+        latestError = errors[i];
+      }
+    }
+  }
+  return latestError.error;
+}
+
 function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
@@ -1536,11 +1549,13 @@ function Combine(active, passive, combinator) {
     this._sources = concat(active, passive);
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
-    this._currents = new Array(this._sources.length);
-    fillArray(this._currents, NOTHING);
+    this._latestValues = new Array(this._sources.length);
+    this._latestErrors = new Array(this._sources.length);
+    fillArray(this._latestValues, NOTHING);
     this._activating = false;
     this._emitAfterActivation = false;
     this._endAfterActivation = false;
+    this._latestErrorIndex = 0;
 
     this._bindedHandlers = Array(this._sources.length);
     for (var i = 0; i < this._sources.length; i++) {
@@ -1582,10 +1597,30 @@ inherit(Combine, Stream, {
   },
 
   _emitIfFull: function(isCurrent) {
-    if (!contains(this._currents, NOTHING)) {
-      var combined = cloneArray(this._currents);
-      combined = this._combinator(combined);
-      this._send(VALUE, combined, isCurrent);
+    var hasAllValues = true;
+    var hasErrors = false;
+    var length = this._latestValues.length;
+    var valuesCopy = new Array(length);
+    var errorsCopy = new Array(length);;
+
+    for (var i = 0; i < length; i++) {
+      valuesCopy[i] = this._latestValues[i];
+      errorsCopy[i] = this._latestErrors[i];
+
+      if (valuesCopy[i] === NOTHING) {
+        hasAllValues = false;
+      }
+
+      if (errorsCopy[i] !== undefined) {
+        hasErrors = true;
+      }
+    }
+
+    if (hasAllValues) {
+      this._send(VALUE, this._combinator(valuesCopy), isCurrent);
+    }
+    if (hasErrors) {
+      this._send(ERROR, defaultErrorsCombinator(errorsCopy), isCurrent);
     }
   },
 
@@ -1597,8 +1632,21 @@ inherit(Combine, Stream, {
   },
 
   _handleAny: function(i, event) {
-    if (event.type === VALUE) {
-      this._currents[i] = event.value;
+
+    if (event.type === VALUE || event.type === ERROR) {
+
+      if (event.type === VALUE) {
+        this._latestValues[i] = event.value;
+        this._latestErrors[i] = undefined;
+      }
+      if (event.type === ERROR) {
+        this._latestValues[i] = NOTHING;
+        this._latestErrors[i] = {
+          index: this._latestErrorIndex++,
+          error: event.value
+        };
+      }
+
       if (i < this._activeCount) {
         if (this._activating) {
           this._emitAfterActivation = true;
@@ -1606,11 +1654,9 @@ inherit(Combine, Stream, {
           this._emitIfFull(event.current);
         }
       }
-    }
-    if (event.type === ERROR) {
-      this._send(ERROR, event.value, event.current);
-    }
-    if (event.type === END) {
+
+    } else { // END
+
       if (i < this._activeCount) {
         this._aliveCount--;
         if (this._aliveCount === 0) {
@@ -1621,13 +1667,15 @@ inherit(Combine, Stream, {
           }
         }
       }
+
     }
   },
 
   _clear: function() {
     Stream.prototype._clear.call(this);
     this._sources = null;
-    this._currents = null;
+    this._latestValues = null;
+    this._latestErrors = null;
     this._combinator = null;
     this._bindedHandlers = null;
   }
@@ -1697,11 +1745,28 @@ function produceProperty(StreamClass, PropertyClass) {
 // .toProperty()
 
 withOneSource('toProperty', {
+
   _init: function(args) {
-    if (args.length > 0) {
-      this._send(VALUE, args[0]);
+    if (args[0] !== undefined) {
+      if (isFn(args[0])) {
+        this._getInitialCurrent = args[0];
+      } else {
+        throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
+      }
+    } else {
+      this._getInitialCurrent = null;
     }
+  },
+
+  // redefining `_onActivation` from `withOneSource`
+  _onActivation: function() {
+    if (this._getInitialCurrent !== null) {
+      var fn = this._getInitialCurrent;
+      this._send(VALUE, fn(), true);
+    }
+    this._source.onAny(this._$handleAny); // copied from `withOneSource` impl of `_onActivation`
   }
+
 }, {propertyMethod: produceProperty, streamMethod: produceProperty});
 
 
@@ -1722,11 +1787,7 @@ withOneSource('changes', {
     }
   }
 }, {
-  streamMethod: function() {
-    return function() {
-      return this;
-    };
-  },
+  streamMethod: produceStream,
   propertyMethod: produceStream
 });
 
@@ -1794,60 +1855,36 @@ withOneSource('flatten', {
 
 // .transduce(transducer)
 
-var TRANSFORM_METHODS_OLD = {
-  step: 'step',
-  result: 'result'
-};
-
-var TRANSFORM_METHODS_NEW = {
-  step: '@@transducer/step',
-  result: '@@transducer/result'
-};
-
-
 function xformForObs(obs) {
-  function step(res, input) {
-    obs._send(VALUE, input, obs._forcedCurrent);
-    return null;
-  }
-  function result(res) {
-    obs._send(END, null, obs._forcedCurrent);
-    return null;
-  }
   return {
-    step: step,
-    result: result,
-    '@@transducer/step': step,
-    '@@transducer/result': result
+    '@@transducer/step': function(res, input) {
+      obs._send(VALUE, input, obs._forcedCurrent);
+      return null;
+    },
+    '@@transducer/result': function(res) {
+      obs._send(END, null, obs._forcedCurrent);
+      return null;
+    }
   };
 }
 
 withOneSource('transduce', {
   _init: function(args) {
-    var xf = args[0](xformForObs(this));
-    if (isFn(xf[TRANSFORM_METHODS_NEW.step]) && isFn(xf[TRANSFORM_METHODS_NEW.result])) {
-      this._transformMethods = TRANSFORM_METHODS_NEW;
-    } else if (isFn(xf[TRANSFORM_METHODS_OLD.step]) && isFn(xf[TRANSFORM_METHODS_OLD.result])) {
-      this._transformMethods = TRANSFORM_METHODS_OLD;
-    } else {
-      throw new Error('Unsuported transducers protocol');
-    }
-    this._xform = xf;
+    this._xform = args[0](xformForObs(this));
   },
   _free: function() {
     this._xform = null;
-    this._transformMethods = null;
   },
   _handleValue: function(x, isCurrent) {
     this._forcedCurrent = isCurrent;
-    if (this._xform[this._transformMethods.step](null, x) !== null) {
-      this._xform[this._transformMethods.result](null);
+    if (this._xform['@@transducer/step'](null, x) !== null) {
+      this._xform['@@transducer/result'](null);
     }
     this._forcedCurrent = false;
   },
   _handleEnd: function(__, isCurrent) {
     this._forcedCurrent = isCurrent;
-    this._xform[this._transformMethods.result](null);
+    this._xform['@@transducer/result'](null);
     this._forcedCurrent = false;
   }
 });
@@ -2131,8 +2168,8 @@ withOneSource('scan', {
     this._fn = null;
   },
   _handleValue: function(x, isCurrent) {
-    if (this._current !== NOTHING) {
-      x = this._fn(this._current, x);
+    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
+      x = this._fn(this._currentEvent.value, x);
     }
     this._send(VALUE, x, isCurrent);
   }
@@ -2167,9 +2204,9 @@ withOneSource('reduce', {
 
 
 
-// .mapEnd(fn)
+// .beforeEnd(fn)
 
-withOneSource('mapEnd', {
+withOneSource('beforeEnd', {
   _init: function(args) {
     this._fn = args[0];
   },
@@ -2451,17 +2488,17 @@ withOneSource('delay', {
   }
 });
 
-// Kefir.fromBinder(fn)
+// Kefir.stream(fn)
 
-function FromBinder(fn) {
+function StreamStream(fn) {
   Stream.call(this);
   this._fn = fn;
   this._unsubscribe = null;
 }
 
-inherit(FromBinder, Stream, {
+inherit(StreamStream, Stream, {
 
-  _name: 'fromBinder',
+  _name: 'stream',
 
   _onActivation: function() {
     var $ = this
@@ -2504,8 +2541,8 @@ inherit(FromBinder, Stream, {
 
 });
 
-Kefir.fromBinder = function(fn) {
-  return new FromBinder(fn);
+Kefir.stream = function(fn) {
+  return new StreamStream(fn);
 };
 
 
@@ -2538,9 +2575,9 @@ inherit(Emitter, Stream, {
   }
 });
 
-Kefir.emitter = function() {
+Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function() {
   return new Emitter();
-};
+});
 
 Kefir.Emitter = Emitter;
 
@@ -2821,9 +2858,9 @@ Observable.prototype.not = deprecated(
 
 Observable.prototype.awaiting = function(other) {
   return Kefir.merge([
-    this.mapTo(true),
-    other.mapTo(false)
-  ]).skipDuplicates().toProperty(false).setName(this, 'awaiting');
+    this.map(returnsTrue),
+    other.map(returnsFalse)
+  ]).skipDuplicates().toProperty(returnsFalse).setName(this, 'awaiting');
 };
 
 
@@ -2833,7 +2870,7 @@ Observable.prototype.awaiting = function(other) {
 
 Kefir.fromCallback = function(callbackConsumer) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(x) {
         emitter.emit(x);
@@ -2851,7 +2888,7 @@ Kefir.fromCallback = function(callbackConsumer) {
 
 Kefir.fromNodeCallback = function(callbackConsumer) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(error, x) {
         if (error) {
@@ -2873,7 +2910,7 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
 
 Kefir.fromPromise = function(promise) {
   var called = false;
-  return Kefir.fromBinder(function(emitter) {
+  return Kefir.stream(function(emitter) {
     if (!called) {
       var onValue = function(x) {
         emitter.emit(x);
@@ -2902,8 +2939,8 @@ Kefir.fromPromise = function(promise) {
 
 // .fromSubUnsub
 
-Kefir.fromSubUnsub = function(sub, unsub, transformer) {
-  return Kefir.fromBinder(function(emitter) {
+function fromSubUnsub(sub, unsub, transformer) {
+  return Kefir.stream(function(emitter) {
     var handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
     } : emitter.emit;
@@ -2912,12 +2949,14 @@ Kefir.fromSubUnsub = function(sub, unsub, transformer) {
       unsub(handler);
     };
   });
-};
+}
+
+Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
 
 
 
 
-// .fromEvent
+// .fromEvents
 
 var subUnsubPairs = [
   ['addEventListener', 'removeEventListener'],
@@ -2925,7 +2964,7 @@ var subUnsubPairs = [
   ['on', 'off']
 ];
 
-Kefir.fromEvent = function(target, eventName, transformer) {
+Kefir.fromEvents = function(target, eventName, transformer) {
   var pair, sub, unsub;
 
   for (var i = 0; i < subUnsubPairs.length; i++) {
@@ -2942,7 +2981,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
   }
 
-  return Kefir.fromSubUnsub(
+  return fromSubUnsub(
     function(handler) {
       target[sub](eventName, handler);
     },
@@ -2950,7 +2989,7 @@ Kefir.fromEvent = function(target, eventName, transformer) {
       target[unsub](eventName, handler);
     },
     transformer
-  ).setName('fromEvent');
+  ).setName('fromEvents');
 };
 
 var withTwoSourcesAndBufferMixin = {
