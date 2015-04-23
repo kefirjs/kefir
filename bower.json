@@ -34,22 +34,13 @@
     "!LICENSE.txt"
   ],
   "devDependencies": {
-    "bacon": "0.7.53",
-    "jquery": "1.11.1",
+    "jquery": "2.1.3",
     "jasmine-reporters": "git@github.com:larrymyers/jasmine-reporters.git#0.4.1",
-    "coffeescript": "git@github.com:jashkenas/coffeescript.git#1.9.2",
-    "stats.js": "git@github.com:mrdoob/stats.js.git#r12",
     "transducers-js": "0.4.164"
   },
   "exportsOverride": {
-    "coffeescript": {
-      ".": "extras/*.js"
-    },
     "jasmine-reporters": {
       ".": "src/*.js"
-    },
-    "stats.js": {
-      ".": "build/*.js"
     },
     "transducers-js": {
       ".": "transducers.js"
