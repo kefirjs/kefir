@@ -20,7 +20,6 @@
   };
 
   function execJasmine() {
-    jasmine.getEnv().addReporter(new jasmine.TapReporter());
     jasmineEnv.execute();
   }
 
