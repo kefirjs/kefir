@@ -1,4 +1,4 @@
-## Comparison of public APIs of `Bacon v0.7.49` and `Kefir v1.1.0`
+## Comparison of public APIs of `Bacon v0.7.52` and `Kefir v2.0.0`
 
 
 
@@ -6,9 +6,9 @@
 
 | Bacon | Kefir | Comments |
 | ----- | ----- | -------- |
-| `$.fn.asEventStream(eventName, [selector], [eventTransformer])` | `$.fn.asKefirStream(eventName, [selector], [eventTransformer])` | In Kefir this method available not in core but in separate lib [kefir-jquery](https://github.com/pozadi/kefir-jquery) |
+| `$.fn.asEventStream(eventName, [selector], [eventTransformer])` | Use `Kefir.fromEvents($(...), eventName, [eventTransformer])` | |
 | `Bacon.fromPromise(promise, [abort])` | `Kefir.fromPromise(promise)` | No `abort` option in Kefir, and the result is a Property unlike Stream in Bacon |
-| `Bacon.fromEvent(target, eventName, [eventTransformer])` | `Kefir.fromEvent(target, eventName, [eventTransformer])` |  |
+| `Bacon.fromEvent(target, eventName, [eventTransformer])` | `Kefir.fromEvents(target, eventName, [eventTransformer])` |  |
 | `Bacon.fromCallback(f, [args...])` | `Kefir.fromCallback(fn)` | No `args` argument in Kefir |
 | `Bacon.fromCallback(object, methodName, [args...])` | No alt. |  |
 | `Bacon.fromNodeCallback(f, [args...])` | `Kefir.fromNodeCallback(fn)` | No `args` argument in Kefir |
@@ -18,15 +18,14 @@
 | `Bacon.fromArray(values)` | No alt., considered harmful, try to use `Kefir.sequentially(0, values)` instead |  |
 | `Bacon.interval(interval, value)` | `Kefir.interval(interval, value)` |  |
 | `Bacon.sequentially(interval, values)` | `Kefir.sequentially(interval, values)` |  |
-| `Bacon.repeatedly(interval, values)` | `Kefir.repeatedly(interval, values)` |  |
+| `Bacon.repeatedly(interval, values)` | Use `Kefir.repeat(() => Kefir.sequentially(interval, values))` |  |
 | `Bacon.repeat(fn)` | `Kefir.repeat(fn)` |  |
 | `Bacon.never()` | `Kefir.never()` |  |
 | `Bacon.later(delay, value)` | `Kefir.later(delay, value)` |  |
-| `new Bacon.EventStream(subscribe)` | Use `Kefir.fromBinder` |  |
+| `new Bacon.EventStream(subscribe)` | Use `Kefir.stream()` |  |
 | Use bus | `Kefir.emitter()` |  |
-| `Bacon.fromBinder(subscribe)` | `Kefir.fromBinder(subscribe)` | In Kefir [emitter object](https://pozadi.github.io/kefir/#emitter-object) used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
+| `Bacon.fromBinder(subscribe)` | `Kefir.stream(subscribe)` | In Kefir [emitter](https://pozadi.github.io/kefir/#emitter-object) is used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
 | No alt. | `Kefir.withInterval(interval, handler)` |  |
-| No alt. | `Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])` |  |
 
 
 
@@ -34,7 +33,6 @@
 
 | Bacon | Kefir | Comments |
 | ----- | ----- | -------- |
-| No alt. | `$.fn.asKefirProperty(eventName, [selector], getter)` | Also from [kefir-jquery](https://github.com/pozadi/kefir-jquery) |
 | `Bacon.constant(value)` | `Kefir.constant(value)` |  |
 | No alt. | `Kefir.constantError(error)` | Bacon properties can't have current error, only values |
 | `Bacon.fromPromise(promise, [abort])` | `Kefir.fromPromise(promise)` | This method was alredy mentioned in "Create Stream" section, duplicated here as Kefir's version returns a Property |
@@ -46,7 +44,7 @@
 | ----- | ----- | -------- |
 | `property.changes()` | `property.changes()` |  |
 | `property.toEventStream()` | No alt. |  |
-| `stream.toProperty([current])` | `stream.toProperty([current])` |  |
+| `stream.toProperty([current])` | `stream.toProperty([getCurrent])` | Kefir accepts a callback instead of just a value |
 
 
 
@@ -81,7 +79,7 @@
 | `obs.errors()` | `obs.skipValues()` |  |
 | `obs.skipErrors()` | `obs.skipErrors()` |  |
 | No alt. | `obs.skipEnd()` |  |
-| `obs.mapEnd(fn)` | `obs.mapEnd(fn)` |  |
+| `obs.mapEnd(fn)` | `obs.beforeEnd(fn)` |  |
 | `obs.filter(predicate)` | `obs.filter(predicate)` |  |
 | `obs.takeWhile(predicate)` | `obs.takeWhile(predicate)` |  |
 | `obs.take(n)` | `obs.take(n)` |  |
@@ -90,16 +88,15 @@
 | `obs.debounce(delay)` | `obs.debounce(delay, [options])` | Kefir accepts underscore-like options object |
 | `obs.debounceImmediate(delay)` | `obs.debounce(delay, {immediate: true})` |  |
 | `obs.bufferingThrottle(minimumInterval)` | No alt. |  |
-| `obs.doAction(fn)` | `obs.tap(fn)` |  |
-| `obs.not()` | `obs.not()` |  |
-| `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` | In Kefir, `seed` does second and optional. |
-| `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Kefir, `seed` does second and optional. In Bacon there is also `.fold` alias for `.reduce` |
+| `obs.doAction(fn)` | Use `obs.map((x) => {fn(x); return x;})` |  |
+| `obs.not()` | Use `obs.map((x) => !x)` |  |
+| `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` | In Kefir, `seed` goes second and optional. |
+| `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Kefir, `seed` goes second and optional. In Bacon there is also `.fold` alias for `.reduce` |
 | `obs.diff(start, fn)` | `obs.diff([fn], [seed])` | In Kefir both args optional, and with different order. |
 | `obs.slidingWindow(max, [min])` | `obs.slidingWindow(max, [min])` |  |
-| `obs.map(value)` | `obs.mapTo(value)` | In Bacon the `value` can't be a function or an observable, as `.map` will handle them differently |
-| `obs.map('.foo')` | `obs.pluck(propertyName)` |  |
-| `obs.map('.foo')` where `foo` is a method | `obs.invoke(methodName)` |  |
-| No alt. | `obs.timestamp()` |  |
+| `obs.map(value)` | Use `obs.map(() => value)` |  |
+| `obs.map('.foo')` | `obs.map((x) => x.foo)` |  |
+| `obs.map('.foo')` where `foo` is a method | `obs.map((x) => x.foo())` |  |
 | `obs.skip(n)` | `obs.skip(n)` |  |
 | `obs.skipWhile(predicate)` | `obs.skipWhile([predicate])` | In Kefir `predicate` optional |
 | `obs.skipDuplicates([comparator])` | `obs.skipDuplicates([comparator])` |  |
@@ -118,6 +115,9 @@
 | `stream.bufferWithCount(count)` | No alt. |  |
 | `stream.bufferWithTimeOrCount(delay, count)` | No alt. |  |
 | `property.sample(interval)` | No alt. |  |
+| `obs.toPromise([PromiseConstructor])` | No alt. | |
+| `obs.first()` | No alt. | |
+| `obs.last()` | No alt. | |
 
 
 
@@ -128,14 +128,12 @@
 | ----- | ----- | -------- |
 | `Bacon.combineAsArray(obss)`, `Bacon.combineWith(f, obs1, obs2...)` | `Kefir.combine(obss, [fn])` |  |
 | `Bacon.combineTemplate(template)` | No alt. | |
-| No alt. | `Kefir.and(obss)` | Bacon only supports two arity `.and` (see below) |
-| No alt. | `Kefir.or(obss)` | Bacon only supports two arity `.or` (see below) |
-| No alt. | `Kefir.sampledBy(passiveObss, activeObss, [fn])` | Bacon only supports two arity `.sampledBy` (see below) |
+| No alt. | `Kefir.combine(obss, passiveObs, [fn])` | Bacon only has similar two arity `.sampledBy` method (see below) |
 | `Bacon.zipAsArray(streams)`, `Bacon.zipWith(streams, f)` | `Kefir.zip(sources, [combinator])` | In Kefir you can also pass ordinary arrays among with observables in `sources` |
 | `Bacon.mergeAll(streams)` | `Kefir.merge(obss)` | Bacon supports only Streams |
 | No alt. | `Kefir.concat(obss)` | Bacon only supports two arity `.concat` (see below) |
-| `new Bacon.Bus()` | `Kefir.bus()` | In Kefir there is `emit` method unlike `push` in Bacon |
-| Use bus | `Kefir.pool()` |  |
+| `new Bacon.Bus()` | No alt. |  |
+| Use Bus | `Kefir.pool()` |  |
 | `obs.flatMap(fn)` | `obs.flatMap([fn])` | In Kefir `fn` optional |
 | `obs.flatMapLatest(fn)` | `obs.flatMapLatest([fn])` | In Kefir `fn` optional |
 | `obs.flatMapFirst(fn)` | `obs.flatMapFirst([fn])` | In Kefir `fn` optional |
@@ -164,8 +162,8 @@
 | `obs.awaiting(otherObs)` | `obs.awaiting(otherObs)` |  |
 | `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir `fn` optional, and you can also pass array as `other` arg |
 | `property.sampledBy(obs, [fn])` | `obs.sampledBy(obs, [fn])` |  |
-| `property.and(other)` | `obs.and(other)` |  |
-| `property.or(other)` | `obs.or(other)` |  |
+| `property.and(other)` | No alt. |  |
+| `property.or(other)` | No alt. |  |
 | `stream.concat(otherStream)` | `obs.concat(otherObs)` | Bacon supports only Streams as operands |
 | `stream.merge(otherStream)` | `obs.merge(otherObs)` | Bacon supports only Streams as operands |
 | `stream.holdWhen(property)` | `obs.bufferWhileBy(otherObs, [options])` | Bacon supports only (Stream, Property) pair as operands |
