@@ -90,15 +90,15 @@
 | `obs.bufferingThrottle(minimumInterval)` | No alt. |  |
 | `obs.doAction(fn)` | Use `obs.map((x) => {fn(x); return x;})` |  |
 | `obs.not()` | Use `obs.map((x) => !x)` |  |
-| `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` | In Kefir, `seed` goes second and optional. |
-| `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Kefir, `seed` goes second and optional. In Bacon there is also `.fold` alias for `.reduce` |
-| `obs.diff(start, fn)` | `obs.diff([fn], [seed])` | In Kefir both args optional, and with different order. |
+| `obs.scan(seed, fn)` | `obs.scan(fn, [seed])` | In Kefir, `seed` goes second and is optional. |
+| `obs.reduce(seed, fn)` | `obs.reduce(fn, [seed])` | In Kefir, `seed` goes second and is optional. In Bacon there is also `.fold` alias for `.reduce` |
+| `obs.diff(start, fn)` | `obs.diff([fn], [seed])` | In Kefir both args are optional, and with different order. |
 | `obs.slidingWindow(max, [min])` | `obs.slidingWindow(max, [min])` |  |
 | `obs.map(value)` | Use `obs.map(() => value)` |  |
 | `obs.map('.foo')` | `obs.map((x) => x.foo)` |  |
 | `obs.map('.foo')` where `foo` is a method | `obs.map((x) => x.foo())` |  |
 | `obs.skip(n)` | `obs.skip(n)` |  |
-| `obs.skipWhile(predicate)` | `obs.skipWhile([predicate])` | In Kefir `predicate` optional |
+| `obs.skipWhile(predicate)` | `obs.skipWhile([predicate])` | In Kefir `predicate` is optional |
 | `obs.skipDuplicates([comparator])` | `obs.skipDuplicates([comparator])` |  |
 | No alt. | `obs.flatten([transformer])` |  |
 | No alt. | `obs.transduce(transducer)` |  |
@@ -134,12 +134,12 @@
 | No alt. | `Kefir.concat(obss)` | Bacon only supports two arity `.concat` (see below) |
 | `new Bacon.Bus()` | No alt. |  |
 | Use Bus | `Kefir.pool()` |  |
-| `obs.flatMap(fn)` | `obs.flatMap([fn])` | In Kefir `fn` optional |
-| `obs.flatMapLatest(fn)` | `obs.flatMapLatest([fn])` | In Kefir `fn` optional |
-| `obs.flatMapFirst(fn)` | `obs.flatMapFirst([fn])` | In Kefir `fn` optional |
+| `obs.flatMap(fn)` | `obs.flatMap([fn])` | In Kefir `fn` is optional |
+| `obs.flatMapLatest(fn)` | `obs.flatMapLatest([fn])` | In Kefir `fn` is optional |
+| `obs.flatMapFirst(fn)` | `obs.flatMapFirst([fn])` | In Kefir `fn` is optional |
 | `obs.flatMapError(fn)` | No alt. |  |
-| `obs.flatMapWithConcurrencyLimit(limit, fn)` | `obs.flatMapConcurLimit([fn], limit)` | In Kefir `fn` optional, diff args order |
-| `obs.flatMapConcat(fn)` | `obs.flatMapConcat([fn])` | In Kefir `fn` optional |
+| `obs.flatMapWithConcurrencyLimit(limit, fn)` | `obs.flatMapConcurLimit([fn], limit)` | In Kefir `fn` is optional, diff args order |
+| `obs.flatMapConcat(fn)` | `obs.flatMapConcat([fn])` | In Kefir `fn` is optional |
 | `Bacon.onValues(a, b, [c...], f)` | No alt. |  |
 | `Bacon.when()` | No alt. |  |
 | `Bacon.update()` | No alt. |  |
@@ -154,13 +154,13 @@
 | `stream.map(property)` | Use `.sampledBy()` |  |
 | `obs.filter(property)` | `obs.filterBy(obs)` |  |
 | `obs.takeWhile(property)` | `obs.takeWhileBy(obs)` | Bacon supports only Property in second position. See also `obs.takeWhile(predicate)` above. |
-| `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` | In Kefir `fn` optional |
+| `obs.combine(obs2, fn)` | `obs.combine(obs2, [fn])` | In Kefir `fn` is optional |
 | `stream.skipWhile(property)` | `obs.skipWhileBy(otherObs)` | Bacon supports only (Stream, Property) pair as operands. See also `obs.skipWhile(predicate)` above. |
 | `stream.skipUntil(otherObs)` | `obs.skipUntilBy(otherObs)` | Bacon supports only Streams in first position. |
 | `stream.takeUntil(otherObs) ` | `obs.takeUntilBy(otherObs)` | Bacon supports only Streams in first position. |
 | No alt. | `obs.bufferBy(otherObs, [options])` |  |
 | `obs.awaiting(otherObs)` | `obs.awaiting(otherObs)` |  |
-| `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir `fn` optional, and you can also pass array as `other` arg |
+| `obs.zip(other, fn)` | `obs.zip(other, [fn])` | In Kefir `fn` is optional, and you can also pass array as `other` arg |
 | `property.sampledBy(obs, [fn])` | `obs.sampledBy(obs, [fn])` |  |
 | `property.and(other)` | No alt. |  |
 | `property.or(other)` | No alt. |  |
@@ -176,5 +176,5 @@
 | ----- | ----- | -------- |
 | [Function Construction rules](https://github.com/baconjs/bacon.js#function-construction-rules) | Not supported |  |
 | [Atomic updates](https://github.com/baconjs/bacon.js#atomic-updates) | Not supported |  |
-| Meaningful `.toString` | Partial support | Kefir doesn't shows arguments only chain of method names |
+| Meaningful `.toString` | Partial support | Kefir doesn't show arguments only chain of method names |
 | [Lazy evaluation](https://github.com/baconjs/bacon.js#lazy-evaluation) | Not supported |  |
