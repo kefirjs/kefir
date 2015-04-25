@@ -102,6 +102,22 @@ describe 'flatMap', ->
       expect(result).errorsToFlow(b)
       expect(result).errorsToFlow(c)
 
+    # https://github.com/pozadi/kefir/issues/92
+    it 'Bug "flatMap with take(1) doesn\'t unsubscribe from source"', ->
+
+      subs = 0
+      unsubs = 0
+      a = Kefir.stream (emitter) ->
+        subs++
+        emitter.emit(1)
+        -> unsubs++
+
+      b = Kefir.constant(1).flatMap(-> a).take(1)
+
+      b.onValue(->)
+
+      expect(subs).toBe(1)
+      expect(unsubs).toBe(1)
 
 
 
