@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v1.3.1
+/*! Kefir.js v1.3.2
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1078,7 +1078,11 @@ inherit(_AbstractPool, Stream, {
     this._bindedEndHandlers.push({obs: obs, handler: onEnd});
 
     obs.onAny(this._$handleSubAny);
-    obs.onEnd(onEnd);
+
+    // it can become inactive in responce of subscribing to `obs.onAny` above
+    if (this._active) {
+      obs.onEnd(onEnd);
+    }
   },
   _unsubscribe: function(obs) {
     obs.offAny(this._$handleSubAny);
@@ -15001,7 +15005,7 @@ describe('flatMap', function() {
       sub.end();
       return stream1.onValue(handler);
     });
-    return it('errors should flow', function() {
+    it('errors should flow', function() {
       var a, b, c, result;
       a = stream();
       b = stream();
@@ -15013,6 +15017,24 @@ describe('flatMap', function() {
       expect(result).errorsToFlow(a);
       expect(result).errorsToFlow(b);
       return expect(result).errorsToFlow(c);
+    });
+    return it('Bug "flatMap with take(1) doesn\'t unsubscribe from source"', function() {
+      var a, b, subs, unsubs;
+      subs = 0;
+      unsubs = 0;
+      a = Kefir.fromBinder(function(emitter) {
+        subs++;
+        emitter.emit(1);
+        return function() {
+          return unsubs++;
+        };
+      });
+      b = Kefir.constant(1).flatMap(function() {
+        return a;
+      }).take(1);
+      b.onValue(function() {});
+      expect(subs).toBe(1);
+      return expect(unsubs).toBe(1);
     });
   });
   return describe('property', function() {
