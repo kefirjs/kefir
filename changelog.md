@@ -1,3 +1,7 @@
+## 2.0.1 (26/04/2015)
+
+ - A bug in `.flatMap` fixed (see [#92](https://github.com/pozadi/kefir/issues/92))
+
 ## 2.0.0 (22/04/2015)
 
 ### Breaking changes
