@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {

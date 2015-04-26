@@ -84,9 +84,6 @@ describe 'Kefir.stream', ->
   # https://github.com/pozadi/kefir/issues/35
   it 'should work with .take(1) and sync emit', ->
 
-    subCalls = 0
-    unsubCalls = 0
-
     log = []
 
     a = Kefir.stream (emitter) ->
