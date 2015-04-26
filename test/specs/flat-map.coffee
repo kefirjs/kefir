@@ -107,7 +107,7 @@ describe 'flatMap', ->
 
       subs = 0
       unsubs = 0
-      a = Kefir.stream (emitter) ->
+      a = Kefir.fromBinder (emitter) ->
         subs++
         emitter.emit(1)
         -> unsubs++
