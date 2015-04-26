@@ -1,4 +1,4 @@
-/*! Kefir.js v2.0.0
+/*! Kefir.js v2.0.1
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1078,7 +1078,11 @@ inherit(_AbstractPool, Stream, {
     this._bindedEndHandlers.push({obs: obs, handler: onEnd});
 
     obs.onAny(this._$handleSubAny);
-    obs.onEnd(onEnd);
+
+    // it can become inactive in responce of subscribing to `obs.onAny` above
+    if (this._active) {
+      obs.onEnd(onEnd);
+    }
   },
   _unsubscribe: function(obs) {
     obs.offAny(this._$handleSubAny);
