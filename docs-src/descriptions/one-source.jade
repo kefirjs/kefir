@@ -313,29 +313,6 @@ div
 
 
 
-+descr-method('reduce', 'reduce', 'obs.reduce(fn, [seed])').
-  Similar to #[b .scan], but emits only the last result just before end.
-
-pre(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-    var result = source.reduce(function(prev, next) {
-      return next + prev;
-    }, 0);
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.reduce] <value> 8
-    > [sequentially.reduce] <end>
-
-pre(title='events in time').
-  source:  ---1---2---2---3 X
-  result:  ----------------8X
-div
-
-
-
 
 +descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
   For this method it's expected that the source observable emits arrays.

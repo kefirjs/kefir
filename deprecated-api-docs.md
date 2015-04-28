@@ -429,3 +429,32 @@ bus.end();
 > [bus] <value> 2
 > [bus] <end>
 ```
+
+
+
+### obs.reduce(fn, [seed])
+
+Similar to [.scan](http://pozadi.github.io/kefir/#scan),
+but emits only the last result just before end.
+
+```js
+// Example
+
+var source = Kefir.sequentially(100, [1, 2, 2, 3]);
+var result = source.reduce(function(prev, next) {
+  return next + prev;
+}, 0);
+result.log();
+
+
+// Output
+
+> [sequentially.reduce] <value> 8
+> [sequentially.reduce] <end>
+
+
+// Events diagram
+
+source:  ---1---2---2---3 X
+result:  ----------------8X
+```

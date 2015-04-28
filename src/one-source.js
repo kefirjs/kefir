@@ -490,6 +490,17 @@ withOneSource('reduce', {
   }
 });
 
+Stream.prototype.reduce = deprecated(
+  '.reduce(fn, seed)',
+  '.scan(fn, seed).last()',
+  Stream.prototype.reduce
+);
+
+Property.prototype.reduce = deprecated(
+  '.reduce(fn, seed)',
+  '.scan(fn, seed).last()',
+  Property.prototype.reduce
+);
 
 
 
