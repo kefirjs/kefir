@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.0.2
+/*! Kefir.js v2.1.0
  *  https://github.com/pozadi/kefir
  */
 ;(function(global){
@@ -1897,6 +1897,26 @@ withOneSource('transduce', {
 
 
 
+// .last()
+
+withOneSource('last', {
+  _init: function() {
+    this._lastValue = NOTHING;
+  },
+  _free: function() {
+    this._lastValue = null;
+  },
+  _handleValue: function(x) {
+    this._lastValue = x;
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (this._lastValue !== NOTHING) {
+      this._send(VALUE, this._lastValue, isCurrent);
+    }
+    this._send(END, null, isCurrent);
+  }
+});
+
 
 
 
@@ -2206,6 +2226,17 @@ withOneSource('reduce', {
   }
 });
 
+Stream.prototype.reduce = deprecated(
+  '.reduce(fn, seed)',
+  '.scan(fn, seed).last()',
+  Stream.prototype.reduce
+);
+
+Property.prototype.reduce = deprecated(
+  '.reduce(fn, seed)',
+  '.scan(fn, seed).last()',
+  Property.prototype.reduce
+);
 
 
 
@@ -11980,7 +12011,7 @@ describe('beforeEnd', function() {
 
 
 
-},{"../test-helpers.coffee":104}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -12143,7 +12174,7 @@ describe('bufferBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -12351,7 +12382,7 @@ describe('bufferWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],38:[function(require,module,exports){
 var Kefir, not3, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -12452,7 +12483,7 @@ describe('bufferWhile', function() {
 
 
 
-},{"../test-helpers.coffee":104}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],39:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -12652,7 +12683,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":104}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],40:[function(require,module,exports){
 var Kefir, prop, ref, send, stream, streamWithCurrent;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -12764,7 +12795,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":104}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -13037,7 +13068,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":104}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],42:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -13164,7 +13195,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":104}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],43:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -13405,7 +13436,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":104}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],46:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13479,7 +13510,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":104}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],47:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13589,7 +13620,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":104}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],48:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -13775,7 +13806,7 @@ describe('endOnError', function() {
 
 
 
-},{"../test-helpers.coffee":104}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],50:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -13902,7 +13933,7 @@ describe('errorsToValues', function() {
 
 
 
-},{"../test-helpers.coffee":104}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],51:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14180,7 +14211,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],52:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14365,7 +14396,7 @@ describe('filterErrors', function() {
 
 
 
-},{"../test-helpers.coffee":104}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],53:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14516,7 +14547,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":104}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],54:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14651,7 +14682,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":104}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],55:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14806,7 +14837,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":104}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],56:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14940,7 +14971,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":104}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],57:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15071,7 +15102,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":104}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],58:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15306,7 +15337,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":104}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],59:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15449,7 +15480,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":104}],60:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],60:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15512,7 +15543,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":104}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],61:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15645,7 +15676,7 @@ describe('fromEvents', function() {
 
 
 
-},{"../test-helpers.coffee":104}],62:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],62:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15728,7 +15759,7 @@ describe('fromNodeCallback', function() {
 
 
 
-},{"../test-helpers.coffee":104}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],63:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -15873,7 +15904,7 @@ describe('fromPromise', function() {
 
 
 
-},{"../test-helpers.coffee":104}],65:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],65:[function(require,module,exports){
 var Kefir, activate, deactivate, noop, ref,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -15963,7 +15994,7 @@ describe('fromSubUnsub', function() {
 
 
 
-},{"../test-helpers.coffee":104}],66:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],66:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16149,7 +16180,100 @@ describe('Kefir.stream', function() {
 
 
 
-},{"../test-helpers.coffee":104}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],68:[function(require,module,exports){
+var Kefir, prop, ref, send, stream;
+
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+
+describe('last', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().last()).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.last()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).last()).toEmit(['<end:current>']);
+    });
+    return it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.last()).toEmit([
+        {
+          error: 5
+        }, {
+          error: 6
+        }, 3, '<end>'
+      ], function() {
+        return send(a, [
+          1, {
+            error: 5
+          }, {
+            error: 6
+          }, 2, 3, '<end>'
+        ]);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().last()).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.last()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      expect(send(prop(), ['<end>']).last()).toEmit(['<end:current>']);
+      return expect(send(prop(), [1, '<end>']).last()).toEmit([
+        {
+          current: 1
+        }, '<end:current>'
+      ]);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [1]);
+      expect(a.last()).toEmit([
+        {
+          error: 5
+        }, 1, '<end>'
+      ], function() {
+        return send(a, [
+          {
+            error: 5
+          }, '<end>'
+        ]);
+      });
+      a = send(prop(), [
+        {
+          error: 0
+        }
+      ]);
+      return expect(a.last()).toEmit([
+        {
+          currentError: 0
+        }, {
+          error: 5
+        }, 3, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: 5
+          }, 3, '<end>'
+        ]);
+      });
+    });
+  });
+});
+
+
+
+},{"../test-helpers.coffee":105}],69:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16165,7 +16289,7 @@ describe('later', function() {
 
 
 
-},{"../../dist/kefir":1}],69:[function(require,module,exports){
+},{"../../dist/kefir":1}],70:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16269,7 +16393,7 @@ describe('mapErrors', function() {
 
 
 
-},{"../test-helpers.coffee":104}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],71:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16361,7 +16485,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":104}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],72:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16480,7 +16604,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":104}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],73:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -16496,7 +16620,7 @@ describe('never', function() {
 
 
 
-},{"../../dist/kefir":1}],73:[function(require,module,exports){
+},{"../../dist/kefir":1}],74:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16619,7 +16743,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":104}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],75:[function(require,module,exports){
 var Kefir, activate, prop, ref, send;
 
 ref = require('../test-helpers.coffee'), prop = ref.prop, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -16854,7 +16978,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":104}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],76:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16960,7 +17084,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":104}],76:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],77:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17094,7 +17218,7 @@ describe('repeat', function() {
 
 
 
-},{"../test-helpers.coffee":104}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],78:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -17113,7 +17237,7 @@ describe('repeatedly', function() {
 
 
 
-},{"../../dist/kefir":1}],78:[function(require,module,exports){
+},{"../../dist/kefir":1}],79:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -17263,7 +17387,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],79:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],80:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17363,7 +17487,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":104}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],81:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -17382,7 +17506,7 @@ describe('sequentially', function() {
 
 
 
-},{"../../dist/kefir":1}],81:[function(require,module,exports){
+},{"../../dist/kefir":1}],82:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17479,7 +17603,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":104}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],83:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17548,7 +17672,7 @@ describe('skipEnd', function() {
 
 
 
-},{"../test-helpers.coffee":104}],83:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],84:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17628,7 +17752,7 @@ describe('skipErrors', function() {
 
 
 
-},{"../test-helpers.coffee":104}],84:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],85:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -17921,7 +18045,7 @@ describe('skipUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],85:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],86:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18001,7 +18125,7 @@ describe('skipValues', function() {
 
 
 
-},{"../test-helpers.coffee":104}],86:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],87:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -18297,7 +18421,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],87:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],88:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18435,7 +18559,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":104}],88:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],89:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18545,7 +18669,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":104}],89:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],90:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18651,7 +18775,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":104}],90:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],91:[function(require,module,exports){
 var Kefir, activate, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -18922,7 +19046,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":104}],91:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],92:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19174,7 +19298,7 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":104}],92:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],93:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19447,7 +19571,7 @@ describe('takeUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],93:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],94:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19725,7 +19849,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":104}],94:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],95:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19872,7 +19996,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":104}],95:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],96:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19967,7 +20091,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":104}],96:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],97:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20251,7 +20375,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":104}],97:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],98:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20340,7 +20464,7 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":104}],98:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],99:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -20518,7 +20642,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":104}],99:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],100:[function(require,module,exports){
 var Kefir, comp, noop, prop, ref, send, stream, testWithLib,
   slice = [].slice;
 
@@ -20800,7 +20924,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":104,"transducers-js":33,"transducers.js":34}],100:[function(require,module,exports){
+},{"../test-helpers.coffee":105,"transducers-js":33,"transducers.js":34}],101:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20931,7 +21055,7 @@ describe('valuesToErrors', function() {
 
 
 
-},{"../test-helpers.coffee":104}],101:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],102:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21173,7 +21297,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":104}],102:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],103:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -21248,7 +21372,7 @@ describe('withInterval', function() {
 
 
 
-},{"../../dist/kefir":1}],103:[function(require,module,exports){
+},{"../../dist/kefir":1}],104:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -21434,7 +21558,7 @@ describe('zip', function() {
 
 
 
-},{"../test-helpers.coffee":104}],104:[function(require,module,exports){
+},{"../test-helpers.coffee":105}],105:[function(require,module,exports){
 var Kefir, _activateHelper, logItem, sinon,
   slice = [].slice;
 
@@ -21808,4 +21932,4 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103]);
+},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104]);
