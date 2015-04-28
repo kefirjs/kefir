@@ -120,6 +120,27 @@ p.
   See also <a href="#take-while-by">takeWhileBy</a>.
 
 
+
++descr-method('last', 'last', 'obs.last()').
+  Emits only the last value from the original observable.
+
+pre(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]);
+    var result = source.last();
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.last] <value> 3
+    > [sequentially.last] <end>
+
+pre(title='events in time').
+  source: ---1---2---3X
+  result: -----------3X
+div
+
+
 +descr-method('skip', 'skip', 'obs.skip(n)').
   Skips the first #[b n] values from the original observable, then emits all the rest.
 
