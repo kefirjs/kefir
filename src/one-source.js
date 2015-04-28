@@ -161,6 +161,26 @@ withOneSource('transduce', {
 
 
 
+// .last()
+
+withOneSource('last', {
+  _init: function() {
+    this._lastValue = NOTHING;
+  },
+  _free: function() {
+    this._lastValue = null;
+  },
+  _handleValue: function(x) {
+    this._lastValue = x;
+  },
+  _handleEnd: function(__, isCurrent) {
+    if (this._lastValue !== NOTHING) {
+      this._send(VALUE, this._lastValue, isCurrent);
+    }
+    this._send(END, null, isCurrent);
+  }
+});
+
 
 
 
@@ -470,6 +490,17 @@ withOneSource('reduce', {
   }
 });
 
+Stream.prototype.reduce = deprecated(
+  '.reduce(fn, seed)',
+  '.scan(fn, seed).last()',
+  Stream.prototype.reduce
+);
+
+Property.prototype.reduce = deprecated(
+  '.reduce(fn, seed)',
+  '.scan(fn, seed).last()',
+  Property.prototype.reduce
+);
 
 
 

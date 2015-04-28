@@ -1,3 +1,8 @@
+## 2.1.0 (28/04/2015)
+
+ - New method `.last`
+ - The `.reduce` method is deprecated in favor of `.scan(...).last()`
+
 ## 2.0.2 (26/04/2015)
 
 A technical release (to be latest after `1.3.2`, so `npm install kefir` would instal 2.0.2 by default)
