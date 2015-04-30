@@ -1,3 +1,8 @@
+webpack = require('webpack')
+timeGrunt = require('time-grunt')
+loadGruntTasks = require('load-grunt-tasks')
+
+
 module.exports = (grunt) ->
 
   pkg = grunt.file.readJSON('package.json')
@@ -9,35 +14,7 @@ module.exports = (grunt) ->
 
   """
 
-  intro = """
-    ;(function(global){
-      "use strict";
-
-      var Kefir = {};
-
-
-
-  """
-
-  outro = """
-
-
-      if (typeof define === 'function' && define.amd) {
-        define([], function() {
-          return Kefir;
-        });
-        global.Kefir = Kefir;
-      } else if (typeof module === "object" && typeof exports === "object") {
-        module.exports = Kefir;
-        Kefir.Kefir = Kefir;
-      } else {
-        global.Kefir = Kefir;
-      }
-
-    }(this));
-  """
-
-  require('time-grunt')(grunt)
+  timeGrunt(grunt)
 
   grunt.initConfig(
 
@@ -56,25 +33,37 @@ module.exports = (grunt) ->
         options:
           transform: ['coffeeify']
 
-    uglify:
-      kefir:
-        options:
-          banner: banner
-          sourceMap: true
-        files:
-          'dist/kefir.min.js': 'dist/kefir.js'
-
-    concat:
-      kefir:
-        options:
-          banner: banner + intro
-          footer: outro
-        files:
-          'dist/kefir.js': [
-            'src/utils/*.js'
-            'src/core.js'
-            'src/*.js'
+    webpack:
+      dev:
+        entry: './src/entry'
+        output:
+          path: 'dist'
+          filename: 'kefir.js'
+          library: 'Kefir'
+          libraryTarget: 'umd'
+        module:
+          loaders: [
+            {test: /\.js$/, loader: 'babel-loader'}
           ]
+        plugins: [
+          new webpack.BannerPlugin(banner, {raw: true, entryOnly: true})
+        ]
+      prod:
+        entry: './src/entry'
+        output:
+          path: 'dist'
+          filename: 'kefir.min.js'
+          library: 'Kefir'
+          libraryTarget: 'umd'
+        module:
+          loaders: [
+            {test: /\.js$/, loader: 'babel-loader'}
+          ]
+        plugins: [
+          new webpack.BannerPlugin(banner, {raw: true, entryOnly: true}),
+          new webpack.optimize.UglifyJsPlugin()
+        ]
+
 
     jade:
       docs:
@@ -104,14 +93,10 @@ module.exports = (grunt) ->
 
   )
 
-  require('load-grunt-tasks')(grunt)
+  loadGruntTasks(grunt)
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
-  grunt.registerTask 'build-kefir', ['concat:kefir', 'uglify:kefir']
+  grunt.registerTask 'build-kefir', ['webpack:dev', 'webpack:prod']
   grunt.registerTask 'build-docs', ['jade:docs']
 
-
-
   grunt.registerTask 'default', ['clean', 'build-docs', 'build-kefir', 'build-browser-tests']
-
-

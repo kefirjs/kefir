@@ -1,3 +1,12 @@
+import {Observable} from './core';
+import {deprecated, now, returnsTrue, returnsFalse} from './utils/other';
+import Kefir from './kefir';
+import {isFn} from './utils/types';
+import {rest} from './utils/collections';
+import {not, and, or} from './utils/booleans';
+import {apply} from './utils/functions';
+
+
 // .setName
 
 Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
@@ -276,3 +285,9 @@ Kefir.fromEvents = function(target, eventName, transformer) {
     transformer
   ).setName('fromEvents');
 };
+
+
+
+
+export default 'dummy';
+

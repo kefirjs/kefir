@@ -1,3 +1,8 @@
+import {extend, inherit} from './utils/objects';
+import {VALUE, ERROR, ANY, END} from './utils/other'
+import {concat, removeByPred} from './utils/collections'
+
+
 // Dispatcher
 
 function callSubscriber(sType, sFn, event) {
@@ -51,7 +56,7 @@ function Event(type, value, current) {
   return {type: type, value: value, current: !!current};
 }
 
-var CURRENT_END = Event(END, undefined, true);
+const CURRENT_END = Event(END, undefined, true);
 
 
 
@@ -59,12 +64,11 @@ var CURRENT_END = Event(END, undefined, true);
 
 // Observable
 
-function Observable() {
+export function Observable() {
   this._dispatcher = new Dispatcher();
   this._active = false;
   this._alive = true;
 }
-Kefir.Observable = Observable;
 
 extend(Observable.prototype, {
 
@@ -163,10 +167,9 @@ Observable.prototype.toString = function() {
 
 // Stream
 
-function Stream() {
+export function Stream() {
   Observable.call(this);
 }
-Kefir.Stream = Stream;
 
 inherit(Stream, Observable, {
 
@@ -182,11 +185,10 @@ inherit(Stream, Observable, {
 
 // Property
 
-function Property() {
+export function Property() {
   Observable.call(this);
   this._currentEvent = null;
 }
-Kefir.Property = Property;
 
 inherit(Property, Observable, {
 

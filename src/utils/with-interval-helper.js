@@ -1,4 +1,10 @@
-function withInterval(name, mixin) {
+import Kefir from '../kefir';
+import {inherit} from './objects';
+import {Stream} from '../core';
+import {rest} from './collections';
+
+
+export default function withInterval(name, mixin) {
 
   function AnonymousStream(wait, args) {
     Stream.call(this);

@@ -4,7 +4,7 @@
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
-    "test": "grunt concat && jasmine-node --coffee --matchall test/specs"
+    "test": "grunt webpack:dev && jasmine-node --coffee --matchall test/specs"
   },
   "keywords": [
     "frp",
@@ -29,6 +29,8 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "babel-core": "5.1.13",
+    "babel-loader": "5.0.0",
     "baconjs": "0.7.53",
     "benchmark": "1.0.0",
     "coffee-script": "1.9.2",
@@ -38,9 +40,8 @@
     "grunt-browserify": "3.7.0",
     "grunt-cli": "0.1.13",
     "grunt-contrib-clean": "0.6.0",
-    "grunt-contrib-concat": "0.5.1",
     "grunt-contrib-jade": "0.14.1",
-    "grunt-contrib-uglify": "0.9.1",
+    "grunt-webpack": "1.0.8",
     "inquirer": "0.8.2",
     "jasmine-node": "1.14.5",
     "load-grunt-tasks": "3.1.0",
@@ -50,6 +51,8 @@
     "sinon": "1.14.1",
     "time-grunt": "1.1.1",
     "transducers-js": "0.4.164",
-    "transducers.js": "0.3.2"
+    "transducers.js": "0.3.2",
+    "webpack": "1.8.11",
+    "webpack-dev-server": "1.8.2"
   }
 }

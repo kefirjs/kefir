@@ -1,3 +1,8 @@
+import withTwoSources from './utils/with-two-sources-helper';
+import {VALUE, ERROR, END, NOTHING} from './utils/other';
+import {extend, get} from './utils/objects';
+
+
 var withTwoSourcesAndBufferMixin = {
   _init: function(args) {
     this._buff = [];
@@ -167,3 +172,6 @@ withTwoSources('skipWhileBy', {
   }
 
 });
+
+
+export default 'dummy';

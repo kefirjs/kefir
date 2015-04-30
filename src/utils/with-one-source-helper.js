@@ -1,4 +1,9 @@
-function withOneSource(name, mixin, options) {
+import {Stream, Property} from '../core';
+import {extend, inherit} from './objects';
+import {VALUE, ERROR, END} from './other';
+
+
+export default function withOneSource(name, mixin, options) {
 
 
   options = extend({

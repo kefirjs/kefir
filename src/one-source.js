@@ -1,3 +1,13 @@
+import withOneSource from './utils/with-one-source-helper';
+import {Stream, Property} from './core';
+import {VALUE, ERROR, END, NOTHING, deprecated, defaultDiff, now, strictEqual, id} from './utils/other';
+import {get} from './utils/objects';
+import {isFn} from './utils/types';
+import {slide} from './utils/collections';
+
+
+
+
 function produceStream(StreamClass, PropertyClass) {
   return function() {
     return new StreamClass(this, arguments);
@@ -787,3 +797,7 @@ withOneSource('delay', {
     }
   }
 });
+
+
+
+export default 'dummy';

@@ -1,6 +1,12 @@
+import {inherit} from './utils/objects';
+import {Stream, Property} from './core';
+import {VALUE, ERROR, END} from './utils/other';
+
+
+
 // Kefir.stream(fn)
 
-function StreamStream(fn) {
+export function StreamStream(fn) {
   Stream.call(this);
   this._fn = fn;
   this._unsubscribe = null;
@@ -51,9 +57,6 @@ inherit(StreamStream, Stream, {
 
 });
 
-Kefir.stream = function(fn) {
-  return new StreamStream(fn);
-};
 
 
 
@@ -62,7 +65,7 @@ Kefir.stream = function(fn) {
 
 // Kefir.emitter()
 
-function Emitter() {
+export function Emitter() {
   Stream.call(this);
 }
 
@@ -85,12 +88,6 @@ inherit(Emitter, Stream, {
   }
 });
 
-Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function() {
-  return new Emitter();
-});
-
-Kefir.Emitter = Emitter;
-
 
 
 
@@ -99,12 +96,10 @@ Kefir.Emitter = Emitter;
 
 // Kefir.never()
 
-var neverObj = new Stream();
-neverObj._send(END);
-neverObj._name = 'never';
-Kefir.never = function() {
-  return neverObj;
-};
+const neverInstance = new Stream();
+neverInstance._send(END);
+neverInstance._name = 'never';
+export {neverInstance as neverInstance};
 
 
 
@@ -112,7 +107,7 @@ Kefir.never = function() {
 
 // Kefir.constant(x)
 
-function Constant(x) {
+export function Constant(x) {
   Property.call(this);
   this._send(VALUE, x);
   this._send(END);
@@ -122,16 +117,14 @@ inherit(Constant, Property, {
   _name: 'constant'
 });
 
-Kefir.constant = function(x) {
-  return new Constant(x);
-};
+
 
 
 
 
 // Kefir.constantError(x)
 
-function ConstantError(x) {
+export function ConstantError(x) {
   Property.call(this);
   this._send(ERROR, x);
   this._send(END);
@@ -141,16 +134,11 @@ inherit(ConstantError, Property, {
   _name: 'constantError'
 });
 
-Kefir.constantError = function(x) {
-  return new ConstantError(x);
-};
-
-
 
 
 // Kefir.repeat(generator)
 
-function Repeat(generator) {
+export function Repeat(generator) {
   Stream.call(this);
   this._generator = generator;
   this._source = null;
@@ -216,9 +204,3 @@ inherit(Repeat, Stream, {
   }
 
 });
-
-Kefir.repeat = function(generator) {
-  return new Repeat(generator);
-};
-
-

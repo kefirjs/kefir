@@ -1,26 +1,25 @@
-function isFn(fn) {
+export function isFn(fn) {
   return typeof fn === 'function';
 }
 
-function isUndefined(x) {
+export function isUndefined(x) {
   return typeof x === 'undefined';
 }
 
-function isArrayLike(xs) {
+export function isArrayLike(xs) {
   return isArray(xs) || isArguments(xs);
 }
 
-var isArray = Array.isArray || function(xs) {
+export const isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-var isArguments = function(xs) {
-  return Object.prototype.toString.call(xs) === '[object Arguments]';
-};
-
-// For IE
-if (!isArguments(arguments)) {
-  isArguments = function(obj) {
-    return !!(obj && own(obj, 'callee'));
-  };
-}
+export const isArguments = (function() {
+  function isArguments(obj) {
+    return Object.prototype.toString.call(obj) === '[object Arguments]';
+  }
+  function isArgumentsIE8(obj) {
+    return !!obj.callee;
+  }
+  return isArguments(arguments) ? isArguments : isArgumentsIE8;
+}());

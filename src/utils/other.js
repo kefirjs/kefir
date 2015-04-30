@@ -1,36 +1,39 @@
-var NOTHING = ['<nothing>'];
-var END = 'end';
-var VALUE = 'value';
-var ERROR = 'error';
-var ANY = 'any';
+import {isFn} from './types';
+import Kefir from '../kefir';
 
-function noop() {}
+export const NOTHING = ['<nothing>'];
+export const END = 'end';
+export const VALUE = 'value';
+export const ERROR = 'error';
+export const ANY = 'any';
 
-function id(x) {
+export function noop() {}
+
+export function id(x) {
   return x;
 }
 
-function id2(_, x) {
+export function id2(_, x) {
   return x;
 }
 
-function strictEqual(a, b) {
+export function strictEqual(a, b) {
   return a === b;
 }
 
-function defaultDiff(a, b) {
+export function defaultDiff(a, b) {
   return [a, b];
 }
 
-function returnsFalse() {
+export function returnsFalse() {
   return false;
 }
 
-function returnsTrue() {
+export function returnsTrue() {
   return true;
 }
 
-var now = Date.now ?
+export const now = Date.now ?
   function() {
     return Date.now();
   } :
@@ -38,7 +41,7 @@ var now = Date.now ?
     return new Date().getTime();
   };
 
-var log = ((typeof console !== undefined) && isFn(console.log)) ?
+export const log = ((typeof console !== undefined) && isFn(console.log)) ?
   function(m) {
     console.log(m);
   } : noop;
@@ -46,7 +49,7 @@ var log = ((typeof console !== undefined) && isFn(console.log)) ?
 
 
 Kefir.DEPRECATION_WARNINGS = true;
-function deprecated(name, alt, fn) {
+export function deprecated(name, alt, fn) {
   var message = 'Method `' + name + '` is deprecated, and to be removed in v3.0.0.';
   if (alt) {
     message += '\nUse `' + alt + '` instead.';

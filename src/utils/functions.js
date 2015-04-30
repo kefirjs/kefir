@@ -1,4 +1,4 @@
-function spread(fn, length) {
+export function spread(fn, length) {
   switch(length) {
     case 0: return function(a) {return fn();};
     case 1: return function(a) {return fn(a[0]);};
@@ -9,7 +9,7 @@ function spread(fn, length) {
   }
 }
 
-function apply(fn, c, a) {
+export function apply(fn, c, a) {
   var aLength = a ? a.length : 0;
   if (c == null) {
     switch (aLength) {

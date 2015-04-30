@@ -1,3 +1,12 @@
+import {Stream, Property} from './core';
+import {VALUE, ERROR, END, NOTHING, deprecated, id} from './utils/other';
+import {inherit, extend, get} from './utils/objects';
+import {forEach, concat, findByPred, find, remove, cloneArray, fillArray, map} from './utils/collections';
+import {spread} from './utils/functions';
+import {isArray} from './utils/types';
+import {neverInstance} from './primary';
+
+
 function _AbstractPool(options) {
   Stream.call(this);
 
@@ -171,7 +180,7 @@ var MergeLike = {
   }
 };
 
-function Merge(sources) {
+export function Merge(sources) {
   _AbstractPool.call(this);
   if (sources.length === 0) {
     this._send(END);
@@ -183,20 +192,14 @@ function Merge(sources) {
 
 inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
-Kefir.merge = function(obss) {
-  return new Merge(obss);
-};
 
-Observable.prototype.merge = function(other) {
-  return Kefir.merge([this, other]);
-};
 
 
 
 
 // .concat()
 
-function Concat(sources) {
+export function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
   if (sources.length === 0) {
     this._send(END);
@@ -208,13 +211,6 @@ function Concat(sources) {
 
 inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
-Kefir.concat = function(obss) {
-  return new Concat(obss);
-};
-
-Observable.prototype.concat = function(other) {
-  return Kefir.concat([this, other]);
-};
 
 
 
@@ -223,10 +219,9 @@ Observable.prototype.concat = function(other) {
 
 // .pool()
 
-function Pool() {
+export function Pool() {
   _AbstractPool.call(this);
 }
-Kefir.Pool = Pool;
 
 inherit(Pool, _AbstractPool, {
 
@@ -243,9 +238,7 @@ inherit(Pool, _AbstractPool, {
 
 });
 
-Kefir.pool = function() {
-  return new Pool();
-};
+
 
 
 
@@ -253,10 +246,9 @@ Kefir.pool = function() {
 
 // .bus()
 
-function Bus() {
+export function Bus() {
   _AbstractPool.call(this);
 }
-Kefir.Bus = Bus;
 
 inherit(Bus, _AbstractPool, {
 
@@ -289,9 +281,7 @@ inherit(Bus, _AbstractPool, {
 
 });
 
-Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function() {
-  return new Bus();
-});
+
 
 
 
@@ -299,7 +289,7 @@ Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function
 
 // .flatMap()
 
-function FlatMap(source, fn, options) {
+export function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
   this._fn = fn || id;
@@ -361,38 +351,7 @@ inherit(FlatMap, _AbstractPool, {
 
 });
 
-Observable.prototype.flatMap = function(fn) {
-  return new FlatMap(this, fn)
-    .setName(this, 'flatMap');
-};
 
-Observable.prototype.flatMapLatest = function(fn) {
-  return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
-    .setName(this, 'flatMapLatest');
-};
-
-Observable.prototype.flatMapFirst = function(fn) {
-  return new FlatMap(this, fn, {concurLim: 1})
-    .setName(this, 'flatMapFirst');
-};
-
-Observable.prototype.flatMapConcat = function(fn) {
-  return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
-    .setName(this, 'flatMapConcat');
-};
-
-Observable.prototype.flatMapConcurLimit = function(fn, limit) {
-  var result;
-  if (limit === 0) {
-    result = Kefir.never();
-  } else {
-    if (limit < 0) {
-      limit = -1;
-    }
-    result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
-  }
-  return result.setName(this, 'flatMapConcurLimit');
-};
 
 
 
@@ -401,7 +360,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 
 // .zip()
 
-function Zip(sources, combinator) {
+export function Zip(sources, combinator) {
   Stream.call(this);
   if (sources.length === 0) {
     this._send(END);
@@ -410,7 +369,7 @@ function Zip(sources, combinator) {
       return isArray(source) ? cloneArray(source) : [];
     });
     this._sources = map(sources, function(source) {
-      return isArray(source) ? Kefir.never() : source;
+      return isArray(source) ? neverInstance : source;
     });
     this._combinator = combinator ? spread(combinator, this._sources.length) : id;
     this._aliveCount = 0;
@@ -507,13 +466,7 @@ inherit(Zip, Stream, {
 
 });
 
-Kefir.zip = function(sources, combinator) {
-  return new Zip(sources, combinator);
-};
 
-Observable.prototype.zip = function(other, combinator) {
-  return new Zip([this, other], combinator);
-};
 
 
 
@@ -534,7 +487,7 @@ function defaultErrorsCombinator(errors) {
   return latestError.error;
 }
 
-function Combine(active, passive, combinator) {
+export function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
     this._send(END);
@@ -675,50 +628,3 @@ inherit(Combine, Stream, {
   }
 
 });
-
-Kefir.combine = function(active, passive, combinator) {
-  if (isFn(passive)) {
-    combinator = passive;
-    passive = null;
-  }
-  return new Combine(active, passive || [], combinator);
-};
-
-Observable.prototype.combine = function(other, combinator) {
-  return Kefir.combine([this, other], combinator);
-};
-
-
-
-
-
-
-// .sampledBy()
-Kefir.sampledBy = deprecated(
-  'Kefir.sampledBy()',
-  'Kefir.combine(active, passive, combinator)',
-  function(passive, active, combinator) {
-
-    // we need to flip `passive` and `active` in combinator function
-    var _combinator = combinator;
-    if (passive.length > 0) {
-      var passiveLength = passive.length;
-      _combinator = function() {
-        var args = circleShift(arguments, passiveLength);
-        return combinator ? apply(combinator, null, args) : args;
-      };
-    }
-
-    return new Combine(active, passive, _combinator).setName('sampledBy');
-  }
-);
-
-Observable.prototype.sampledBy = function(other, combinator) {
-  var _combinator;
-  if (combinator) {
-    _combinator = function(active, passive) {
-      return combinator(passive, active);
-    };
-  }
-  return new Combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
-};

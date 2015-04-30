@@ -1,4 +1,10 @@
-function withTwoSources(name, mixin /*, options*/) {
+import {Stream, Property} from '../core';
+import {extend, inherit} from './objects';
+import {VALUE, ERROR, END, NOTHING} from './other';
+import {rest} from './collections';
+
+
+export default function withTwoSources(name, mixin /*, options*/) {
 
   mixin = extend({
     _init: function(args) {},

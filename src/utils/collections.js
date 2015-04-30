@@ -1,4 +1,4 @@
-function concat(a, b) {
+export function concat(a, b) {
   var result, length, i, j;
   if (a.length === 0) {
     return b;
@@ -19,7 +19,7 @@ function concat(a, b) {
   return result;
 }
 
-function circleShift(arr, distance) {
+export function circleShift(arr, distance) {
   var length = arr.length
     , result = new Array(length)
     , i;
@@ -29,7 +29,7 @@ function circleShift(arr, distance) {
   return result;
 }
 
-function find(arr, value) {
+export function find(arr, value) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
@@ -40,7 +40,7 @@ function find(arr, value) {
   return -1;
 }
 
-function findByPred(arr, pred) {
+export function findByPred(arr, pred) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
@@ -51,7 +51,7 @@ function findByPred(arr, pred) {
   return -1;
 }
 
-function cloneArray(input) {
+export function cloneArray(input) {
   var length = input.length
     , result = new Array(length)
     , i;
@@ -61,7 +61,7 @@ function cloneArray(input) {
   return result;
 }
 
-function remove(input, index) {
+export function remove(input, index) {
   var length = input.length
     , result, i, j;
   if (index >= 0 && index < length) {
@@ -82,11 +82,11 @@ function remove(input, index) {
   }
 }
 
-function removeByPred(input, pred) {
+export function removeByPred(input, pred) {
   return remove(input, findByPred(input, pred));
 }
 
-function map(input, fn) {
+export function map(input, fn) {
   var length = input.length
     , result = new Array(length)
     , i;
@@ -96,7 +96,7 @@ function map(input, fn) {
   return result;
 }
 
-function forEach(arr, fn) {
+export function forEach(arr, fn) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
@@ -104,7 +104,7 @@ function forEach(arr, fn) {
   }
 }
 
-function fillArray(arr, value) {
+export function fillArray(arr, value) {
   var length = arr.length
     , i;
   for (i = 0; i < length; i++) {
@@ -112,18 +112,18 @@ function fillArray(arr, value) {
   }
 }
 
-function contains(arr, value) {
+export function contains(arr, value) {
   return find(arr, value) !== -1;
 }
 
-function rest(arr, start, onEmpty) {
+export function rest(arr, start, onEmpty) {
   if (arr.length > start) {
     return Array.prototype.slice.call(arr, start);
   }
   return onEmpty;
 }
 
-function slide(cur, next, max) {
+export function slide(cur, next, max) {
   var length = Math.min(max, cur.length + 1),
       offset = cur.length - length + 1,
       result = new Array(length),
@@ -135,7 +135,7 @@ function slide(cur, next, max) {
   return result;
 }
 
-function isEqualArrays(a, b) {
+export function isEqualArrays(a, b) {
   var length, i;
   if (a == null && b == null) {
     return true;

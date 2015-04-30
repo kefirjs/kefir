@@ -1,3 +1,9 @@
+import withInterval from './utils/with-interval-helper';
+import Kefir from './kefir';
+import {deprecated} from './utils/other';
+import {VALUE, ERROR, END} from './utils/other';
+import {cloneArray} from './utils/collections';
+
 
 
 // Kefir.withInterval()
@@ -135,3 +141,7 @@ withInterval('later', {
     this._send(END);
   }
 });
+
+
+
+export default 'dummy';

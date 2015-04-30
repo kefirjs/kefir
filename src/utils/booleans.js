@@ -1,4 +1,4 @@
-function and() {
+export function and() {
   for (var i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
       return arguments[i];
@@ -7,7 +7,7 @@ function and() {
   return arguments[i - 1];
 }
 
-function or() {
+export function or() {
   for (var i = 0; i < arguments.length; i++) {
     if (arguments[i]) {
       return arguments[i];
@@ -16,6 +16,6 @@ function or() {
   return arguments[i - 1];
 }
 
-function not(x) {
+export function not(x) {
   return !x;
 }
