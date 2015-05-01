@@ -1,6 +1,6 @@
 import Kefir from '../kefir';
 import {inherit} from './objects';
-import {Stream} from '../core';
+import Stream from '../stream';
 import {rest} from './collections';
 
 
@@ -21,22 +21,22 @@ export default function withInterval(name, mixin) {
 
     _name: name,
 
-    _init: function(args) {},
-    _free: function() {},
+    _init(args) {},
+    _free() {},
 
-    _onTick: function() {},
+    _onTick() {},
 
-    _onActivation: function() {
+    _onActivation() {
       this._intervalId = setInterval(this._$onTick, this._wait);
     },
-    _onDeactivation: function() {
+    _onDeactivation() {
       if (this._intervalId !== null) {
         clearInterval(this._intervalId);
         this._intervalId = null;
       }
     },
 
-    _clear: function() {
+    _clear() {
       Stream.prototype._clear.call(this);
       this._$onTick = null;
       this._free();

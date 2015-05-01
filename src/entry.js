@@ -1,11 +1,14 @@
 import Kefir from './kefir';
-import {deprecated, id2} from './utils/other';
+import Observable from './observable';
+import Stream from './stream';
+import Property from './property';
+import deprecated from './patterns/deprecated';
 import {isFn} from './utils/types';
 import {circleShift} from './utils/collections';
 import {apply} from './utils/functions';
 
 
-import {Observable, Stream, Property} from './core';
+
 Kefir.Observable = Observable;
 Kefir.Stream = Stream;
 Kefir.Property = Property;
@@ -125,6 +128,7 @@ Observable.prototype.combine = function(other, combinator) {
   return Kefir.combine([this, other], combinator);
 };
 
+function id2(_, x) {return x;}
 Kefir.sampledBy = deprecated(
   'Kefir.sampledBy()',
   'Kefir.combine(active, passive, combinator)',

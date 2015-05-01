@@ -1,10 +1,15 @@
-import {Stream, Property} from './core';
-import {VALUE, ERROR, END, NOTHING, deprecated, id} from './utils/other';
+import Stream from './stream';
+import Property from './property';
+import deprecated from './patterns/deprecated';
+import {VALUE, ERROR, END, NOTHING} from './constants';
 import {inherit, extend, get} from './utils/objects';
 import {forEach, concat, findByPred, find, remove, cloneArray, fillArray, map} from './utils/collections';
 import {spread} from './utils/functions';
 import {isArray} from './utils/types';
 import {neverInstance} from './primary';
+
+
+function id (x) {return x;}
 
 
 function _AbstractPool(options) {
@@ -33,7 +38,7 @@ inherit(_AbstractPool, Stream, {
 
   _name: 'abstractPool',
 
-  _add: function(obj, toObs) {
+  _add(obj, toObs) {
     toObs = toObs || id;
     if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
       this._addToCur(toObs(obj));
@@ -46,28 +51,28 @@ inherit(_AbstractPool, Stream, {
       }
     }
   },
-  _addAll: function(obss) {
+  _addAll(obss) {
     var $ = this;
     forEach(obss, function(obs) {
       $._add(obs);
     });
   },
-  _remove: function(obs) {
+  _remove(obs) {
     if (this._removeCur(obs) === -1) {
       this._removeQueue(obs);
     }
   },
 
-  _addToQueue: function(obs) {
+  _addToQueue(obs) {
     this._queue = concat(this._queue, [obs]);
   },
-  _addToCur: function(obs) {
+  _addToCur(obs) {
     this._curSources = concat(this._curSources, [obs]);
     if (this._active) {
       this._subscribe(obs);
     }
   },
-  _subscribe: function(obs) {
+  _subscribe(obs) {
     var $ = this;
 
     var onEnd = function() {
@@ -83,7 +88,7 @@ inherit(_AbstractPool, Stream, {
       obs.onEnd(onEnd);
     }
   },
-  _unsubscribe: function(obs) {
+  _unsubscribe(obs) {
     obs.offAny(this._$handleSubAny);
 
     var onEndI = findByPred(this._bindedEndHandlers, function(obj) {
@@ -95,18 +100,18 @@ inherit(_AbstractPool, Stream, {
       obs.offEnd(onEnd);
     }
   },
-  _handleSubAny: function(event) {
+  _handleSubAny(event) {
     if (event.type === VALUE || event.type === ERROR) {
       this._send(event.type, event.value, event.current && this._activating);
     }
   },
 
-  _removeQueue: function(obs) {
+  _removeQueue(obs) {
     var index = find(this._queue, obs);
     this._queue = remove(this._queue, index);
     return index;
   },
-  _removeCur: function(obs) {
+  _removeCur(obs) {
     if (this._active) {
       this._unsubscribe(obs);
     }
@@ -121,18 +126,18 @@ inherit(_AbstractPool, Stream, {
     }
     return index;
   },
-  _removeOldest: function() {
+  _removeOldest() {
     this._removeCur(this._curSources[0]);
   },
 
-  _pullQueue: function() {
+  _pullQueue() {
     if (this._queue.length !== 0) {
       this._queue = cloneArray(this._queue);
       this._addToCur(this._queue.shift());
     }
   },
 
-  _onActivation: function() {
+  _onActivation() {
     var sources = this._curSources
       , i;
     this._activating = true;
@@ -143,7 +148,7 @@ inherit(_AbstractPool, Stream, {
     }
     this._activating = false;
   },
-  _onDeactivation: function() {
+  _onDeactivation() {
     var sources = this._curSources
       , i;
     for (i = 0; i < sources.length; i++) {
@@ -151,12 +156,12 @@ inherit(_AbstractPool, Stream, {
     }
   },
 
-  _isEmpty: function() {
+  _isEmpty() {
     return this._curSources.length === 0;
   },
-  _onEmpty: function() {},
+  _onEmpty() {},
 
-  _clear: function() {
+  _clear() {
     Stream.prototype._clear.call(this);
     this._queue = null;
     this._curSources = null;
@@ -173,7 +178,7 @@ inherit(_AbstractPool, Stream, {
 // .merge()
 
 var MergeLike = {
-  _onEmpty: function() {
+  _onEmpty() {
     if (this._initialised) {
       this._send(END, null, this._activating);
     }
@@ -227,11 +232,11 @@ inherit(Pool, _AbstractPool, {
 
   _name: 'pool',
 
-  plug: function(obs) {
+  plug(obs) {
     this._add(obs);
     return this;
   },
-  unplug: function(obs) {
+  unplug(obs) {
     this._remove(obs);
     return this;
   }
@@ -254,28 +259,28 @@ inherit(Bus, _AbstractPool, {
 
   _name: 'bus',
 
-  plug: function(obs) {
+  plug(obs) {
     this._add(obs);
     return this;
   },
-  unplug: function(obs) {
+  unplug(obs) {
     this._remove(obs);
     return this;
   },
 
-  emit: function(x) {
+  emit(x) {
     this._send(VALUE, x);
     return this;
   },
-  error: function(x) {
+  error(x) {
     this._send(ERROR, x);
     return this;
   },
-  end: function() {
+  end() {
     this._send(END);
     return this;
   },
-  emitEvent: function(event) {
+  emitEvent(event) {
     this._send(event.type, event.value);
   }
 
@@ -304,7 +309,7 @@ export function FlatMap(source, fn, options) {
 
 inherit(FlatMap, _AbstractPool, {
 
-  _onActivation: function() {
+  _onActivation() {
     _AbstractPool.prototype._onActivation.call(this);
     if (this._active) {
       this._activating = true;
@@ -312,12 +317,12 @@ inherit(FlatMap, _AbstractPool, {
       this._activating = false;
     }
   },
-  _onDeactivation: function() {
+  _onDeactivation() {
     _AbstractPool.prototype._onDeactivation.call(this);
     this._source.offAny(this._$handleMainSource);
   },
 
-  _handleMainSource: function(event) {
+  _handleMainSource(event) {
     if (event.type === VALUE) {
       if (!event.current || this._lastCurrent !== event.value) {
         this._add(event.value, this._fn);
@@ -336,13 +341,13 @@ inherit(FlatMap, _AbstractPool, {
     }
   },
 
-  _onEmpty: function() {
+  _onEmpty() {
     if (this._mainEnded) {
       this._send(END);
     }
   },
 
-  _clear: function() {
+  _clear() {
     _AbstractPool.prototype._clear.call(this);
     this._source = null;
     this._lastCurrent = null;
@@ -387,7 +392,7 @@ inherit(Zip, Stream, {
 
   _name: 'zip',
 
-  _onActivation: function() {
+  _onActivation() {
     var i, length = this._sources.length;
     this._drainArrays();
     this._aliveCount = length;
@@ -398,13 +403,13 @@ inherit(Zip, Stream, {
     }
   },
 
-  _onDeactivation: function() {
+  _onDeactivation() {
     for (var i = 0; i < this._sources.length; i++) {
       this._sources[i].offAny(this._bindedHandlers[i]);
     }
   },
 
-  _emit: function(isCurrent) {
+  _emit(isCurrent) {
     var values = new Array(this._buffers.length);
     for (var i = 0; i < this._buffers.length; i++) {
       values[i] = this._buffers[i].shift();
@@ -412,7 +417,7 @@ inherit(Zip, Stream, {
     this._send(VALUE, this._combinator(values), isCurrent);
   },
 
-  _isFull: function() {
+  _isFull() {
     for (var i = 0; i < this._buffers.length; i++) {
       if (this._buffers[i].length === 0) {
         return false;
@@ -421,26 +426,26 @@ inherit(Zip, Stream, {
     return true;
   },
 
-  _emitIfFull: function(isCurrent) {
+  _emitIfFull(isCurrent) {
     if (this._isFull()) {
       this._emit(isCurrent);
     }
   },
 
-  _drainArrays: function() {
+  _drainArrays() {
     while (this._isFull()) {
       this._emit(true);
     }
   },
 
-  _bindHandleAny: function(i) {
+  _bindHandleAny(i) {
     var $ = this;
     return function(event) {
       $._handleAny(i, event);
     };
   },
 
-  _handleAny: function(i, event) {
+  _handleAny(i, event) {
     if (event.type === VALUE) {
       this._buffers[i].push(event.value);
       this._emitIfFull(event.current);
@@ -456,7 +461,7 @@ inherit(Zip, Stream, {
     }
   },
 
-  _clear: function() {
+  _clear() {
     Stream.prototype._clear.call(this);
     this._sources = null;
     this._buffers = null;
@@ -517,7 +522,7 @@ inherit(Combine, Stream, {
 
   _name: 'combine',
 
-  _onActivation: function() {
+  _onActivation() {
     var length = this._sources.length,
         i;
     this._aliveCount = this._activeCount;
@@ -535,7 +540,7 @@ inherit(Combine, Stream, {
     }
   },
 
-  _onDeactivation: function() {
+  _onDeactivation() {
     var length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
@@ -543,7 +548,7 @@ inherit(Combine, Stream, {
     }
   },
 
-  _emitIfFull: function(isCurrent) {
+  _emitIfFull(isCurrent) {
     var hasAllValues = true;
     var hasErrors = false;
     var length = this._latestValues.length;
@@ -571,14 +576,14 @@ inherit(Combine, Stream, {
     }
   },
 
-  _bindHandleAny: function(i) {
+  _bindHandleAny(i) {
     var $ = this;
     return function(event) {
       $._handleAny(i, event);
     };
   },
 
-  _handleAny: function(i, event) {
+  _handleAny(i, event) {
 
     if (event.type === VALUE || event.type === ERROR) {
 
@@ -618,7 +623,7 @@ inherit(Combine, Stream, {
     }
   },
 
-  _clear: function() {
+  _clear() {
     Stream.prototype._clear.call(this);
     this._sources = null;
     this._latestValues = null;

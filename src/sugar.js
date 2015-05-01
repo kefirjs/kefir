@@ -1,10 +1,36 @@
-import {Observable} from './core';
-import {deprecated, now, returnsTrue, returnsFalse} from './utils/other';
+import Observable from './observable';
+import deprecated from './patterns/deprecated';
+import now from './utils/now';
 import Kefir from './kefir';
 import {isFn} from './utils/types';
 import {rest} from './utils/collections';
-import {not, and, or} from './utils/booleans';
 import {apply} from './utils/functions';
+
+
+
+function and() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (!arguments[i]) {
+      return arguments[i];
+    }
+  }
+  return arguments[i - 1];
+}
+
+function or() {
+  for (var i = 0; i < arguments.length; i++) {
+    if (arguments[i]) {
+      return arguments[i];
+    }
+  }
+  return arguments[i - 1];
+}
+
+function not(x) {
+  return !x;
+}
+
+
 
 
 // .setName
@@ -150,11 +176,14 @@ Observable.prototype.not = deprecated(
 
 // .awaiting
 
+function retTrue() {return true;}
+function retFalse() {return false;}
+
 Observable.prototype.awaiting = function(other) {
   return Kefir.merge([
-    this.map(returnsTrue),
-    other.map(returnsFalse)
-  ]).skipDuplicates().toProperty(returnsFalse).setName(this, 'awaiting');
+    this.map(retTrue),
+    other.map(retFalse)
+  ]).skipDuplicates().toProperty(retFalse).setName(this, 'awaiting');
 };
 
 

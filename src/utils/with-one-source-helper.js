@@ -1,18 +1,19 @@
-import {Stream, Property} from '../core';
+import Stream from '../stream';
+import Property from '../property';
 import {extend, inherit} from './objects';
-import {VALUE, ERROR, END} from './other';
+import {VALUE, ERROR, END} from '../constants';
 
 
 export default function withOneSource(name, mixin, options) {
 
 
   options = extend({
-    streamMethod: function(StreamClass, PropertyClass) {
+    streamMethod(StreamClass, PropertyClass) {
       return function() {
         return new StreamClass(this, arguments);
       };
     },
-    propertyMethod: function(StreamClass, PropertyClass) {
+    propertyMethod(StreamClass, PropertyClass) {
       return function() {
         return new PropertyClass(this, arguments);
       };
@@ -22,20 +23,20 @@ export default function withOneSource(name, mixin, options) {
 
 
   mixin = extend({
-    _init: function(args) {},
-    _free: function() {},
+    _init(args) {},
+    _free() {},
 
-    _handleValue: function(x, isCurrent) {
+    _handleValue(x, isCurrent) {
       this._send(VALUE, x, isCurrent);
     },
-    _handleError: function(x, isCurrent) {
+    _handleError(x, isCurrent) {
       this._send(ERROR, x, isCurrent);
     },
-    _handleEnd: function(__, isCurrent) {
+    _handleEnd(__, isCurrent) {
       this._send(END, null, isCurrent);
     },
 
-    _handleAny: function(event) {
+    _handleAny(event) {
       switch (event.type) {
         case VALUE: this._handleValue(event.value, event.current); break;
         case ERROR: this._handleError(event.value, event.current); break;
@@ -43,10 +44,10 @@ export default function withOneSource(name, mixin, options) {
       }
     },
 
-    _onActivation: function() {
+    _onActivation() {
       this._source.onAny(this._$handleAny);
     },
-    _onDeactivation: function() {
+    _onDeactivation() {
       this._source.offAny(this._$handleAny);
     }
   }, mixin || {});
@@ -66,7 +67,7 @@ export default function withOneSource(name, mixin, options) {
     }
 
     inherit(AnonymousObservable, BaseClass, {
-      _clear: function() {
+      _clear() {
         BaseClass.prototype._clear.call(this);
         this._source = null;
         this._$handleAny = null;

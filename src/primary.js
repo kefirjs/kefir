@@ -1,6 +1,7 @@
 import {inherit} from './utils/objects';
-import {Stream, Property} from './core';
-import {VALUE, ERROR, END} from './utils/other';
+import Stream from './stream';
+import Property from './property';
+import {VALUE, ERROR, END} from './constants';
 
 
 
@@ -16,20 +17,20 @@ inherit(StreamStream, Stream, {
 
   _name: 'stream',
 
-  _onActivation: function() {
+  _onActivation() {
     var $ = this
       , isCurrent = true
       , emitter = {
-        emit: function(x) {
+        emit(x) {
           $._send(VALUE, x, isCurrent);
         },
-        error: function(x) {
+        error(x) {
           $._send(ERROR, x, isCurrent);
         },
-        end: function() {
+        end() {
           $._send(END, null, isCurrent);
         },
-        emitEvent: function(e) {
+        emitEvent(e) {
           $._send(e.type, e.value, isCurrent);
         }
       };
@@ -43,14 +44,14 @@ inherit(StreamStream, Stream, {
 
     isCurrent = false;
   },
-  _onDeactivation: function() {
+  _onDeactivation() {
     if (this._unsubscribe !== null) {
       this._unsubscribe();
       this._unsubscribe = null;
     }
   },
 
-  _clear: function() {
+  _clear() {
     Stream.prototype._clear.call(this);
     this._fn = null;
   }
@@ -71,19 +72,19 @@ export function Emitter() {
 
 inherit(Emitter, Stream, {
   _name: 'emitter',
-  emit: function(x) {
+  emit(x) {
     this._send(VALUE, x);
     return this;
   },
-  error: function(x) {
+  error(x) {
     this._send(ERROR, x);
     return this;
   },
-  end: function() {
+  end() {
     this._send(END);
     return this;
   },
-  emitEvent: function(event) {
+  emitEvent(event) {
     this._send(event.type, event.value);
   }
 });
@@ -156,7 +157,7 @@ inherit(Repeat, Stream, {
 
   _name: 'repeat',
 
-  _handleAny: function(event) {
+  _handleAny(event) {
     if (event.type === END) {
       this._source = null;
       this._startLoop();
@@ -165,7 +166,7 @@ inherit(Repeat, Stream, {
     }
   },
 
-  _startLoop: function() {
+  _startLoop() {
     if (!this._inLoop) {
       this._inLoop = true;
       while (this._source === null && this._alive && this._active) {
@@ -180,7 +181,7 @@ inherit(Repeat, Stream, {
     }
   },
 
-  _onActivation: function() {
+  _onActivation() {
     this._activating = true;
     if (this._source) {
       this._source.onAny(this._$handleAny);
@@ -190,13 +191,13 @@ inherit(Repeat, Stream, {
     this._activating = false;
   },
 
-  _onDeactivation: function() {
+  _onDeactivation() {
     if (this._source) {
       this._source.offAny(this._$handleAny);
     }
   },
 
-  _clear: function() {
+  _clear() {
     Stream.prototype._clear.call(this);
     this._generator = null;
     this._source = null;

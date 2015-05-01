@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../utils/patterns/one-source';
-import {VALUE} from '../utils/other';
+import {createStream, createProperty} from '../patterns/one-source';
+import {VALUE} from '../constants';
 
 const mixin = {
 

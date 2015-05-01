@@ -1,34 +1,35 @@
-import {Stream, Property} from '../core';
+import Stream from '../stream';
+import Property from '../property';
 import {extend, inherit} from './objects';
-import {VALUE, ERROR, END, NOTHING} from './other';
+import {VALUE, ERROR, END, NOTHING} from '../constants';
 import {rest} from './collections';
 
 
 export default function withTwoSources(name, mixin /*, options*/) {
 
   mixin = extend({
-    _init: function(args) {},
-    _free: function() {},
+    _init(args) {},
+    _free() {},
 
-    _handlePrimaryValue: function(x, isCurrent) {
+    _handlePrimaryValue(x, isCurrent) {
       this._send(VALUE, x, isCurrent);
     },
-    _handlePrimaryError: function(x, isCurrent) {
+    _handlePrimaryError(x, isCurrent) {
       this._send(ERROR, x, isCurrent);
     },
-    _handlePrimaryEnd: function(__, isCurrent) {
+    _handlePrimaryEnd(__, isCurrent) {
       this._send(END, null, isCurrent);
     },
 
-    _handleSecondaryValue: function(x, isCurrent) {
+    _handleSecondaryValue(x, isCurrent) {
       this._lastSecondary = x;
     },
-    _handleSecondaryError: function(x, isCurrent) {
+    _handleSecondaryError(x, isCurrent) {
       this._send(ERROR, x, isCurrent);
     },
-    _handleSecondaryEnd: function(__, isCurrent) {},
+    _handleSecondaryEnd(__, isCurrent) {},
 
-    _handlePrimaryAny: function(event) {
+    _handlePrimaryAny(event) {
       switch (event.type) {
         case VALUE:
           this._handlePrimaryValue(event.value, event.current);
@@ -41,7 +42,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
           break;
       }
     },
-    _handleSecondaryAny: function(event) {
+    _handleSecondaryAny(event) {
       switch (event.type) {
         case VALUE:
           this._handleSecondaryValue(event.value, event.current);
@@ -56,7 +57,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
       }
     },
 
-    _removeSecondary: function() {
+    _removeSecondary() {
       if (this._secondary !== null) {
         this._secondary.offAny(this._$handleSecondaryAny);
         this._$handleSecondaryAny = null;
@@ -64,7 +65,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
       }
     },
 
-    _onActivation: function() {
+    _onActivation() {
       if (this._secondary !== null) {
         this._secondary.onAny(this._$handleSecondaryAny);
       }
@@ -72,7 +73,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
         this._primary.onAny(this._$handlePrimaryAny);
       }
     },
-    _onDeactivation: function() {
+    _onDeactivation() {
       if (this._secondary !== null) {
         this._secondary.offAny(this._$handleSecondaryAny);
       }
@@ -100,7 +101,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
     }
 
     inherit(AnonymousObservable, BaseClass, {
-      _clear: function() {
+      _clear() {
         BaseClass.prototype._clear.call(this);
         this._primary = null;
         this._secondary = null;

@@ -1,24 +1,24 @@
 import withTwoSources from './utils/with-two-sources-helper';
-import {VALUE, ERROR, END, NOTHING} from './utils/other';
+import {VALUE, ERROR, END, NOTHING} from './constants';
 import {extend, get} from './utils/objects';
 
 
 var withTwoSourcesAndBufferMixin = {
-  _init: function(args) {
+  _init(args) {
     this._buff = [];
     this._flushOnEnd = get(args[0], 'flushOnEnd', true);
   },
-  _free: function() {
+  _free() {
     this._buff = null;
   },
-  _flush: function(isCurrent) {
+  _flush(isCurrent) {
     if (this._buff !== null && this._buff.length !== 0) {
       this._send(VALUE, this._buff, isCurrent);
       this._buff = [];
     }
   },
 
-  _handlePrimaryEnd: function(__, isCurrent) {
+  _handlePrimaryEnd(__, isCurrent) {
     if (this._flushOnEnd) {
       this._flush(isCurrent);
     }
@@ -30,22 +30,22 @@ var withTwoSourcesAndBufferMixin = {
 
 withTwoSources('bufferBy', extend({
 
-  _onActivation: function() {
+  _onActivation() {
     this._primary.onAny(this._$handlePrimaryAny);
     if (this._alive && this._secondary !== null) {
       this._secondary.onAny(this._$handleSecondaryAny);
     }
   },
 
-  _handlePrimaryValue: function(x, isCurrent) {
+  _handlePrimaryValue(x, isCurrent) {
     this._buff.push(x);
   },
 
-  _handleSecondaryValue: function(x, isCurrent) {
+  _handleSecondaryValue(x, isCurrent) {
     this._flush(isCurrent);
   },
 
-  _handleSecondaryEnd: function(x, isCurrent) {
+  _handleSecondaryEnd(x, isCurrent) {
     if (!this._flushOnEnd) {
       this._send(END, null, isCurrent);
     }
@@ -58,14 +58,14 @@ withTwoSources('bufferBy', extend({
 
 withTwoSources('bufferWhileBy', extend({
 
-  _handlePrimaryValue: function(x, isCurrent) {
+  _handlePrimaryValue(x, isCurrent) {
     this._buff.push(x);
     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
       this._flush(isCurrent);
     }
   },
 
-  _handleSecondaryEnd: function(x, isCurrent) {
+  _handleSecondaryEnd(x, isCurrent) {
     if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
       this._send(END, null, isCurrent);
     }
@@ -79,13 +79,13 @@ withTwoSources('bufferWhileBy', extend({
 
 withTwoSources('filterBy', {
 
-  _handlePrimaryValue: function(x, isCurrent) {
+  _handlePrimaryValue(x, isCurrent) {
     if (this._lastSecondary !== NOTHING && this._lastSecondary) {
       this._send(VALUE, x, isCurrent);
     }
   },
 
-  _handleSecondaryEnd: function(__, isCurrent) {
+  _handleSecondaryEnd(__, isCurrent) {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
       this._send(END, null, isCurrent);
     }
@@ -97,13 +97,13 @@ withTwoSources('filterBy', {
 
 withTwoSources('skipUntilBy', {
 
-  _handlePrimaryValue: function(x, isCurrent) {
+  _handlePrimaryValue(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
       this._send(VALUE, x, isCurrent);
     }
   },
 
-  _handleSecondaryEnd: function(__, isCurrent) {
+  _handleSecondaryEnd(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
       this._send(END, null, isCurrent);
     }
@@ -115,7 +115,7 @@ withTwoSources('skipUntilBy', {
 
 withTwoSources('takeUntilBy', {
 
-  _handleSecondaryValue: function(x, isCurrent) {
+  _handleSecondaryValue(x, isCurrent) {
     this._send(END, null, isCurrent);
   }
 
@@ -125,20 +125,20 @@ withTwoSources('takeUntilBy', {
 
 withTwoSources('takeWhileBy', {
 
-  _handlePrimaryValue: function(x, isCurrent) {
+  _handlePrimaryValue(x, isCurrent) {
     if (this._lastSecondary !== NOTHING) {
       this._send(VALUE, x, isCurrent);
     }
   },
 
-  _handleSecondaryValue: function(x, isCurrent) {
+  _handleSecondaryValue(x, isCurrent) {
     this._lastSecondary = x;
     if (!this._lastSecondary) {
       this._send(END, null, isCurrent);
     }
   },
 
-  _handleSecondaryEnd: function(__, isCurrent) {
+  _handleSecondaryEnd(__, isCurrent) {
     if (this._lastSecondary === NOTHING) {
       this._send(END, null, isCurrent);
     }
@@ -151,21 +151,21 @@ withTwoSources('takeWhileBy', {
 
 withTwoSources('skipWhileBy', {
 
-  _init: function() {
+  _init() {
     this._hasFalseyFromSecondary = false;
   },
 
-  _handlePrimaryValue: function(x, isCurrent) {
+  _handlePrimaryValue(x, isCurrent) {
     if (this._hasFalseyFromSecondary) {
       this._send(VALUE, x, isCurrent);
     }
   },
 
-  _handleSecondaryValue: function(x, isCurrent) {
+  _handleSecondaryValue(x, isCurrent) {
     this._hasFalseyFromSecondary = this._hasFalseyFromSecondary || !x;
   },
 
-  _handleSecondaryEnd: function(__, isCurrent) {
+  _handleSecondaryEnd(__, isCurrent) {
     if (!this._hasFalseyFromSecondary) {
       this._send(END, null, isCurrent);
     }
