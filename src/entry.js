@@ -41,6 +41,17 @@ Kefir.repeat = function(generator) {
 
 
 
+import {MapStream, MapProperty} from './one-source/map';
+
+Stream.prototype.map = function(fn) {
+  return new MapStream(this, {fn});
+}
+
+Property.prototype.map = function(fn) {
+  return new MapProperty(this, {fn});
+}
+
+
 import {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} from './multiple-sources';
 
 Kefir.merge = function(obss) {

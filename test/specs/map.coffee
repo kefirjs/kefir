@@ -22,6 +22,11 @@ describe 'map', ->
       expect(a.map (x) -> x * 2).toEmit [2, {error: 5}, 4, '<end>'], ->
         send(a, [1, {error: 5}, 2, '<end>'])
 
+    it 'should work with default `fn`', ->
+      a = stream()
+      expect(a.map()).toEmit [1, {error: 5}, 2, '<end>'], ->
+        send(a, [1, {error: 5}, 2, '<end>'])
+
 
 
   describe 'property', ->

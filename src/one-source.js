@@ -195,21 +195,6 @@ withOneSource('last', {
 
 
 
-// .map(fn)
-
-withOneSource('map', {
-  _init: function(args) {
-    this._fn = args[0] || id;
-  },
-  _free: function() {
-    this._fn = null;
-  },
-  _handleValue: function(x, isCurrent) {
-    this._send(VALUE, this._fn(x), isCurrent);
-  }
-});
-
-
 
 
 // .mapErrors(fn)
