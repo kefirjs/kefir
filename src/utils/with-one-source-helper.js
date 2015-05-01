@@ -4,23 +4,7 @@ import {extend, inherit} from './objects';
 import {VALUE, ERROR, END} from '../constants';
 
 
-export default function withOneSource(name, mixin, options) {
-
-
-  options = extend({
-    streamMethod(StreamClass, PropertyClass) {
-      return function() {
-        return new StreamClass(this, arguments);
-      };
-    },
-    propertyMethod(StreamClass, PropertyClass) {
-      return function() {
-        return new PropertyClass(this, arguments);
-      };
-    }
-  }, options || {});
-
-
+export default function withOneSource(name, mixin) {
 
   mixin = extend({
     _init(args) {},
@@ -79,15 +63,15 @@ export default function withOneSource(name, mixin, options) {
   }
 
 
-  var AnonymousStream = buildClass(Stream);
-  var AnonymousProperty = buildClass(Property);
+  var StreamClass = buildClass(Stream);
+  var PropertyClass = buildClass(Property);
 
-  if (options.streamMethod) {
-    Stream.prototype[name] = options.streamMethod(AnonymousStream, AnonymousProperty);
-  }
+  Stream.prototype[name] = function() {
+    return new StreamClass(this, arguments);
+  };
 
-  if (options.propertyMethod) {
-    Property.prototype[name] = options.propertyMethod(AnonymousStream, AnonymousProperty);
-  }
+  Property.prototype[name] = function() {
+    return new PropertyClass(this, arguments);
+  };
 
 }

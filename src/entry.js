@@ -46,13 +46,86 @@ Kefir.repeat = function(generator) {
 
 import {MapStream, MapProperty} from './one-source/map';
 
-Stream.prototype.map = function(fn) {
+Stream.prototype.map = function(fn = (x => x)) {
   return new MapStream(this, {fn});
-}
+};
 
-Property.prototype.map = function(fn) {
+Property.prototype.map = function(fn = (x => x)) {
   return new MapProperty(this, {fn});
-}
+};
+
+
+
+import {WithHandlerStream, WithHandlerProperty} from './one-source/with-handler';
+
+Stream.prototype.withHandler = function(fn) {
+  return new WithHandlerStream(this, {fn});
+};
+
+Property.prototype.withHandler = function(fn) {
+  return new WithHandlerProperty(this, {fn});
+};
+
+
+
+import {DebounceStream, DebounceProperty} from './one-source/debounce';
+
+Stream.prototype.debounce = function(wait, {immediate = false} = {}) {
+  return new DebounceStream(this, {wait, immediate});
+};
+
+Property.prototype.debounce = function(wait, {immediate = false} = {}) {
+  return new DebounceProperty(this, {wait, immediate});
+};
+
+
+
+import {ThrottleStream, ThrottleProperty} from './one-source/throttle';
+
+Stream.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
+  return new ThrottleStream(this, {wait, leading, trailing});
+};
+
+Property.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
+  return new ThrottleProperty(this, {wait, leading, trailing});
+};
+
+
+
+import {BufferWhileStream, BufferWhileProperty} from './one-source/buffer-while';
+
+Stream.prototype.bufferWhile = function(fn = (x => x), {flushOnEnd = true} = {}) {
+  return new BufferWhileStream(this, {fn, flushOnEnd});
+};
+
+Property.prototype.bufferWhile = function(fn = (x => x), {flushOnEnd = true} = {}) {
+  return new BufferWhileProperty(this, {fn, flushOnEnd});
+};
+
+
+
+import ToPropertyProperty from './one-source/to-property';
+
+Observable.prototype.toProperty = function(fn) {
+  return new ToPropertyProperty(this, {fn});
+};
+
+
+
+import ChangesStream from './one-source/changes';
+
+Observable.prototype.changes = function() {
+  return new ChangesStream(this);
+};
+
+
+
+import ScapProperty from './one-source/scan';
+
+Observable.prototype.scan = function(...args) {
+  return new ScapProperty(this, args);
+};
+
 
 
 import {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} from './multiple-sources';

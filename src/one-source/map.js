@@ -3,7 +3,7 @@ import {VALUE} from '../constants';
 
 const mixin = {
 
-  _init({fn = (x => x)}) {
+  _init({fn}) {
     this._fn = fn;
   },
 
