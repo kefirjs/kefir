@@ -1,8 +1,9 @@
 import {inherit} from './utils/objects';
 import {VALUE, ERROR, END} from './constants';
 import {callSubscriber} from './dispatcher';
-import Event from './event';
 import Observable from './observable';
+import _Event from './event';
+const Event = _Event;
 
 
 

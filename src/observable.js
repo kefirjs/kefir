@@ -1,7 +1,9 @@
 import {extend} from './utils/objects';
 import {VALUE, ERROR, ANY, END} from './constants';
 import {Dispatcher, callSubscriber} from './dispatcher';
-import Event from './event';
+import _Event from './event';
+const Event = _Event;
+
 
 
 export default function Observable() {
