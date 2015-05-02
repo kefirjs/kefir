@@ -18,7 +18,7 @@ var withTwoSourcesAndBufferMixin = {
     }
   },
 
-  _handlePrimaryEnd(__, isCurrent) {
+  _handlePrimaryEnd(_, isCurrent) {
     if (this._flushOnEnd) {
       this._flush(isCurrent);
     }
@@ -85,7 +85,7 @@ withTwoSources('filterBy', {
     }
   },
 
-  _handleSecondaryEnd(__, isCurrent) {
+  _handleSecondaryEnd(_, isCurrent) {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
       this._send(END, null, isCurrent);
     }
@@ -103,7 +103,7 @@ withTwoSources('skipUntilBy', {
     }
   },
 
-  _handleSecondaryEnd(__, isCurrent) {
+  _handleSecondaryEnd(_, isCurrent) {
     if (this._lastSecondary === NOTHING) {
       this._send(END, null, isCurrent);
     }
@@ -138,7 +138,7 @@ withTwoSources('takeWhileBy', {
     }
   },
 
-  _handleSecondaryEnd(__, isCurrent) {
+  _handleSecondaryEnd(_, isCurrent) {
     if (this._lastSecondary === NOTHING) {
       this._send(END, null, isCurrent);
     }
@@ -165,7 +165,7 @@ withTwoSources('skipWhileBy', {
     this._hasFalseyFromSecondary = this._hasFalseyFromSecondary || !x;
   },
 
-  _handleSecondaryEnd(__, isCurrent) {
+  _handleSecondaryEnd(_, isCurrent) {
     if (!this._hasFalseyFromSecondary) {
       this._send(END, null, isCurrent);
     }

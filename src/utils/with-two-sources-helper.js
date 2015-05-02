@@ -17,7 +17,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
     _handlePrimaryError(x, isCurrent) {
       this._send(ERROR, x, isCurrent);
     },
-    _handlePrimaryEnd(__, isCurrent) {
+    _handlePrimaryEnd(_, isCurrent) {
       this._send(END, null, isCurrent);
     },
 
@@ -27,7 +27,7 @@ export default function withTwoSources(name, mixin /*, options*/) {
     _handleSecondaryError(x, isCurrent) {
       this._send(ERROR, x, isCurrent);
     },
-    _handleSecondaryEnd(__, isCurrent) {},
+    _handleSecondaryEnd(_, isCurrent) {},
 
     _handlePrimaryAny(event) {
       switch (event.type) {

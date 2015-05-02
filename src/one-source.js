@@ -62,7 +62,7 @@ withOneSource('transduce', {
     }
     this._forcedCurrent = false;
   },
-  _handleEnd(__, isCurrent) {
+  _handleEnd(_, isCurrent) {
     this._forcedCurrent = isCurrent;
     this._xform['@@transducer/result'](null);
     this._forcedCurrent = false;
@@ -84,7 +84,7 @@ withOneSource('last', {
   _handleValue(x) {
     this._lastValue = x;
   },
-  _handleEnd(__, isCurrent) {
+  _handleEnd(_, isCurrent) {
     if (this._lastValue !== NOTHING) {
       this._send(VALUE, this._lastValue, isCurrent);
     }
@@ -358,7 +358,7 @@ withOneSource('reduce', {
   _handleValue(x) {
     this._result = (this._result === NOTHING) ? x : this._fn(this._result, x);
   },
-  _handleEnd(__, isCurrent) {
+  _handleEnd(_, isCurrent) {
     if (this._result !== NOTHING) {
       this._send(VALUE, this._result, isCurrent);
     }
@@ -389,7 +389,7 @@ withOneSource('beforeEnd', {
   _free() {
     this._fn = null;
   },
-  _handleEnd(__, isCurrent) {
+  _handleEnd(_, isCurrent) {
     this._send(VALUE, this._fn(), isCurrent);
     this._send(END, null, isCurrent);
   }
@@ -479,7 +479,7 @@ withOneSource('delay', {
       setTimeout(this._$shiftBuff, this._wait);
     }
   },
-  _handleEnd(__, isCurrent) {
+  _handleEnd(_, isCurrent) {
     if (isCurrent) {
       this._send(END, null, isCurrent);
     } else {

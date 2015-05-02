@@ -16,7 +16,7 @@ export default function withOneSource(name, mixin) {
     _handleError(x, isCurrent) {
       this._send(ERROR, x, isCurrent);
     },
-    _handleEnd(__, isCurrent) {
+    _handleEnd(_, isCurrent) {
       this._send(END, null, isCurrent);
     },
 
