@@ -172,6 +172,3 @@ withTwoSources('skipWhileBy', {
   }
 
 });
-
-
-export default 'dummy';

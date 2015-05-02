@@ -141,7 +141,3 @@ withInterval('later', {
     this._send(END);
   }
 });
-
-
-
-export default 'dummy';

@@ -1,13 +1,13 @@
 import {createProperty} from '../patterns/one-source';
-import {VALUE, ERROR} from '../constants';
+import {VALUE, ERROR, NOTHING} from '../constants';
 
 
 export default createProperty('scan', {
 
-  _init(args) {
-    this._fn = args[0];
-    if (args.length > 1) {
-      this._send(VALUE, args[1], true);
+  _init({fn, seed}) {
+    this._fn = fn;
+    if (seed !== NOTHING) {
+      this._send(VALUE, seed, true);
     }
   },
 

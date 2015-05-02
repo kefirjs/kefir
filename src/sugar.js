@@ -314,9 +314,3 @@ Kefir.fromEvents = function(target, eventName, transformer) {
     transformer
   ).setName('fromEvents');
 };
-
-
-
-
-export default 'dummy';
-
