@@ -7,5 +7,11 @@ export default function Stream() {
 }
 
 inherit(Stream, Observable, {
-  _name: 'stream'
+
+  _name: 'stream',
+
+  getType() {
+    return 'stream';
+  }
+
 });

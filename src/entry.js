@@ -45,14 +45,10 @@ Kefir.repeat = function(generator) {
 
 
 
-import {MapStream, MapProperty} from './one-source/map';
+import map from './one-source/map';
 
-Stream.prototype.map = function(fn = (x) => x) {
-  return new MapStream(this, {fn});
-};
-
-Property.prototype.map = function(fn = (x) => x) {
-  return new MapProperty(this, {fn});
+Observable.prototype.map = function(fn = (x) => x) {
+  return map(this, fn);
 };
 
 

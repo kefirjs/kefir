@@ -41,6 +41,10 @@ inherit(Property, Observable, {
       callSubscriber(type, fn, Event(END, undefined, true));
     }
     return this;
+  },
+
+  getType() {
+    return 'property';
   }
 
 });
