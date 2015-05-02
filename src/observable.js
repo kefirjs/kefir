@@ -91,10 +91,6 @@ extend(Observable.prototype, {
     return this._off(ANY, fn);
   },
 
-  getType() {
-    return 'observable';
-  },
-
   // A and B must be subclasses of Stream and Property (order doesn't matter)
   ofSameType(A, B) {
     return A.prototype.getType() === this.getType() ? A : B;
