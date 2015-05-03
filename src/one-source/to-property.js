@@ -1,6 +1,5 @@
 const {createProperty} = require('../patterns/one-source');
 const {VALUE} = require('../constants');
-const {isFn} = require('../utils/types');
 
 
 const P = createProperty('toProperty', {
