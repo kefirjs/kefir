@@ -22,5 +22,10 @@ const mixin = {
 
 };
 
-exports.SkipDuplicatesStream = createStream('skipDuplicates', mixin);
-exports.SkipDuplicatesProperty = createProperty('skipDuplicates', mixin);
+const S = createStream('skipDuplicates', mixin);
+const P = createProperty('skipDuplicates', mixin);
+
+
+module.exports = function skipDuplicates(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

@@ -2,7 +2,7 @@ const {createProperty} = require('../patterns/one-source');
 const {VALUE, ERROR, NOTHING} = require('../constants');
 
 
-module.exports = createProperty('scan', {
+const P = createProperty('scan', {
 
   _init({fn, seed}) {
     this._fn = fn;
@@ -23,3 +23,8 @@ module.exports = createProperty('scan', {
   }
 
 });
+
+
+module.exports = function scan(obs, fn, seed) {
+  return new P(obs, {fn, seed});
+};

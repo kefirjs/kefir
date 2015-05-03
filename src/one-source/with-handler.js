@@ -27,7 +27,11 @@ const mixin = {
 
 };
 
-exports.WithHandlerStream = createStream('withHandler', mixin);
-exports.WithHandlerProperty = createProperty('withHandler', mixin);
+const S = createStream('withHandler', mixin);
+const P = createProperty('withHandler', mixin);
 
 
+
+module.exports = function withHandler(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

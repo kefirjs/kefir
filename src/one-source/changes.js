@@ -3,7 +3,7 @@ const {VALUE, ERROR} = require('../constants');
 
 
 
-module.exports = createStream('changes', {
+const S = createStream('changes', {
 
   _handleValue(x, isCurrent) {
     if (!isCurrent) {
@@ -18,3 +18,8 @@ module.exports = createStream('changes', {
   }
 
 });
+
+
+module.exports = function changes(obs) {
+  return new S(obs);
+};

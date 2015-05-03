@@ -24,5 +24,10 @@ const mixin = {
 
 };
 
-exports.LastStream = createStream('last', mixin);
-exports.LastProperty = createProperty('last', mixin);
+const S = createStream('last', mixin);
+const P = createProperty('last', mixin);
+
+
+module.exports = function last(obs) {
+  return new (obs.ofSameType(S, P))(obs);
+};

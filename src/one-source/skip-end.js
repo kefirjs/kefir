@@ -4,5 +4,10 @@ const mixin = {
   _handleEnd() {}
 };
 
-exports.SkipEndStream = createStream('skipEnd', mixin);
-exports.SkipEndProperty = createProperty('skipEnd', mixin);
+const S = createStream('skipEnd', mixin);
+const P = createProperty('skipEnd', mixin);
+
+
+module.exports = function skipEnd(obs) {
+  return new (obs.ofSameType(S, P))(obs);
+};

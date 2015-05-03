@@ -17,5 +17,10 @@ const mixin = {
 
 };
 
-exports.MapErrorsStream = createStream('mapErrors', mixin);
-exports.MapErrorsProperty = createProperty('mapErrors', mixin);
+const S = createStream('mapErrors', mixin);
+const P = createProperty('mapErrors', mixin);
+
+
+module.exports = function mapErrors(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

@@ -17,9 +17,9 @@ const mixin = {
 
 };
 
-const MapS = createStream('map', mixin);
-const MapP = createProperty('map', mixin);
+const S = createStream('map', mixin);
+const P = createProperty('map', mixin);
 
 module.exports = function map(obs, fn) {
-  return new (obs.ofSameType(MapS, MapP))(obs, {fn});
-}
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

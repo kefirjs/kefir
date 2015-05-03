@@ -10,5 +10,10 @@ const mixin = {
 
 };
 
-exports.EndOnErrorStream = createStream('endOnError', mixin);
-exports.EndOnErrorProperty = createProperty('endOnError', mixin);
+const S = createStream('endOnError', mixin);
+const P = createProperty('endOnError', mixin);
+
+
+module.exports = function endOnError(obs) {
+  return new (obs.ofSameType(S, P))(obs);
+};

@@ -43,5 +43,10 @@ const mixin = {
 
 };
 
-exports.TransduceStream = createStream('transduce', mixin);
-exports.TransduceProperty = createProperty('transduce', mixin);
+const S = createStream('transduce', mixin);
+const P = createProperty('transduce', mixin);
+
+
+module.exports = function transduce(obs, transducer) {
+  return new (obs.ofSameType(S, P))(obs, {transducer});
+};

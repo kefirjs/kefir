@@ -17,5 +17,10 @@ const mixin = {
 
 };
 
-exports.SkipStream = createStream('skip', mixin);
-exports.SkipProperty = createProperty('skip', mixin);
+const S = createStream('skip', mixin);
+const P = createProperty('skip', mixin);
+
+
+module.exports = function skip(obs, n) {
+  return new (obs.ofSameType(S, P))(obs, {n});
+};

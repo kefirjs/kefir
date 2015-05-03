@@ -18,5 +18,9 @@ const mixin = {
 
 };
 
-exports.BeforeEndStream = createStream('beforeEnd', mixin);
-exports.BeforeEndProperty = createProperty('beforeEnd', mixin);
+const S = createStream('beforeEnd', mixin);
+const P = createProperty('beforeEnd', mixin);
+
+module.exports = function beforeEnd(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

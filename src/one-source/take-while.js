@@ -21,5 +21,10 @@ const mixin = {
 
 };
 
-exports.TakeWhileStream = createStream('takeWhile', mixin);
-exports.TakeWhileProperty = createProperty('takeWhile', mixin);
+const S = createStream('takeWhile', mixin);
+const P = createProperty('takeWhile', mixin);
+
+
+module.exports = function takeWhile(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

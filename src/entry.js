@@ -1,7 +1,5 @@
 const Kefir = require('./kefir');
 const Observable = require('./observable');
-const Stream = require('./stream');
-const Property = require('./property');
 const deprecated = require('./patterns/deprecated');
 const {isFn} = require('./utils/types');
 const {circleShift} = require('./utils/collections');
@@ -11,8 +9,8 @@ const {NOTHING} = require('./constants');
 
 
 Kefir.Observable = Observable;
-Kefir.Stream = Stream;
-Kefir.Property = Property;
+Kefir.Stream = require('./stream');
+Kefir.Property = require('./property');
 
 
 
@@ -53,348 +51,242 @@ Observable.prototype.map = function(fn = (x) => x) {
 
 
 
-const {SlidingWindowStream, SlidingWindowProperty} = require('./one-source/sliding-window');
+const slidingWindow = require('./one-source/sliding-window');
 
-Stream.prototype.slidingWindow = function(max, min = 0) {
-  return new SlidingWindowStream(this, {min, max});
-};
-
-Property.prototype.slidingWindow = function(max, min = 0) {
-  return new SlidingWindowProperty(this, {min, max});
+Observable.prototype.slidingWindow = function(max, min = 0) {
+  return slidingWindow(this, max, min);
 };
 
 
 
-const {SkipWhileStream, SkipWhileProperty} = require('./one-source/skip-while');
+const skipWhile = require('./one-source/skip-while');
 
-Stream.prototype.skipWhile = function(fn = (x) => x) {
-  return new SkipWhileStream(this, {fn});
-};
-
-Property.prototype.skipWhile = function(fn = (x) => x) {
-  return new SkipWhileProperty(this, {fn});
+Observable.prototype.skipWhile = function(fn = (x) => x) {
+  return skipWhile(this, fn);
 };
 
 
 
-const {TakeWhileStream, TakeWhileProperty} = require('./one-source/take-while');
+const takeWhile = require('./one-source/take-while');
 
-Stream.prototype.takeWhile = function(fn = (x) => x) {
-  return new TakeWhileStream(this, {fn});
-};
-
-Property.prototype.takeWhile = function(fn = (x) => x) {
-  return new TakeWhileProperty(this, {fn});
+Observable.prototype.takeWhile = function(fn = (x) => x) {
+  return takeWhile(this, fn);
 };
 
 
 
-const {SkipStream, SkipProperty} = require('./one-source/skip');
+const skip = require('./one-source/skip');
 
-Stream.prototype.skip = function(n) {
-  return new SkipStream(this, {n});
-};
-
-Property.prototype.skip = function(n) {
-  return new SkipProperty(this, {n});
+Observable.prototype.skip = function(n) {
+  return skip(this, n);
 };
 
 
 
-const {TakeStream, TakeProperty} = require('./one-source/take');
+const take = require('./one-source/take');
 
-Stream.prototype.take = function(n) {
-  return new TakeStream(this, {n});
-};
-
-Property.prototype.take = function(n) {
-  return new TakeProperty(this, {n});
+Observable.prototype.take = function(n) {
+  return take(this, n);
 };
 
 
 
-const {SkipDuplicatesStream, SkipDuplicatesProperty} = require('./one-source/skip-duplicates');
+const skipDuplicates = require('./one-source/skip-duplicates');
 
-Stream.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
-  return new SkipDuplicatesStream(this, {fn});
-};
-
-Property.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
-  return new SkipDuplicatesProperty(this, {fn});
+Observable.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
+  return skipDuplicates(this, fn);
 };
 
 
 
-const {SkipEndStream, SkipEndProperty} = require('./one-source/skip-end');
+const skipEnd = require('./one-source/skip-end');
 
-Stream.prototype.skipEnd = function() {
-  return new SkipEndStream(this);
-};
-
-Property.prototype.skipEnd = function() {
-  return new SkipEndProperty(this);
+Observable.prototype.skipEnd = function() {
+  return skipEnd(this);
 };
 
 
 
-const {SkipErrorsStream, SkipErrorsProperty} = require('./one-source/skip-errors');
+const skipErrors = require('./one-source/skip-errors');
 
-Stream.prototype.skipErrors = function() {
-  return new SkipErrorsStream(this);
-};
-
-Property.prototype.skipErrors = function() {
-  return new SkipErrorsProperty(this);
+Observable.prototype.skipErrors = function() {
+  return skipErrors(this);
 };
 
 
 
-const {SkipValuesStream, SkipValuesProperty} = require('./one-source/skip-values');
+const skipValues = require('./one-source/skip-values');
 
-Stream.prototype.skipValues = function() {
-  return new SkipValuesStream(this);
-};
-
-Property.prototype.skipValues = function() {
-  return new SkipValuesProperty(this);
+Observable.prototype.skipValues = function() {
+  return skipValues(this);
 };
 
 
 
-const {FilterErrorsStream, FilterErrorsProperty} = require('./one-source/filter-errors');
+const filterErrors = require('./one-source/filter-errors');
 
-Stream.prototype.filterErrors = function(fn = (x) => x) {
-  return new FilterErrorsStream(this, {fn});
-};
-
-Property.prototype.filterErrors = function(fn = (x) => x) {
-  return new FilterErrorsProperty(this, {fn});
+Observable.prototype.filterErrors = function(fn = (x) => x) {
+  return filterErrors(this, fn);
 };
 
 
 
-const {FilterStream, FilterProperty} = require('./one-source/filter');
+const filter = require('./one-source/filter');
 
-Stream.prototype.filter = function(fn = (x) => x) {
-  return new FilterStream(this, {fn});
-};
-
-Property.prototype.filter = function(fn = (x) => x) {
-  return new FilterProperty(this, {fn});
+Observable.prototype.filter = function(fn = (x) => x) {
+  return filter(this, fn);
 };
 
 
 
-const {EndOnErrorStream, EndOnErrorProperty} = require('./one-source/end-on-error');
+const endOnError = require('./one-source/end-on-error');
 
-Stream.prototype.endOnError = function() {
-  return new EndOnErrorStream(this);
-};
-
-Property.prototype.endOnError = function() {
-  return new EndOnErrorProperty(this);
+Observable.prototype.endOnError = function() {
+  return endOnError(this);
 };
 
 
 
-const {DiffStream, DiffProperty} = require('./one-source/diff');
+const diff = require('./one-source/diff');
 
-function defaultDiffHandler(a, b) {
+function defaultDiff(a, b) {
   return [a, b];
 }
 
-Stream.prototype.diff = function(fn, seed = NOTHING) {
-  // `fn` is optional but we want also to support `null` as "no fn"
-  fn = fn || defaultDiffHandler;
-  return new DiffStream(this, {fn, seed});
-};
-
-Property.prototype.diff = function(fn, seed = NOTHING) {
-  fn = fn || defaultDiffHandler;
-  return new DiffProperty(this, {fn, seed});
+Observable.prototype.diff = function(fn, seed = NOTHING) {
+  return diff(this, fn || defaultDiff, seed); // we want to also support `null` as "no fn"
 };
 
 
 
-const {BeforeEndStream, BeforeEndProperty} = require('./one-source/before-end');
+const beforeEnd = require('./one-source/before-end');
 
-Stream.prototype.beforeEnd = function(fn) {
-  return new BeforeEndStream(this, {fn});
-};
-
-Property.prototype.beforeEnd = function(fn) {
-  return new BeforeEndProperty(this, {fn});
+Observable.prototype.beforeEnd = function(fn) {
+  return beforeEnd(this, fn);
 };
 
 
 
-const {DelayStream, DelayProperty} = require('./one-source/delay');
+const delay = require('./one-source/delay');
 
-Stream.prototype.delay = function(wait) {
-  return new DelayStream(this, {wait});
-};
-
-Property.prototype.delay = function(wait) {
-  return new DelayProperty(this, {wait});
+Observable.prototype.delay = function(wait) {
+  return delay(this, wait);
 };
 
 
 
-const {MapErrorsStream, MapErrorsProperty} = require('./one-source/map-errors');
+const mapErrors = require('./one-source/map-errors');
 
-Stream.prototype.mapErrors = function(fn = (x) => x) {
-  return new MapErrorsStream(this, {fn});
-};
-
-Property.prototype.mapErrors = function(fn = (x) => x) {
-  return new MapErrorsProperty(this, {fn});
+Observable.prototype.mapErrors = function(fn = (x) => x) {
+  return mapErrors(this, fn);
 };
 
 
 
-const {ErrorsToValuesStream, ErrorsToValuesProperty} = require('./one-source/errors-to-values');
+const errorsToValues = require('./one-source/errors-to-values');
 
-Stream.prototype.errorsToValues = function(fn = (x => ({convert: true, value: x}))) {
-  return new ErrorsToValuesStream(this, {fn});
-};
-
-Property.prototype.errorsToValues = function(fn = (x => ({convert: true, value: x}))) {
-  return new ErrorsToValuesProperty(this, {fn});
+Observable.prototype.errorsToValues = function(fn = (x) => ({convert: true, value: x})) {
+  return errorsToValues(this, fn);
 };
 
 
 
-const {ValuesToErrorsStream, ValuesToErrorsProperty} = require('./one-source/values-to-errors');
+const valuesToErrors = require('./one-source/values-to-errors');
 
-Stream.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: x}))) {
-  return new ValuesToErrorsStream(this, {fn});
-};
-
-Property.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: x}))) {
-  return new ValuesToErrorsProperty(this, {fn});
+Observable.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: x}))) {
+  return valuesToErrors(this, fn);
 };
 
 
 
-const {FlattenStream, FlattenProperty} = require('./one-source/flatten');
+const flatten = require('./one-source/flatten');
 
-Stream.prototype.flatten = function(fn = (x) => x) {
-  return new FlattenStream(this, {fn});
-};
-
-Property.prototype.flatten = function(fn = (x) => x) {
-  return new FlattenProperty(this, {fn});
+Observable.prototype.flatten = function(fn = (x) => x) {
+  return flatten(this, fn);
 };
 
 
 
-const {TransduceStream, TransduceProperty} = require('./one-source/transduce');
+const transduce = require('./one-source/transduce');
 
-Stream.prototype.transduce = function(transducer) {
-  return new TransduceStream(this, {transducer});
-};
-
-Property.prototype.transduce = function(transducer) {
-  return new TransduceProperty(this, {transducer});
+Observable.prototype.transduce = function(transducer) {
+  return transduce(this, transducer);
 };
 
 
 
-const {LastStream, LastProperty} = require('./one-source/last');
+const last = require('./one-source/last');
 
-Stream.prototype.last = function() {
-  return new LastStream(this);
-};
-
-Property.prototype.last = function() {
-  return new LastProperty(this);
+Observable.prototype.last = function() {
+  return last(this);
 };
 
 
 
-const {WithHandlerStream, WithHandlerProperty} = require('./one-source/with-handler');
+const withHandler = require('./one-source/with-handler');
 
-Stream.prototype.withHandler = function(fn) {
-  return new WithHandlerStream(this, {fn});
-};
-
-Property.prototype.withHandler = function(fn) {
-  return new WithHandlerProperty(this, {fn});
+Observable.prototype.withHandler = function(fn) {
+  return withHandler(this, fn);
 };
 
 
 
-const {DebounceStream, DebounceProperty} = require('./one-source/debounce');
+const debounce = require('./one-source/debounce');
 
-Stream.prototype.debounce = function(wait, {immediate = false} = {}) {
-  return new DebounceStream(this, {wait, immediate});
-};
-
-Property.prototype.debounce = function(wait, {immediate = false} = {}) {
-  return new DebounceProperty(this, {wait, immediate});
+Observable.prototype.debounce = function(wait, {immediate = false} = {}) {
+  return debounce(this, wait, {immediate});
 };
 
 
 
-const {ThrottleStream, ThrottleProperty} = require('./one-source/throttle');
+const throttle = require('./one-source/throttle');
 
-Stream.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
-  return new ThrottleStream(this, {wait, leading, trailing});
-};
-
-Property.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
-  return new ThrottleProperty(this, {wait, leading, trailing});
+Observable.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
+  return throttle(this, wait, {leading, trailing});
 };
 
 
 
-const {BufferWhileStream, BufferWhileProperty} = require('./one-source/buffer-while');
+const bufferWhile = require('./one-source/buffer-while');
 
-Stream.prototype.bufferWhile = function(fn = (x) => x, {flushOnEnd = true} = {}) {
-  return new BufferWhileStream(this, {fn, flushOnEnd});
-};
-
-Property.prototype.bufferWhile = function(fn = (x) => x, {flushOnEnd = true} = {}) {
-  return new BufferWhileProperty(this, {fn, flushOnEnd});
+Observable.prototype.bufferWhile = function(fn = (x) => x, {flushOnEnd = true} = {}) {
+  return bufferWhile(this, fn, {flushOnEnd});
 };
 
 
 
-const ToPropertyProperty = require('./one-source/to-property');
+const toProperty = require('./one-source/to-property');
 
-Observable.prototype.toProperty = function(fn) {
-  return new ToPropertyProperty(this, {fn});
+Observable.prototype.toProperty = function(fn = null) {
+  if (fn !== null && !isFn(fn)) {
+    throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
+  }
+  return toProperty(this, fn);
 };
 
 
 
-const ChangesStream = require('./one-source/changes');
+const changes = require('./one-source/changes');
 
 Observable.prototype.changes = function() {
-  return new ChangesStream(this);
+  return changes(this);
 };
 
 
 
-const ScapProperty = require('./one-source/scan');
+const scan = require('./one-source/scan');
 
 Observable.prototype.scan = function(fn, seed = NOTHING) {
-  return new ScapProperty(this, {fn, seed});
+  return scan(this, fn, seed);
 };
 
 
 
-const {ReduceProperty, ReduceStream} = require('./one-source/reduce');
+const reduce = require('./one-source/reduce');
 
-Property.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()',
+Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()',
   function(fn, seed = NOTHING) {
-    return new ReduceProperty(this, {fn, seed});
-  }
-);
-
-Stream.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()',
-  function(fn, seed = NOTHING) {
-    return new ReduceStream(this, {fn, seed});
+    return reduce(this, fn, seed);
   }
 );
 

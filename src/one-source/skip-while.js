@@ -22,5 +22,10 @@ const mixin = {
 
 };
 
-exports.SkipWhileStream = createStream('skipWhile', mixin);
-exports.SkipWhileProperty = createProperty('skipWhile', mixin);
+const S = createStream('skipWhile', mixin);
+const P = createProperty('skipWhile', mixin);
+
+
+module.exports = function skipWhile(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

@@ -67,5 +67,10 @@ const mixin = {
 
 };
 
-exports.DebounceStream = createStream('debounce', mixin);
-exports.DebounceProperty = createProperty('debounce', mixin);
+const S = createStream('debounce', mixin);
+const P = createProperty('debounce', mixin);
+
+module.exports = function debounce(obs, wait, {immediate}) {
+  return new (obs.ofSameType(S, P))(obs, {wait, immediate});
+};
+

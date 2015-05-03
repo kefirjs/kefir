@@ -4,5 +4,10 @@ const mixin = {
   _handleError() {}
 };
 
-exports.SkipErrorsStream = createStream('skipErrors', mixin);
-exports.SkipErrorsProperty = createProperty('skipErrors', mixin);
+const S = createStream('skipErrors', mixin);
+const P = createProperty('skipErrors', mixin);
+
+
+module.exports = function skipErrors(obs) {
+  return new (obs.ofSameType(S, P))(obs);
+};

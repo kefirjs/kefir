@@ -22,7 +22,10 @@ const mixin = {
 
 };
 
-exports.ErrorsToValuesStream = createStream('errorsToValues', mixin);
-exports.ErrorsToValuesProperty = createProperty('errorsToValues', mixin);
+const S = createStream('errorsToValues', mixin);
+const P = createProperty('errorsToValues', mixin);
 
 
+module.exports = function errorsToValues(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};

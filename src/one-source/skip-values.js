@@ -4,5 +4,10 @@ const mixin = {
   _handleValue() {}
 };
 
-exports.SkipValuesStream = createStream('skipValues', mixin);
-exports.SkipValuesProperty = createProperty('skipValues', mixin);
+const S = createStream('skipValues', mixin);
+const P = createProperty('skipValues', mixin);
+
+
+module.exports = function skipValues(obs) {
+  return new (obs.ofSameType(S, P))(obs);
+};

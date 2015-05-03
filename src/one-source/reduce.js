@@ -26,5 +26,10 @@ const mixin = {
 
 };
 
-exports.ReduceStream = createStream('reduce', mixin);
-exports.ReduceProperty = createProperty('reduce', mixin);
+const S = createStream('reduce', mixin);
+const P = createProperty('reduce', mixin);
+
+
+module.exports = function reduce(obs, fn, seed) {
+  return new (obs.ofSameType(S, P))(obs, {fn, seed});
+};

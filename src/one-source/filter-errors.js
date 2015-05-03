@@ -19,5 +19,10 @@ const mixin = {
 
 };
 
-exports.FilterErrorsStream = createStream('filterErrors', mixin);
-exports.FilterErrorsProperty = createProperty('filterErrors', mixin);
+const S = createStream('filterErrors', mixin);
+const P = createProperty('filterErrors', mixin);
+
+
+module.exports = function filterErrors(obs, fn) {
+  return new (obs.ofSameType(S, P))(obs, {fn});
+};
