@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, END} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, END} = require('../constants');
 
 function xformForObs(obs) {
   return {
@@ -43,5 +43,5 @@ const mixin = {
 
 };
 
-export const TransduceStream = createStream('transduce', mixin);
-export const TransduceProperty = createProperty('transduce', mixin);
+exports.TransduceStream = createStream('transduce', mixin);
+exports.TransduceProperty = createProperty('transduce', mixin);

@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, END} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, END} = require('../constants');
 
 const mixin = {
 
@@ -36,5 +36,5 @@ const mixin = {
 
 };
 
-export const BufferWhileStream = createStream('bufferWhile', mixin);
-export const BufferWhileProperty = createProperty('bufferWhile', mixin);
+exports.BufferWhileStream = createStream('bufferWhile', mixin);
+exports.BufferWhileProperty = createProperty('bufferWhile', mixin);

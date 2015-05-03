@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {ERROR, END} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {ERROR, END} = require('../constants');
 
 const mixin = {
 
@@ -10,5 +10,5 @@ const mixin = {
 
 };
 
-export const EndOnErrorStream = createStream('endOnError', mixin);
-export const EndOnErrorProperty = createProperty('endOnError', mixin);
+exports.EndOnErrorStream = createStream('endOnError', mixin);
+exports.EndOnErrorProperty = createProperty('endOnError', mixin);

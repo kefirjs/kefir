@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {ERROR} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {ERROR} = require('../constants');
 
 const mixin = {
 
@@ -17,5 +17,5 @@ const mixin = {
 
 };
 
-export const MapErrorsStream = createStream('mapErrors', mixin);
-export const MapErrorsProperty = createProperty('mapErrors', mixin);
+exports.MapErrorsStream = createStream('mapErrors', mixin);
+exports.MapErrorsProperty = createProperty('mapErrors', mixin);

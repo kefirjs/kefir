@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE} = require('../constants');
 
 const mixin = {
 
@@ -20,5 +20,5 @@ const mixin = {
 
 };
 
-export const FlattenStream = createStream('flatten', mixin);
-export const FlattenProperty = createProperty('flatten', mixin);
+exports.FlattenStream = createStream('flatten', mixin);
+exports.FlattenProperty = createProperty('flatten', mixin);

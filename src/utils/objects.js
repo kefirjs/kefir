@@ -1,4 +1,4 @@
-export function get(map, key, notFound) {
+function get(map, key, notFound) {
   if (map && key in map) {
     return map[key];
   } else {
@@ -6,17 +6,17 @@ export function get(map, key, notFound) {
   }
 }
 
-export function own(obj, prop) {
+function own(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-export function createObj(proto) {
+function createObj(proto) {
   var F = function() {};
   F.prototype = proto;
   return new F();
 }
 
-export function extend(target /*, mixin1, mixin2...*/) {
+function extend(target /*, mixin1, mixin2...*/) {
   var length = arguments.length
     , i, prop;
   for (i = 1; i < length; i++) {
@@ -27,7 +27,7 @@ export function extend(target /*, mixin1, mixin2...*/) {
   return target;
 }
 
-export function inherit(Child, Parent /*, mixin1, mixin2...*/) {
+function inherit(Child, Parent /*, mixin1, mixin2...*/) {
   var length = arguments.length
     , i;
   Child.prototype = createObj(Parent.prototype);
@@ -37,3 +37,5 @@ export function inherit(Child, Parent /*, mixin1, mixin2...*/) {
   }
   return Child;
 }
+
+module.exports = {get, own, createObj, extend, inherit};

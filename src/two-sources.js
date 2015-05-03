@@ -1,6 +1,6 @@
-import withTwoSources from './utils/with-two-sources-helper';
-import {VALUE, ERROR, END, NOTHING} from './constants';
-import {extend, get} from './utils/objects';
+const withTwoSources = require('./utils/with-two-sources-helper');
+const {VALUE, END, NOTHING} = require('./constants');
+const {extend, get} = require('./utils/objects');
 
 
 var withTwoSourcesAndBufferMixin = {

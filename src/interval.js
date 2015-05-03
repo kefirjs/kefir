@@ -1,8 +1,8 @@
-import withInterval from './utils/with-interval-helper';
-import Kefir from './kefir';
-import deprecated from './patterns/deprecated';
-import {VALUE, ERROR, END} from './constants';
-import {cloneArray} from './utils/collections';
+const withInterval = require('./utils/with-interval-helper');
+const Kefir = require('./kefir');
+const deprecated = require('./patterns/deprecated');
+const {VALUE, ERROR, END} = require('./constants');
+const {cloneArray} = require('./utils/collections');
 
 
 

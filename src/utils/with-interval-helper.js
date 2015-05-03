@@ -1,10 +1,10 @@
-import Kefir from '../kefir';
-import {inherit} from './objects';
-import Stream from '../stream';
-import {rest} from './collections';
+const Kefir = require('../kefir');
+const {inherit} = require('./objects');
+const Stream = require('../stream');
+const {rest} = require('./collections');
 
 
-export default function withInterval(name, mixin) {
+module.exports = function withInterval(name, mixin) {
 
   function AnonymousStream(wait, args) {
     Stream.call(this);

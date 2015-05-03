@@ -1,8 +1,8 @@
-import {createStream, createProperty} from '../patterns/one-source';
+const {createStream, createProperty} = require('../patterns/one-source');
 
 const mixin = {
   _handleError() {}
 };
 
-export const SkipErrorsStream = createStream('skipErrors', mixin);
-export const SkipErrorsProperty = createProperty('skipErrors', mixin);
+exports.SkipErrorsStream = createStream('skipErrors', mixin);
+exports.SkipErrorsProperty = createProperty('skipErrors', mixin);

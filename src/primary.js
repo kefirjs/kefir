@@ -1,13 +1,13 @@
-import {inherit} from './utils/objects';
-import Stream from './stream';
-import Property from './property';
-import {VALUE, ERROR, END} from './constants';
+const {inherit} = require('./utils/objects');
+const Stream = require('./stream');
+const Property = require('./property');
+const {VALUE, ERROR, END} = require('./constants');
 
 
 
 // Kefir.stream(fn)
 
-export function StreamStream(fn) {
+function StreamStream(fn) {
   Stream.call(this);
   this._fn = fn;
   this._unsubscribe = null;
@@ -66,7 +66,7 @@ inherit(StreamStream, Stream, {
 
 // Kefir.emitter()
 
-export function Emitter() {
+function Emitter() {
   Stream.call(this);
 }
 
@@ -100,7 +100,6 @@ inherit(Emitter, Stream, {
 const neverInstance = new Stream();
 neverInstance._send(END);
 neverInstance._name = 'never';
-export {neverInstance as neverInstance};
 
 
 
@@ -108,7 +107,7 @@ export {neverInstance as neverInstance};
 
 // Kefir.constant(x)
 
-export function Constant(x) {
+function Constant(x) {
   Property.call(this);
   this._send(VALUE, x);
   this._send(END);
@@ -125,7 +124,7 @@ inherit(Constant, Property, {
 
 // Kefir.constantError(x)
 
-export function ConstantError(x) {
+function ConstantError(x) {
   Property.call(this);
   this._send(ERROR, x);
   this._send(END);
@@ -139,7 +138,7 @@ inherit(ConstantError, Property, {
 
 // Kefir.repeat(generator)
 
-export function Repeat(generator) {
+function Repeat(generator) {
   Stream.call(this);
   this._generator = generator;
   this._source = null;
@@ -205,3 +204,7 @@ inherit(Repeat, Stream, {
   }
 
 });
+
+
+
+module.exports = {StreamStream, Emitter, neverInstance, Constant, ConstantError, Repeat};

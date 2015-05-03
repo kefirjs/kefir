@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, END} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, END} = require('../constants');
 
 const mixin = {
 
@@ -18,5 +18,5 @@ const mixin = {
 
 };
 
-export const BeforeEndStream = createStream('beforeEnd', mixin);
-export const BeforeEndProperty = createProperty('beforeEnd', mixin);
+exports.BeforeEndStream = createStream('beforeEnd', mixin);
+exports.BeforeEndProperty = createProperty('beforeEnd', mixin);

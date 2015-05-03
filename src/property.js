@@ -1,13 +1,13 @@
-import {inherit} from './utils/objects';
-import {VALUE, ERROR, END} from './constants';
-import {callSubscriber} from './dispatcher';
-import Observable from './observable';
-import _Event from './event';
+const {inherit} = require('./utils/objects');
+const {VALUE, ERROR, END} = require('./constants');
+const {callSubscriber} = require('./dispatcher');
+const Observable = require('./observable');
+const _Event = require('./event');
 const Event = _Event;
 
 
 
-export default function Property() {
+function Property() {
   Observable.call(this);
   this._currentEvent = null;
 }
@@ -50,6 +50,7 @@ inherit(Property, Observable, {
 
 });
 
+module.exports = Property;
 
 
 

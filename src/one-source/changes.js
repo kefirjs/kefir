@@ -1,9 +1,9 @@
-import {createStream} from '../patterns/one-source';
-import {VALUE, ERROR} from '../constants';
+const {createStream} = require('../patterns/one-source');
+const {VALUE, ERROR} = require('../constants');
 
 
 
-export default createStream('changes', {
+module.exports = createStream('changes', {
 
   _handleValue(x, isCurrent) {
     if (!isCurrent) {

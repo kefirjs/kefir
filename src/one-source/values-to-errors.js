@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, ERROR} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, ERROR} = require('../constants');
 
 const mixin = {
 
@@ -22,5 +22,5 @@ const mixin = {
 
 };
 
-export const ValuesToErrorsStream = createStream('valuesToErrors', mixin);
-export const ValuesToErrorsProperty = createProperty('valuesToErrors', mixin);
+exports.ValuesToErrorsStream = createStream('valuesToErrors', mixin);
+exports.ValuesToErrorsProperty = createProperty('valuesToErrors', mixin);

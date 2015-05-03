@@ -1,6 +1,6 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, END} from '../constants';
-import now from '../utils/now';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, END} = require('../constants');
+const now = require('../utils/now');
 
 
 const mixin = {
@@ -67,5 +67,5 @@ const mixin = {
 
 };
 
-export const DebounceStream = createStream('debounce', mixin);
-export const DebounceProperty = createProperty('debounce', mixin);
+exports.DebounceStream = createStream('debounce', mixin);
+exports.DebounceProperty = createProperty('debounce', mixin);

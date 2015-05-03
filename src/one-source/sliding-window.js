@@ -1,6 +1,6 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE} from '../constants';
-import {slide} from '../utils/collections';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE} = require('../constants');
+const {slide} = require('../utils/collections');
 
 const mixin = {
 
@@ -23,5 +23,5 @@ const mixin = {
 
 };
 
-export const SlidingWindowStream = createStream('slidingWindow', mixin);
-export const SlidingWindowProperty = createProperty('slidingWindow', mixin);
+exports.SlidingWindowStream = createStream('slidingWindow', mixin);
+exports.SlidingWindowProperty = createProperty('slidingWindow', mixin);

@@ -1,7 +1,7 @@
-import Stream from '../stream';
-import Property from '../property';
-import {inherit} from '../utils/objects';
-import {VALUE, ERROR, END} from '../constants';
+const Stream = require('../stream');
+const Property = require('../property');
+const {inherit} = require('../utils/objects');
+const {VALUE, ERROR, END} = require('../constants');
 
 
 function createConstructor(BaseClass, name) {
@@ -57,15 +57,18 @@ function createClassMethods(BaseClass) {
 
 
 
-export function createStream(name, mixin) {
+function createStream(name, mixin) {
   const AnonymousStream = createConstructor(Stream, name);
   inherit(AnonymousStream, Stream, createClassMethods(Stream), mixin);
   return AnonymousStream;
 }
 
 
-export function createProperty(name, mixin) {
+function createProperty(name, mixin) {
   const AnonymousProperty = createConstructor(Property, name);
   inherit(AnonymousProperty, Property, createClassMethods(Property), mixin);
   return AnonymousProperty;
 }
+
+
+module.exports = {createStream, createProperty};

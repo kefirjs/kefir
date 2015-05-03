@@ -1,12 +1,11 @@
-import {extend} from './utils/objects';
-import {VALUE, ERROR, ANY, END} from './constants';
-import {Dispatcher, callSubscriber} from './dispatcher';
-import _Event from './event';
-const Event = _Event;
+const {extend} = require('./utils/objects');
+const {VALUE, ERROR, ANY, END} = require('./constants');
+const {Dispatcher, callSubscriber} = require('./dispatcher');
+const Event = require('./event');
 
 
 
-export default function Observable() {
+function Observable() {
   this._dispatcher = new Dispatcher();
   this._active = false;
   this._alive = true;
@@ -145,3 +144,5 @@ Observable.prototype.offLog = function(name) {
 
   return this;
 };
+
+module.exports = Observable;

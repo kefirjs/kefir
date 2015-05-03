@@ -1,10 +1,10 @@
-import Kefir from '../kefir';
+const Kefir = require('../kefir');
 
 
 Kefir.DEPRECATION_WARNINGS = true;
 const canLog = (typeof console !== undefined) && console.log;
 
-export default function deprecated(name, alt, fn) {
+module.exports = function deprecated(name, alt, fn) {
   return function() {
     if (Kefir.DEPRECATION_WARNINGS && canLog) {
 

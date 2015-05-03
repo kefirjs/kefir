@@ -1,3 +1,3 @@
 
 // the Kefir object
-export default {};
+module.exports = {};

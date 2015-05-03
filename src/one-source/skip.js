@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE} = require('../constants');
 
 const mixin = {
 
@@ -17,5 +17,5 @@ const mixin = {
 
 };
 
-export const SkipStream = createStream('skip', mixin);
-export const SkipProperty = createProperty('skip', mixin);
+exports.SkipStream = createStream('skip', mixin);
+exports.SkipProperty = createProperty('skip', mixin);

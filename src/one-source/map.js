@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE} = require('../constants');
 
 const mixin = {
 
@@ -20,6 +20,6 @@ const mixin = {
 const MapS = createStream('map', mixin);
 const MapP = createProperty('map', mixin);
 
-export default function map(obs, fn) {
+module.exports = function map(obs, fn) {
   return new (obs.ofSameType(MapS, MapP))(obs, {fn});
 }

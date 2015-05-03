@@ -1,12 +1,12 @@
-import Kefir from './kefir';
-import Observable from './observable';
-import Stream from './stream';
-import Property from './property';
-import deprecated from './patterns/deprecated';
-import {isFn} from './utils/types';
-import {circleShift} from './utils/collections';
-import {apply} from './utils/functions';
-import {NOTHING} from './constants';
+const Kefir = require('./kefir');
+const Observable = require('./observable');
+const Stream = require('./stream');
+const Property = require('./property');
+const deprecated = require('./patterns/deprecated');
+const {isFn} = require('./utils/types');
+const {circleShift} = require('./utils/collections');
+const {apply} = require('./utils/functions');
+const {NOTHING} = require('./constants');
 
 
 
@@ -16,7 +16,7 @@ Kefir.Property = Property;
 
 
 
-import {StreamStream, Emitter, neverInstance, Constant, ConstantError, Repeat} from './primary';
+const {StreamStream, Emitter, neverInstance, Constant, ConstantError, Repeat} = require('./primary');
 
 Kefir.stream = function(fn) {
   return new StreamStream(fn);
@@ -45,7 +45,7 @@ Kefir.repeat = function(generator) {
 
 
 
-import map from './one-source/map';
+const map = require('./one-source/map');
 
 Observable.prototype.map = function(fn = (x) => x) {
   return map(this, fn);
@@ -53,7 +53,7 @@ Observable.prototype.map = function(fn = (x) => x) {
 
 
 
-import {SlidingWindowStream, SlidingWindowProperty} from './one-source/sliding-window';
+const {SlidingWindowStream, SlidingWindowProperty} = require('./one-source/sliding-window');
 
 Stream.prototype.slidingWindow = function(max, min = 0) {
   return new SlidingWindowStream(this, {min, max});
@@ -65,7 +65,7 @@ Property.prototype.slidingWindow = function(max, min = 0) {
 
 
 
-import {SkipWhileStream, SkipWhileProperty} from './one-source/skip-while';
+const {SkipWhileStream, SkipWhileProperty} = require('./one-source/skip-while');
 
 Stream.prototype.skipWhile = function(fn = (x) => x) {
   return new SkipWhileStream(this, {fn});
@@ -77,7 +77,7 @@ Property.prototype.skipWhile = function(fn = (x) => x) {
 
 
 
-import {TakeWhileStream, TakeWhileProperty} from './one-source/take-while';
+const {TakeWhileStream, TakeWhileProperty} = require('./one-source/take-while');
 
 Stream.prototype.takeWhile = function(fn = (x) => x) {
   return new TakeWhileStream(this, {fn});
@@ -89,7 +89,7 @@ Property.prototype.takeWhile = function(fn = (x) => x) {
 
 
 
-import {SkipStream, SkipProperty} from './one-source/skip';
+const {SkipStream, SkipProperty} = require('./one-source/skip');
 
 Stream.prototype.skip = function(n) {
   return new SkipStream(this, {n});
@@ -101,7 +101,7 @@ Property.prototype.skip = function(n) {
 
 
 
-import {TakeStream, TakeProperty} from './one-source/take';
+const {TakeStream, TakeProperty} = require('./one-source/take');
 
 Stream.prototype.take = function(n) {
   return new TakeStream(this, {n});
@@ -113,7 +113,7 @@ Property.prototype.take = function(n) {
 
 
 
-import {SkipDuplicatesStream, SkipDuplicatesProperty} from './one-source/skip-duplicates';
+const {SkipDuplicatesStream, SkipDuplicatesProperty} = require('./one-source/skip-duplicates');
 
 Stream.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
   return new SkipDuplicatesStream(this, {fn});
@@ -125,7 +125,7 @@ Property.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
 
 
 
-import {SkipEndStream, SkipEndProperty} from './one-source/skip-end';
+const {SkipEndStream, SkipEndProperty} = require('./one-source/skip-end');
 
 Stream.prototype.skipEnd = function() {
   return new SkipEndStream(this);
@@ -137,7 +137,7 @@ Property.prototype.skipEnd = function() {
 
 
 
-import {SkipErrorsStream, SkipErrorsProperty} from './one-source/skip-errors';
+const {SkipErrorsStream, SkipErrorsProperty} = require('./one-source/skip-errors');
 
 Stream.prototype.skipErrors = function() {
   return new SkipErrorsStream(this);
@@ -149,7 +149,7 @@ Property.prototype.skipErrors = function() {
 
 
 
-import {SkipValuesStream, SkipValuesProperty} from './one-source/skip-values';
+const {SkipValuesStream, SkipValuesProperty} = require('./one-source/skip-values');
 
 Stream.prototype.skipValues = function() {
   return new SkipValuesStream(this);
@@ -161,7 +161,7 @@ Property.prototype.skipValues = function() {
 
 
 
-import {FilterErrorsStream, FilterErrorsProperty} from './one-source/filter-errors';
+const {FilterErrorsStream, FilterErrorsProperty} = require('./one-source/filter-errors');
 
 Stream.prototype.filterErrors = function(fn = (x) => x) {
   return new FilterErrorsStream(this, {fn});
@@ -173,7 +173,7 @@ Property.prototype.filterErrors = function(fn = (x) => x) {
 
 
 
-import {FilterStream, FilterProperty} from './one-source/filter';
+const {FilterStream, FilterProperty} = require('./one-source/filter');
 
 Stream.prototype.filter = function(fn = (x) => x) {
   return new FilterStream(this, {fn});
@@ -185,7 +185,7 @@ Property.prototype.filter = function(fn = (x) => x) {
 
 
 
-import {EndOnErrorStream, EndOnErrorProperty} from './one-source/end-on-error';
+const {EndOnErrorStream, EndOnErrorProperty} = require('./one-source/end-on-error');
 
 Stream.prototype.endOnError = function() {
   return new EndOnErrorStream(this);
@@ -197,7 +197,7 @@ Property.prototype.endOnError = function() {
 
 
 
-import {DiffStream, DiffProperty} from './one-source/diff';
+const {DiffStream, DiffProperty} = require('./one-source/diff');
 
 function defaultDiffHandler(a, b) {
   return [a, b];
@@ -216,7 +216,7 @@ Property.prototype.diff = function(fn, seed = NOTHING) {
 
 
 
-import {BeforeEndStream, BeforeEndProperty} from './one-source/before-end';
+const {BeforeEndStream, BeforeEndProperty} = require('./one-source/before-end');
 
 Stream.prototype.beforeEnd = function(fn) {
   return new BeforeEndStream(this, {fn});
@@ -228,7 +228,7 @@ Property.prototype.beforeEnd = function(fn) {
 
 
 
-import {DelayStream, DelayProperty} from './one-source/delay';
+const {DelayStream, DelayProperty} = require('./one-source/delay');
 
 Stream.prototype.delay = function(wait) {
   return new DelayStream(this, {wait});
@@ -240,7 +240,7 @@ Property.prototype.delay = function(wait) {
 
 
 
-import {MapErrorsStream, MapErrorsProperty} from './one-source/map-errors';
+const {MapErrorsStream, MapErrorsProperty} = require('./one-source/map-errors');
 
 Stream.prototype.mapErrors = function(fn = (x) => x) {
   return new MapErrorsStream(this, {fn});
@@ -252,7 +252,7 @@ Property.prototype.mapErrors = function(fn = (x) => x) {
 
 
 
-import {ErrorsToValuesStream, ErrorsToValuesProperty} from './one-source/errors-to-values';
+const {ErrorsToValuesStream, ErrorsToValuesProperty} = require('./one-source/errors-to-values');
 
 Stream.prototype.errorsToValues = function(fn = (x => ({convert: true, value: x}))) {
   return new ErrorsToValuesStream(this, {fn});
@@ -264,7 +264,7 @@ Property.prototype.errorsToValues = function(fn = (x => ({convert: true, value: 
 
 
 
-import {ValuesToErrorsStream, ValuesToErrorsProperty} from './one-source/values-to-errors';
+const {ValuesToErrorsStream, ValuesToErrorsProperty} = require('./one-source/values-to-errors');
 
 Stream.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: x}))) {
   return new ValuesToErrorsStream(this, {fn});
@@ -276,7 +276,7 @@ Property.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: 
 
 
 
-import {FlattenStream, FlattenProperty} from './one-source/flatten';
+const {FlattenStream, FlattenProperty} = require('./one-source/flatten');
 
 Stream.prototype.flatten = function(fn = (x) => x) {
   return new FlattenStream(this, {fn});
@@ -288,7 +288,7 @@ Property.prototype.flatten = function(fn = (x) => x) {
 
 
 
-import {TransduceStream, TransduceProperty} from './one-source/transduce';
+const {TransduceStream, TransduceProperty} = require('./one-source/transduce');
 
 Stream.prototype.transduce = function(transducer) {
   return new TransduceStream(this, {transducer});
@@ -300,7 +300,7 @@ Property.prototype.transduce = function(transducer) {
 
 
 
-import {LastStream, LastProperty} from './one-source/last';
+const {LastStream, LastProperty} = require('./one-source/last');
 
 Stream.prototype.last = function() {
   return new LastStream(this);
@@ -312,7 +312,7 @@ Property.prototype.last = function() {
 
 
 
-import {WithHandlerStream, WithHandlerProperty} from './one-source/with-handler';
+const {WithHandlerStream, WithHandlerProperty} = require('./one-source/with-handler');
 
 Stream.prototype.withHandler = function(fn) {
   return new WithHandlerStream(this, {fn});
@@ -324,7 +324,7 @@ Property.prototype.withHandler = function(fn) {
 
 
 
-import {DebounceStream, DebounceProperty} from './one-source/debounce';
+const {DebounceStream, DebounceProperty} = require('./one-source/debounce');
 
 Stream.prototype.debounce = function(wait, {immediate = false} = {}) {
   return new DebounceStream(this, {wait, immediate});
@@ -336,7 +336,7 @@ Property.prototype.debounce = function(wait, {immediate = false} = {}) {
 
 
 
-import {ThrottleStream, ThrottleProperty} from './one-source/throttle';
+const {ThrottleStream, ThrottleProperty} = require('./one-source/throttle');
 
 Stream.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
   return new ThrottleStream(this, {wait, leading, trailing});
@@ -348,7 +348,7 @@ Property.prototype.throttle = function(wait, {leading = true, trailing = true} =
 
 
 
-import {BufferWhileStream, BufferWhileProperty} from './one-source/buffer-while';
+const {BufferWhileStream, BufferWhileProperty} = require('./one-source/buffer-while');
 
 Stream.prototype.bufferWhile = function(fn = (x) => x, {flushOnEnd = true} = {}) {
   return new BufferWhileStream(this, {fn, flushOnEnd});
@@ -360,7 +360,7 @@ Property.prototype.bufferWhile = function(fn = (x) => x, {flushOnEnd = true} = {
 
 
 
-import ToPropertyProperty from './one-source/to-property';
+const ToPropertyProperty = require('./one-source/to-property');
 
 Observable.prototype.toProperty = function(fn) {
   return new ToPropertyProperty(this, {fn});
@@ -368,7 +368,7 @@ Observable.prototype.toProperty = function(fn) {
 
 
 
-import ChangesStream from './one-source/changes';
+const ChangesStream = require('./one-source/changes');
 
 Observable.prototype.changes = function() {
   return new ChangesStream(this);
@@ -376,7 +376,7 @@ Observable.prototype.changes = function() {
 
 
 
-import ScapProperty from './one-source/scan';
+const ScapProperty = require('./one-source/scan');
 
 Observable.prototype.scan = function(fn, seed = NOTHING) {
   return new ScapProperty(this, {fn, seed});
@@ -384,7 +384,7 @@ Observable.prototype.scan = function(fn, seed = NOTHING) {
 
 
 
-import {ReduceProperty, ReduceStream} from './one-source/reduce';
+const {ReduceProperty, ReduceStream} = require('./one-source/reduce');
 
 Property.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()',
   function(fn, seed = NOTHING) {
@@ -403,7 +403,7 @@ Stream.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last(
 
 
 
-import {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} from './multiple-sources';
+const {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-sources');
 
 Kefir.merge = function(obss) {
   return new Merge(obss);
@@ -508,15 +508,11 @@ Observable.prototype.sampledBy = function(other, combinator) {
 
 
 
-import intervalBased from './interval';
-import twoSources from './two-sources';
-import sugar from './sugar';
+require('./interval');
+require('./two-sources');
+require('./sugar');
 
 
 
-// Not using ES6 `export` by intent
 Kefir.Kefir = Kefir;
 module.exports = Kefir;
-
-
-

@@ -1,20 +1,20 @@
-export function isFn(fn) {
+function isFn(fn) {
   return typeof fn === 'function';
 }
 
-export function isUndefined(x) {
+function isUndefined(x) {
   return typeof x === 'undefined';
 }
 
-export function isArrayLike(xs) {
+function isArrayLike(xs) {
   return isArray(xs) || isArguments(xs);
 }
 
-export const isArray = Array.isArray || function(xs) {
+const isArray = Array.isArray || function(xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-export const isArguments = (function() {
+const isArguments = (function() {
   function isArguments(obj) {
     return Object.prototype.toString.call(obj) === '[object Arguments]';
   }
@@ -23,3 +23,6 @@ export const isArguments = (function() {
   }
   return isArguments(arguments) ? isArguments : isArgumentsIE8;
 }());
+
+
+module.exports = {isFn, isUndefined, isArrayLike, isArray, isArguments};

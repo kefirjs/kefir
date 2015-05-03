@@ -1,8 +1,8 @@
-import {createProperty} from '../patterns/one-source';
-import {VALUE, ERROR, NOTHING} from '../constants';
+const {createProperty} = require('../patterns/one-source');
+const {VALUE, ERROR, NOTHING} = require('../constants');
 
 
-export default createProperty('scan', {
+module.exports = createProperty('scan', {
 
   _init({fn, seed}) {
     this._fn = fn;

@@ -1,11 +1,11 @@
-import Stream from '../stream';
-import Property from '../property';
-import {extend, inherit} from './objects';
-import {VALUE, ERROR, END, NOTHING} from '../constants';
-import {rest} from './collections';
+const Stream = require('../stream');
+const Property = require('../property');
+const {extend, inherit} = require('./objects');
+const {VALUE, ERROR, END, NOTHING} = require('../constants');
+const {rest} = require('./collections');
 
 
-export default function withTwoSources(name, mixin /*, options*/) {
+module.exports = function withTwoSources(name, mixin /*, options*/) {
 
   mixin = extend({
     _init(args) {},

@@ -1,10 +1,10 @@
-import Observable from './observable';
-import deprecated from './patterns/deprecated';
-import now from './utils/now';
-import Kefir from './kefir';
-import {isFn} from './utils/types';
-import {rest} from './utils/collections';
-import {apply} from './utils/functions';
+const Observable = require('./observable');
+const deprecated = require('./patterns/deprecated');
+const now = require('./utils/now');
+const Kefir = require('./kefir');
+const {isFn} = require('./utils/types');
+const {rest} = require('./utils/collections');
+const {apply} = require('./utils/functions');
 
 
 

@@ -1,6 +1,6 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, END} from '../constants';
-import now from '../utils/now';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, END} = require('../constants');
+const now = require('../utils/now');
 
 
 const mixin = {
@@ -73,5 +73,5 @@ const mixin = {
 
 };
 
-export const ThrottleStream = createStream('throttle', mixin);
-export const ThrottleProperty = createProperty('throttle', mixin);
+exports.ThrottleStream = createStream('throttle', mixin);
+exports.ThrottleProperty = createProperty('throttle', mixin);

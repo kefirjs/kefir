@@ -1,12 +1,10 @@
-import Stream from './stream';
-import Property from './property';
-import deprecated from './patterns/deprecated';
-import {VALUE, ERROR, END, NOTHING} from './constants';
-import {inherit, extend, get} from './utils/objects';
-import {forEach, concat, findByPred, find, remove, cloneArray, fillArray, map} from './utils/collections';
-import {spread} from './utils/functions';
-import {isArray} from './utils/types';
-import {neverInstance} from './primary';
+const Stream = require('./stream');
+const {VALUE, ERROR, END, NOTHING} = require('./constants');
+const {inherit, extend, get} = require('./utils/objects');
+const {forEach, concat, findByPred, find, remove, cloneArray, fillArray, map} = require('./utils/collections');
+const {spread} = require('./utils/functions');
+const {isArray} = require('./utils/types');
+const {neverInstance} = require('./primary');
 
 
 function id (x) {return x;}
@@ -185,7 +183,7 @@ var MergeLike = {
   }
 };
 
-export function Merge(sources) {
+function Merge(sources) {
   _AbstractPool.call(this);
   if (sources.length === 0) {
     this._send(END);
@@ -204,7 +202,7 @@ inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 // .concat()
 
-export function Concat(sources) {
+function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
   if (sources.length === 0) {
     this._send(END);
@@ -224,7 +222,7 @@ inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 
 // .pool()
 
-export function Pool() {
+function Pool() {
   _AbstractPool.call(this);
 }
 
@@ -251,7 +249,7 @@ inherit(Pool, _AbstractPool, {
 
 // .bus()
 
-export function Bus() {
+function Bus() {
   _AbstractPool.call(this);
 }
 
@@ -294,7 +292,7 @@ inherit(Bus, _AbstractPool, {
 
 // .flatMap()
 
-export function FlatMap(source, fn, options) {
+function FlatMap(source, fn, options) {
   _AbstractPool.call(this, options);
   this._source = source;
   this._fn = fn || id;
@@ -365,7 +363,7 @@ inherit(FlatMap, _AbstractPool, {
 
 // .zip()
 
-export function Zip(sources, combinator) {
+function Zip(sources, combinator) {
   Stream.call(this);
   if (sources.length === 0) {
     this._send(END);
@@ -492,7 +490,7 @@ function defaultErrorsCombinator(errors) {
   return latestError.error;
 }
 
-export function Combine(active, passive, combinator) {
+function Combine(active, passive, combinator) {
   Stream.call(this);
   if (active.length === 0) {
     this._send(END);
@@ -633,3 +631,7 @@ inherit(Combine, Stream, {
   }
 
 });
+
+
+
+module.exports = {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine};

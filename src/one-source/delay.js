@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, END} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, END} = require('../constants');
 
 const mixin = {
 
@@ -33,5 +33,5 @@ const mixin = {
 
 };
 
-export const DelayStream = createStream('delay', mixin);
-export const DelayProperty = createProperty('delay', mixin);
+exports.DelayStream = createStream('delay', mixin);
+exports.DelayProperty = createProperty('delay', mixin);

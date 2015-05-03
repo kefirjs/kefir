@@ -1,8 +1,8 @@
-import {extend} from './utils/objects';
-import {VALUE, ERROR, ANY} from './constants';
-import {concat, removeByPred} from './utils/collections';
+const {extend} = require('./utils/objects');
+const {VALUE, ERROR, ANY} = require('./constants');
+const {concat, removeByPred} = require('./utils/collections');
 
-export function callSubscriber(sType, sFn, event) {
+function callSubscriber(sType, sFn, event) {
   if (sType === ANY) {
     sFn(event);
   } else if (sType === event.type) {
@@ -14,7 +14,7 @@ export function callSubscriber(sType, sFn, event) {
   }
 }
 
-export function Dispatcher() {
+function Dispatcher() {
   this._items = [];
 }
 
@@ -39,3 +39,6 @@ extend(Dispatcher.prototype, {
     }
   }
 });
+
+
+module.exports = {callSubscriber, Dispatcher};

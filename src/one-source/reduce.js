@@ -1,5 +1,5 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {VALUE, NOTHING, END} from '../constants';
+const {createStream, createProperty} = require('../patterns/one-source');
+const {VALUE, NOTHING, END} = require('../constants');
 
 const mixin = {
 
@@ -26,5 +26,5 @@ const mixin = {
 
 };
 
-export const ReduceStream = createStream('reduce', mixin);
-export const ReduceProperty = createProperty('reduce', mixin);
+exports.ReduceStream = createStream('reduce', mixin);
+exports.ReduceProperty = createProperty('reduce', mixin);

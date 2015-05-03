@@ -1,9 +1,9 @@
-import {createProperty} from '../patterns/one-source';
-import {VALUE} from '../constants';
-import {isFn} from '../utils/types';
+const {createProperty} = require('../patterns/one-source');
+const {VALUE} = require('../constants');
+const {isFn} = require('../utils/types');
 
 
-export default createProperty('toProperty', {
+module.exports = createProperty('toProperty', {
 
   _init({fn}) {
     if (fn !== undefined) {
