@@ -18,7 +18,7 @@ inherit(StreamStream, Stream, {
   _name: 'stream',
 
   _onActivation() {
-    var $ = this
+    let $ = this
       , isCurrent = true
       , emitter = {
         emit(x) {
@@ -146,7 +146,7 @@ function Repeat(generator) {
   this._activating = false;
   this._iteration = 0;
 
-  var $ = this;
+  let $ = this;
   this._$handleAny = function(event) {
     $._handleAny(event);
   };

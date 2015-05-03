@@ -9,7 +9,8 @@ const {apply} = require('./utils/functions');
 
 
 function and() {
-  for (var i = 0; i < arguments.length; i++) {
+  let i;
+  for (i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
       return arguments[i];
     }
@@ -18,7 +19,8 @@ function and() {
 }
 
 function or() {
-  for (var i = 0; i < arguments.length; i++) {
+  let i;
+  for (i = 0; i < arguments.length; i++) {
     if (arguments[i]) {
       return arguments[i];
     }
@@ -76,7 +78,7 @@ Observable.prototype.invoke = deprecated(
   '.invoke()',
   '.map((v) => v.method())',
   function(methodName /*, arg1, arg2... */) {
-    var args = rest(arguments, 1);
+    let args = rest(arguments, 1);
     return this.map(args ?
       function(x) {
         return apply(x[methodName], x, args);
@@ -192,7 +194,7 @@ Observable.prototype.awaiting = function(other) {
 // .fromCallback
 
 Kefir.fromCallback = function(callbackConsumer) {
-  var called = false;
+  let called = false;
   return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(x) {
@@ -210,7 +212,7 @@ Kefir.fromCallback = function(callbackConsumer) {
 // .fromNodeCallback
 
 Kefir.fromNodeCallback = function(callbackConsumer) {
-  var called = false;
+  let called = false;
   return Kefir.stream(function(emitter) {
     if (!called) {
       callbackConsumer(function(error, x) {
@@ -232,18 +234,18 @@ Kefir.fromNodeCallback = function(callbackConsumer) {
 // .fromPromise
 
 Kefir.fromPromise = function(promise) {
-  var called = false;
+  let called = false;
   return Kefir.stream(function(emitter) {
     if (!called) {
-      var onValue = function(x) {
+      let onValue = function(x) {
         emitter.emit(x);
         emitter.end();
       };
-      var onError = function(x) {
+      let onError = function(x) {
         emitter.error(x);
         emitter.end();
       };
-      var _promise = promise.then(onValue, onError);
+      let _promise = promise.then(onValue, onError);
 
       // prevent promise/A+ libraries like Q to swallow exceptions
       if (_promise && isFn(_promise.done)) {
@@ -264,7 +266,7 @@ Kefir.fromPromise = function(promise) {
 
 function fromSubUnsub(sub, unsub, transformer) {
   return Kefir.stream(function(emitter) {
-    var handler = transformer ? function() {
+    let handler = transformer ? function() {
       emitter.emit(apply(transformer, this, arguments));
     } : emitter.emit;
     sub(handler);
@@ -281,16 +283,16 @@ Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsu
 
 // .fromEvents
 
-var subUnsubPairs = [
+let subUnsubPairs = [
   ['addEventListener', 'removeEventListener'],
   ['addListener', 'removeListener'],
   ['on', 'off']
 ];
 
 Kefir.fromEvents = function(target, eventName, transformer) {
-  var pair, sub, unsub;
+  let pair, sub, unsub;
 
-  for (var i = 0; i < subUnsubPairs.length; i++) {
+  for (let i = 0; i < subUnsubPairs.length; i++) {
     pair = subUnsubPairs[i];
     if (isFn(target[pair[0]]) && isFn(target[pair[1]])) {
       sub = pair[0];

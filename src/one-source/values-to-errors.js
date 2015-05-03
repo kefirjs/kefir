@@ -12,7 +12,7 @@ const mixin = {
   },
 
   _handleValue(x, isCurrent) {
-    var result = this._fn(x);
+    let result = this._fn(x);
     if (result.convert) {
       this._send(ERROR, result.error, isCurrent);
     } else {

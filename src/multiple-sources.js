@@ -20,7 +20,7 @@ function _AbstractPool(options) {
     throw new Error('options.concurLim can\'t be 0');
   }
 
-  var $ = this;
+  let $ = this;
   this._$handleSubAny = function(event) {
     $._handleSubAny(event);
   };
@@ -50,7 +50,7 @@ inherit(_AbstractPool, Stream, {
     }
   },
   _addAll(obss) {
-    var $ = this;
+    let $ = this;
     forEach(obss, function(obs) {
       $._add(obs);
     });
@@ -71,9 +71,9 @@ inherit(_AbstractPool, Stream, {
     }
   },
   _subscribe(obs) {
-    var $ = this;
+    let $ = this;
 
-    var onEnd = function() {
+    let onEnd = function() {
       $._removeCur(obs);
     };
 
@@ -89,11 +89,11 @@ inherit(_AbstractPool, Stream, {
   _unsubscribe(obs) {
     obs.offAny(this._$handleSubAny);
 
-    var onEndI = findByPred(this._bindedEndHandlers, function(obj) {
+    let onEndI = findByPred(this._bindedEndHandlers, function(obj) {
       return obj.obs === obs;
     });
     if (onEndI !== -1) {
-      var onEnd = this._bindedEndHandlers[onEndI].handler;
+      let onEnd = this._bindedEndHandlers[onEndI].handler;
       this._bindedEndHandlers.splice(onEndI, 1);
       obs.offEnd(onEnd);
     }
@@ -105,7 +105,7 @@ inherit(_AbstractPool, Stream, {
   },
 
   _removeQueue(obs) {
-    var index = find(this._queue, obs);
+    let index = find(this._queue, obs);
     this._queue = remove(this._queue, index);
     return index;
   },
@@ -113,7 +113,7 @@ inherit(_AbstractPool, Stream, {
     if (this._active) {
       this._unsubscribe(obs);
     }
-    var index = find(this._curSources, obs);
+    let index = find(this._curSources, obs);
     this._curSources = remove(this._curSources, index);
     if (index !== -1) {
       if (this._queue.length !== 0) {
@@ -136,7 +136,7 @@ inherit(_AbstractPool, Stream, {
   },
 
   _onActivation() {
-    var sources = this._curSources
+    let sources = this._curSources
       , i;
     this._activating = true;
     for (i = 0; i < sources.length; i++) {
@@ -147,7 +147,7 @@ inherit(_AbstractPool, Stream, {
     this._activating = false;
   },
   _onDeactivation() {
-    var sources = this._curSources
+    let sources = this._curSources
       , i;
     for (i = 0; i < sources.length; i++) {
       this._unsubscribe(sources[i]);
@@ -175,7 +175,7 @@ inherit(_AbstractPool, Stream, {
 
 // .merge()
 
-var MergeLike = {
+let MergeLike = {
   _onEmpty() {
     if (this._initialised) {
       this._send(END, null, this._activating);
@@ -299,7 +299,7 @@ function FlatMap(source, fn, options) {
   this._mainEnded = false;
   this._lastCurrent = null;
 
-  var $ = this;
+  let $ = this;
   this._$handleMainSource = function(event) {
     $._handleMainSource(event);
   };
@@ -378,7 +378,7 @@ function Zip(sources, combinator) {
     this._aliveCount = 0;
 
     this._bindedHandlers = Array(this._sources.length);
-    for (var i = 0; i < this._sources.length; i++) {
+    for (let i = 0; i < this._sources.length; i++) {
       this._bindedHandlers[i] = this._bindHandleAny(i);
     }
 
@@ -391,7 +391,7 @@ inherit(Zip, Stream, {
   _name: 'zip',
 
   _onActivation() {
-    var i, length = this._sources.length;
+    let i, length = this._sources.length;
     this._drainArrays();
     this._aliveCount = length;
     for (i = 0; i < length; i++) {
@@ -402,21 +402,21 @@ inherit(Zip, Stream, {
   },
 
   _onDeactivation() {
-    for (var i = 0; i < this._sources.length; i++) {
+    for (let i = 0; i < this._sources.length; i++) {
       this._sources[i].offAny(this._bindedHandlers[i]);
     }
   },
 
   _emit(isCurrent) {
-    var values = new Array(this._buffers.length);
-    for (var i = 0; i < this._buffers.length; i++) {
+    let values = new Array(this._buffers.length);
+    for (let i = 0; i < this._buffers.length; i++) {
       values[i] = this._buffers[i].shift();
     }
     this._send(VALUE, this._combinator(values), isCurrent);
   },
 
   _isFull() {
-    for (var i = 0; i < this._buffers.length; i++) {
+    for (let i = 0; i < this._buffers.length; i++) {
       if (this._buffers[i].length === 0) {
         return false;
       }
@@ -437,7 +437,7 @@ inherit(Zip, Stream, {
   },
 
   _bindHandleAny(i) {
-    var $ = this;
+    let $ = this;
     return function(event) {
       $._handleAny(i, event);
     };
@@ -479,8 +479,8 @@ inherit(Zip, Stream, {
 // .combine()
 
 function defaultErrorsCombinator(errors) {
-  var latestError;
-  for (var i = 0; i < errors.length; i++) {
+  let latestError;
+  for (let i = 0; i < errors.length; i++) {
     if (errors[i] !== undefined) {
       if (latestError === undefined || latestError.index < errors[i].index) {
         latestError = errors[i];
@@ -508,7 +508,7 @@ function Combine(active, passive, combinator) {
     this._latestErrorIndex = 0;
 
     this._bindedHandlers = Array(this._sources.length);
-    for (var i = 0; i < this._sources.length; i++) {
+    for (let i = 0; i < this._sources.length; i++) {
       this._bindedHandlers[i] = this._bindHandleAny(i);
     }
 
@@ -521,7 +521,7 @@ inherit(Combine, Stream, {
   _name: 'combine',
 
   _onActivation() {
-    var length = this._sources.length,
+    let length = this._sources.length,
         i;
     this._aliveCount = this._activeCount;
     this._activating = true;
@@ -539,7 +539,7 @@ inherit(Combine, Stream, {
   },
 
   _onDeactivation() {
-    var length = this._sources.length,
+    let length = this._sources.length,
         i;
     for (i = 0; i < length; i++) {
       this._sources[i].offAny(this._bindedHandlers[i]);
@@ -547,13 +547,13 @@ inherit(Combine, Stream, {
   },
 
   _emitIfFull(isCurrent) {
-    var hasAllValues = true;
-    var hasErrors = false;
-    var length = this._latestValues.length;
-    var valuesCopy = new Array(length);
-    var errorsCopy = new Array(length);;
+    let hasAllValues = true;
+    let hasErrors = false;
+    let length = this._latestValues.length;
+    let valuesCopy = new Array(length);
+    let errorsCopy = new Array(length);;
 
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
       valuesCopy[i] = this._latestValues[i];
       errorsCopy[i] = this._latestErrors[i];
 
@@ -575,7 +575,7 @@ inherit(Combine, Stream, {
   },
 
   _bindHandleAny(i) {
-    var $ = this;
+    let $ = this;
     return function(event) {
       $._handleAny(i, event);
     };

@@ -25,11 +25,11 @@ const mixin = {
     if (isCurrent) {
       this._send(VALUE, x, isCurrent);
     } else {
-      var curTime = now();
+      let curTime = now();
       if (this._lastCallTime === 0 && !this._leading) {
         this._lastCallTime = curTime;
       }
-      var remaining = this._wait - (curTime - this._lastCallTime);
+      let remaining = this._wait - (curTime - this._lastCallTime);
       if (remaining <= 0) {
         this._cancelTrailing();
         this._lastCallTime = curTime;

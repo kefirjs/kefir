@@ -10,7 +10,7 @@ function spread(fn, length) {
 }
 
 function apply(fn, c, a) {
-  var aLength = a ? a.length : 0;
+  let aLength = a ? a.length : 0;
   if (c == null) {
     switch (aLength) {
       case 0: return fn();

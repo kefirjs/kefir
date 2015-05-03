@@ -11,7 +11,7 @@ const {cloneArray} = require('./utils/collections');
 withInterval('withInterval', {
   _init(args) {
     this._fn = args[0];
-    var $ = this;
+    let $ = this;
     this._emitter = {
       emit(x) {
         $._send(VALUE, x);

@@ -56,7 +56,7 @@ extend(Observable.prototype, {
 
   _off(type, fn) {
     if (this._alive) {
-      var count = this._dispatcher.remove(type, fn);
+      let count = this._dispatcher.remove(type, fn);
       if (count === 0) {
         this._setActive(false);
       }
@@ -110,8 +110,8 @@ Observable.prototype.toString = function() {
 Observable.prototype.log = function(name) {
   name = name || this.toString();
 
-  var handler = function(event) {
-    var typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
+  let handler = function(event) {
+    let typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
     if (event.type === VALUE || event.type === ERROR) {
       console.log(name, typeStr, event.value);
     } else {
@@ -132,11 +132,11 @@ Observable.prototype.offLog = function(name) {
   name = name || this.toString();
 
   if (this.__logHandlers) {
-    var handlerIndex = findByPred(this.__logHandlers, function(obj) {
+    let handlerIndex = findByPred(this.__logHandlers, function(obj) {
       return obj.name === name;
     });
     if (handlerIndex !== -1) {
-      var handler = this.__logHandlers[handlerIndex].handler;
+      let handler = this.__logHandlers[handlerIndex].handler;
       this.__logHandlers.splice(handlerIndex, 1);
       this.offAny(handler);
     }

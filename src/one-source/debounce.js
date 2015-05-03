@@ -50,7 +50,7 @@ const mixin = {
   },
 
   _later() {
-    var last = now() - this._lastAttempt;
+    let last = now() - this._lastAttempt;
     if (last < this._wait && last >= 0) {
       this._timeoutId = setTimeout(this._$later, this._wait - last);
     } else {

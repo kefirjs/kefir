@@ -3,7 +3,7 @@ const {VALUE, END, NOTHING} = require('./constants');
 const {extend, get} = require('./utils/objects');
 
 
-var withTwoSourcesAndBufferMixin = {
+let withTwoSourcesAndBufferMixin = {
   _init(args) {
     this._buff = [];
     this._flushOnEnd = get(args[0], 'flushOnEnd', true);

@@ -33,8 +33,8 @@ extend(Dispatcher.prototype, {
     return this._items.length;
   },
   dispatch(event) {
-    var items = this._items;
-    for (var i = 0; i < items.length; i++) {
+    let items = this._items;
+    for (let i = 0; i < items.length; i++) {
       callSubscriber(items[i].type, items[i].fn, event);
     }
   }

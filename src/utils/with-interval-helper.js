@@ -10,7 +10,7 @@ module.exports = function withInterval(name, mixin) {
     Stream.call(this);
     this._wait = wait;
     this._intervalId = null;
-    var $ = this;
+    let $ = this;
     this._$onTick = function() {
       $._onTick();
     };

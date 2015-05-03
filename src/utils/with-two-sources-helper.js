@@ -90,7 +90,7 @@ module.exports = function withTwoSources(name, mixin /*, options*/) {
       this._secondary = secondary;
       this._name = primary._name + '.' + name;
       this._lastSecondary = NOTHING;
-      var $ = this;
+      let $ = this;
       this._$handleSecondaryAny = function(event) {
         $._handleSecondaryAny(event);
       };
@@ -116,8 +116,8 @@ module.exports = function withTwoSources(name, mixin /*, options*/) {
   }
 
 
-  var AnonymousStream = buildClass(Stream);
-  var AnonymousProperty = buildClass(Property);
+  let AnonymousStream = buildClass(Stream);
+  let AnonymousProperty = buildClass(Property);
 
   Stream.prototype[name] = function(secondary) {
     return new AnonymousStream(this, secondary, rest(arguments, 1, []));

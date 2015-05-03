@@ -1,5 +1,5 @@
 function concat(a, b) {
-  var result, length, i, j;
+  let result, length, i, j;
   if (a.length === 0) {
     return b;
   }
@@ -20,7 +20,7 @@ function concat(a, b) {
 }
 
 function circleShift(arr, distance) {
-  var length = arr.length
+  let length = arr.length
     , result = new Array(length)
     , i;
   for (i = 0; i < length; i++) {
@@ -30,7 +30,7 @@ function circleShift(arr, distance) {
 }
 
 function find(arr, value) {
-  var length = arr.length
+  let length = arr.length
     , i;
   for (i = 0; i < length; i++) {
     if (arr[i] === value) {
@@ -41,7 +41,7 @@ function find(arr, value) {
 }
 
 function findByPred(arr, pred) {
-  var length = arr.length
+  let length = arr.length
     , i;
   for (i = 0; i < length; i++) {
     if (pred(arr[i])) {
@@ -52,7 +52,7 @@ function findByPred(arr, pred) {
 }
 
 function cloneArray(input) {
-  var length = input.length
+  let length = input.length
     , result = new Array(length)
     , i;
   for (i = 0; i < length; i++) {
@@ -62,7 +62,7 @@ function cloneArray(input) {
 }
 
 function remove(input, index) {
-  var length = input.length
+  let length = input.length
     , result, i, j;
   if (index >= 0 && index < length) {
     if (length === 1) {
@@ -87,7 +87,7 @@ function removeByPred(input, pred) {
 }
 
 function map(input, fn) {
-  var length = input.length
+  let length = input.length
     , result = new Array(length)
     , i;
   for (i = 0; i < length; i++) {
@@ -97,7 +97,7 @@ function map(input, fn) {
 }
 
 function forEach(arr, fn) {
-  var length = arr.length
+  let length = arr.length
     , i;
   for (i = 0; i < length; i++) {
     fn(arr[i]);
@@ -105,7 +105,7 @@ function forEach(arr, fn) {
 }
 
 function fillArray(arr, value) {
-  var length = arr.length
+  let length = arr.length
     , i;
   for (i = 0; i < length; i++) {
     arr[i] = value;
@@ -124,7 +124,7 @@ function rest(arr, start, onEmpty) {
 }
 
 function slide(cur, next, max) {
-  var length = Math.min(max, cur.length + 1),
+  let length = Math.min(max, cur.length + 1),
       offset = cur.length - length + 1,
       result = new Array(length),
       i;
@@ -136,7 +136,7 @@ function slide(cur, next, max) {
 }
 
 function isEqualArrays(a, b) {
-  var length, i;
+  let length, i;
   if (a == null && b == null) {
     return true;
   }

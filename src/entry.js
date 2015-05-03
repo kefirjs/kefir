@@ -446,7 +446,7 @@ Observable.prototype.flatMapConcat = function(fn) {
     .setName(this, 'flatMapConcat');
 };
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
-  var result;
+  let result;
   if (limit === 0) {
     result = Kefir.never();
   } else {
@@ -483,11 +483,11 @@ Kefir.sampledBy = deprecated(
   function(passive, active, combinator) {
 
     // we need to flip `passive` and `active` in combinator function
-    var _combinator = combinator;
+    let _combinator = combinator;
     if (passive.length > 0) {
-      var passiveLength = passive.length;
+      let passiveLength = passive.length;
       _combinator = function() {
-        var args = circleShift(arguments, passiveLength);
+        let args = circleShift(arguments, passiveLength);
         return combinator ? apply(combinator, null, args) : args;
       };
     }
@@ -496,7 +496,7 @@ Kefir.sampledBy = deprecated(
   }
 );
 Observable.prototype.sampledBy = function(other, combinator) {
-  var _combinator;
+  let _combinator;
   if (combinator) {
     _combinator = function(active, passive) {
       return combinator(passive, active);
