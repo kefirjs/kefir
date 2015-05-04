@@ -153,8 +153,8 @@ function defaultDiff(a, b) {
   return [a, b];
 }
 
-Observable.prototype.diff = function(fn, seed = NOTHING) {
-  return diff(this, fn || defaultDiff, seed); // we want to also support `null` as "no fn"
+Observable.prototype.diff = function(fn /* Function | falsey */, seed = NOTHING) {
+  return diff(this, fn || defaultDiff, seed);
 };
 
 
