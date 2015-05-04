@@ -33,9 +33,9 @@ function Combine(active, passive, combinator) {
   this._endAfterActivation = false;
   this._latestErrorIndex = 0;
 
-  this._$handlers = Array(this._sources.length);
+  this._$handlers = [];
   for (let i = 0; i < this._sources.length; i++) {
-    this._$handlers[i] = this._bindHandleAny(i);
+    this._$handlers.push((event) => this._handleAny(i, event));
   }
 
 }
@@ -97,13 +97,6 @@ inherit(Combine, Stream, {
     if (hasErrors) {
       this._send(ERROR, defaultErrorsCombinator(errorsCopy), isCurrent);
     }
-  },
-
-  _bindHandleAny(i) {
-    let $ = this;
-    return function(event) {
-      $._handleAny(i, event);
-    };
   },
 
   _handleAny(i, event) {
