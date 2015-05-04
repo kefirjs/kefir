@@ -95,16 +95,6 @@ inherit(Emitter, Stream, {
 
 
 
-// Kefir.never()
-
-const neverInstance = new Stream();
-neverInstance._send(END);
-neverInstance._name = 'never';
-
-
-
-
-
 // Kefir.constant(x)
 
 function Constant(x) {
@@ -207,4 +197,4 @@ inherit(Repeat, Stream, {
 
 
 
-module.exports = {StreamStream, Emitter, neverInstance, Constant, ConstantError, Repeat};
+module.exports = {StreamStream, Emitter, Constant, ConstantError, Repeat};

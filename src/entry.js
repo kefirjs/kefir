@@ -5,7 +5,7 @@ const {isFn} = require('./utils/types');
 const {circleShift} = require('./utils/collections');
 const {apply} = require('./utils/functions');
 const {NOTHING} = require('./constants');
-const {StreamStream, Emitter, neverInstance, Constant, ConstantError, Repeat} = require('./primary');
+const {StreamStream, Emitter, Constant, ConstantError, Repeat} = require('./primary');
 const {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-sources');
 require('./two-sources');
 require('./sugar');
@@ -20,9 +20,7 @@ Kefir.Property = require('./property');
 // -----------------------------------------------------------------------------
 
 // - never
-function never() {
-  return neverInstance;
-}
+const never = require('./primary/never');
 Kefir.never = never;
 
 // - later
@@ -261,15 +259,22 @@ Observable.prototype.withHandler = function(fn) {
 // -----------------------------------------------------------------------------
 
 // - combine
-Kefir.combine = function(active, passive, combinator) {
+const combine = require('./many-sources/combine');
+// (Array, Array, Function)
+// (Array, Array)
+// (Array, Function)
+// (Array)
+Kefir.combine = function(active, passive = [], combinator) {
   if (isFn(passive)) {
     combinator = passive;
-    passive = null;
+    passive = [];
   }
-  return new Combine(active, passive || [], combinator);
+  return combine(active, passive, combinator);
 };
+// (Array, Function)
+// (Array)
 Observable.prototype.combine = function(other, combinator) {
-  return Kefir.combine([this, other], combinator);
+  return combine([this, other], [], combinator);
 };
 
 // - zip
@@ -335,7 +340,7 @@ Observable.prototype.flatMapConcat = function(fn) {
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   let result;
   if (limit === 0) {
-    result = Kefir.never();
+    result = never();
   } else {
     if (limit < 0) {
       limit = -1;
@@ -359,7 +364,7 @@ Observable.prototype.sampledBy = function(other, combinator) {
       return combinator(passive, active);
     };
   }
-  return new Combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
+  return combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
 };
 
 // - takeWhileBy
@@ -405,7 +410,7 @@ Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine(active, passive
       };
     }
 
-    return new Combine(active, passive, _combinator).setName('sampledBy');
+    return combine(active, passive, _combinator).setName('sampledBy');
   }
 );
 
