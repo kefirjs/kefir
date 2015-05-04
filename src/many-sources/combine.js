@@ -46,13 +46,18 @@ inherit(Combine, Stream, {
   _name: 'combine',
 
   _onActivation() {
-    let length = this._sources.length,
-        i;
     this._aliveCount = this._activeCount;
     this._activating = true;
-    for (i = 0; i < length; i++) {
+
+    // we need to suscribe to _passive_ sources before _active_
+    // (see https://github.com/pozadi/kefir/issues/98)
+    for (let i = this._activeCount; i < this._sources.length; i++) {
       this._sources[i].onAny(this._$handlers[i]);
     }
+    for (let i = 0; i < this._activeCount; i++) {
+      this._sources[i].onAny(this._$handlers[i]);
+    }
+
     this._activating = false;
     if (this._emitAfterActivation) {
       this._emitAfterActivation = false;

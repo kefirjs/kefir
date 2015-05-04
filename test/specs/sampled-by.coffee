@@ -112,3 +112,17 @@ describe 'sampledBy', ->
     c = stream()
     d = prop()
     expect(Kefir.sampledBy([a, b], [c, d])).errorsToFlow(d)
+
+  # https://github.com/pozadi/kefir/issues/98
+  it 'should work nice for emitating atomic updates', ->
+    a = stream()
+    b = a.map (x) -> x + 2
+    c = a.map (x) -> x * 2
+    expect(Kefir.sampledBy([b], [c])).toEmit [[3, 2], [4, 4], [5, 6]], ->
+      send(a, [1, 2, 3])
+
+    a = stream()
+    b = a.map (x) -> x + 2
+    c = a.map (x) -> x * 2
+    expect(b.sampledBy(c, (x, y) -> [x, y])).toEmit [[3, 2], [4, 4], [5, 6]], ->
+      send(a, [1, 2, 3])

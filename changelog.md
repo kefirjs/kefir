@@ -1,3 +1,7 @@
+## Next
+
+ - Bug in .combine fixed (see [#98](https://github.com/pozadi/kefir/issues/98))
+
 ## 2.1.0 (28/04/2015)
 
  - New method `.last`
