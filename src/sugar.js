@@ -35,15 +35,6 @@ function not(x) {
 
 
 
-// .setName
-
-Observable.prototype.setName = function(sourceObs, selfName /* or just selfName */) {
-  this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
-  return this;
-};
-
-
-
 // .mapTo
 
 Observable.prototype.mapTo = deprecated(

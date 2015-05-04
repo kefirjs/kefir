@@ -93,6 +93,11 @@ extend(Observable.prototype, {
   // A and B must be subclasses of Stream and Property (order doesn't matter)
   ofSameType(A, B) {
     return A.prototype.getType() === this.getType() ? A : B;
+  },
+
+  setName(sourceObs /* optional */, selfName) {
+    this._name = selfName ? `${sourceObs._name}.${selfName}` : sourceObs;
+    return this;
   }
 
 });
