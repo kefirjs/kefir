@@ -201,6 +201,7 @@ inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
 
 
 // .concat()
+// TODO: implement with repeat() maybe?
 
 function Concat(sources) {
   _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
