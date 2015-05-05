@@ -35,7 +35,7 @@ inherit(S, Stream, {
         if (this._source) {
           this._source.onAny(this._$handleAny);
         } else {
-          this._send(END);
+          this._send(END, null, this._activating);
         }
       }
       this._inLoop = false;

@@ -83,7 +83,7 @@ describe 'repeat', ->
       {current: 0},
       {current: 1},
       {current: 2},
-      '<end>'
+      '<end:current>'
     ]
 
   # https://github.com/baconjs/bacon.js/issues/521
