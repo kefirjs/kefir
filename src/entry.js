@@ -1,21 +1,22 @@
-const Kefir = require('./kefir');
 const Observable = require('./observable');
-const deprecated = require('./patterns/deprecated');
 const {isFn} = require('./utils/types');
-const {circleShift} = require('./utils/collections');
-const {apply} = require('./utils/functions');
 const {NOTHING} = require('./constants');
-const {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-sources');
-require('./two-sources');
-require('./sugar');
 
-//     Observable
-//        /  \
-//       /    \
-//   Stream  Property
-Kefir.Observable = Observable;
-Kefir.Stream = require('./stream');
-Kefir.Property = require('./property');
+// TODO: should be inlined in here
+const Kefir = require('./kefir');
+const deprecated = require('./patterns/deprecated');
+
+// TODO: split
+const {Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-sources');
+require('./two-sources');
+
+
+Kefir.Observable = Observable;             //     Observable
+Kefir.Stream = require('./stream');        //        /  \
+Kefir.Property = require('./property');    //       /    \
+                                           //  Stream    Property
+
+
 
 
 // Create a stream
@@ -44,8 +45,13 @@ Kefir.fromPoll = require('./time-based/from-poll'); // (number, Function) -> Str
 Kefir.withInterval = require('./time-based/with-interval'); // (number, Function) -> Stream
 
 // - fromCallback
+Kefir.fromCallback = require('./primary/from-callback');
+
 // - fromNodeCallback
+Kefir.fromNodeCallback = require('./primary/from-node-callback');
+
 // - fromEvents
+Kefir.fromEvents = require('./primary/from-events');
 
 // - stream
 Kefir.stream = require('./primary/stream'); // (Function) -> Stream
@@ -61,6 +67,9 @@ Kefir.constant = require('./primary/constant'); // (any) -> Property
 Kefir.constantError = require('./primary/constant-error'); // (any) -> Property
 
 // - fromPromise
+Kefir.fromPromise = require('./primary/from-promise');
+
+
 
 
 // Convert observables
@@ -80,6 +89,9 @@ const changes = require('./one-source/changes'); // (Stream|Property) -> Stream
 Observable.prototype.changes = function() {
   return changes(this);
 };
+
+
+
 
 
 // Modify an observable
@@ -251,11 +263,14 @@ Observable.prototype.withHandler = function(fn) {
 };
 
 
+
+
+
 // Combine observables
 // -----------------------------------------------------------------------------
 
 // - combine
-const combine = require('./many-sources/combine');
+const combine = require('./many-sources/combine'); // (Array<Oservable>, Array<Oservable>, Function | falsey) -> Stream
 // (Array, Array, Function)
 // (Array, Array)
 // (Array, Function)
@@ -282,11 +297,10 @@ Observable.prototype.zip = function(other, combinator) {
 };
 
 // - merge
-Kefir.merge = function(obss) {
-  return new Merge(obss);
-};
+const merge = require('./many-sources/merge');
+Kefir.merge = merge;
 Observable.prototype.merge = function(other) {
-  return Kefir.merge([this, other]);
+  return merge([this, other]);
 };
 
 // - concat
@@ -368,6 +382,13 @@ Observable.prototype.sampledBy = function(other, combinator) {
 // - bufferBy
 // - bufferWhileBy
 // - awaiting
+const awaiting = require('./two-sources/awaiting');
+Observable.prototype.awaiting = function(other) {
+  return awaiting(this, other);
+}
+
+
+
 
 
 
@@ -379,9 +400,11 @@ Kefir.Emitter = Emitter;
 Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', emitter);
 
 Kefir.Bus = Bus;
-Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function() {
-  return new Bus();
-});
+Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()',
+  function() {
+    return new Bus();
+  }
+);
 
 const reduce = require('./one-source/reduce');
 Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()',
@@ -390,26 +413,73 @@ Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).l
   }
 );
 
-Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine(active, passive, combinator)',
-  function(passive, active, combinator) {
+const sampledBy = require('./many-sources/sampled-by'); // (Array<Oservable>, Array<Oservable>, Function | falsey) -> Stream
+Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine()', sampledBy);
 
-    // we need to flip `passive` and `active` in combinator function
-    let _combinator = combinator;
-    if (passive.length > 0) {
-      let passiveLength = passive.length;
-      _combinator = function() {
-        let args = circleShift(arguments, passiveLength);
-        return combinator ? apply(combinator, null, args) : args;
-      };
-    }
+const repeatedly = require('./time-based/repeatedly');
+Kefir.repeatedly = deprecated('Kefir.repeatedly()', 'Kefir.repeat(() => Kefir.sequentially(...)})', repeatedly);
 
-    return combine(active, passive, _combinator).setName('sampledBy');
+const mapTo = require('./one-source/map-to');
+Observable.prototype.mapTo = deprecated('.mapTo()', '.map(() => value)',
+  function(x) {
+    return mapTo(this, x);
   }
 );
 
-const repeatedly = require('./time-based/repeatedly');
-Kefir.repeatedly = deprecated('Kefir.repeatedly()',
-  'Kefir.repeat(() => Kefir.sequentially(...)})', repeatedly);
+const tap = require('./one-source/tap');
+Observable.prototype.tap = deprecated('.tap()', '.map((v) => {fn(v); return v})',
+  function(fn) {
+    return tap(this, fn);
+  }
+);
+
+const pluck = require('./one-source/pluck');
+Observable.prototype.pluck = deprecated('.pluck()', '.map((x) => x.foo)',
+  function(propName) {
+    return pluck(this, propName);
+  }
+);
+
+const invoke = require('./one-source/invoke');
+Observable.prototype.invoke = deprecated('.invoke()', '.map((x) => x.foo())',
+  function(methodName, ...args) {
+    return invoke(this, methodName, args);
+  }
+);
+
+const timestamp = require('./one-source/timestamp');
+Observable.prototype.timestamp = deprecated('.timestamp()', '.map((x) => {value: x, time: Date.now()})',
+  function() {
+    return timestamp(this);
+  }
+);
+
+const and = require('./many-sources/and');
+Kefir.and = deprecated('Kefir.and()', 'Kefir.combine([a, b], (a, b) => a && b)', and);
+Observable.prototype.and = deprecated('.and()', '.combine(other, (a, b) => a && b)',
+  function(other) {
+    return and([this, other]);
+  }
+);
+
+const or = require('./many-sources/or');
+Kefir.or = deprecated('Kefir.or()', 'Kefir.combine([a, b], (a, b) => a || b)', or);
+Observable.prototype.or = deprecated('.or()', '.combine(other, (a, b) => a || b)',
+  function(other) {
+    return or([this, other]);
+  }
+);
+
+const not = require('./one-source/not');
+Observable.prototype.not = deprecated('.not()', '.map((x) => !x)',
+  function() {
+    return not(this);
+  }
+);
+
+const fromSubUnsub = require('./primary/from-sub-unsub');
+Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
+
 
 
 

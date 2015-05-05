@@ -1,179 +1,18 @@
 const Stream = require('./stream');
-const {VALUE, ERROR, END, NOTHING} = require('./constants');
-const {inherit, extend, get} = require('./utils/objects');
-const {forEach, concat, findByPred, find, remove, cloneArray, fillArray, map} = require('./utils/collections');
+const {VALUE, ERROR, END} = require('./constants');
+const {inherit, extend} = require('./utils/objects');
+const {cloneArray, map} = require('./utils/collections');
 const {spread} = require('./utils/functions');
 const {isArray} = require('./utils/types');
 const never = require('./primary/never');
-
-
-function id (x) {return x;}
-
-
-function _AbstractPool(options) {
-  Stream.call(this);
-
-  this._queueLim = get(options, 'queueLim', 0);
-  this._concurLim = get(options, 'concurLim', -1);
-  this._drop = get(options, 'drop', 'new');
-  if (this._concurLim === 0) {
-    throw new Error('options.concurLim can\'t be 0');
-  }
-
-  let $ = this;
-  this._$handleSubAny = function(event) {
-    $._handleSubAny(event);
-  };
-
-  this._queue = [];
-  this._curSources = [];
-  this._activating = false;
-
-  this._bindedEndHandlers = [];
-}
-
-inherit(_AbstractPool, Stream, {
-
-  _name: 'abstractPool',
-
-  _add(obj, toObs) {
-    toObs = toObs || id;
-    if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
-      this._addToCur(toObs(obj));
-    } else {
-      if (this._queueLim === -1 || this._queue.length < this._queueLim) {
-        this._addToQueue(toObs(obj));
-      } else if (this._drop === 'old') {
-        this._removeOldest();
-        this._add(toObs(obj));
-      }
-    }
-  },
-  _addAll(obss) {
-    let $ = this;
-    forEach(obss, function(obs) {
-      $._add(obs);
-    });
-  },
-  _remove(obs) {
-    if (this._removeCur(obs) === -1) {
-      this._removeQueue(obs);
-    }
-  },
-
-  _addToQueue(obs) {
-    this._queue = concat(this._queue, [obs]);
-  },
-  _addToCur(obs) {
-    this._curSources = concat(this._curSources, [obs]);
-    if (this._active) {
-      this._subscribe(obs);
-    }
-  },
-  _subscribe(obs) {
-    let $ = this;
-
-    let onEnd = function() {
-      $._removeCur(obs);
-    };
-
-    this._bindedEndHandlers.push({obs: obs, handler: onEnd});
-
-    obs.onAny(this._$handleSubAny);
-
-    // it can become inactive in responce of subscribing to `obs.onAny` above
-    if (this._active) {
-      obs.onEnd(onEnd);
-    }
-  },
-  _unsubscribe(obs) {
-    obs.offAny(this._$handleSubAny);
-
-    let onEndI = findByPred(this._bindedEndHandlers, function(obj) {
-      return obj.obs === obs;
-    });
-    if (onEndI !== -1) {
-      let onEnd = this._bindedEndHandlers[onEndI].handler;
-      this._bindedEndHandlers.splice(onEndI, 1);
-      obs.offEnd(onEnd);
-    }
-  },
-  _handleSubAny(event) {
-    if (event.type === VALUE || event.type === ERROR) {
-      this._send(event.type, event.value, event.current && this._activating);
-    }
-  },
-
-  _removeQueue(obs) {
-    let index = find(this._queue, obs);
-    this._queue = remove(this._queue, index);
-    return index;
-  },
-  _removeCur(obs) {
-    if (this._active) {
-      this._unsubscribe(obs);
-    }
-    let index = find(this._curSources, obs);
-    this._curSources = remove(this._curSources, index);
-    if (index !== -1) {
-      if (this._queue.length !== 0) {
-        this._pullQueue();
-      } else if (this._curSources.length === 0) {
-        this._onEmpty();
-      }
-    }
-    return index;
-  },
-  _removeOldest() {
-    this._removeCur(this._curSources[0]);
-  },
-
-  _pullQueue() {
-    if (this._queue.length !== 0) {
-      this._queue = cloneArray(this._queue);
-      this._addToCur(this._queue.shift());
-    }
-  },
-
-  _onActivation() {
-    let sources = this._curSources
-      , i;
-    this._activating = true;
-    for (i = 0; i < sources.length; i++) {
-      if (this._active) {
-        this._subscribe(sources[i]);
-      }
-    }
-    this._activating = false;
-  },
-  _onDeactivation() {
-    let sources = this._curSources
-      , i;
-    for (i = 0; i < sources.length; i++) {
-      this._unsubscribe(sources[i]);
-    }
-  },
-
-  _isEmpty() {
-    return this._curSources.length === 0;
-  },
-  _onEmpty() {},
-
-  _clear() {
-    Stream.prototype._clear.call(this);
-    this._queue = null;
-    this._curSources = null;
-    this._$handleSubAny = null;
-    this._bindedEndHandlers = null;
-  }
-
-});
+const AbstractPool = require('./many-sources/abstract-pool');
 
 
 
 
 
-// .merge()
+// .concat()
+// TODO: implement with repeat() maybe?
 
 let MergeLike = {
   _onEmpty() {
@@ -183,28 +22,8 @@ let MergeLike = {
   }
 };
 
-function Merge(sources) {
-  _AbstractPool.call(this);
-  if (sources.length === 0) {
-    this._send(END);
-  } else {
-    this._addAll(sources);
-  }
-  this._initialised = true;
-}
-
-inherit(Merge, _AbstractPool, extend({_name: 'merge'}, MergeLike));
-
-
-
-
-
-
-// .concat()
-// TODO: implement with repeat() maybe?
-
 function Concat(sources) {
-  _AbstractPool.call(this, {concurLim: 1, queueLim: -1});
+  AbstractPool.call(this, {concurLim: 1, queueLim: -1});
   if (sources.length === 0) {
     this._send(END);
   } else {
@@ -213,7 +32,7 @@ function Concat(sources) {
   this._initialised = true;
 }
 
-inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
+inherit(Concat, AbstractPool, extend({_name: 'concat'}, MergeLike));
 
 
 
@@ -224,10 +43,10 @@ inherit(Concat, _AbstractPool, extend({_name: 'concat'}, MergeLike));
 // .pool()
 
 function Pool() {
-  _AbstractPool.call(this);
+  AbstractPool.call(this);
 }
 
-inherit(Pool, _AbstractPool, {
+inherit(Pool, AbstractPool, {
 
   _name: 'pool',
 
@@ -251,10 +70,10 @@ inherit(Pool, _AbstractPool, {
 // .bus()
 
 function Bus() {
-  _AbstractPool.call(this);
+  AbstractPool.call(this);
 }
 
-inherit(Bus, _AbstractPool, {
+inherit(Bus, AbstractPool, {
 
   _name: 'bus',
 
@@ -293,10 +112,10 @@ inherit(Bus, _AbstractPool, {
 
 // .flatMap()
 
-function FlatMap(source, fn, options) {
-  _AbstractPool.call(this, options);
+function FlatMap(source, fn = (x => x), options) {
+  AbstractPool.call(this, options);
   this._source = source;
-  this._fn = fn || id;
+  this._fn = fn;
   this._mainEnded = false;
   this._lastCurrent = null;
 
@@ -306,10 +125,10 @@ function FlatMap(source, fn, options) {
   };
 }
 
-inherit(FlatMap, _AbstractPool, {
+inherit(FlatMap, AbstractPool, {
 
   _onActivation() {
-    _AbstractPool.prototype._onActivation.call(this);
+    AbstractPool.prototype._onActivation.call(this);
     if (this._active) {
       this._activating = true;
       this._source.onAny(this._$handleMainSource);
@@ -317,7 +136,7 @@ inherit(FlatMap, _AbstractPool, {
     }
   },
   _onDeactivation() {
-    _AbstractPool.prototype._onDeactivation.call(this);
+    AbstractPool.prototype._onDeactivation.call(this);
     this._source.offAny(this._$handleMainSource);
   },
 
@@ -347,7 +166,7 @@ inherit(FlatMap, _AbstractPool, {
   },
 
   _clear() {
-    _AbstractPool.prototype._clear.call(this);
+    AbstractPool.prototype._clear.call(this);
     this._source = null;
     this._lastCurrent = null;
     this._$handleMainSource = null;
@@ -375,7 +194,7 @@ function Zip(sources, combinator) {
     this._sources = map(sources, function(source) {
       return isArray(source) ? never() : source;
     });
-    this._combinator = combinator ? spread(combinator, this._sources.length) : id;
+    this._combinator = combinator ? spread(combinator, this._sources.length) : (x => x);
     this._aliveCount = 0;
 
     this._bindedHandlers = Array(this._sources.length);
@@ -473,4 +292,4 @@ inherit(Zip, Stream, {
 
 
 
-module.exports = {Merge, Concat, Pool, Bus, FlatMap, Zip};
+module.exports = {Concat, Pool, Bus, FlatMap, Zip};
