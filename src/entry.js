@@ -359,15 +359,9 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 
 // - filterBy
 // - sampledBy
-function id2(_, x) {return x;}
-Observable.prototype.sampledBy = function(other, combinator) {
-  let _combinator;
-  if (combinator) {
-    _combinator = function(active, passive) {
-      return combinator(passive, active);
-    };
-  }
-  return combine([other], [this], _combinator || id2).setName(this, 'sampledBy');
+const sampledBy2items = require('./two-sources/sampled-by');
+Observable.prototype.sampledBy = function(other, combinator /* Function | falsey */) {
+  return sampledBy2items(this, other, combinator);
 };
 
 // - takeWhileBy
@@ -408,8 +402,9 @@ Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).l
   }
 );
 
-const sampledBy = require('./many-sources/sampled-by'); // (Array<Oservable>, Array<Oservable>, Function | falsey) -> Stream
-Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine()', sampledBy);
+// (Array<Oservable>, Array<Oservable>, Function | falsey) -> Stream
+const sampledByManyItems = require('./many-sources/sampled-by');
+Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine()', sampledByManyItems);
 
 const repeatedly = require('./time-based/repeatedly');
 Kefir.repeatedly = deprecated('Kefir.repeatedly()', 'Kefir.repeat(() => Kefir.sequentially(...)})', repeatedly);
