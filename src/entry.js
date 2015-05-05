@@ -5,7 +5,6 @@ const {isFn} = require('./utils/types');
 const {circleShift} = require('./utils/collections');
 const {apply} = require('./utils/functions');
 const {NOTHING} = require('./constants');
-const {StreamStream, Emitter, Constant, ConstantError, Repeat} = require('./primary');
 const {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-sources');
 require('./two-sources');
 require('./sugar');
@@ -46,23 +45,17 @@ Kefir.withInterval = require('./time-based/with-interval');
 // - fromEvents
 
 // - stream
-Kefir.stream = function(fn) {
-  return new StreamStream(fn);
-};
+Kefir.stream = require('./primary/stream'); // (Function) -> Stream
 
 
 // Create a property
 // -----------------------------------------------------------------------------
 
 // - constant
-Kefir.constant = function(x) {
-  return new Constant(x);
-};
+Kefir.constant = require('./primary/constant'); // (any) -> Property
 
 // - constantError
-Kefir.constantError = function(x) {
-  return new ConstantError(x);
-};
+Kefir.constantError = require('./primary/constant-error'); // (any) -> Property
 
 // - fromPromise
 
@@ -308,9 +301,7 @@ Kefir.pool = function() {
 };
 
 // - repeat
-Kefir.repeat = function(generator) {
-  return new Repeat(generator);
-};
+Kefir.repeat = require('./many-sources/repeat'); // (Function) -> Stream
 
 // - flatMap
 Observable.prototype.flatMap = function(fn) {
@@ -380,10 +371,9 @@ Observable.prototype.sampledBy = function(other, combinator) {
 // Deprecated
 // -----------------------------------------------------------------------------
 
+const {Emitter, emitter} = require('./primary/emitter');
 Kefir.Emitter = Emitter;
-Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function() {
-  return new Emitter();
-});
+Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', emitter);
 
 Kefir.Bus = Bus;
 Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function() {
