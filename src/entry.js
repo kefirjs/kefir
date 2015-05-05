@@ -9,7 +9,10 @@ const {Merge, Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-so
 require('./two-sources');
 require('./sugar');
 
-
+//     Observable
+//        /  \
+//       /    \
+//   Stream  Property
 Kefir.Observable = Observable;
 Kefir.Stream = require('./stream');
 Kefir.Property = require('./property');
@@ -19,26 +22,26 @@ Kefir.Property = require('./property');
 // -----------------------------------------------------------------------------
 
 // - never
-const never = require('./primary/never');
+const never = require('./primary/never'); // () -> Stream
 Kefir.never = never;
 
 // - later
-Kefir.later = require('./time-based/later');
+Kefir.later = require('./time-based/later'); // (number, any) -> Stream
 
 // - interval
-Kefir.interval = require('./time-based/interval');
+Kefir.interval = require('./time-based/interval'); // (number, any) -> Stream
 
 // - sequentially
-const sequentially = require('./time-based/sequentially');
+const sequentially = require('./time-based/sequentially'); // (number, Array<any>) -> Stream
 Kefir.sequentially = function(wait, xs) {
   return xs.length === 0 ? never() : sequentially(wait, xs);
 };
 
 // - fromPoll
-Kefir.fromPoll = require('./time-based/from-poll');
+Kefir.fromPoll = require('./time-based/from-poll'); // (number, Function) -> Stream
 
 // - withInterval
-Kefir.withInterval = require('./time-based/with-interval');
+Kefir.withInterval = require('./time-based/with-interval'); // (number, Function) -> Stream
 
 // - fromCallback
 // - fromNodeCallback
@@ -64,7 +67,7 @@ Kefir.constantError = require('./primary/constant-error'); // (any) -> Property
 // -----------------------------------------------------------------------------
 
 // - toProperty
-const toProperty = require('./one-source/to-property');
+const toProperty = require('./one-source/to-property'); // (Stream|Property, Function|null) -> Property
 Observable.prototype.toProperty = function(fn = null) {
   if (fn !== null && !isFn(fn)) {
     throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
@@ -73,7 +76,7 @@ Observable.prototype.toProperty = function(fn = null) {
 };
 
 // - changes
-const changes = require('./one-source/changes');
+const changes = require('./one-source/changes'); // (Stream|Property) -> Stream
 Observable.prototype.changes = function() {
   return changes(this);
 };
@@ -83,55 +86,55 @@ Observable.prototype.changes = function() {
 // -----------------------------------------------------------------------------
 
 // - map
-const map = require('./one-source/map');
+const map = require('./one-source/map'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.map = function(fn = (x) => x) {
   return map(this, fn);
 };
 
 // - filter
-const filter = require('./one-source/filter');
+const filter = require('./one-source/filter'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.filter = function(fn = (x) => x) {
   return filter(this, fn);
 };
 
 // - take
-const take = require('./one-source/take');
+const take = require('./one-source/take'); // A: Stream|Property, (A, number) -> A
 Observable.prototype.take = function(n) {
   return take(this, n);
 };
 
 // - takeWhile
-const takeWhile = require('./one-source/take-while');
+const takeWhile = require('./one-source/take-while'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.takeWhile = function(fn = (x) => x) {
   return takeWhile(this, fn);
 };
 
 // - last
-const last = require('./one-source/last');
+const last = require('./one-source/last'); // A: Stream|Property, (A) -> A
 Observable.prototype.last = function() {
   return last(this);
 };
 
 // - skip
-const skip = require('./one-source/skip');
+const skip = require('./one-source/skip'); // A: Stream|Property, (A, number) -> A
 Observable.prototype.skip = function(n) {
   return skip(this, n);
 };
 
 // - skipWhile
-const skipWhile = require('./one-source/skip-while');
+const skipWhile = require('./one-source/skip-while'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.skipWhile = function(fn = (x) => x) {
   return skipWhile(this, fn);
 };
 
 // - skipDuplicates
-const skipDuplicates = require('./one-source/skip-duplicates');
+const skipDuplicates = require('./one-source/skip-duplicates'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
   return skipDuplicates(this, fn);
 };
 
 // - diff
-const diff = require('./one-source/diff');
+const diff = require('./one-source/diff'); // A: Stream|Property, (A, Function, any|NOTHING) -> A
 function defaultDiff(a, b) {
   return [a, b];
 }
@@ -140,37 +143,37 @@ Observable.prototype.diff = function(fn /* Function | falsey */, seed = NOTHING)
 };
 
 // - scan
-const scan = require('./one-source/scan');
+const scan = require('./one-source/scan'); // (Stream|Property, Function, any|NOTHING) -> Property
 Observable.prototype.scan = function(fn, seed = NOTHING) {
   return scan(this, fn, seed);
 };
 
 // - flatten
-const flatten = require('./one-source/flatten');
+const flatten = require('./one-source/flatten'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.flatten = function(fn = (x) => x) {
   return flatten(this, fn);
 };
 
 // - delay
-const delay = require('./one-source/delay');
+const delay = require('./one-source/delay'); // A: Stream|Property, (A, number) -> A
 Observable.prototype.delay = function(wait) {
   return delay(this, wait);
 };
 
 // - throttle
-const throttle = require('./one-source/throttle');
+const throttle = require('./one-source/throttle'); // A: Stream|Property, (A, number, Object) -> A
 Observable.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
   return throttle(this, wait, {leading, trailing});
 };
 
 // - debounce
-const debounce = require('./one-source/debounce');
+const debounce = require('./one-source/debounce'); // A: Stream|Property, (A, number, Object) -> A
 Observable.prototype.debounce = function(wait, {immediate = false} = {}) {
   return debounce(this, wait, {immediate});
 };
 
 // - valuesToErrors
-const valuesToErrors = require('./one-source/values-to-errors');
+const valuesToErrors = require('./one-source/values-to-errors'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: x}))) {
   return valuesToErrors(this, fn);
 };
