@@ -1,6 +1,5 @@
 const timeBased = require('../patterns/time-based');
 const {VALUE, ERROR, END} = require('../constants');
-const {cloneArray} = require('../utils/collections');
 
 const S = timeBased({
 

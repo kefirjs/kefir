@@ -7,7 +7,7 @@ const Kefir = require('./kefir');
 const deprecated = require('./patterns/deprecated');
 
 // TODO: split
-const {Concat, Pool, Bus, FlatMap, Zip, Combine} = require('./multiple-sources');
+const {Concat, Pool, Bus, FlatMap, Zip} = require('./multiple-sources');
 require('./two-sources');
 
 
