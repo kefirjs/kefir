@@ -22,6 +22,6 @@ inherit(Merge, AbstractPool, {
 
 });
 
-module.exports = function(observables) {
+module.exports = function merge(observables) {
   return observables.length === 0 ? never() : new Merge(observables);
 };

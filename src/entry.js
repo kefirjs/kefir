@@ -7,7 +7,7 @@ const Kefir = require('./kefir');
 const deprecated = require('./patterns/deprecated');
 
 // TODO: split
-const {Concat, Pool, Bus, FlatMap, Zip} = require('./multiple-sources');
+const {Pool, Bus, FlatMap, Zip} = require('./multiple-sources');
 require('./two-sources');
 
 
@@ -297,18 +297,15 @@ Observable.prototype.zip = function(other, combinator) {
 };
 
 // - merge
-const merge = require('./many-sources/merge');
-Kefir.merge = merge;
+const merge = Kefir.merge = require('./many-sources/merge');
 Observable.prototype.merge = function(other) {
   return merge([this, other]);
 };
 
 // - concat
-Kefir.concat = function(obss) {
-  return new Concat(obss);
-};
+const concat = Kefir.concat = require('./many-sources/concat');
 Observable.prototype.concat = function(other) {
-  return Kefir.concat([this, other]);
+  return concat([this, other]);
 };
 
 // - pool

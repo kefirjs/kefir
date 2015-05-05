@@ -11,31 +11,6 @@ const AbstractPool = require('./many-sources/abstract-pool');
 
 
 
-// .concat()
-// TODO: implement with repeat() maybe?
-
-let MergeLike = {
-  _onEmpty() {
-    if (this._initialised) {
-      this._send(END, null, this._activating);
-    }
-  }
-};
-
-function Concat(sources) {
-  AbstractPool.call(this, {concurLim: 1, queueLim: -1});
-  if (sources.length === 0) {
-    this._send(END);
-  } else {
-    this._addAll(sources);
-  }
-  this._initialised = true;
-}
-
-inherit(Concat, AbstractPool, extend({_name: 'concat'}, MergeLike));
-
-
-
 
 
 
@@ -292,4 +267,4 @@ inherit(Zip, Stream, {
 
 
 
-module.exports = {Concat, Pool, Bus, FlatMap, Zip};
+module.exports = {Pool, Bus, FlatMap, Zip};
