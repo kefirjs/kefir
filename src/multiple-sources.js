@@ -1,15 +1,6 @@
-const Stream = require('./stream');
 const {VALUE, ERROR, END} = require('./constants');
-const {inherit, extend} = require('./utils/objects');
-const {cloneArray, map} = require('./utils/collections');
-const {spread} = require('./utils/functions');
-const {isArray} = require('./utils/types');
-const never = require('./primary/never');
+const {inherit} = require('./utils/objects');
 const AbstractPool = require('./many-sources/abstract-pool');
-
-
-
-
 
 
 
@@ -29,13 +20,13 @@ inherit(Pool, AbstractPool, {
     this._add(obs);
     return this;
   },
+
   unplug(obs) {
     this._remove(obs);
     return this;
   }
 
 });
-
 
 
 
@@ -156,115 +147,9 @@ inherit(FlatMap, AbstractPool, {
 
 
 
-// .zip()
-
-function Zip(sources, combinator) {
-  Stream.call(this);
-  if (sources.length === 0) {
-    this._send(END);
-  } else {
-    this._buffers = map(sources, function(source) {
-      return isArray(source) ? cloneArray(source) : [];
-    });
-    this._sources = map(sources, function(source) {
-      return isArray(source) ? never() : source;
-    });
-    this._combinator = combinator ? spread(combinator, this._sources.length) : (x => x);
-    this._aliveCount = 0;
-
-    this._bindedHandlers = Array(this._sources.length);
-    for (let i = 0; i < this._sources.length; i++) {
-      this._bindedHandlers[i] = this._bindHandleAny(i);
-    }
-
-  }
-}
-
-
-inherit(Zip, Stream, {
-
-  _name: 'zip',
-
-  _onActivation() {
-    let i, length = this._sources.length;
-    this._drainArrays();
-    this._aliveCount = length;
-    for (i = 0; i < length; i++) {
-      if (this._active) {
-        this._sources[i].onAny(this._bindedHandlers[i]);
-      }
-    }
-  },
-
-  _onDeactivation() {
-    for (let i = 0; i < this._sources.length; i++) {
-      this._sources[i].offAny(this._bindedHandlers[i]);
-    }
-  },
-
-  _emit(isCurrent) {
-    let values = new Array(this._buffers.length);
-    for (let i = 0; i < this._buffers.length; i++) {
-      values[i] = this._buffers[i].shift();
-    }
-    this._send(VALUE, this._combinator(values), isCurrent);
-  },
-
-  _isFull() {
-    for (let i = 0; i < this._buffers.length; i++) {
-      if (this._buffers[i].length === 0) {
-        return false;
-      }
-    }
-    return true;
-  },
-
-  _emitIfFull(isCurrent) {
-    if (this._isFull()) {
-      this._emit(isCurrent);
-    }
-  },
-
-  _drainArrays() {
-    while (this._isFull()) {
-      this._emit(true);
-    }
-  },
-
-  _bindHandleAny(i) {
-    let $ = this;
-    return function(event) {
-      $._handleAny(i, event);
-    };
-  },
-
-  _handleAny(i, event) {
-    if (event.type === VALUE) {
-      this._buffers[i].push(event.value);
-      this._emitIfFull(event.current);
-    }
-    if (event.type === ERROR) {
-      this._send(ERROR, event.value, event.current);
-    }
-    if (event.type === END) {
-      this._aliveCount--;
-      if (this._aliveCount === 0) {
-        this._send(END, null, event.current);
-      }
-    }
-  },
-
-  _clear() {
-    Stream.prototype._clear.call(this);
-    this._sources = null;
-    this._buffers = null;
-    this._combinator = null;
-    this._bindedHandlers = null;
-  }
-
-});
 
 
 
 
-module.exports = {Pool, Bus, FlatMap, Zip};
+
+module.exports = {Pool, Bus, FlatMap};
