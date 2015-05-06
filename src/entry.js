@@ -4,10 +4,9 @@ Kefir.Kefir = Kefir;
 
 
 Kefir.DEPRECATION_WARNINGS = true;
-const canLog = (typeof console !== undefined) && console.log;
 function deprecated(name, alt, fn) {
   return function() {
-    if (Kefir.DEPRECATION_WARNINGS && canLog) {
+    if (Kefir.DEPRECATION_WARNINGS && (typeof console !== 'undefined') && console.log) {
 
       const message = `Method \`${name}\` is deprecated, and to be removed in v3.0.0.
 Use \`${alt}\` instead.
@@ -25,9 +24,6 @@ Kefir.Stream = require('./stream');
 Kefir.Property = require('./property');
 
 
-
-// TODO: split
-require('./two-sources');
 
 // TODO: remove from here
 const {isFn} = require('./utils/types');
@@ -364,6 +360,11 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 // -----------------------------------------------------------------------------
 
 // - filterBy
+const filterBy = require('./two-sources/filter-by');
+Observable.prototype.filterBy = function(other) {
+  return filterBy(this, other);
+};
+
 // - sampledBy
 const sampledBy2items = require('./two-sources/sampled-by');
 Observable.prototype.sampledBy = function(other, combinator /* Function | falsey */) {
@@ -371,16 +372,46 @@ Observable.prototype.sampledBy = function(other, combinator /* Function | falsey
 };
 
 // - takeWhileBy
+const takeWhileBy = require('./two-sources/take-while-by');
+Observable.prototype.takeWhileBy = function(other) {
+  return takeWhileBy(this, other);
+};
+
 // - skipWhileBy
+const skipWhileBy = require('./two-sources/skip-while-by');
+Observable.prototype.skipWhileBy = function(other) {
+  return skipWhileBy(this, other);
+};
+
 // - skipUntilBy
+const skipUntilBy = require('./two-sources/skip-until-by');
+Observable.prototype.skipUntilBy = function(other) {
+  return skipUntilBy(this, other);
+};
+
 // - takeUntilBy
+const takeUntilBy = require('./two-sources/take-until-by');
+Observable.prototype.takeUntilBy = function(other) {
+  return takeUntilBy(this, other);
+};
+
 // - bufferBy
+const bufferBy = require('./two-sources/buffer-by');
+Observable.prototype.bufferBy = function(other, options) {
+  return bufferBy(this, other, options);
+};
+
 // - bufferWhileBy
+const bufferWhileBy = require('./two-sources/buffer-while-by');
+Observable.prototype.bufferWhileBy = function(other, options) {
+  return bufferWhileBy(this, other, options);
+};
+
 // - awaiting
 const awaiting = require('./two-sources/awaiting');
 Observable.prototype.awaiting = function(other) {
   return awaiting(this, other);
-}
+};
 
 
 

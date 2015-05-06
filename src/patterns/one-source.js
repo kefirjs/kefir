@@ -10,7 +10,7 @@ function createConstructor(BaseClass, name) {
     this._source = source;
     this._name = `${source._name}.${name}`;
     this._init(options);
-    this._$handleAny = ((event) => this._handleAny(event));
+    this._$handleAny = (event) => this._handleAny(event);
   }
 }
 
@@ -32,9 +32,9 @@ function createClassMethods(BaseClass) {
 
     _handleAny(event) {
       switch (event.type) {
-        case VALUE: this._handleValue(event.value); break;
-        case ERROR: this._handleError(event.value); break;
-        case END: this._handleEnd(); break;
+        case VALUE: return this._handleValue(event.value);
+        case ERROR: return this._handleError(event.value);
+        case END: return this._handleEnd();
       }
     },
 
