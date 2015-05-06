@@ -26,60 +26,57 @@ Kefir.Property = require('./property');
 
 
 // TODO: remove from here
-const {isFn} = require('./utils/types');
 const {NOTHING} = require('./constants');
 
-
+// TODO:
+//    - more type signatures
+//    - move args validation to module files
 
 
 // Create a stream
 // -----------------------------------------------------------------------------
 
-// - never
-const never = require('./primary/never'); // () -> Stream
+// () -> Stream
+const never = require('./primary/never');
 Kefir.never = never;
 
-// - later
-Kefir.later = require('./time-based/later'); // (number, any) -> Stream
+// (number, any) -> Stream
+Kefir.later = require('./time-based/later');
 
-// - interval
-Kefir.interval = require('./time-based/interval'); // (number, any) -> Stream
+// (number, any) -> Stream
+Kefir.interval = require('./time-based/interval');
 
-// - sequentially
-const sequentially = require('./time-based/sequentially'); // (number, Array<any>) -> Stream
+// (number, Array<any>) -> Stream
+const sequentially = require('./time-based/sequentially');
 Kefir.sequentially = function(wait, xs) {
   return xs.length === 0 ? never() : sequentially(wait, xs);
 };
 
-// - fromPoll
-Kefir.fromPoll = require('./time-based/from-poll'); // (number, Function) -> Stream
+// (number, Function) -> Stream
+Kefir.fromPoll = require('./time-based/from-poll');
 
-// - withInterval
-Kefir.withInterval = require('./time-based/with-interval'); // (number, Function) -> Stream
+// (number, Function) -> Stream
+Kefir.withInterval = require('./time-based/with-interval');
 
-// - fromCallback
 Kefir.fromCallback = require('./primary/from-callback');
 
-// - fromNodeCallback
 Kefir.fromNodeCallback = require('./primary/from-node-callback');
 
-// - fromEvents
 Kefir.fromEvents = require('./primary/from-events');
 
-// - stream
-Kefir.stream = require('./primary/stream'); // (Function) -> Stream
+// (Function) -> Stream
+Kefir.stream = require('./primary/stream');
 
 
 // Create a property
 // -----------------------------------------------------------------------------
 
-// - constant
-Kefir.constant = require('./primary/constant'); // (any) -> Property
+// (any) -> Property
+Kefir.constant = require('./primary/constant');
 
-// - constantError
-Kefir.constantError = require('./primary/constant-error'); // (any) -> Property
+// (any) -> Property
+Kefir.constantError = require('./primary/constant-error');
 
-// - fromPromise
 Kefir.fromPromise = require('./primary/from-promise');
 
 
@@ -88,17 +85,17 @@ Kefir.fromPromise = require('./primary/from-promise');
 // Convert observables
 // -----------------------------------------------------------------------------
 
-// - toProperty
-const toProperty = require('./one-source/to-property'); // (Stream|Property, Function|null) -> Property
+// (Stream|Property, Function|null) -> Property
+const toProperty = require('./one-source/to-property');
 Observable.prototype.toProperty = function(fn = null) {
-  if (fn !== null && !isFn(fn)) {
+  if (fn !== null && !(typeof fn === 'function')) {
     throw new TypeError('The .toProperty method must be called with no args or with a function as an argument');
   }
   return toProperty(this, fn);
 };
 
-// - changes
-const changes = require('./one-source/changes'); // (Stream|Property) -> Stream
+// (Stream|Property) -> Stream
+const changes = require('./one-source/changes');
 Observable.prototype.changes = function() {
   return changes(this);
 };
@@ -110,55 +107,46 @@ Observable.prototype.changes = function() {
 // Modify an observable
 // -----------------------------------------------------------------------------
 
-// - map
 const map = require('./one-source/map'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.map = function(fn = (x) => x) {
   return map(this, fn);
 };
 
-// - filter
 const filter = require('./one-source/filter'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.filter = function(fn = (x) => x) {
   return filter(this, fn);
 };
 
-// - take
 const take = require('./one-source/take'); // A: Stream|Property, (A, number) -> A
 Observable.prototype.take = function(n) {
   return take(this, n);
 };
 
-// - takeWhile
 const takeWhile = require('./one-source/take-while'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.takeWhile = function(fn = (x) => x) {
   return takeWhile(this, fn);
 };
 
-// - last
 const last = require('./one-source/last'); // A: Stream|Property, (A) -> A
 Observable.prototype.last = function() {
   return last(this);
 };
 
-// - skip
 const skip = require('./one-source/skip'); // A: Stream|Property, (A, number) -> A
 Observable.prototype.skip = function(n) {
   return skip(this, n);
 };
 
-// - skipWhile
 const skipWhile = require('./one-source/skip-while'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.skipWhile = function(fn = (x) => x) {
   return skipWhile(this, fn);
 };
 
-// - skipDuplicates
 const skipDuplicates = require('./one-source/skip-duplicates'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.skipDuplicates = function(fn = (a, b) => a === b) {
   return skipDuplicates(this, fn);
 };
 
-// - diff
 const diff = require('./one-source/diff'); // A: Stream|Property, (A, Function, any|NOTHING) -> A
 function defaultDiff(a, b) {
   return [a, b];
@@ -167,109 +155,92 @@ Observable.prototype.diff = function(fn /* Function | falsey */, seed = NOTHING)
   return diff(this, fn || defaultDiff, seed);
 };
 
-// - scan
-const scan = require('./one-source/scan'); // (Stream|Property, Function, any|NOTHING) -> Property
+// (Stream|Property, Function, any|NOTHING) -> Property
+const scan = require('./one-source/scan');
 Observable.prototype.scan = function(fn, seed = NOTHING) {
   return scan(this, fn, seed);
 };
 
-// - flatten
 const flatten = require('./one-source/flatten'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.flatten = function(fn = (x) => x) {
   return flatten(this, fn);
 };
 
-// - delay
 const delay = require('./one-source/delay'); // A: Stream|Property, (A, number) -> A
 Observable.prototype.delay = function(wait) {
   return delay(this, wait);
 };
 
-// - throttle
 const throttle = require('./one-source/throttle'); // A: Stream|Property, (A, number, Object) -> A
 Observable.prototype.throttle = function(wait, {leading = true, trailing = true} = {}) {
   return throttle(this, wait, {leading, trailing});
 };
 
-// - debounce
 const debounce = require('./one-source/debounce'); // A: Stream|Property, (A, number, Object) -> A
 Observable.prototype.debounce = function(wait, {immediate = false} = {}) {
   return debounce(this, wait, {immediate});
 };
 
-// - valuesToErrors
 const valuesToErrors = require('./one-source/values-to-errors'); // A: Stream|Property, (A, Function) -> A
 Observable.prototype.valuesToErrors = function(fn = (x => ({convert: true, error: x}))) {
   return valuesToErrors(this, fn);
 };
 
-// - errorsToValues
 const errorsToValues = require('./one-source/errors-to-values');
 Observable.prototype.errorsToValues = function(fn = (x) => ({convert: true, value: x})) {
   return errorsToValues(this, fn);
 };
 
-// - mapErrors
 const mapErrors = require('./one-source/map-errors');
 Observable.prototype.mapErrors = function(fn = (x) => x) {
   return mapErrors(this, fn);
 };
 
-// - filterErrors
 const filterErrors = require('./one-source/filter-errors');
 Observable.prototype.filterErrors = function(fn = (x) => x) {
   return filterErrors(this, fn);
 };
 
-// - endOnError
 const endOnError = require('./one-source/end-on-error');
 Observable.prototype.endOnError = function() {
   return endOnError(this);
 };
 
-// - skipValues
 const skipValues = require('./one-source/skip-values');
 Observable.prototype.skipValues = function() {
   return skipValues(this);
 };
 
-// - skipErrors
 const skipErrors = require('./one-source/skip-errors');
 Observable.prototype.skipErrors = function() {
   return skipErrors(this);
 };
 
-// - skipEnd
 const skipEnd = require('./one-source/skip-end');
 Observable.prototype.skipEnd = function() {
   return skipEnd(this);
 };
 
-// - beforeEnd
 const beforeEnd = require('./one-source/before-end');
 Observable.prototype.beforeEnd = function(fn) {
   return beforeEnd(this, fn);
 };
 
-// - slidingWindow
 const slidingWindow = require('./one-source/sliding-window');
 Observable.prototype.slidingWindow = function(max, min = 0) {
   return slidingWindow(this, max, min);
 };
 
-// - bufferWhile
 const bufferWhile = require('./one-source/buffer-while');
 Observable.prototype.bufferWhile = function(fn = (x) => x, {flushOnEnd = true} = {}) {
   return bufferWhile(this, fn, {flushOnEnd});
 };
 
-// - transduce
 const transduce = require('./one-source/transduce');
 Observable.prototype.transduce = function(transducer) {
   return transduce(this, transducer);
 };
 
-// - withHandler
 const withHandler = require('./one-source/with-handler');
 Observable.prototype.withHandler = function(fn) {
   return withHandler(this, fn);
@@ -282,14 +253,14 @@ Observable.prototype.withHandler = function(fn) {
 // Combine observables
 // -----------------------------------------------------------------------------
 
-// - combine
-const combine = require('./many-sources/combine'); // (Array<Oservable>, Array<Oservable>, Function | falsey) -> Stream
+// (Array<Oservable>, Array<Oservable>, Function | falsey) -> Stream
+const combine = require('./many-sources/combine');
 // (Array, Array, Function)
 // (Array, Array)
 // (Array, Function)
 // (Array)
 Kefir.combine = function(active, passive = [], combinator) {
-  if (isFn(passive)) {
+  if (typeof passive === 'function') {
     combinator = passive;
     passive = [];
   }
@@ -301,56 +272,47 @@ Observable.prototype.combine = function(other, combinator) {
   return combine([this, other], [], combinator);
 };
 
-// - zip
 const zip = Kefir.zip = require('./many-sources/zip');
 Observable.prototype.zip = function(other, combinator /* Function | falsey */) {
   return zip([this, other], combinator);
 };
 
-// - merge
 const merge = Kefir.merge = require('./many-sources/merge');
 Observable.prototype.merge = function(other) {
   return merge([this, other]);
 };
 
-// - concat
 const concat = Kefir.concat = require('./many-sources/concat');
 Observable.prototype.concat = function(other) {
   return concat([this, other]);
 };
 
-// - pool
 const Pool = Kefir.Pool = require('./many-sources/pool');
 Kefir.pool = function() {
   return new Pool();
 };
 
-// - repeat
-Kefir.repeat = require('./many-sources/repeat'); // (Function) -> Stream
+// (Function) -> Stream
+Kefir.repeat = require('./many-sources/repeat');
 
 
-// - flatMap
 const flatMap = require('./many-sources/flat-map');
 Observable.prototype.flatMap = function(fn) {
   return flatMap(this, fn);
 };
 
-// - flatMapLatest
 Observable.prototype.flatMapLatest = function(fn) {
   return flatMap(this, fn, {concurLim: 1, drop: 'old'}).setName(this, 'flatMapLatest');
 };
 
-// - flatMapFirst
 Observable.prototype.flatMapFirst = function(fn) {
   return flatMap(this, fn, {concurLim: 1}).setName(this, 'flatMapFirst');
 };
 
-// - flatMapConcat
 Observable.prototype.flatMapConcat = function(fn) {
   return flatMap(this, fn, {queueLim: -1, concurLim: 1}).setName(this, 'flatMapConcat');
 };
 
-// - flatMapConcurLimit
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   return flatMap(this, fn, {queueLim: -1, concurLim: limit}).setName(this, 'flatMapConcurLimit');
 };
@@ -359,55 +321,46 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 // Combine two observables
 // -----------------------------------------------------------------------------
 
-// - filterBy
 const filterBy = require('./two-sources/filter-by');
 Observable.prototype.filterBy = function(other) {
   return filterBy(this, other);
 };
 
-// - sampledBy
 const sampledBy2items = require('./two-sources/sampled-by');
 Observable.prototype.sampledBy = function(other, combinator /* Function | falsey */) {
   return sampledBy2items(this, other, combinator);
 };
 
-// - takeWhileBy
 const takeWhileBy = require('./two-sources/take-while-by');
 Observable.prototype.takeWhileBy = function(other) {
   return takeWhileBy(this, other);
 };
 
-// - skipWhileBy
 const skipWhileBy = require('./two-sources/skip-while-by');
 Observable.prototype.skipWhileBy = function(other) {
   return skipWhileBy(this, other);
 };
 
-// - skipUntilBy
 const skipUntilBy = require('./two-sources/skip-until-by');
 Observable.prototype.skipUntilBy = function(other) {
   return skipUntilBy(this, other);
 };
 
-// - takeUntilBy
 const takeUntilBy = require('./two-sources/take-until-by');
 Observable.prototype.takeUntilBy = function(other) {
   return takeUntilBy(this, other);
 };
 
-// - bufferBy
 const bufferBy = require('./two-sources/buffer-by');
 Observable.prototype.bufferBy = function(other, options) {
   return bufferBy(this, other, options);
 };
 
-// - bufferWhileBy
 const bufferWhileBy = require('./two-sources/buffer-while-by');
 Observable.prototype.bufferWhileBy = function(other, options) {
   return bufferWhileBy(this, other, options);
 };
 
-// - awaiting
 const awaiting = require('./two-sources/awaiting');
 Observable.prototype.awaiting = function(other) {
   return awaiting(this, other);

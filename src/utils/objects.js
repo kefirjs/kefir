@@ -1,15 +1,3 @@
-function get(map, key, notFound) {
-  if (map && key in map) {
-    return map[key];
-  } else {
-    return notFound;
-  }
-}
-
-function own(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
 function createObj(proto) {
   let F = function() {};
   F.prototype = proto;
@@ -38,4 +26,4 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
   return Child;
 }
 
-module.exports = {get, own, createObj, extend, inherit};
+module.exports = {extend, inherit};

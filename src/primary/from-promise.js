@@ -1,6 +1,5 @@
 const stream = require('./stream');
 const toProperty = require('../one-source/to-property');
-const {isFn} = require('../utils/types');
 
 
 module.exports = function fromPromise(promise) {
@@ -20,7 +19,7 @@ module.exports = function fromPromise(promise) {
       let _promise = promise.then(onValue, onError);
 
       // prevent promise/A+ libraries like Q to swallow exceptions
-      if (_promise && isFn(_promise.done)) {
+      if (_promise && typeof _promise.done === 'function') {
         _promise.done();
       }
 

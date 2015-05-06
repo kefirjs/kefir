@@ -1,5 +1,4 @@
 const fromSubUnsub = require('./from-sub-unsub');
-const {isFn} = require('../utils/types');
 
 const pairs = [
   ['addEventListener', 'removeEventListener'],
@@ -11,7 +10,7 @@ module.exports = function fromEvents(target, eventName, transformer) {
   let sub, unsub;
 
   for (let i = 0; i < pairs.length; i++) {
-    if (isFn(target[pairs[i][0]]) && isFn(target[pairs[i][1]])) {
+    if (typeof target[pairs[i][0]] === 'function' && typeof target[pairs[i][1]] === 'function') {
       sub = pairs[i][0];
       unsub = pairs[i][1];
       break;

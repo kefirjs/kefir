@@ -116,13 +116,6 @@ function contains(arr, value) {
   return find(arr, value) !== -1;
 }
 
-function rest(arr, start, onEmpty) {
-  if (arr.length > start) {
-    return Array.prototype.slice.call(arr, start);
-  }
-  return onEmpty;
-}
-
 function slide(cur, next, max) {
   let length = Math.min(max, cur.length + 1),
       offset = cur.length - length + 1,
@@ -135,24 +128,7 @@ function slide(cur, next, max) {
   return result;
 }
 
-function isEqualArrays(a, b) {
-  let length, i;
-  if (a == null && b == null) {
-    return true;
-  }
-  if (a == null || b == null) {
-    return false;
-  }
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (i = 0, length = a.length; i < length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-  return true;
-}
+
 
 
 module.exports = {
@@ -167,7 +143,5 @@ module.exports = {
   forEach,
   fillArray,
   contains,
-  rest,
-  slide,
-  isEqualArrays
+  slide
 };

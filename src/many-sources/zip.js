@@ -3,9 +3,12 @@ const {VALUE, ERROR, END} = require('../constants');
 const {inherit} = require('../utils/objects');
 const {map, cloneArray} = require('../utils/collections');
 const {spread} = require('../utils/functions');
-const {isArray} = require('../utils/types');
 const never = require('../primary/never');
 
+
+const isArray = Array.isArray || function(xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
 
 
 function Zip(sources, combinator) {
