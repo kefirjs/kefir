@@ -78,6 +78,42 @@ describe 'flatMapConcurLimit', ->
       expect(a.flatMapConcurLimit(null, 2)).toEmit [4, 1, 2], ->
         send(a, [e, b, c, d])
 
+    it 'limit = 0', ->
+      a = stream()
+      expect(a.flatMapConcurLimit(null, 0)).toEmit ['<end:current>']
+
+    it 'limit = -1', ->
+      a = stream()
+      b = stream()
+      c = stream()
+      d = stream()
+      expect(a.flatMapConcurLimit(null, -1)).toEmit [1, 2, 3, 4, 5, 6, '<end>'], ->
+        send(b, [0])
+        send(a, [b])
+        send(b, [1])
+        send(a, [c, d, '<end>'])
+        send(c, [2])
+        send(d, [3])
+        send(b, [4, '<end>'])
+        send(d, [5, '<end>'])
+        send(c, [6, '<end>'])
+
+    it 'limit = -2', -> # same as -1
+      a = stream()
+      b = stream()
+      c = stream()
+      d = stream()
+      expect(a.flatMapConcurLimit(null, -2)).toEmit [1, 2, 3, 4, 5, 6, '<end>'], ->
+        send(b, [0])
+        send(a, [b])
+        send(b, [1])
+        send(a, [c, d, '<end>'])
+        send(c, [2])
+        send(d, [3])
+        send(b, [4, '<end>'])
+        send(d, [5, '<end>'])
+        send(c, [6, '<end>'])
+
 
 
 

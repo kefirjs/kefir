@@ -8,18 +8,17 @@ const id = (x => x);
 function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
   Stream.call(this);
 
-  this._queueLim = queueLim;
-  this._concurLim = concurLim;
+  this._queueLim = queueLim < 0 ? -1 : queueLim;
+  this._concurLim = concurLim < 0 ? -1 : concurLim;
   this._drop = drop;
-
-  if (this._concurLim === 0) {
-    throw new Error('options.concurLim can\'t be 0');
-  }
-
   this._queue = [];
   this._curSources = [];
   this._$handleSubAny = (event) => this._handleSubAny(event);
   this._$endHandlers = [];
+
+  if (this._concurLim === 0) {
+    this._emitEnd();
+  }
 }
 
 inherit(AbstractPool, Stream, {

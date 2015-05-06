@@ -1,4 +1,3 @@
-const Observable = require('./observable');
 const {isFn} = require('./utils/types');
 const {NOTHING} = require('./constants');
 
@@ -7,14 +6,12 @@ const Kefir = require('./kefir');
 const deprecated = require('./patterns/deprecated');
 
 // TODO: split
-const {Pool, Bus, FlatMap} = require('./multiple-sources');
 require('./two-sources');
 
 
-Kefir.Observable = Observable;             //     Observable
-Kefir.Stream = require('./stream');        //        /  \
-Kefir.Property = require('./property');    //       /    \
-                                           //  Stream    Property
+const Observable = Kefir.Observable = require('./observable');
+Kefir.Stream = require('./stream');
+Kefir.Property = require('./property');
 
 
 
@@ -307,7 +304,7 @@ Observable.prototype.concat = function(other) {
 };
 
 // - pool
-Kefir.Pool = Pool;
+const Pool = Kefir.Pool = require('./many-sources/pool');
 Kefir.pool = function() {
   return new Pool();
 };
@@ -315,42 +312,31 @@ Kefir.pool = function() {
 // - repeat
 Kefir.repeat = require('./many-sources/repeat'); // (Function) -> Stream
 
+
 // - flatMap
+const flatMap = require('./many-sources/flat-map');
 Observable.prototype.flatMap = function(fn) {
-  return new FlatMap(this, fn)
-    .setName(this, 'flatMap');
+  return flatMap(this, fn);
 };
 
 // - flatMapLatest
 Observable.prototype.flatMapLatest = function(fn) {
-  return new FlatMap(this, fn, {concurLim: 1, drop: 'old'})
-    .setName(this, 'flatMapLatest');
+  return flatMap(this, fn, {concurLim: 1, drop: 'old'}).setName(this, 'flatMapLatest');
 };
 
 // - flatMapFirst
 Observable.prototype.flatMapFirst = function(fn) {
-  return new FlatMap(this, fn, {concurLim: 1})
-    .setName(this, 'flatMapFirst');
+  return flatMap(this, fn, {concurLim: 1}).setName(this, 'flatMapFirst');
 };
 
 // - flatMapConcat
 Observable.prototype.flatMapConcat = function(fn) {
-  return new FlatMap(this, fn, {queueLim: -1, concurLim: 1})
-    .setName(this, 'flatMapConcat');
+  return flatMap(this, fn, {queueLim: -1, concurLim: 1}).setName(this, 'flatMapConcat');
 };
 
 // - flatMapConcurLimit
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
-  let result;
-  if (limit === 0) {
-    result = never();
-  } else {
-    if (limit < 0) {
-      limit = -1;
-    }
-    result = new FlatMap(this, fn, {queueLim: -1, concurLim: limit});
-  }
-  return result.setName(this, 'flatMapConcurLimit');
+  return flatMap(this, fn, {queueLim: -1, concurLim: limit}).setName(this, 'flatMapConcurLimit');
 };
 
 
@@ -388,7 +374,7 @@ const {Emitter, emitter} = require('./primary/emitter');
 Kefir.Emitter = Emitter;
 Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', emitter);
 
-Kefir.Bus = Bus;
+const Bus = Kefir.Bus = require('./many-sources/bus');
 Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()',
   function() {
     return new Bus();
