@@ -1,5 +1,4 @@
 const timeBased = require('../patterns/time-based');
-const {VALUE, ERROR, END} = require('../constants');
 const emitter = require('../emitter');
 
 

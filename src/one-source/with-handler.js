@@ -1,5 +1,4 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {VALUE, ERROR, END} = require('../constants');
 const emitter = require('../emitter');
 
 const mixin = {

@@ -38,12 +38,30 @@ extend(Observable.prototype, {
     this._dispatcher = null;
   },
 
-  _send(type, x) {
+  _emit(type, x) {
+    switch (type) {
+      case VALUE: return this._emitValue(x);
+      case ERROR: return this._emitError(x);
+      case END: return this._emitEnd();
+    }
+  },
+
+  _emitValue(x) {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(type, x, this._activating));
-      if (type === END) {
-        this._clear();
-      }
+      this._dispatcher.dispatch(Event(VALUE, x, this._activating));
+    }
+  },
+
+  _emitError(x) {
+    if (this._alive) {
+      this._dispatcher.dispatch(Event(ERROR, x, this._activating));
+    }
+  },
+
+  _emitEnd() {
+    if (this._alive) {
+      this._dispatcher.dispatch(Event(END, null, this._activating));
+      this._clear();
     }
   },
 

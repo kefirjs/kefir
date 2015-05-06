@@ -1,5 +1,4 @@
 const timeBased = require('../patterns/time-based');
-const {VALUE, END} = require('../constants');
 const {cloneArray} = require('../utils/collections');
 
 const S = timeBased({
@@ -16,10 +15,10 @@ const S = timeBased({
 
   _onTick() {
     if (this._xs.length === 1) {
-      this._send(VALUE, this._xs[0]);
-      this._send(END);
+      this._emitValue(this._xs[0]);
+      this._emitEnd();
     } else {
-      this._send(VALUE, this._xs.shift());
+      this._emitValue(this._xs.shift());
     }
   }
 

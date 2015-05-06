@@ -22,7 +22,7 @@ inherit(S, Stream, {
       this._source = null;
       this._getSource();
     } else {
-      this._send(event.type, event.value);
+      this._emit(event.type, event.value);
     }
   },
 
@@ -34,7 +34,7 @@ inherit(S, Stream, {
         if (this._source) {
           this._source.onAny(this._$handleAny);
         } else {
-          this._send(END);
+          this._emitEnd();
         }
       }
       this._inLoop = false;

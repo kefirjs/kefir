@@ -1,5 +1,5 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {VALUE, END, NOTHING} = require('../constants');
+const {NOTHING} = require('../constants');
 
 const mixin = {
 
@@ -17,9 +17,9 @@ const mixin = {
 
   _handleEnd() {
     if (this._lastValue !== NOTHING) {
-      this._send(VALUE, this._lastValue);
+      this._emitValue(this._lastValue);
     }
-    this._send(END);
+    this._emitEnd();
   }
 
 };

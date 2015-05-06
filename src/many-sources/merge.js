@@ -1,4 +1,3 @@
-const {END} = require('../constants');
 const {inherit} = require('../utils/objects');
 const AbstractPool = require('./abstract-pool');
 const never = require('../primary/never');
@@ -16,7 +15,7 @@ inherit(Merge, AbstractPool, {
 
   _onEmpty() {
     if (this._initialised) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 

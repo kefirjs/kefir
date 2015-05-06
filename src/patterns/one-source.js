@@ -21,13 +21,13 @@ function createClassMethods(BaseClass) {
     _free() {},
 
     _handleValue(x) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     },
     _handleError(x) {
-      this._send(ERROR, x);
+      this._emitError(x);
     },
     _handleEnd() {
-      this._send(END);
+      this._emitEnd();
     },
 
     _handleAny(event) {

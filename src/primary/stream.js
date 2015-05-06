@@ -1,6 +1,5 @@
 const {inherit} = require('../utils/objects');
 const Stream = require('../stream');
-const {VALUE, ERROR, END} = require('../constants');
 const emitter = require('../emitter');
 
 function S(fn) {

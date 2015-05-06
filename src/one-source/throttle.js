@@ -1,5 +1,4 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {VALUE, END} = require('../constants');
 const now = require('../utils/now');
 
 
@@ -23,7 +22,7 @@ const mixin = {
 
   _handleValue(x) {
     if (this._activating) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     } else {
       let curTime = now();
       if (this._lastCallTime === 0 && !this._leading) {
@@ -33,7 +32,7 @@ const mixin = {
       if (remaining <= 0) {
         this._cancelTrailing();
         this._lastCallTime = curTime;
-        this._send(VALUE, x);
+        this._emitValue(x);
       } else if (this._trailing) {
         this._cancelTrailing();
         this._trailingValue = x;
@@ -44,12 +43,12 @@ const mixin = {
 
   _handleEnd() {
     if (this._activating) {
-      this._send(END);
+      this._emitEnd();
     } else {
       if (this._timeoutId) {
         this._endLater = true;
       } else {
-        this._send(END);
+        this._emitEnd();
       }
     }
   },
@@ -62,12 +61,12 @@ const mixin = {
   },
 
   _trailingCall() {
-    this._send(VALUE, this._trailingValue);
+    this._emitValue(this._trailingValue);
     this._timeoutId = null;
     this._trailingValue = null;
     this._lastCallTime = !this._leading ? 0 : now();
     if (this._endLater) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 

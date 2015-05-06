@@ -1,11 +1,10 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {ERROR, END} = require('../constants');
 
 const mixin = {
 
   _handleError(x) {
-    this._send(ERROR, x);
-    this._send(END);
+    this._emitError(x);
+    this._emitEnd();
   }
 
 };

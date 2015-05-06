@@ -1,5 +1,4 @@
 const {createStream} = require('../patterns/one-source');
-const {VALUE, ERROR} = require('../constants');
 
 
 
@@ -7,13 +6,13 @@ const S = createStream('changes', {
 
   _handleValue(x) {
     if (!this._activating) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     }
   },
 
   _handleError(x) {
     if (!this._activating) {
-      this._send(ERROR, x);
+      this._emitError(x);
     }
   }
 

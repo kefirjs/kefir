@@ -16,19 +16,33 @@ inherit(Property, Observable, {
 
   _name: 'property',
 
-  _send(type, x) {
+  _emitValue(x) {
     if (this._alive) {
       if (!this._activating) {
-        this._dispatcher.dispatch(Event(type, x));
+        this._dispatcher.dispatch(Event(VALUE, x, this._activating));
       }
-      if (type === VALUE || type === ERROR) {
-        this._currentEvent = Event(type, x, true);
-      }
-      if (type === END) {
-        this._clear();
-      }
+      this._currentEvent = Event(VALUE, x, true);
     }
   },
+
+  _emitError(x) {
+    if (this._alive) {
+      if (!this._activating) {
+        this._dispatcher.dispatch(Event(ERROR, x, this._activating));
+      }
+      this._currentEvent = Event(ERROR, x, true);
+    }
+  },
+
+  _emitEnd() {
+    if (this._alive) {
+      if (!this._activating) {
+        this._dispatcher.dispatch(Event(END, null, this._activating));
+      }
+      this._clear();
+    }
+  },
+
 
   _on(type, fn) {
     if (this._alive) {

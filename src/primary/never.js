@@ -1,9 +1,8 @@
 const Stream = require('../stream');
-const {END} = require('../constants');
 
 
 const neverS = new Stream();
-neverS._send(END);
+neverS._emitEnd();
 neverS._name = 'never';
 
 module.exports = function never() {

@@ -53,7 +53,7 @@ inherit(Zip, Stream, {
     for (let i = 0; i < this._buffers.length; i++) {
       values[i] = this._buffers[i].shift();
     }
-    this._send(VALUE, this._combinator(values));
+    this._emitValue(this._combinator(values));
   },
 
   _isFull() {
@@ -73,12 +73,12 @@ inherit(Zip, Stream, {
       }
     }
     if (event.type === ERROR) {
-      this._send(ERROR, event.value);
+      this._emitError(event.value);
     }
     if (event.type === END) {
       this._aliveCount--;
       if (this._aliveCount === 0) {
-        this._send(END);
+        this._emitEnd();
       }
     }
   },

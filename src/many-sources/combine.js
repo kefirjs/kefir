@@ -1,5 +1,5 @@
 const Stream = require('../stream');
-const {VALUE, ERROR, END, NOTHING} = require('../constants');
+const {VALUE, ERROR, NOTHING} = require('../constants');
 const {inherit} = require('../utils/objects');
 const {concat, fillArray} = require('../utils/collections');
 const {spread} = require('../utils/functions');
@@ -61,7 +61,7 @@ inherit(Combine, Stream, {
       this._emitIfFull();
     }
     if (this._endAfterActivation) {
-      this._send(END);
+      this._emitEnd();
     }
   },
 
@@ -94,10 +94,10 @@ inherit(Combine, Stream, {
     }
 
     if (hasAllValues) {
-      this._send(VALUE, this._combinator(valuesCopy));
+      this._emitValue(this._combinator(valuesCopy));
     }
     if (hasErrors) {
-      this._send(ERROR, defaultErrorsCombinator(errorsCopy));
+      this._emitError(defaultErrorsCombinator(errorsCopy));
     }
   },
 
@@ -133,7 +133,7 @@ inherit(Combine, Stream, {
           if (this._activating) {
             this._endAfterActivation = true;
           } else {
-            this._send(END);
+            this._emitEnd();
           }
         }
       }

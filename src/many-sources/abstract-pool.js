@@ -85,7 +85,7 @@ inherit(AbstractPool, Stream, {
 
   _handleSubAny(event) {
     if (event.type === VALUE || event.type === ERROR) {
-      this._send(event.type, event.value);
+      this._emit(event.type, event.value);
     }
   },
 

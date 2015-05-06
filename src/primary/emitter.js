@@ -1,6 +1,5 @@
 const {inherit} = require('../utils/objects');
 const Stream = require('../stream');
-const {VALUE, ERROR, END} = require('../constants');
 
 function Emitter() {
   Stream.call(this);
@@ -11,22 +10,22 @@ inherit(Emitter, Stream, {
   _name: 'emitter',
 
   emit(x) {
-    this._send(VALUE, x);
+    this._emitValue(x);
     return this;
   },
 
   error(x) {
-    this._send(ERROR, x);
+    this._emitError(x);
     return this;
   },
 
   end() {
-    this._send(END);
+    this._emitEnd();
     return this;
   },
 
   emitEvent(event) {
-    this._send(event.type, event.value);
+    this._emit(event.type, event.value);
   }
 
 });

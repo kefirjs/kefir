@@ -1,5 +1,5 @@
 const withTwoSources = require('./utils/with-two-sources-helper');
-const {VALUE, END, NOTHING} = require('./constants');
+const {NOTHING} = require('./constants');
 const {extend, get} = require('./utils/objects');
 
 
@@ -13,7 +13,7 @@ let withTwoSourcesAndBufferMixin = {
   },
   _flush() {
     if (this._buff !== null && this._buff.length !== 0) {
-      this._send(VALUE, this._buff);
+      this._emitValue(this._buff);
       this._buff = [];
     }
   },
@@ -22,7 +22,7 @@ let withTwoSourcesAndBufferMixin = {
     if (this._flushOnEnd) {
       this._flush();
     }
-    this._send(END);
+    this._emitEnd();
   }
 };
 
@@ -47,7 +47,7 @@ withTwoSources('bufferBy', extend({
 
   _handleSecondaryEnd(x) {
     if (!this._flushOnEnd) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 
@@ -67,7 +67,7 @@ withTwoSources('bufferWhileBy', extend({
 
   _handleSecondaryEnd(x) {
     if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 
@@ -81,13 +81,13 @@ withTwoSources('filterBy', {
 
   _handlePrimaryValue(x) {
     if (this._lastSecondary !== NOTHING && this._lastSecondary) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     }
   },
 
   _handleSecondaryEnd() {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 
@@ -99,13 +99,13 @@ withTwoSources('skipUntilBy', {
 
   _handlePrimaryValue(x) {
     if (this._lastSecondary !== NOTHING) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     }
   },
 
   _handleSecondaryEnd() {
     if (this._lastSecondary === NOTHING) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 
@@ -116,7 +116,7 @@ withTwoSources('skipUntilBy', {
 withTwoSources('takeUntilBy', {
 
   _handleSecondaryValue(x) {
-    this._send(END);
+    this._emitEnd();
   }
 
 });
@@ -127,20 +127,20 @@ withTwoSources('takeWhileBy', {
 
   _handlePrimaryValue(x) {
     if (this._lastSecondary !== NOTHING) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     }
   },
 
   _handleSecondaryValue(x) {
     this._lastSecondary = x;
     if (!this._lastSecondary) {
-      this._send(END);
+      this._emitEnd();
     }
   },
 
   _handleSecondaryEnd() {
     if (this._lastSecondary === NOTHING) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 
@@ -157,7 +157,7 @@ withTwoSources('skipWhileBy', {
 
   _handlePrimaryValue(x) {
     if (this._hasFalseyFromSecondary) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     }
   },
 
@@ -167,7 +167,7 @@ withTwoSources('skipWhileBy', {
 
   _handleSecondaryEnd() {
     if (!this._hasFalseyFromSecondary) {
-      this._send(END);
+      this._emitEnd();
     }
   }
 

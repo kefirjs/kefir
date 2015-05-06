@@ -1,5 +1,4 @@
 const timeBased = require('../patterns/time-based');
-const {VALUE} = require('../constants');
 
 const S = timeBased({
 
@@ -14,7 +13,7 @@ const S = timeBased({
   },
 
   _onTick() {
-    this._send(VALUE, this._fn());
+    this._emitValue(this._fn());
   }
 
 });

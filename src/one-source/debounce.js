@@ -1,5 +1,4 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {VALUE, END} = require('../constants');
 const now = require('../utils/now');
 
 
@@ -22,11 +21,11 @@ const mixin = {
 
   _handleValue(x) {
     if (this._activating) {
-      this._send(VALUE, x);
+      this._emitValue(x);
     } else {
       this._lastAttempt = now();
       if (this._immediate && !this._timeoutId) {
-        this._send(VALUE, x);
+        this._emitValue(x);
       }
       if (!this._timeoutId) {
         this._timeoutId = setTimeout(this._$later, this._wait);
@@ -39,12 +38,12 @@ const mixin = {
 
   _handleEnd() {
     if (this._activating) {
-      this._send(END);
+      this._emitEnd();
     } else {
       if (this._timeoutId && !this._immediate) {
         this._endLater = true;
       } else {
-        this._send(END);
+        this._emitEnd();
       }
     }
   },
@@ -56,11 +55,11 @@ const mixin = {
     } else {
       this._timeoutId = null;
       if (!this._immediate) {
-        this._send(VALUE, this._laterValue);
+        this._emitValue(this._laterValue);
         this._laterValue = null;
       }
       if (this._endLater) {
-        this._send(END);
+        this._emitEnd();
       }
     }
   }

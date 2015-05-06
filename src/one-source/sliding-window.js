@@ -1,5 +1,4 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {VALUE} = require('../constants');
 const {slide} = require('../utils/collections');
 
 const mixin = {
@@ -17,7 +16,7 @@ const mixin = {
   _handleValue(x) {
     this._buff = slide(this._buff, x, this._max);
     if (this._buff.length >= this._min) {
-      this._send(VALUE, this._buff);
+      this._emitValue(this._buff);
     }
   }
 

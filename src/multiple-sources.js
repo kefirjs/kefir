@@ -53,19 +53,19 @@ inherit(Bus, AbstractPool, {
   },
 
   emit(x) {
-    this._send(VALUE, x);
+    this._emitValue(x);
     return this;
   },
   error(x) {
-    this._send(ERROR, x);
+    this._emitError(x);
     return this;
   },
   end() {
-    this._send(END);
+    this._emitEnd();
     return this;
   },
   emitEvent(event) {
-    this._send(event.type, event.value);
+    this._emit(event.type, event.value);
   }
 
 });
@@ -112,11 +112,11 @@ inherit(FlatMap, AbstractPool, {
       this._lastCurrent = event.value;
     }
     if (event.type === ERROR) {
-      this._send(ERROR, event.value);
+      this._emitError(event.value);
     }
     if (event.type === END) {
       if (this._isEmpty()) {
-        this._send(END);
+        this._emitEnd();
       } else {
         this._mainEnded = true;
       }
@@ -125,7 +125,7 @@ inherit(FlatMap, AbstractPool, {
 
   _onEmpty() {
     if (this._mainEnded) {
-      this._send(END);
+      this._emitEnd();
     }
   },
 

@@ -1,11 +1,11 @@
 const {inherit} = require('../utils/objects');
 const Property = require('../property');
-const {ERROR, END} = require('../constants');
+
 
 function P(x) {
   Property.call(this);
-  this._send(ERROR, x);
-  this._send(END);
+  this._emitError(x);
+  this._emitEnd();
 }
 
 inherit(P, Property, {

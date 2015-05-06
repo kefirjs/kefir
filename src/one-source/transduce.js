@@ -1,16 +1,15 @@
 const {createStream, createProperty} = require('../patterns/one-source');
-const {VALUE, END} = require('../constants');
 
 function xformForObs(obs) {
   return {
 
     '@@transducer/step'(res, input) {
-      obs._send(VALUE, input);
+      obs._emitValue(input);
       return null;
     },
 
     '@@transducer/result'(res) {
-      obs._send(END);
+      obs._emitEnd();
       return null;
     }
 
