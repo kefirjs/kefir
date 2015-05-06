@@ -32,26 +32,26 @@ module.exports = function withTwoSources(name, mixin /*, options*/) {
     _handlePrimaryAny(event) {
       switch (event.type) {
         case VALUE:
-          this._handlePrimaryValue(event.value, event.current);
+          this._handlePrimaryValue(event.value);
           break;
         case ERROR:
-          this._handlePrimaryError(event.value, event.current);
+          this._handlePrimaryError(event.value);
           break;
         case END:
-          this._handlePrimaryEnd(event.value, event.current);
+          this._handlePrimaryEnd(event.value);
           break;
       }
     },
     _handleSecondaryAny(event) {
       switch (event.type) {
         case VALUE:
-          this._handleSecondaryValue(event.value, event.current);
+          this._handleSecondaryValue(event.value);
           break;
         case ERROR:
-          this._handleSecondaryError(event.value, event.current);
+          this._handleSecondaryError(event.value);
           break;
         case END:
-          this._handleSecondaryEnd(event.value, event.current);
+          this._handleSecondaryEnd(event.value);
           this._removeSecondary();
           break;
       }

@@ -370,9 +370,12 @@ Observable.prototype.awaiting = function(other) {
 // Deprecated
 // -----------------------------------------------------------------------------
 
-const {Emitter, emitter} = require('./primary/emitter');
-Kefir.Emitter = Emitter;
-Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', emitter);
+const Emitter = Kefir.Emitter = require('./primary/emitter');
+Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()',
+  function() {
+    return new Emitter();
+  }
+);
 
 const Bus = Kefir.Bus = require('./many-sources/bus');
 Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()',

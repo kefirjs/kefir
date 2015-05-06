@@ -30,8 +30,4 @@ inherit(Emitter, Stream, {
 
 });
 
-function emitter() {
-  return new Emitter();
-};
-
-module.exports = {emitter, Emitter};
+module.exports = Emitter;
