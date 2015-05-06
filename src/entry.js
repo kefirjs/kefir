@@ -1,17 +1,37 @@
-const {isFn} = require('./utils/types');
-const {NOTHING} = require('./constants');
+const Kefir = module.exports = {};
+Kefir.Kefir = Kefir;
 
-// TODO: should be inlined in here
-const Kefir = require('./kefir');
-const deprecated = require('./patterns/deprecated');
 
-// TODO: split
-require('./two-sources');
+
+Kefir.DEPRECATION_WARNINGS = true;
+const canLog = (typeof console !== undefined) && console.log;
+function deprecated(name, alt, fn) {
+  return function() {
+    if (Kefir.DEPRECATION_WARNINGS && canLog) {
+
+      const message = `Method \`${name}\` is deprecated, and to be removed in v3.0.0.
+Use \`${alt}\` instead.
+To disable all warnings like this set \`Kefir.DEPRECATION_WARNINGS = false\`.`;
+
+      console.log(message);
+    }
+    return fn.apply(this, arguments);
+  };
+}
 
 
 const Observable = Kefir.Observable = require('./observable');
 Kefir.Stream = require('./stream');
 Kefir.Property = require('./property');
+
+
+
+// TODO: split
+require('./two-sources');
+
+// TODO: remove from here
+const {isFn} = require('./utils/types');
+const {NOTHING} = require('./constants');
 
 
 
@@ -458,12 +478,3 @@ Observable.prototype.not = deprecated('.not()', '.map((x) => !x)',
 
 const fromSubUnsub = require('./primary/from-sub-unsub');
 Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
-
-
-
-
-
-// -----------------------------------------------------------------------------
-
-module.exports = Kefir;
-module.exports.Kefir = Kefir;
