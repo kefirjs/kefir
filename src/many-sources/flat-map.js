@@ -1,7 +1,6 @@
 const {VALUE, ERROR, END} = require('../constants');
 const {inherit} = require('../utils/objects');
 const AbstractPool = require('./abstract-pool');
-const never = require('../primary/never');
 
 
 
