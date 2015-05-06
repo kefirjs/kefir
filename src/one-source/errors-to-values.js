@@ -11,12 +11,12 @@ const mixin = {
     this._fn = null;
   },
 
-  _handleError(x, isCurrent) {
+  _handleError(x) {
     const result = this._fn(x);
     if (result.convert) {
-      this._send(VALUE, result.value, isCurrent);
+      this._send(VALUE, result.value);
     } else {
-      this._send(ERROR, x, isCurrent);
+      this._send(ERROR, x);
     }
   }
 

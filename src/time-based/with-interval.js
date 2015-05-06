@@ -1,5 +1,7 @@
 const timeBased = require('../patterns/time-based');
 const {VALUE, ERROR, END} = require('../constants');
+const emitter = require('../emitter');
+
 
 const S = timeBased({
 
@@ -7,12 +9,7 @@ const S = timeBased({
 
   _init({fn}) {
     this._fn = fn;
-    this._emitter = {
-      emit: (x) => this._send(VALUE, x),
-      error: (x) => this._send(ERROR, x),
-      end: () => this._send(END),
-      emitEvent: (e) => this._send(e.type, e.value)
-    };
+    this._emitter = emitter(this);
   },
 
   _free() {

@@ -7,9 +7,9 @@ const mixin = {
     this._n = Math.max(0, n);
   },
 
-  _handleValue(x, isCurrent) {
+  _handleValue(x) {
     if (this._n === 0) {
-      this._send(VALUE, x, isCurrent);
+      this._send(VALUE, x);
     } else {
       this._n--;
     }

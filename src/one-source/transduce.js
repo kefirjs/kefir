@@ -5,12 +5,12 @@ function xformForObs(obs) {
   return {
 
     '@@transducer/step'(res, input) {
-      obs._send(VALUE, input, obs._forcedCurrent);
+      obs._send(VALUE, input);
       return null;
     },
 
     '@@transducer/result'(res) {
-      obs._send(END, null, obs._forcedCurrent);
+      obs._send(END);
       return null;
     }
 
@@ -27,18 +27,14 @@ const mixin = {
     this._xform = null;
   },
 
-  _handleValue(x, isCurrent) {
-    this._forcedCurrent = isCurrent;
+  _handleValue(x) {
     if (this._xform['@@transducer/step'](null, x) !== null) {
       this._xform['@@transducer/result'](null);
     }
-    this._forcedCurrent = false;
   },
 
-  _handleEnd(_, isCurrent) {
-    this._forcedCurrent = isCurrent;
+  _handleEnd() {
     this._xform['@@transducer/result'](null);
-    this._forcedCurrent = false;
   }
 
 };

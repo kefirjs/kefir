@@ -10,7 +10,7 @@ const P = createProperty('toProperty', {
 
   _onActivation() {
     if (this._getInitialCurrent !== null) {
-      this._send(VALUE, this._getInitialCurrent(), true);
+      this._send(VALUE, this._getInitialCurrent());
     }
     this._source.onAny(this._$handleAny);  // copied from patterns/one-source
   }

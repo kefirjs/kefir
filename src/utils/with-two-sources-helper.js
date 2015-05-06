@@ -11,23 +11,23 @@ module.exports = function withTwoSources(name, mixin /*, options*/) {
     _init(args) {},
     _free() {},
 
-    _handlePrimaryValue(x, isCurrent) {
-      this._send(VALUE, x, isCurrent);
+    _handlePrimaryValue(x) {
+      this._send(VALUE, x);
     },
-    _handlePrimaryError(x, isCurrent) {
-      this._send(ERROR, x, isCurrent);
+    _handlePrimaryError(x) {
+      this._send(ERROR, x);
     },
-    _handlePrimaryEnd(_, isCurrent) {
-      this._send(END, null, isCurrent);
+    _handlePrimaryEnd() {
+      this._send(END);
     },
 
-    _handleSecondaryValue(x, isCurrent) {
+    _handleSecondaryValue(x) {
       this._lastSecondary = x;
     },
-    _handleSecondaryError(x, isCurrent) {
-      this._send(ERROR, x, isCurrent);
+    _handleSecondaryError(x) {
+      this._send(ERROR, x);
     },
-    _handleSecondaryEnd(_, isCurrent) {},
+    _handleSecondaryEnd() {},
 
     _handlePrimaryAny(event) {
       switch (event.type) {

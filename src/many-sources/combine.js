@@ -28,7 +28,6 @@ function Combine(active, passive, combinator) {
   this._latestValues = new Array(this._sources.length);
   this._latestErrors = new Array(this._sources.length);
   fillArray(this._latestValues, NOTHING);
-  this._activating = false;
   this._emitAfterActivation = false;
   this._endAfterActivation = false;
   this._latestErrorIndex = 0;
@@ -47,7 +46,6 @@ inherit(Combine, Stream, {
 
   _onActivation() {
     this._aliveCount = this._activeCount;
-    this._activating = true;
 
     // we need to suscribe to _passive_ sources before _active_
     // (see https://github.com/pozadi/kefir/issues/98)
@@ -58,13 +56,12 @@ inherit(Combine, Stream, {
       this._sources[i].onAny(this._$handlers[i]);
     }
 
-    this._activating = false;
     if (this._emitAfterActivation) {
       this._emitAfterActivation = false;
-      this._emitIfFull(true);
+      this._emitIfFull();
     }
     if (this._endAfterActivation) {
-      this._send(END, null, true);
+      this._send(END);
     }
   },
 
@@ -76,7 +73,7 @@ inherit(Combine, Stream, {
     }
   },
 
-  _emitIfFull(isCurrent) {
+  _emitIfFull() {
     let hasAllValues = true;
     let hasErrors = false;
     let length = this._latestValues.length;
@@ -97,10 +94,10 @@ inherit(Combine, Stream, {
     }
 
     if (hasAllValues) {
-      this._send(VALUE, this._combinator(valuesCopy), isCurrent);
+      this._send(VALUE, this._combinator(valuesCopy));
     }
     if (hasErrors) {
-      this._send(ERROR, defaultErrorsCombinator(errorsCopy), isCurrent);
+      this._send(ERROR, defaultErrorsCombinator(errorsCopy));
     }
   },
 
@@ -124,7 +121,7 @@ inherit(Combine, Stream, {
         if (this._activating) {
           this._emitAfterActivation = true;
         } else {
-          this._emitIfFull(event.current);
+          this._emitIfFull();
         }
       }
 
@@ -136,7 +133,7 @@ inherit(Combine, Stream, {
           if (this._activating) {
             this._endAfterActivation = true;
           } else {
-            this._send(END, null, event.current);
+            this._send(END);
           }
         }
       }

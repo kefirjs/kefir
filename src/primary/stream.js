@@ -1,7 +1,7 @@
 const {inherit} = require('../utils/objects');
 const Stream = require('../stream');
 const {VALUE, ERROR, END} = require('../constants');
-
+const emitter = require('../emitter');
 
 function S(fn) {
   Stream.call(this);
@@ -14,15 +14,7 @@ inherit(S, Stream, {
   _name: 'stream',
 
   _onActivation() {
-    let isCurrent = true;
-    let emitter = {
-      emit: (x) => this._send(VALUE, x, isCurrent),
-      error: (x) => this._send(ERROR, x, isCurrent),
-      end: () => this._send(END, null, isCurrent),
-      emitEvent: (e) => this._send(e.type, e.value, isCurrent)
-    };
-    this._unsubscribe = this._fn(emitter) || null;
-    isCurrent = false;
+    this._unsubscribe = this._fn(emitter(this)) || null;
 
     // fix https://github.com/pozadi/kefir/issues/35
     if (!this._active) {

@@ -15,11 +15,11 @@ const mixin = {
     this._lastValue = x;
   },
 
-  _handleEnd(_, isCurrent) {
+  _handleEnd() {
     if (this._lastValue !== NOTHING) {
-      this._send(VALUE, this._lastValue, isCurrent);
+      this._send(VALUE, this._lastValue);
     }
-    this._send(END, null, isCurrent);
+    this._send(END);
   }
 
 };

@@ -14,18 +14,18 @@ const mixin = {
     this._$shiftBuff = null;
   },
 
-  _handleValue(x, isCurrent) {
-    if (isCurrent) {
-      this._send(VALUE, x, isCurrent);
+  _handleValue(x) {
+    if (this._activating) {
+      this._send(VALUE, x);
     } else {
       this._buff.push(x);
       setTimeout(this._$shiftBuff, this._wait);
     }
   },
 
-  _handleEnd(_, isCurrent) {
-    if (isCurrent) {
-      this._send(END, null, isCurrent);
+  _handleEnd() {
+    if (this._activating) {
+      this._send(END);
     } else {
       setTimeout(() => this._send(END), this._wait);
     }

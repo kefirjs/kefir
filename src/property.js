@@ -16,9 +16,9 @@ inherit(Property, Observable, {
 
   _name: 'property',
 
-  _send(type, x, isCurrent) {
+  _send(type, x) {
     if (this._alive) {
-      if (!isCurrent) {
+      if (!this._activating) {
         this._dispatcher.dispatch(Event(type, x));
       }
       if (type === VALUE || type === ERROR) {

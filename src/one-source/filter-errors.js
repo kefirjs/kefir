@@ -11,9 +11,9 @@ const mixin = {
     this._fn = null;
   },
 
-  _handleError(x, isCurrent) {
+  _handleError(x) {
     if (this._fn(x)) {
-      this._send(ERROR, x, isCurrent);
+      this._send(ERROR, x);
     }
   }
 

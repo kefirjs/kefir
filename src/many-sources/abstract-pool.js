@@ -18,7 +18,6 @@ function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
 
   this._queue = [];
   this._curSources = [];
-  this._activating = false;
   this._$handleSubAny = (event) => this._handleSubAny(event);
   this._$endHandlers = [];
 }
@@ -86,7 +85,7 @@ inherit(AbstractPool, Stream, {
 
   _handleSubAny(event) {
     if (event.type === VALUE || event.type === ERROR) {
-      this._send(event.type, event.value, event.current && this._activating);
+      this._send(event.type, event.value);
     }
   },
 
@@ -124,11 +123,9 @@ inherit(AbstractPool, Stream, {
   },
 
   _onActivation() {
-    this._activating = true;
     for (let i = 0, sources = this._curSources; i < sources.length && this._active; i++) {
       this._subscribe(sources[i]);
     }
-    this._activating = false;
   },
 
   _onDeactivation() {

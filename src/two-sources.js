@@ -11,18 +11,18 @@ let withTwoSourcesAndBufferMixin = {
   _free() {
     this._buff = null;
   },
-  _flush(isCurrent) {
+  _flush() {
     if (this._buff !== null && this._buff.length !== 0) {
-      this._send(VALUE, this._buff, isCurrent);
+      this._send(VALUE, this._buff);
       this._buff = [];
     }
   },
 
-  _handlePrimaryEnd(_, isCurrent) {
+  _handlePrimaryEnd() {
     if (this._flushOnEnd) {
-      this._flush(isCurrent);
+      this._flush();
     }
-    this._send(END, null, isCurrent);
+    this._send(END);
   }
 };
 
@@ -37,17 +37,17 @@ withTwoSources('bufferBy', extend({
     }
   },
 
-  _handlePrimaryValue(x, isCurrent) {
+  _handlePrimaryValue(x) {
     this._buff.push(x);
   },
 
-  _handleSecondaryValue(x, isCurrent) {
-    this._flush(isCurrent);
+  _handleSecondaryValue(x) {
+    this._flush();
   },
 
-  _handleSecondaryEnd(x, isCurrent) {
+  _handleSecondaryEnd(x) {
     if (!this._flushOnEnd) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 
@@ -58,16 +58,16 @@ withTwoSources('bufferBy', extend({
 
 withTwoSources('bufferWhileBy', extend({
 
-  _handlePrimaryValue(x, isCurrent) {
+  _handlePrimaryValue(x) {
     this._buff.push(x);
     if (this._lastSecondary !== NOTHING && !this._lastSecondary) {
-      this._flush(isCurrent);
+      this._flush();
     }
   },
 
-  _handleSecondaryEnd(x, isCurrent) {
+  _handleSecondaryEnd(x) {
     if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 
@@ -79,15 +79,15 @@ withTwoSources('bufferWhileBy', extend({
 
 withTwoSources('filterBy', {
 
-  _handlePrimaryValue(x, isCurrent) {
+  _handlePrimaryValue(x) {
     if (this._lastSecondary !== NOTHING && this._lastSecondary) {
-      this._send(VALUE, x, isCurrent);
+      this._send(VALUE, x);
     }
   },
 
-  _handleSecondaryEnd(_, isCurrent) {
+  _handleSecondaryEnd() {
     if (this._lastSecondary === NOTHING || !this._lastSecondary) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 
@@ -97,15 +97,15 @@ withTwoSources('filterBy', {
 
 withTwoSources('skipUntilBy', {
 
-  _handlePrimaryValue(x, isCurrent) {
+  _handlePrimaryValue(x) {
     if (this._lastSecondary !== NOTHING) {
-      this._send(VALUE, x, isCurrent);
+      this._send(VALUE, x);
     }
   },
 
-  _handleSecondaryEnd(_, isCurrent) {
+  _handleSecondaryEnd() {
     if (this._lastSecondary === NOTHING) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 
@@ -115,8 +115,8 @@ withTwoSources('skipUntilBy', {
 
 withTwoSources('takeUntilBy', {
 
-  _handleSecondaryValue(x, isCurrent) {
-    this._send(END, null, isCurrent);
+  _handleSecondaryValue(x) {
+    this._send(END);
   }
 
 });
@@ -125,22 +125,22 @@ withTwoSources('takeUntilBy', {
 
 withTwoSources('takeWhileBy', {
 
-  _handlePrimaryValue(x, isCurrent) {
+  _handlePrimaryValue(x) {
     if (this._lastSecondary !== NOTHING) {
-      this._send(VALUE, x, isCurrent);
+      this._send(VALUE, x);
     }
   },
 
-  _handleSecondaryValue(x, isCurrent) {
+  _handleSecondaryValue(x) {
     this._lastSecondary = x;
     if (!this._lastSecondary) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   },
 
-  _handleSecondaryEnd(_, isCurrent) {
+  _handleSecondaryEnd() {
     if (this._lastSecondary === NOTHING) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 
@@ -155,19 +155,19 @@ withTwoSources('skipWhileBy', {
     this._hasFalseyFromSecondary = false;
   },
 
-  _handlePrimaryValue(x, isCurrent) {
+  _handlePrimaryValue(x) {
     if (this._hasFalseyFromSecondary) {
-      this._send(VALUE, x, isCurrent);
+      this._send(VALUE, x);
     }
   },
 
-  _handleSecondaryValue(x, isCurrent) {
+  _handleSecondaryValue(x) {
     this._hasFalseyFromSecondary = this._hasFalseyFromSecondary || !x;
   },
 
-  _handleSecondaryEnd(_, isCurrent) {
+  _handleSecondaryEnd() {
     if (!this._hasFalseyFromSecondary) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 

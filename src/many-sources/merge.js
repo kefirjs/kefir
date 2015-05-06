@@ -16,7 +16,7 @@ inherit(Merge, AbstractPool, {
 
   _onEmpty() {
     if (this._initialised) {
-      this._send(END, null, this._activating);
+      this._send(END);
     }
   }
 

@@ -9,6 +9,7 @@ function Observable() {
   this._dispatcher = new Dispatcher();
   this._active = false;
   this._alive = true;
+  this._activating = false;
 }
 
 extend(Observable.prototype, {
@@ -22,7 +23,9 @@ extend(Observable.prototype, {
     if (this._active !== active) {
       this._active = active;
       if (active) {
+        this._activating = true;
         this._onActivation();
+        this._activating = false;
       } else {
         this._onDeactivation();
       }
@@ -35,9 +38,9 @@ extend(Observable.prototype, {
     this._dispatcher = null;
   },
 
-  _send(type, x, isCurrent) {
+  _send(type, x) {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(type, x, isCurrent));
+      this._dispatcher.dispatch(Event(type, x, this._activating));
       if (type === END) {
         this._clear();
       }

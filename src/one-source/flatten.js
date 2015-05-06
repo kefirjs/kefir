@@ -11,10 +11,10 @@ const mixin = {
     this._fn = null;
   },
 
-  _handleValue(x, isCurrent) {
+  _handleValue(x) {
     const xs = this._fn(x);
     for (let i = 0; i < xs.length; i++) {
-      this._send(VALUE, xs[i], isCurrent);
+      this._send(VALUE, xs[i]);
     }
   }
 

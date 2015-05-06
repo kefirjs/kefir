@@ -21,8 +21,6 @@ function Zip(sources, combinator) {
   for (let i = 0; i < this._sources.length; i++) {
     this._$handlers.push((event) => this._handleAny(i, event));
   }
-
-  this._activating = false;
 }
 
 
@@ -31,7 +29,6 @@ inherit(Zip, Stream, {
   _name: 'zip',
 
   _onActivation() {
-    this._activating = true;
 
     // if all sources are arrays
     while (this._isFull()) {
@@ -43,8 +40,6 @@ inherit(Zip, Stream, {
     for (let i = 0; i < length && this._active; i++) {
       this._sources[i].onAny(this._$handlers[i]);
     }
-
-    this._activating = false;
   },
 
   _onDeactivation() {
@@ -58,7 +53,7 @@ inherit(Zip, Stream, {
     for (let i = 0; i < this._buffers.length; i++) {
       values[i] = this._buffers[i].shift();
     }
-    this._send(VALUE, this._combinator(values), this._activating);
+    this._send(VALUE, this._combinator(values));
   },
 
   _isFull() {
@@ -78,12 +73,12 @@ inherit(Zip, Stream, {
       }
     }
     if (event.type === ERROR) {
-      this._send(ERROR, event.value, this._activating);
+      this._send(ERROR, event.value);
     }
     if (event.type === END) {
       this._aliveCount--;
       if (this._aliveCount === 0) {
-        this._send(END, null, this._activating);
+        this._send(END);
       }
     }
   },

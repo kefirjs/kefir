@@ -10,11 +10,11 @@ const mixin = {
     }
   },
 
-  _handleValue(x, isCurrent) {
+  _handleValue(x) {
     this._n--;
-    this._send(VALUE, x, isCurrent);
+    this._send(VALUE, x);
     if (this._n === 0) {
-      this._send(END, null, isCurrent);
+      this._send(END);
     }
   }
 

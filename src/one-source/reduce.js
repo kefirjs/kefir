@@ -17,11 +17,11 @@ const mixin = {
     this._result = (this._result === NOTHING) ? x : this._fn(this._result, x);
   },
 
-  _handleEnd(_, isCurrent) {
+  _handleEnd() {
     if (this._result !== NOTHING) {
-      this._send(VALUE, this._result, isCurrent);
+      this._send(VALUE, this._result);
     }
-    this._send(END, null, isCurrent);
+    this._send(END);
   }
 
 };

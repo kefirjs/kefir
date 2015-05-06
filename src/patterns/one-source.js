@@ -20,21 +20,21 @@ function createClassMethods(BaseClass) {
     _init(options) {},
     _free() {},
 
-    _handleValue(x, isCurrent) {
-      this._send(VALUE, x, isCurrent);
+    _handleValue(x) {
+      this._send(VALUE, x);
     },
-    _handleError(x, isCurrent) {
-      this._send(ERROR, x, isCurrent);
+    _handleError(x) {
+      this._send(ERROR, x);
     },
-    _handleEnd(_, isCurrent) {
-      this._send(END, null, isCurrent);
+    _handleEnd() {
+      this._send(END);
     },
 
     _handleAny(event) {
       switch (event.type) {
-        case VALUE: this._handleValue(event.value, event.current); break;
-        case ERROR: this._handleError(event.value, event.current); break;
-        case END: this._handleEnd(event.value, event.current); break;
+        case VALUE: this._handleValue(event.value); break;
+        case ERROR: this._handleError(event.value); break;
+        case END: this._handleEnd(); break;
       }
     },
 
@@ -58,16 +58,16 @@ function createClassMethods(BaseClass) {
 
 
 function createStream(name, mixin) {
-  const AnonymousStream = createConstructor(Stream, name);
-  inherit(AnonymousStream, Stream, createClassMethods(Stream), mixin);
-  return AnonymousStream;
+  const S = createConstructor(Stream, name);
+  inherit(S, Stream, createClassMethods(Stream), mixin);
+  return S;
 }
 
 
 function createProperty(name, mixin) {
-  const AnonymousProperty = createConstructor(Property, name);
-  inherit(AnonymousProperty, Property, createClassMethods(Property), mixin);
-  return AnonymousProperty;
+  const P = createConstructor(Property, name);
+  inherit(P, Property, createClassMethods(Property), mixin);
+  return P;
 }
 
 

@@ -20,9 +20,9 @@ const mixin = {
     this._$later = null;
   },
 
-  _handleValue(x, isCurrent) {
-    if (isCurrent) {
-      this._send(VALUE, x, isCurrent);
+  _handleValue(x) {
+    if (this._activating) {
+      this._send(VALUE, x);
     } else {
       this._lastAttempt = now();
       if (this._immediate && !this._timeoutId) {
@@ -37,9 +37,9 @@ const mixin = {
     }
   },
 
-  _handleEnd(_, isCurrent) {
-    if (isCurrent) {
-      this._send(END, null, isCurrent);
+  _handleEnd() {
+    if (this._activating) {
+      this._send(END);
     } else {
       if (this._timeoutId && !this._immediate) {
         this._endLater = true;

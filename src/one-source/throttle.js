@@ -21,9 +21,9 @@ const mixin = {
     this._$trailingCall = null;
   },
 
-  _handleValue(x, isCurrent) {
-    if (isCurrent) {
-      this._send(VALUE, x, isCurrent);
+  _handleValue(x) {
+    if (this._activating) {
+      this._send(VALUE, x);
     } else {
       let curTime = now();
       if (this._lastCallTime === 0 && !this._leading) {
@@ -42,9 +42,9 @@ const mixin = {
     }
   },
 
-  _handleEnd(_, isCurrent) {
-    if (isCurrent) {
-      this._send(END, null, isCurrent);
+  _handleEnd() {
+    if (this._activating) {
+      this._send(END);
     } else {
       if (this._timeoutId) {
         this._endLater = true;

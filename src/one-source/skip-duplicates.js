@@ -13,10 +13,10 @@ const mixin = {
     this._prev = null;
   },
 
-  _handleValue(x, isCurrent) {
+  _handleValue(x) {
     if (this._prev === NOTHING || !this._fn(this._prev, x)) {
       this._prev = x;
-      this._send(VALUE, x, isCurrent);
+      this._send(VALUE, x);
     }
   }
 

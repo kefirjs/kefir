@@ -9,7 +9,6 @@ function S(generator) {
   this._generator = generator;
   this._source = null;
   this._inLoop = false;
-  this._activating = false;
   this._iteration = 0;
   this._$handleAny = (event) => this._handleAny(event);
 }
@@ -23,7 +22,7 @@ inherit(S, Stream, {
       this._source = null;
       this._getSource();
     } else {
-      this._send(event.type, event.value, this._activating);
+      this._send(event.type, event.value);
     }
   },
 
@@ -35,7 +34,7 @@ inherit(S, Stream, {
         if (this._source) {
           this._source.onAny(this._$handleAny);
         } else {
-          this._send(END, null, this._activating);
+          this._send(END);
         }
       }
       this._inLoop = false;
@@ -43,13 +42,11 @@ inherit(S, Stream, {
   },
 
   _onActivation() {
-    this._activating = true;
     if (this._source) {
       this._source.onAny(this._$handleAny);
     } else {
       this._getSource();
     }
-    this._activating = false;
   },
 
   _onDeactivation() {

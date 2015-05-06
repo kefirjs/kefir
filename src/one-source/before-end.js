@@ -11,9 +11,9 @@ const mixin = {
     this._fn = null;
   },
 
-  _handleEnd(_, isCurrent) {
-    this._send(VALUE, this._fn(), isCurrent);
-    this._send(END, null, isCurrent);
+  _handleEnd() {
+    this._send(VALUE, this._fn());
+    this._send(END);
   }
 
 };

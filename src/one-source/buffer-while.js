@@ -13,25 +13,25 @@ const mixin = {
     this._buff = null;
   },
 
-  _flush(isCurrent) {
+  _flush() {
     if (this._buff !== null && this._buff.length !== 0) {
-      this._send(VALUE, this._buff, isCurrent);
+      this._send(VALUE, this._buff);
       this._buff = [];
     }
   },
 
-  _handleValue(x, isCurrent) {
+  _handleValue(x) {
     this._buff.push(x);
     if (!this._fn(x)) {
-      this._flush(isCurrent);
+      this._flush();
     }
   },
 
-  _handleEnd(x, isCurrent) {
+  _handleEnd() {
     if (this._flushOnEnd) {
-      this._flush(isCurrent);
+      this._flush();
     }
-    this._send(END, null, isCurrent);
+    this._send(END);
   }
 
 };

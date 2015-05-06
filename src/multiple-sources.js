@@ -96,9 +96,7 @@ inherit(FlatMap, AbstractPool, {
   _onActivation() {
     AbstractPool.prototype._onActivation.call(this);
     if (this._active) {
-      this._activating = true;
       this._source.onAny(this._$handleMainSource);
-      this._activating = false;
     }
   },
   _onDeactivation() {
@@ -114,11 +112,11 @@ inherit(FlatMap, AbstractPool, {
       this._lastCurrent = event.value;
     }
     if (event.type === ERROR) {
-      this._send(ERROR, event.value, event.current);
+      this._send(ERROR, event.value);
     }
     if (event.type === END) {
       if (this._isEmpty()) {
-        this._send(END, null, event.current);
+        this._send(END);
       } else {
         this._mainEnded = true;
       }

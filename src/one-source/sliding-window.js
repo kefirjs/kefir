@@ -14,10 +14,10 @@ const mixin = {
     this._buff = null;
   },
 
-  _handleValue(x, isCurrent) {
+  _handleValue(x) {
     this._buff = slide(this._buff, x, this._max);
     if (this._buff.length >= this._min) {
-      this._send(VALUE, this._buff, isCurrent);
+      this._send(VALUE, this._buff);
     }
   }
 
