@@ -1,5 +1,6 @@
-## Next
+## 2.2.0
 
+ - Codebase ported to ES6 (Babel) with CommonJS modules
  - Bug in .combine fixed (see [#98](https://github.com/pozadi/kefir/issues/98))
 
 ## 2.1.0 (28/04/2015)
