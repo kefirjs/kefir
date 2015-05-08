@@ -1,7 +1,7 @@
 const {extend} = require('./utils/objects');
 const {VALUE, ERROR, ANY, END} = require('./constants');
 const {Dispatcher, callSubscriber} = require('./dispatcher');
-const Event = require('./event');
+const {findByPred} = require('./utils/collections');
 
 
 
@@ -10,6 +10,7 @@ function Observable() {
   this._active = false;
   this._alive = true;
   this._activating = false;
+  this._logHandlers = null;
 }
 
 extend(Observable.prototype, {
@@ -36,6 +37,7 @@ extend(Observable.prototype, {
     this._setActive(false);
     this._alive = false;
     this._dispatcher = null;
+    this._logHandlers = null;
   },
 
   _emit(type, x) {
@@ -46,21 +48,21 @@ extend(Observable.prototype, {
     }
   },
 
-  _emitValue(x) {
+  _emitValue(value) {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(VALUE, x, this._activating));
+      this._dispatcher.dispatch({type: VALUE, value, current: this._activating});
     }
   },
 
-  _emitError(x) {
+  _emitError(value) {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(ERROR, x, this._activating));
+      this._dispatcher.dispatch({type: ERROR, value, current: this._activating});
     }
   },
 
   _emitEnd() {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(END, null, this._activating));
+      this._dispatcher.dispatch({type: END, current: this._activating});
       this._clear();
     }
   },
@@ -70,7 +72,7 @@ extend(Observable.prototype, {
       this._dispatcher.add(type, fn);
       this._setActive(true);
     } else {
-      callSubscriber(type, fn, Event(END, undefined, true));
+      callSubscriber(type, fn, {type: END, current: true});
     }
     return this;
   },
@@ -119,6 +121,43 @@ extend(Observable.prototype, {
   setName(sourceObs /* optional */, selfName) {
     this._name = selfName ? `${sourceObs._name}.${selfName}` : sourceObs;
     return this;
+  },
+
+
+  log(name = this.toString()) {
+
+    let handler = function(event) {
+      let type = `<${event.type}${event.current ? ':current' : ''}>`;
+      if (event.type === END) {
+        console.log(name, type);
+      } else {
+        console.log(name, type, event.value);
+      }
+    };
+
+    if (this._alive) {
+      if (!this._logHandlers) {
+        this._logHandlers = [];
+      }
+      this._logHandlers.push({name: name, handler: handler});
+    }
+
+    this.onAny(handler);
+
+    return this;
+  },
+
+  offLog(name = this.toString()) {
+
+    if (this._logHandlers) {
+      let handlerIndex = findByPred(this._logHandlers, obj => obj.name === name);
+      if (handlerIndex !== -1) {
+        this.offAny(this._logHandlers[handlerIndex].handler);
+        this._logHandlers.splice(handlerIndex, 1);
+      }
+    }
+
+    return this;
   }
 
 });
@@ -126,49 +165,8 @@ extend(Observable.prototype, {
 
 // extend() can't handle `toString` in IE8
 Observable.prototype.toString = function() {
-  return '[' + this._name + ']';
+  return `[${this._name}]`;
 };
 
-
-
-// Log
-
-Observable.prototype.log = function(name) {
-  name = name || this.toString();
-
-  let handler = function(event) {
-    let typeStr = '<' + event.type + (event.current ? ':current' : '') + '>';
-    if (event.type === VALUE || event.type === ERROR) {
-      console.log(name, typeStr, event.value);
-    } else {
-      console.log(name, typeStr);
-    }
-  };
-
-  if (!this.__logHandlers) {
-    this.__logHandlers = [];
-  }
-  this.__logHandlers.push({name: name, handler: handler});
-
-  this.onAny(handler);
-  return this;
-};
-
-Observable.prototype.offLog = function(name) {
-  name = name || this.toString();
-
-  if (this.__logHandlers) {
-    let handlerIndex = findByPred(this.__logHandlers, function(obj) {
-      return obj.name === name;
-    });
-    if (handlerIndex !== -1) {
-      let handler = this.__logHandlers[handlerIndex].handler;
-      this.__logHandlers.splice(handlerIndex, 1);
-      this.offAny(handler);
-    }
-  }
-
-  return this;
-};
 
 module.exports = Observable;

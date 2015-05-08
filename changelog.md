@@ -1,7 +1,11 @@
-## 2.2.0
+## 2.2.1 (09/05/2015)
+
+ - A bug in `.offLog` fixed
+
+## 2.2.0 (08/05/2015)
 
  - Codebase ported to ES6 (Babel) with CommonJS modules
- - Bug in .combine fixed (see [#98](https://github.com/pozadi/kefir/issues/98))
+ - A bug in .combine fixed (see [#98](https://github.com/pozadi/kefir/issues/98))
 
 ## 2.1.0 (28/04/2015)
 

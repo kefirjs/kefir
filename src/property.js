@@ -2,8 +2,6 @@ const {inherit} = require('./utils/objects');
 const {VALUE, ERROR, END} = require('./constants');
 const {callSubscriber} = require('./dispatcher');
 const Observable = require('./observable');
-const _Event = require('./event');
-const Event = _Event;
 
 
 
@@ -16,28 +14,28 @@ inherit(Property, Observable, {
 
   _name: 'property',
 
-  _emitValue(x) {
+  _emitValue(value) {
     if (this._alive) {
       if (!this._activating) {
-        this._dispatcher.dispatch(Event(VALUE, x, this._activating));
+        this._dispatcher.dispatch({type: VALUE, value, current: this._activating});
       }
-      this._currentEvent = Event(VALUE, x, true);
+      this._currentEvent = {type: VALUE, value, current: true};
     }
   },
 
-  _emitError(x) {
+  _emitError(value) {
     if (this._alive) {
       if (!this._activating) {
-        this._dispatcher.dispatch(Event(ERROR, x, this._activating));
+        this._dispatcher.dispatch({type: ERROR, value, current: this._activating});
       }
-      this._currentEvent = Event(ERROR, x, true);
+      this._currentEvent = {type: ERROR, value, current: true};
     }
   },
 
   _emitEnd() {
     if (this._alive) {
       if (!this._activating) {
-        this._dispatcher.dispatch(Event(END, null, this._activating));
+        this._dispatcher.dispatch({type: END, current: this._activating});
       }
       this._clear();
     }
@@ -53,7 +51,7 @@ inherit(Property, Observable, {
       callSubscriber(type, fn, this._currentEvent);
     }
     if (!this._alive) {
-      callSubscriber(type, fn, Event(END, undefined, true));
+      callSubscriber(type, fn, {type: END, current: true});
     }
     return this;
   },

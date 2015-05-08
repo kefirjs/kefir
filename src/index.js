@@ -1,23 +1,6 @@
 const Kefir = module.exports = {};
 Kefir.Kefir = Kefir;
 
-
-Kefir.DEPRECATION_WARNINGS = true;
-function deprecated(name, alt, fn) {
-  return function() {
-    if (Kefir.DEPRECATION_WARNINGS && (typeof console !== 'undefined') && console.log) {
-
-      const message = `Method \`${name}\` is deprecated, and to be removed in v3.0.0.
-Use \`${alt}\` instead.
-To disable all warnings like this set \`Kefir.DEPRECATION_WARNINGS = false\`.`;
-
-      console.log(message);
-    }
-    return fn.apply(this, arguments);
-  };
-}
-
-
 const Observable = Kefir.Observable = require('./observable');
 Kefir.Stream = require('./stream');
 Kefir.Property = require('./property');
@@ -429,6 +412,23 @@ Observable.prototype.awaiting = function(other) {
 
 // Deprecated
 // -----------------------------------------------------------------------------
+
+
+Kefir.DEPRECATION_WARNINGS = true;
+function deprecated(name, alt, fn) {
+  return function() {
+    if (Kefir.DEPRECATION_WARNINGS && (typeof console !== 'undefined') && console.log) {
+
+      const message = `Method \`${name}\` is deprecated, and to be removed in v3.0.0.
+Use \`${alt}\` instead.
+To disable all warnings like this set \`Kefir.DEPRECATION_WARNINGS = false\`.`;
+
+      console.log(message);
+    }
+    return fn.apply(this, arguments);
+  };
+}
+
 
 // () -> Emitter
 const Emitter = Kefir.Emitter = require('./primary/emitter');
