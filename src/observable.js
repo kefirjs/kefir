@@ -1,7 +1,6 @@
 const {extend} = require('./utils/objects');
 const {VALUE, ERROR, ANY, END} = require('./constants');
 const {Dispatcher, callSubscriber} = require('./dispatcher');
-const Event = require('./event');
 
 
 
@@ -46,21 +45,21 @@ extend(Observable.prototype, {
     }
   },
 
-  _emitValue(x) {
+  _emitValue(value) {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(VALUE, x, this._activating));
+      this._dispatcher.dispatch({type: VALUE, value, current: this._activating});
     }
   },
 
-  _emitError(x) {
+  _emitError(value) {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(ERROR, x, this._activating));
+      this._dispatcher.dispatch({type: ERROR, value, current: this._activating});
     }
   },
 
   _emitEnd() {
     if (this._alive) {
-      this._dispatcher.dispatch(Event(END, null, this._activating));
+      this._dispatcher.dispatch({type: END, current: this._activating});
       this._clear();
     }
   },
@@ -70,7 +69,7 @@ extend(Observable.prototype, {
       this._dispatcher.add(type, fn);
       this._setActive(true);
     } else {
-      callSubscriber(type, fn, Event(END, undefined, true));
+      callSubscriber(type, fn, {type: END, current: true});
     }
     return this;
   },
