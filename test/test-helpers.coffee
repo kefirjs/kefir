@@ -43,11 +43,11 @@ exports.watchWithTime = (obs) ->
 exports.send = (obs, events) ->
   for event in events
     if event == '<end>'
-      obs._send('end')
+      obs._emitEnd()
     if (typeof event == 'object' && 'error' of event)
-      obs._send('error', event.error)
+      obs._emitError(event.error)
     else
-      obs._send('value', event)
+      obs._emitValue(event)
   obs
 
 

@@ -1,3 +1,8 @@
+## 2.2.0
+
+ - Codebase ported to ES6 (Babel) with CommonJS modules
+ - Bug in .combine fixed (see [#98](https://github.com/pozadi/kefir/issues/98))
+
 ## 2.1.0 (28/04/2015)
 
  - New method `.last`
@@ -5,7 +10,7 @@
 
 ## 2.0.2 (26/04/2015)
 
-A technical release (to be latest after `1.3.2`, so `npm install kefir` would instal 2.0.2 by default)
+No changes.
 
 ## 2.0.1 (26/04/2015)
 

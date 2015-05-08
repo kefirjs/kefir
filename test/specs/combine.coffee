@@ -209,3 +209,11 @@ describe 'combine', ->
       c = stream()
       d = prop()
       expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b)
+
+    # https://github.com/pozadi/kefir/issues/98
+    it 'should work nice for emitating atomic updates', ->
+      a = stream()
+      b = a.map (x) -> x + 2
+      c = a.map (x) -> x * 2
+      expect(Kefir.combine([b], [c])).toEmit [[3, 2], [4, 4], [5, 6]], ->
+        send(a, [1, 2, 3])
