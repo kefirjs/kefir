@@ -38,6 +38,9 @@ const mixin = {
 const S = createStream('bufferWhile', mixin);
 const P = createProperty('bufferWhile', mixin);
 
-module.exports = function bufferWhile(obs, fn, {flushOnEnd}) {
-  return new (obs.ofSameType(S, P))(obs, {fn, flushOnEnd});
+
+const id = x => x;
+
+module.exports = function bufferWhile(obs, fn, {flushOnEnd = true} = {}) {
+  return new (obs.ofSameType(S, P))(obs, {fn: fn || id, flushOnEnd});
 };

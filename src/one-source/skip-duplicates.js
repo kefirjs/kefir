@@ -26,6 +26,8 @@ const S = createStream('skipDuplicates', mixin);
 const P = createProperty('skipDuplicates', mixin);
 
 
-module.exports = function skipDuplicates(obs, fn) {
+const eq = (a, b) => a === b;
+
+module.exports = function skipDuplicates(obs, fn = eq) {
   return new (obs.ofSameType(S, P))(obs, {fn});
 };

@@ -26,6 +26,10 @@ const S = createStream('diff', mixin);
 const P = createProperty('diff', mixin);
 
 
-module.exports = function diff(obs, fn, seed) {
-  return new (obs.ofSameType(S, P))(obs, {fn, seed});
+function defaultFn(a, b) {
+  return [a, b];
+}
+
+module.exports = function diff(obs, fn, seed = NOTHING) {
+  return new (obs.ofSameType(S, P))(obs, {fn: fn || defaultFn, seed});
 };

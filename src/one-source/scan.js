@@ -25,6 +25,6 @@ const P = createProperty('scan', {
 });
 
 
-module.exports = function scan(obs, fn, seed) {
+module.exports = function scan(obs, fn, seed = NOTHING) {
   return new P(obs, {fn, seed});
 };

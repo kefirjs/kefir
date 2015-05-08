@@ -20,6 +20,8 @@ const S = createStream('mapErrors', mixin);
 const P = createProperty('mapErrors', mixin);
 
 
-module.exports = function mapErrors(obs, fn) {
+const id = x => x;
+
+module.exports = function mapErrors(obs, fn = id) {
   return new (obs.ofSameType(S, P))(obs, {fn});
 };

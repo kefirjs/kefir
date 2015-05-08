@@ -30,6 +30,6 @@ const S = createStream('reduce', mixin);
 const P = createProperty('reduce', mixin);
 
 
-module.exports = function reduce(obs, fn, seed) {
+module.exports = function reduce(obs, fn, seed = NOTHING) {
   return new (obs.ofSameType(S, P))(obs, {fn, seed});
 };

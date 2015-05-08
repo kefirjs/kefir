@@ -26,6 +26,6 @@ const S = createStream('slidingWindow', mixin);
 const P = createProperty('slidingWindow', mixin);
 
 
-module.exports = function slidingWindow(obs, max, min) {
+module.exports = function slidingWindow(obs, max, min = 0) {
   return new (obs.ofSameType(S, P))(obs, {min, max});
 };

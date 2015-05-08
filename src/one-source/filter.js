@@ -22,6 +22,8 @@ const S = createStream('filter', mixin);
 const P = createProperty('filter', mixin);
 
 
-module.exports = function filter(obs, fn) {
+const id = x => x;
+
+module.exports = function filter(obs, fn = id) {
   return new (obs.ofSameType(S, P))(obs, {fn});
 };

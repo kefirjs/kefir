@@ -1,5 +1,6 @@
 const timeBased = require('../patterns/time-based');
 const {cloneArray} = require('../utils/collections');
+const never = require('../primary/never');
 
 const S = timeBased({
 
@@ -26,5 +27,5 @@ const S = timeBased({
 
 
 module.exports = function sequentially(wait, xs) {
-  return new S(wait, {xs});
+  return xs.length === 0 ? never() : new S(wait, {xs});
 }

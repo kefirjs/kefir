@@ -23,6 +23,8 @@ const S = createStream('flatten', mixin);
 const P = createProperty('flatten', mixin);
 
 
-module.exports = function flatten(obs, fn) {
+const id = x => x;
+
+module.exports = function flatten(obs, fn = id) {
   return new (obs.ofSameType(S, P))(obs, {fn});
 };

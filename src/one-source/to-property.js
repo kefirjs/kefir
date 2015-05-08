@@ -18,6 +18,6 @@ const P = createProperty('toProperty', {
 
 
 
-module.exports = function toProperty(obs, fn /* Function | null */) {
+module.exports = function toProperty(obs, fn = null) {
   return new P(obs, {fn});
 };

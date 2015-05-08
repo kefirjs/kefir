@@ -153,6 +153,10 @@ inherit(Combine, Stream, {
 });
 
 
-module.exports = function combine(active, passive, combinator) {
+module.exports = function combine(active, passive = [], combinator) {
+  if (typeof passive === 'function') {
+    combinator = passive;
+    passive = [];
+  }
   return active.length === 0 ? never() : new Combine(active, passive, combinator);
 }

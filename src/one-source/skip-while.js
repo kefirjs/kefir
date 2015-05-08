@@ -25,6 +25,8 @@ const S = createStream('skipWhile', mixin);
 const P = createProperty('skipWhile', mixin);
 
 
-module.exports = function skipWhile(obs, fn) {
+const id = x => x;
+
+module.exports = function skipWhile(obs, fn = id) {
   return new (obs.ofSameType(S, P))(obs, {fn});
 };

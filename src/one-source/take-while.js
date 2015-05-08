@@ -24,6 +24,8 @@ const S = createStream('takeWhile', mixin);
 const P = createProperty('takeWhile', mixin);
 
 
-module.exports = function takeWhile(obs, fn) {
+const id = x => x;
+
+module.exports = function takeWhile(obs, fn = id) {
   return new (obs.ofSameType(S, P))(obs, {fn});
 };
