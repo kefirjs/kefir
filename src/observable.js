@@ -165,7 +165,7 @@ extend(Observable.prototype, {
 
 // extend() can't handle `toString` in IE8
 Observable.prototype.toString = function() {
-  return '[' + this._name + ']';
+  return `[${this._name}]`;
 };
 
 
