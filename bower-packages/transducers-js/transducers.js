@@ -1,4 +1,4 @@
-// transducers-js 0.4.164
+// transducers-js 0.4.166
 // http://github.com/cognitect-labs/transducers-js
 // 
 // Copyright 2014-2015 Cognitect. All Rights Reserved.
