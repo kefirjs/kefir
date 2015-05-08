@@ -53,7 +53,7 @@ Kefir.fromCallback = require('./primary/from-callback');
 Kefir.fromNodeCallback = require('./primary/from-node-callback');
 
 // Target = {addEventListener, removeEventListener}|{addListener, removeListener}|{on, off}
-// (Target, string, Function|falsey) -> Stream
+// (Target, string, Function|undefined) -> Stream
 Kefir.fromEvents = require('./primary/from-events');
 
 // (Function) -> Stream
