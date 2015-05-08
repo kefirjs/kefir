@@ -35,7 +35,7 @@ module.exports = (grunt) ->
 
     webpack:
       dev:
-        entry: './src/entry'
+        entry: './src/index'
         output:
           path: 'dist'
           filename: 'kefir.js'
@@ -49,7 +49,7 @@ module.exports = (grunt) ->
           new webpack.BannerPlugin(banner, {raw: true, entryOnly: true})
         ]
       prod:
-        entry: './src/entry'
+        entry: './src/index'
         output:
           path: 'dist'
           filename: 'kefir.min.js'
