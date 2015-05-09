@@ -78,6 +78,16 @@ Observable.prototype.changes = function() {
 
 
 
+// Subscribe / add side effects
+// -----------------------------------------------------------------------------
+
+// (Stream|Property, Function|undefined) -> Promise
+const toPromise = require('./to-promise');
+Observable.prototype.toPromise = function(Promise) {
+  return toPromise(this, Promise);
+};
+
+
 
 // Modify an observable
 // -----------------------------------------------------------------------------

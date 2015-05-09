@@ -53,6 +53,7 @@
     "transducers-js": "0.4.166",
     "transducers.js": "0.3.2",
     "webpack": "1.8.11",
-    "webpack-dev-server": "1.8.2"
+    "webpack-dev-server": "1.8.2",
+    "when": "3.7.3"
   }
 }
