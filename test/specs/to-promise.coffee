@@ -85,6 +85,15 @@ describe 'toPromise', ->
       expect(promise.rejected).toBe(true)
       expect(promise.result).toBe(-2)
 
+    it 'should throw when called without Promise constructor and there is no global promise', ->
+      _global.Promise = undefined
+      error = null
+      try
+        stream().toPromise()
+      catch e
+        error = e
+      expect(error.message).toBe('There isn\'t default Promise, use shim or parameter')
+
   describe 'property', ->
 
     it 'should handle currents (resolved)', ->
