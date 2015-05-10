@@ -301,7 +301,11 @@ property.log();
 property.log();
 </pre><pre title="console output">&gt; [constantError] &lt;error:current&gt; 1
 &gt; [constantError] &lt;end:current&gt;
-</pre><pre title="events in time">property: eX</pre><div></div><p id="from-promise"><a href="#from-promise" class="header">fromPromise</a><code>Kefir.fromPromise(promise)</code><br/>Converts a promise to a property.
+</pre><pre title="events in time">property: eX</pre><div></div><p id="from-promise"><a href="#from-promise" class="header">fromPromise</a><code>Kefir.fromPromise(promise)</code><br/>Converts a promise to a property. Uses <tt>promise.then(onFulfilled, onRejected)</tt>
+interface to subscribe to the promise. Also calls <tt>promise.done()</tt>
+(if there is such methods) to prevent libraries like
+<a href="https://github.com/kriskowal/q">Q</a> or
+<a href="https://github.com/cujojs/when">when</a> from swallowing exceptions.
 </p><pre title="example">var result = Kefir.fromPromise(new Promise(function(fulfill) {  fulfill(1)  }));
 result.log();
 </pre><pre title="console output">&gt; [fromPromise] &lt;value&gt; 1
