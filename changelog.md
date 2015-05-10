@@ -1,4 +1,4 @@
-## Next
+## 2.3.0 (10/05/2015)
 
  - New method `.toPromise`
 
