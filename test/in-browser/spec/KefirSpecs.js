@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.2.1
+/*! Kefir.js v2.3.0
  *  https://github.com/pozadi/kefir
  */
 
@@ -129,88 +129,97 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return changes(this);
 	};
 
+	// Subscribe / add side effects
+	// -----------------------------------------------------------------------------
+
+	// (Stream|Property, Function|undefined) -> Promise
+	var toPromise = __webpack_require__(19);
+	Observable.prototype.toPromise = function (Promise) {
+	  return toPromise(this, Promise);
+	};
+
 	// Modify an observable
 	// -----------------------------------------------------------------------------
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var map = __webpack_require__(19);
+	var map = __webpack_require__(20);
 	Observable.prototype.map = function (fn) {
 	  return map(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var filter = __webpack_require__(20);
+	var filter = __webpack_require__(21);
 	Observable.prototype.filter = function (fn) {
 	  return filter(this, fn);
 	};
 
 	// (Stream, number) -> Stream
 	// (Property, number) -> Property
-	var take = __webpack_require__(21);
+	var take = __webpack_require__(22);
 	Observable.prototype.take = function (n) {
 	  return take(this, n);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var takeWhile = __webpack_require__(22);
+	var takeWhile = __webpack_require__(23);
 	Observable.prototype.takeWhile = function (fn) {
 	  return takeWhile(this, fn);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var last = __webpack_require__(23);
+	var last = __webpack_require__(24);
 	Observable.prototype.last = function () {
 	  return last(this);
 	};
 
 	// (Stream, number) -> Stream
 	// (Property, number) -> Property
-	var skip = __webpack_require__(24);
+	var skip = __webpack_require__(25);
 	Observable.prototype.skip = function (n) {
 	  return skip(this, n);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var skipWhile = __webpack_require__(25);
+	var skipWhile = __webpack_require__(26);
 	Observable.prototype.skipWhile = function (fn) {
 	  return skipWhile(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var skipDuplicates = __webpack_require__(26);
+	var skipDuplicates = __webpack_require__(27);
 	Observable.prototype.skipDuplicates = function (fn) {
 	  return skipDuplicates(this, fn);
 	};
 
 	// (Stream, Function|falsey, any|undefined) -> Stream
 	// (Property, Function|falsey, any|undefined) -> Property
-	var diff = __webpack_require__(27);
+	var diff = __webpack_require__(28);
 	Observable.prototype.diff = function (fn, seed) {
 	  return diff(this, fn, seed);
 	};
 
 	// (Stream|Property, Function, any|undefined) -> Property
-	var scan = __webpack_require__(28);
+	var scan = __webpack_require__(29);
 	Observable.prototype.scan = function (fn, seed) {
 	  return scan(this, fn, seed);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var flatten = __webpack_require__(29);
+	var flatten = __webpack_require__(30);
 	Observable.prototype.flatten = function (fn) {
 	  return flatten(this, fn);
 	};
 
 	// (Stream, number) -> Stream
 	// (Property, number) -> Property
-	var delay = __webpack_require__(30);
+	var delay = __webpack_require__(31);
 	Observable.prototype.delay = function (wait) {
 	  return delay(this, wait);
 	};
@@ -218,7 +227,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {leading: boolean|undefined, trailing: boolean|undefined}
 	// (Stream, number, Options|undefined) -> Stream
 	// (Property, number, Options|undefined) -> Property
-	var throttle = __webpack_require__(31);
+	var throttle = __webpack_require__(32);
 	Observable.prototype.throttle = function (wait, options) {
 	  return throttle(this, wait, options);
 	};
@@ -226,77 +235,77 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {immediate: boolean|undefined}
 	// (Stream, number, Options|undefined) -> Stream
 	// (Property, number, Options|undefined) -> Property
-	var debounce = __webpack_require__(32);
+	var debounce = __webpack_require__(33);
 	Observable.prototype.debounce = function (wait, options) {
 	  return debounce(this, wait, options);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var valuesToErrors = __webpack_require__(33);
+	var valuesToErrors = __webpack_require__(34);
 	Observable.prototype.valuesToErrors = function (fn) {
 	  return valuesToErrors(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var errorsToValues = __webpack_require__(34);
+	var errorsToValues = __webpack_require__(35);
 	Observable.prototype.errorsToValues = function (fn) {
 	  return errorsToValues(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var mapErrors = __webpack_require__(35);
+	var mapErrors = __webpack_require__(36);
 	Observable.prototype.mapErrors = function (fn) {
 	  return mapErrors(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var filterErrors = __webpack_require__(36);
+	var filterErrors = __webpack_require__(37);
 	Observable.prototype.filterErrors = function (fn) {
 	  return filterErrors(this, fn);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var endOnError = __webpack_require__(37);
+	var endOnError = __webpack_require__(38);
 	Observable.prototype.endOnError = function () {
 	  return endOnError(this);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var skipValues = __webpack_require__(38);
+	var skipValues = __webpack_require__(39);
 	Observable.prototype.skipValues = function () {
 	  return skipValues(this);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var skipErrors = __webpack_require__(39);
+	var skipErrors = __webpack_require__(40);
 	Observable.prototype.skipErrors = function () {
 	  return skipErrors(this);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var skipEnd = __webpack_require__(40);
+	var skipEnd = __webpack_require__(41);
 	Observable.prototype.skipEnd = function () {
 	  return skipEnd(this);
 	};
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var beforeEnd = __webpack_require__(41);
+	var beforeEnd = __webpack_require__(42);
 	Observable.prototype.beforeEnd = function (fn) {
 	  return beforeEnd(this, fn);
 	};
 
 	// (Stream, number, number|undefined) -> Stream
 	// (Property, number, number|undefined) -> Property
-	var slidingWindow = __webpack_require__(42);
+	var slidingWindow = __webpack_require__(43);
 	Observable.prototype.slidingWindow = function (max, min) {
 	  return slidingWindow(this, max, min);
 	};
@@ -304,21 +313,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {flushOnEnd: boolean|undefined}
 	// (Stream, Function|falsey, Options|undefined) -> Stream
 	// (Property, Function|falsey, Options|undefined) -> Property
-	var bufferWhile = __webpack_require__(43);
+	var bufferWhile = __webpack_require__(44);
 	Observable.prototype.bufferWhile = function (fn, options) {
 	  return bufferWhile(this, fn, options);
 	};
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var transduce = __webpack_require__(44);
+	var transduce = __webpack_require__(45);
 	Observable.prototype.transduce = function (transducer) {
 	  return transduce(this, transducer);
 	};
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var withHandler = __webpack_require__(45);
+	var withHandler = __webpack_require__(46);
 	Observable.prototype.withHandler = function (fn) {
 	  return withHandler(this, fn);
 	};
@@ -328,41 +337,41 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// (Array<Stream|Property>, Function|undefiend) -> Stream
 	// (Array<Stream|Property>, Array<Stream|Property>, Function|undefiend) -> Stream
-	var combine = Kefir.combine = __webpack_require__(46);
+	var combine = Kefir.combine = __webpack_require__(47);
 	Observable.prototype.combine = function (other, combinator) {
 	  return combine([this, other], combinator);
 	};
 
 	// (Array<Stream|Property>, Function|undefiend) -> Stream
-	var zip = Kefir.zip = __webpack_require__(47);
+	var zip = Kefir.zip = __webpack_require__(48);
 	Observable.prototype.zip = function (other, combinator) {
 	  return zip([this, other], combinator);
 	};
 
 	// (Array<Stream|Property>) -> Stream
-	var merge = Kefir.merge = __webpack_require__(48);
+	var merge = Kefir.merge = __webpack_require__(49);
 	Observable.prototype.merge = function (other) {
 	  return merge([this, other]);
 	};
 
 	// (Array<Stream|Property>) -> Stream
-	var concat = Kefir.concat = __webpack_require__(49);
+	var concat = Kefir.concat = __webpack_require__(50);
 	Observable.prototype.concat = function (other) {
 	  return concat([this, other]);
 	};
 
 	// () -> Pool
-	var Pool = Kefir.Pool = __webpack_require__(50);
+	var Pool = Kefir.Pool = __webpack_require__(51);
 	Kefir.pool = function () {
 	  return new Pool();
 	};
 
 	// (Function) -> Stream
-	Kefir.repeat = __webpack_require__(51);
+	Kefir.repeat = __webpack_require__(52);
 
 	// Options = {concurLim: number|undefined, queueLim: number|undefined, drop: 'old'|'new'|undefiend}
 	// (Stream|Property, Function|falsey, Options|undefined) -> Stream
-	var flatMap = __webpack_require__(52);
+	var flatMap = __webpack_require__(53);
 	Observable.prototype.flatMap = function (fn) {
 	  return flatMap(this, fn);
 	};
@@ -384,42 +393,42 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var filterBy = __webpack_require__(53);
+	var filterBy = __webpack_require__(54);
 	Observable.prototype.filterBy = function (other) {
 	  return filterBy(this, other);
 	};
 
 	// (Stream, Stream|Property, Function|undefiend) -> Stream
 	// (Property, Stream|Property, Function|undefiend) -> Property
-	var sampledBy2items = __webpack_require__(54);
+	var sampledBy2items = __webpack_require__(55);
 	Observable.prototype.sampledBy = function (other, combinator) {
 	  return sampledBy2items(this, other, combinator);
 	};
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var takeWhileBy = __webpack_require__(55);
+	var takeWhileBy = __webpack_require__(56);
 	Observable.prototype.takeWhileBy = function (other) {
 	  return takeWhileBy(this, other);
 	};
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var skipWhileBy = __webpack_require__(56);
+	var skipWhileBy = __webpack_require__(57);
 	Observable.prototype.skipWhileBy = function (other) {
 	  return skipWhileBy(this, other);
 	};
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var skipUntilBy = __webpack_require__(57);
+	var skipUntilBy = __webpack_require__(58);
 	Observable.prototype.skipUntilBy = function (other) {
 	  return skipUntilBy(this, other);
 	};
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var takeUntilBy = __webpack_require__(58);
+	var takeUntilBy = __webpack_require__(59);
 	Observable.prototype.takeUntilBy = function (other) {
 	  return takeUntilBy(this, other);
 	};
@@ -427,7 +436,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {flushOnEnd: boolean|undefined}
 	// (Stream, Stream|Property, Options|undefined) -> Stream
 	// (Property, Stream|Property, Options|undefined) -> Property
-	var bufferBy = __webpack_require__(59);
+	var bufferBy = __webpack_require__(60);
 	Observable.prototype.bufferBy = function (other, options) {
 	  return bufferBy(this, other, options);
 	};
@@ -435,13 +444,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {flushOnEnd: boolean|undefined}
 	// (Stream, Stream|Property, Options|undefined) -> Stream
 	// (Property, Stream|Property, Options|undefined) -> Property
-	var bufferWhileBy = __webpack_require__(60);
+	var bufferWhileBy = __webpack_require__(61);
 	Observable.prototype.bufferWhileBy = function (other, options) {
 	  return bufferWhileBy(this, other, options);
 	};
 
 	// (Stream|Property, Stream|Property) -> Property
-	var awaiting = __webpack_require__(61);
+	var awaiting = __webpack_require__(62);
 	Observable.prototype.awaiting = function (other) {
 	  return awaiting(this, other);
 	};
@@ -463,56 +472,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	// () -> Emitter
-	var Emitter = Kefir.Emitter = __webpack_require__(62);
+	var Emitter = Kefir.Emitter = __webpack_require__(63);
 	Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function () {
 	  return new Emitter();
 	});
 
 	// () -> Bus
-	var Bus = Kefir.Bus = __webpack_require__(63);
+	var Bus = Kefir.Bus = __webpack_require__(64);
 	Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function () {
 	  return new Bus();
 	});
 
 	// (Stream, Function, any|undefined) -> Stream
 	// (Property, Function, any|undefined) -> Property
-	var reduce = __webpack_require__(64);
+	var reduce = __webpack_require__(65);
 	Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()', function (fn, seed) {
 	  return reduce(this, fn, seed);
 	});
 
 	// (Array<Stream|Property>, Array<Stream|Property>, Function|undefined) -> Stream
-	var sampledByManyItems = __webpack_require__(65);
+	var sampledByManyItems = __webpack_require__(66);
 	Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine()', sampledByManyItems);
 
 	// (number, Array<any>) -> Stream
-	var repeatedly = __webpack_require__(66);
+	var repeatedly = __webpack_require__(67);
 	Kefir.repeatedly = deprecated('Kefir.repeatedly()', 'Kefir.repeat(() => Kefir.sequentially(...)})', repeatedly);
 
 	// (Stream, any) -> Stream
 	// (Property, any) -> Property
-	var mapTo = __webpack_require__(67);
+	var mapTo = __webpack_require__(68);
 	Observable.prototype.mapTo = deprecated('.mapTo()', '.map(() => value)', function (x) {
 	  return mapTo(this, x);
 	});
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var tap = __webpack_require__(68);
+	var tap = __webpack_require__(69);
 	Observable.prototype.tap = deprecated('.tap()', '.map((v) => {fn(v); return v})', function (fn) {
 	  return tap(this, fn);
 	});
 
 	// (Stream, string) -> Stream
 	// (Property, string) -> Property
-	var pluck = __webpack_require__(69);
+	var pluck = __webpack_require__(70);
 	Observable.prototype.pluck = deprecated('.pluck()', '.map((x) => x.foo)', function (propName) {
 	  return pluck(this, propName);
 	});
 
 	// (Stream, string, Array) -> Stream
 	// (Property, string, Array) -> Property
-	var invoke = __webpack_require__(70);
+	var invoke = __webpack_require__(71);
 	Observable.prototype.invoke = deprecated('.invoke()', '.map((x) => x.foo())', function (methodName) {
 	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
 	    args[_key - 1] = arguments[_key];
@@ -523,20 +532,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var timestamp = __webpack_require__(71);
+	var timestamp = __webpack_require__(72);
 	Observable.prototype.timestamp = deprecated('.timestamp()', '.map((x) => {value: x, time: Date.now()})', function () {
 	  return timestamp(this);
 	});
 
 	// (Array<Stream|Property>) -> Stream
-	var and = __webpack_require__(72);
+	var and = __webpack_require__(73);
 	Kefir.and = deprecated('Kefir.and()', 'Kefir.combine([a, b], (a, b) => a && b)', and);
 	Observable.prototype.and = deprecated('.and()', '.combine(other, (a, b) => a && b)', function (other) {
 	  return and([this, other]);
 	});
 
 	// (Array<Stream|Property>) -> Stream
-	var or = __webpack_require__(73);
+	var or = __webpack_require__(74);
 	Kefir.or = deprecated('Kefir.or()', 'Kefir.combine([a, b], (a, b) => a || b)', or);
 	Observable.prototype.or = deprecated('.or()', '.combine(other, (a, b) => a || b)', function (other) {
 	  return or([this, other]);
@@ -544,13 +553,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var not = __webpack_require__(74);
+	var not = __webpack_require__(75);
 	Observable.prototype.not = deprecated('.not()', '.map((x) => !x)', function () {
 	  return not(this);
 	});
 
 	// (Function, Function, Function|undefined) -> Stream
-	var fromSubUnsub = __webpack_require__(75);
+	var fromSubUnsub = __webpack_require__(76);
 	Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
 
 /***/ },
@@ -559,23 +568,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var extend = _require.extend;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var VALUE = _require2.VALUE;
 	var ERROR = _require2.ERROR;
 	var ANY = _require2.ANY;
 	var END = _require2.END;
 
-	var _require3 = __webpack_require__(78);
+	var _require3 = __webpack_require__(79);
 
 	var Dispatcher = _require3.Dispatcher;
 	var callSubscriber = _require3.callSubscriber;
 
-	var _require4 = __webpack_require__(79);
+	var _require4 = __webpack_require__(80);
 
 	var findByPred = _require4.findByPred;
 
@@ -755,7 +764,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
@@ -783,17 +792,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var VALUE = _require2.VALUE;
 	var ERROR = _require2.ERROR;
 	var END = _require2.END;
 
-	var _require3 = __webpack_require__(78);
+	var _require3 = __webpack_require__(79);
 
 	var callSubscriber = _require3.callSubscriber;
 
@@ -879,7 +888,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var timeBased = __webpack_require__(80);
+	var timeBased = __webpack_require__(81);
 
 	var S = timeBased({
 
@@ -912,7 +921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var timeBased = __webpack_require__(80);
+	var timeBased = __webpack_require__(81);
 
 	var S = timeBased({
 
@@ -944,9 +953,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var timeBased = __webpack_require__(80);
+	var timeBased = __webpack_require__(81);
 
-	var _require = __webpack_require__(79);
+	var _require = __webpack_require__(80);
 
 	var cloneArray = _require.cloneArray;
 
@@ -987,7 +996,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var timeBased = __webpack_require__(80);
+	var timeBased = __webpack_require__(81);
 
 	var S = timeBased({
 
@@ -1019,8 +1028,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var timeBased = __webpack_require__(80);
-	var emitter = __webpack_require__(81);
+	var timeBased = __webpack_require__(81);
+	var emitter = __webpack_require__(82);
 
 	var S = timeBased({
 
@@ -1106,7 +1115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var fromSubUnsub = __webpack_require__(75);
+	var fromSubUnsub = __webpack_require__(76);
 
 	var pairs = [['addEventListener', 'removeEventListener'], ['addListener', 'removeListener'], ['on', 'off']];
 
@@ -1139,12 +1148,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
 	var Stream = __webpack_require__(2);
-	var emitter = __webpack_require__(81);
+	var emitter = __webpack_require__(82);
 
 	function S(fn) {
 	  Stream.call(this);
@@ -1193,7 +1202,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
@@ -1219,7 +1228,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
@@ -1282,7 +1291,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createProperty = _require.createProperty;
 
@@ -1315,7 +1324,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 
@@ -1345,7 +1354,37 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	function getGlodalPromise() {
+	  if (typeof Promise === 'function') {
+	    return Promise;
+	  } else {
+	    throw new Error('There isn\'t default Promise, use shim or parameter');
+	  }
+	}
+
+	module.exports = function (obs) {
+	  var Promise = arguments[1] === undefined ? getGlodalPromise() : arguments[1];
+
+	  var last = null;
+	  return new Promise(function (resolve, reject) {
+	    obs.onAny(function (event) {
+	      if (event.type === 'end' && last !== null) {
+	        (last.type === 'value' ? resolve : reject)(last.value);
+	        last = null;
+	      } else {
+	        last = event;
+	      }
+	    });
+	  });
+	};
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1382,12 +1421,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1426,12 +1465,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1465,12 +1504,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1511,17 +1550,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -1556,12 +1595,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1592,12 +1631,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1639,17 +1678,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -1690,17 +1729,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -1742,16 +1781,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var ERROR = _require2.ERROR;
 	var NOTHING = _require2.NOTHING;
@@ -1788,12 +1827,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1833,12 +1872,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -1893,17 +1932,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var now = __webpack_require__(83);
+	var now = __webpack_require__(84);
 
 	var mixin = {
 
@@ -1998,17 +2037,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var now = __webpack_require__(83);
+	var now = __webpack_require__(84);
 
 	var mixin = {
 
@@ -2094,12 +2133,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2141,12 +2180,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2188,12 +2227,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2230,12 +2269,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2274,12 +2313,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2301,12 +2340,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2323,12 +2362,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2345,12 +2384,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2367,12 +2406,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2404,17 +2443,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(79);
+	var _require2 = __webpack_require__(80);
 
 	var slide = _require2.slide;
 
@@ -2452,12 +2491,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2517,12 +2556,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -2575,17 +2614,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var emitter = __webpack_require__(81);
+	var emitter = __webpack_require__(82);
 
 	var mixin = {
 
@@ -2615,29 +2654,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var Stream = __webpack_require__(2);
 
-	var _require = __webpack_require__(77);
+	var _require = __webpack_require__(78);
 
 	var VALUE = _require.VALUE;
 	var ERROR = _require.ERROR;
 	var NOTHING = _require.NOTHING;
 
-	var _require2 = __webpack_require__(76);
+	var _require2 = __webpack_require__(77);
 
 	var inherit = _require2.inherit;
 
-	var _require3 = __webpack_require__(79);
+	var _require3 = __webpack_require__(80);
 
 	var concat = _require3.concat;
 	var fillArray = _require3.fillArray;
 
-	var _require4 = __webpack_require__(84);
+	var _require4 = __webpack_require__(85);
 
 	var spread = _require4.spread;
 
@@ -2807,29 +2846,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var Stream = __webpack_require__(2);
 
-	var _require = __webpack_require__(77);
+	var _require = __webpack_require__(78);
 
 	var VALUE = _require.VALUE;
 	var ERROR = _require.ERROR;
 	var END = _require.END;
 
-	var _require2 = __webpack_require__(76);
+	var _require2 = __webpack_require__(77);
 
 	var inherit = _require2.inherit;
 
-	var _require3 = __webpack_require__(79);
+	var _require3 = __webpack_require__(80);
 
 	var map = _require3.map;
 	var cloneArray = _require3.cloneArray;
 
-	var _require4 = __webpack_require__(84);
+	var _require4 = __webpack_require__(85);
 
 	var spread = _require4.spread;
 
@@ -2943,16 +2982,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
-	var AbstractPool = __webpack_require__(85);
+	var AbstractPool = __webpack_require__(86);
 	var never = __webpack_require__(4);
 
 	function Merge(sources) {
@@ -2978,12 +3017,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var repeat = __webpack_require__(51);
+	var repeat = __webpack_require__(52);
 
 	module.exports = function concat(observables) {
 	  return repeat(function (index) {
@@ -2992,16 +3031,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
-	var AbstractPool = __webpack_require__(85);
+	var AbstractPool = __webpack_require__(86);
 
 	function Pool() {
 	  AbstractPool.call(this);
@@ -3026,18 +3065,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Pool;
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
 	var Stream = __webpack_require__(2);
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var END = _require2.END;
 
@@ -3110,22 +3149,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(77);
+	var _require = __webpack_require__(78);
 
 	var VALUE = _require.VALUE;
 	var ERROR = _require.ERROR;
 	var END = _require.END;
 
-	var _require2 = __webpack_require__(76);
+	var _require2 = __webpack_require__(77);
 
 	var inherit = _require2.inherit;
 
-	var AbstractPool = __webpack_require__(85);
+	var AbstractPool = __webpack_require__(86);
 
 	// .flatMap()
 
@@ -3201,17 +3240,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -3239,12 +3278,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var combine = __webpack_require__(46);
+	var combine = __webpack_require__(47);
 
 	var id2 = function id2(_, x) {
 	  return x;
@@ -3258,17 +3297,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -3303,12 +3342,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -3345,17 +3384,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -3383,12 +3422,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -3409,12 +3448,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -3480,17 +3519,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(86);
+	var _require = __webpack_require__(87);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -3547,14 +3586,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var merge = __webpack_require__(48);
-	var map = __webpack_require__(19);
-	var skipDuplicates = __webpack_require__(26);
+	var merge = __webpack_require__(49);
+	var map = __webpack_require__(20);
+	var skipDuplicates = __webpack_require__(27);
 	var toProperty = __webpack_require__(17);
 
 	var f = function f() {
@@ -3572,12 +3611,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
@@ -3615,16 +3654,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Emitter;
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
-	var AbstractPool = __webpack_require__(85);
+	var AbstractPool = __webpack_require__(86);
 
 	function Bus() {
 	  AbstractPool.call(this);
@@ -3664,17 +3703,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Bus;
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(82);
+	var _require = __webpack_require__(83);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var NOTHING = _require2.NOTHING;
 
@@ -3716,18 +3755,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var combine = __webpack_require__(46);
+	var combine = __webpack_require__(47);
 
-	var _require = __webpack_require__(84);
+	var _require = __webpack_require__(85);
 
 	var apply = _require.apply;
 
-	var _require2 = __webpack_require__(79);
+	var _require2 = __webpack_require__(80);
 
 	var circleShift = _require2.circleShift;
 
@@ -3747,14 +3786,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var timeBased = __webpack_require__(80);
+	var timeBased = __webpack_require__(81);
 
-	var _require = __webpack_require__(79);
+	var _require = __webpack_require__(80);
 
 	var cloneArray = _require.cloneArray;
 
@@ -3783,12 +3822,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var map = __webpack_require__(19);
+	var map = __webpack_require__(20);
 
 	module.exports = function mapTo(obs, x) {
 	  return map(obs, function () {
@@ -3797,12 +3836,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var map = __webpack_require__(19);
+	var map = __webpack_require__(20);
 
 	module.exports = function tap(obs, fn) {
 	  return map(obs, function (x) {
@@ -3811,12 +3850,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var map = __webpack_require__(19);
+	var map = __webpack_require__(20);
 
 	module.exports = function pluck(obs, propName) {
 	  return map(obs, function (x) {
@@ -3825,14 +3864,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var map = __webpack_require__(19);
+	var map = __webpack_require__(20);
 
-	var _require = __webpack_require__(84);
+	var _require = __webpack_require__(85);
 
 	var apply = _require.apply;
 
@@ -3848,13 +3887,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var map = __webpack_require__(19);
-	var now = __webpack_require__(83);
+	var map = __webpack_require__(20);
+	var now = __webpack_require__(84);
 
 	module.exports = function timestamp(obs) {
 	  return map(obs, function (x) {
@@ -3863,12 +3902,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var combine = __webpack_require__(46);
+	var combine = __webpack_require__(47);
 
 	function fn() {
 	  var i = undefined;
@@ -3885,12 +3924,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var combine = __webpack_require__(46);
+	var combine = __webpack_require__(47);
 
 	function fn() {
 	  var i = undefined;
@@ -3907,12 +3946,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var map = __webpack_require__(19);
+	var map = __webpack_require__(20);
 
 	module.exports = function not(obs) {
 	  return map(obs, function (x) {
@@ -3921,14 +3960,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var stream = __webpack_require__(13);
 
-	var _require = __webpack_require__(84);
+	var _require = __webpack_require__(85);
 
 	var apply = _require.apply;
 
@@ -3947,7 +3986,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3984,7 +4023,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = { extend: extend, inherit: inherit };
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3996,22 +4035,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.ANY = 'any';
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var extend = _require.extend;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var VALUE = _require2.VALUE;
 	var ERROR = _require2.ERROR;
 	var ANY = _require2.ANY;
 
-	var _require3 = __webpack_require__(79);
+	var _require3 = __webpack_require__(80);
 
 	var concat = _require3.concat;
 	var removeByPred = _require3.removeByPred;
@@ -4057,7 +4096,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = { callSubscriber: callSubscriber, Dispatcher: Dispatcher };
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4213,12 +4252,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
@@ -4268,7 +4307,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4291,7 +4330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4299,11 +4338,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Stream = __webpack_require__(2);
 	var Property = __webpack_require__(3);
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var VALUE = _require2.VALUE;
 	var ERROR = _require2.ERROR;
@@ -4382,7 +4421,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = { createStream: createStream, createProperty: createProperty };
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4394,7 +4433,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4458,23 +4497,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = { spread: spread, apply: apply };
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var Stream = __webpack_require__(2);
 
-	var _require = __webpack_require__(77);
+	var _require = __webpack_require__(78);
 
 	var VALUE = _require.VALUE;
 	var ERROR = _require.ERROR;
 
-	var _require2 = __webpack_require__(76);
+	var _require2 = __webpack_require__(77);
 
 	var inherit = _require2.inherit;
 
-	var _require3 = __webpack_require__(79);
+	var _require3 = __webpack_require__(80);
 
 	var concat = _require3.concat;
 	var forEach = _require3.forEach;
@@ -4657,7 +4696,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = AbstractPool;
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4665,11 +4704,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Stream = __webpack_require__(2);
 	var Property = __webpack_require__(3);
 
-	var _require = __webpack_require__(76);
+	var _require = __webpack_require__(77);
 
 	var inherit = _require.inherit;
 
-	var _require2 = __webpack_require__(77);
+	var _require2 = __webpack_require__(78);
 
 	var VALUE = _require2.VALUE;
 	var ERROR = _require2.ERROR;
@@ -13625,7 +13664,7 @@ describe('beforeEnd', function() {
 
 
 
-},{"../test-helpers.coffee":105}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -13788,7 +13827,7 @@ describe('bufferBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -13996,7 +14035,7 @@ describe('bufferWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],38:[function(require,module,exports){
 var Kefir, not3, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14097,7 +14136,7 @@ describe('bufferWhile', function() {
 
 
 
-},{"../test-helpers.coffee":105}],39:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],39:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14297,7 +14336,7 @@ describe('bus', function() {
 
 
 
-},{"../test-helpers.coffee":105}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],40:[function(require,module,exports){
 var Kefir, prop, ref, send, stream, streamWithCurrent;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14409,7 +14448,7 @@ describe('changes', function() {
 
 
 
-},{"../test-helpers.coffee":105}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -14695,7 +14734,7 @@ describe('combine', function() {
 
 
 
-},{"../test-helpers.coffee":105}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],42:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -14822,7 +14861,7 @@ describe('concat', function() {
 
 
 
-},{"../test-helpers.coffee":105}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],43:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -15063,7 +15102,7 @@ describe('debounce', function() {
 
 
 
-},{"../test-helpers.coffee":105}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],46:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15137,7 +15176,7 @@ describe('delay', function() {
 
 
 
-},{"../test-helpers.coffee":105}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],47:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15247,7 +15286,7 @@ describe('diff', function() {
 
 
 
-},{"../test-helpers.coffee":105}],48:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],48:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -15433,7 +15472,7 @@ describe('endOnError', function() {
 
 
 
-},{"../test-helpers.coffee":105}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],50:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15560,7 +15599,7 @@ describe('errorsToValues', function() {
 
 
 
-},{"../test-helpers.coffee":105}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],51:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15838,7 +15877,7 @@ describe('filterBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],52:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16023,7 +16062,7 @@ describe('filterErrors', function() {
 
 
 
-},{"../test-helpers.coffee":105}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],53:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16174,7 +16213,7 @@ describe('filter', function() {
 
 
 
-},{"../test-helpers.coffee":105}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],54:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16309,7 +16348,7 @@ describe('flatMapConcat', function() {
 
 
 
-},{"../test-helpers.coffee":105}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],55:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16464,7 +16503,7 @@ describe('flatMapFirst', function() {
 
 
 
-},{"../test-helpers.coffee":105}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],56:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16598,7 +16637,7 @@ describe('flatMapLatest', function() {
 
 
 
-},{"../test-helpers.coffee":105}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],57:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16770,7 +16809,7 @@ describe('flatMapConcurLimit', function() {
 
 
 
-},{"../test-helpers.coffee":105}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],58:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17005,7 +17044,7 @@ describe('flatMap', function() {
 
 
 
-},{"../test-helpers.coffee":105}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],59:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17148,7 +17187,7 @@ describe('flatten', function() {
 
 
 
-},{"../test-helpers.coffee":105}],60:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],60:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17211,7 +17250,7 @@ describe('fromCallback', function() {
 
 
 
-},{"../test-helpers.coffee":105}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],61:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17344,7 +17383,7 @@ describe('fromEvents', function() {
 
 
 
-},{"../test-helpers.coffee":105}],62:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],62:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17427,7 +17466,7 @@ describe('fromNodeCallback', function() {
 
 
 
-},{"../test-helpers.coffee":105}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],63:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -17572,7 +17611,7 @@ describe('fromPromise', function() {
 
 
 
-},{"../test-helpers.coffee":105}],65:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],65:[function(require,module,exports){
 var Kefir, activate, deactivate, noop, ref,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -17662,7 +17701,7 @@ describe('fromSubUnsub', function() {
 
 
 
-},{"../test-helpers.coffee":105}],66:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],66:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -17848,7 +17887,7 @@ describe('Kefir.stream', function() {
 
 
 
-},{"../test-helpers.coffee":105}],68:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],68:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17941,7 +17980,7 @@ describe('last', function() {
 
 
 
-},{"../test-helpers.coffee":105}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],69:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -18061,7 +18100,7 @@ describe('mapErrors', function() {
 
 
 
-},{"../test-helpers.coffee":105}],71:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],71:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18168,7 +18207,7 @@ describe('map', function() {
 
 
 
-},{"../test-helpers.coffee":105}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],72:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -18287,7 +18326,7 @@ describe('merge', function() {
 
 
 
-},{"../test-helpers.coffee":105}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],73:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -18426,7 +18465,7 @@ describe('pool', function() {
 
 
 
-},{"../test-helpers.coffee":105}],75:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],75:[function(require,module,exports){
 var Kefir, activate, prop, ref, send;
 
 ref = require('../test-helpers.coffee'), prop = ref.prop, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -18661,7 +18700,7 @@ describe('Property', function() {
 
 
 
-},{"../test-helpers.coffee":105}],76:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],76:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18767,7 +18806,7 @@ describe('reduce', function() {
 
 
 
-},{"../test-helpers.coffee":105}],77:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],77:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -18901,7 +18940,7 @@ describe('repeat', function() {
 
 
 
-},{"../test-helpers.coffee":105}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],78:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -19095,7 +19134,7 @@ describe('sampledBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],80:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19195,7 +19234,7 @@ describe('scan', function() {
 
 
 
-},{"../test-helpers.coffee":105}],81:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],81:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -19311,7 +19350,7 @@ describe('skipDuplicates', function() {
 
 
 
-},{"../test-helpers.coffee":105}],83:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],83:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19380,7 +19419,7 @@ describe('skipEnd', function() {
 
 
 
-},{"../test-helpers.coffee":105}],84:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],84:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19460,7 +19499,7 @@ describe('skipErrors', function() {
 
 
 
-},{"../test-helpers.coffee":105}],85:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],85:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -19753,7 +19792,7 @@ describe('skipUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],86:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],86:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19833,7 +19872,7 @@ describe('skipValues', function() {
 
 
 
-},{"../test-helpers.coffee":105}],87:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],87:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -20129,7 +20168,7 @@ describe('skipWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],88:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],88:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20267,7 +20306,7 @@ describe('skipWhile', function() {
 
 
 
-},{"../test-helpers.coffee":105}],89:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],89:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20377,7 +20416,7 @@ describe('skip', function() {
 
 
 
-},{"../test-helpers.coffee":105}],90:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],90:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20483,7 +20522,7 @@ describe('slidingWindow', function() {
 
 
 
-},{"../test-helpers.coffee":105}],91:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],91:[function(require,module,exports){
 var Kefir, activate, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -20754,7 +20793,7 @@ describe('Stream', function() {
 
 
 
-},{"../test-helpers.coffee":105}],92:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],92:[function(require,module,exports){
 var Kefir, expectToBehaveAsMap, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21006,7 +21045,7 @@ describe('awaiting', function() {
 
 
 
-},{"../test-helpers.coffee":105}],93:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],93:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21279,7 +21318,7 @@ describe('takeUntilBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],94:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],94:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21557,7 +21596,7 @@ describe('takeWhileBy', function() {
 
 
 
-},{"../test-helpers.coffee":105}],95:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],95:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21704,7 +21743,7 @@ describe('takeWhile', function() {
 
 
 
-},{"../test-helpers.coffee":105}],96:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],96:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21799,7 +21838,7 @@ describe('take', function() {
 
 
 
-},{"../test-helpers.coffee":105}],97:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],97:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22083,7 +22122,7 @@ describe('throttle', function() {
 
 
 
-},{"../test-helpers.coffee":105}],98:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],98:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22172,7 +22211,166 @@ describe('timestamp', function() {
 
 
 
-},{"../test-helpers.coffee":105}],99:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],99:[function(require,module,exports){
+(function (global){
+var Promise1, Promise2, _global, originalGlobalPromise, prop, ref, send, stream;
+
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send;
+
+Promise1 = function(cb) {
+  var promise;
+  promise = {
+    type: 1,
+    fulfilled: false,
+    rejected: false
+  };
+  cb(function(x) {
+    promise.fulfilled = true;
+    return promise.result = x;
+  }, function(x) {
+    promise.rejected = true;
+    return promise.result = x;
+  });
+  return promise;
+};
+
+Promise2 = function(cb) {
+  var promise;
+  promise = {
+    type: 2,
+    fulfilled: false,
+    rejected: false
+  };
+  cb(function(x) {
+    promise.fulfilled = true;
+    return promise.result = x;
+  }, function(x) {
+    promise.rejected = true;
+    return promise.result = x;
+  });
+  return promise;
+};
+
+_global = null;
+
+if (typeof global !== 'undefined') {
+  _global = global;
+}
+
+if (typeof self !== 'undefined') {
+  _global = self;
+}
+
+originalGlobalPromise = _global.Promise;
+
+describe('toPromise', function() {
+  beforeEach(function() {
+    return _global.Promise = Promise2;
+  });
+  afterEach(function() {
+    return _global.Promise = originalGlobalPromise;
+  });
+  describe('stream', function() {
+    it('should return a promise', function() {
+      expect(stream().toPromise().type).toBe(2);
+      return expect(stream().toPromise(Promise1).type).toBe(1);
+    });
+    it('should not fulfill/reject if obs ends without value', function() {
+      var promise;
+      promise = send(stream(), ['<end>']).toPromise();
+      expect(promise.fulfilled || promise.rejected).toBe(false);
+      promise = send(stream(), ['<end>']).toPromise(Promise1);
+      return expect(promise.fulfilled || promise.rejected).toBe(false);
+    });
+    it('should fulfill with latest value on end', function() {
+      var a, promise;
+      a = stream();
+      promise = a.toPromise();
+      send(a, [
+        1, {
+          error: -1
+        }, 2, '<end>'
+      ]);
+      expect(promise.fulfilled).toBe(true);
+      expect(promise.result).toBe(2);
+      a = stream();
+      promise = a.toPromise(Promise1);
+      send(a, [1, 2, '<end>']);
+      expect(promise.fulfilled).toBe(true);
+      return expect(promise.result).toBe(2);
+    });
+    it('should reject with latest error on end', function() {
+      var a, promise;
+      a = stream();
+      promise = a.toPromise();
+      send(a, [
+        {
+          error: -1
+        }, 1, {
+          error: -2
+        }, '<end>'
+      ]);
+      expect(promise.rejected).toBe(true);
+      expect(promise.result).toBe(-2);
+      a = stream();
+      promise = a.toPromise(Promise1);
+      send(a, [
+        {
+          error: -1
+        }, 1, {
+          error: -2
+        }, '<end>'
+      ]);
+      expect(promise.rejected).toBe(true);
+      return expect(promise.result).toBe(-2);
+    });
+    return it('should throw when called without Promise constructor and there is no global promise', function() {
+      var e, error;
+      _global.Promise = void 0;
+      error = null;
+      try {
+        stream().toPromise();
+      } catch (_error) {
+        e = _error;
+        error = e;
+      }
+      return expect(error.message).toBe('There isn\'t default Promise, use shim or parameter');
+    });
+  });
+  return describe('property', function() {
+    it('should handle currents (resolved)', function() {
+      var promise;
+      promise = send(prop(), [1, '<end>']).toPromise();
+      expect(promise.fulfilled).toBe(true);
+      expect(promise.result).toBe(1);
+      promise = send(prop(), [1, '<end>']).toPromise(Promise1);
+      expect(promise.fulfilled).toBe(true);
+      return expect(promise.result).toBe(1);
+    });
+    return it('should handle currents (rejected)', function() {
+      var promise;
+      promise = send(prop(), [
+        {
+          error: -1
+        }, '<end>'
+      ]).toPromise();
+      expect(promise.rejected).toBe(true);
+      expect(promise.result).toBe(-1);
+      promise = send(prop(), [
+        {
+          error: -1
+        }, '<end>'
+      ]).toPromise(Promise1);
+      expect(promise.rejected).toBe(true);
+      return expect(promise.result).toBe(-1);
+    });
+  });
+});
+
+
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../test-helpers.coffee":106}],100:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -22350,7 +22548,7 @@ describe('toProperty', function() {
 
 
 
-},{"../test-helpers.coffee":105}],100:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],101:[function(require,module,exports){
 var Kefir, comp, noop, prop, ref, send, stream, testWithLib,
   slice = [].slice;
 
@@ -22632,7 +22830,7 @@ describe('transduce', function() {
 
 
 
-},{"../test-helpers.coffee":105,"transducers-js":33,"transducers.js":34}],101:[function(require,module,exports){
+},{"../test-helpers.coffee":106,"transducers-js":33,"transducers.js":34}],102:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22763,7 +22961,7 @@ describe('valuesToErrors', function() {
 
 
 
-},{"../test-helpers.coffee":105}],102:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],103:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23005,7 +23203,7 @@ describe('withHandler', function() {
 
 
 
-},{"../test-helpers.coffee":105}],103:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],104:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -23080,7 +23278,7 @@ describe('withInterval', function() {
 
 
 
-},{"../../dist/kefir":1}],104:[function(require,module,exports){
+},{"../../dist/kefir":1}],105:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -23266,7 +23464,7 @@ describe('zip', function() {
 
 
 
-},{"../test-helpers.coffee":105}],105:[function(require,module,exports){
+},{"../test-helpers.coffee":106}],106:[function(require,module,exports){
 var Kefir, _activateHelper, logItem, sinon,
   slice = [].slice;
 
@@ -23640,4 +23838,4 @@ beforeEach(function() {
 
 
 
-},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104]);
+},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105]);
