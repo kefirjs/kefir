@@ -1,4 +1,4 @@
-h2#main-methods Main observable methods
+h2#main-methods Subscribe / add side effects
 
 
 +descr-method('on-value', 'onValue', 'obs.onValue(callback)').
@@ -74,7 +74,7 @@ pre(title='console output')
 ul
   li #[b type] — a #[tt 'value'], #[tt 'error'], or #[tt 'end'] string
   li #[b value] — the emitted #[b value] or #[b error] (#[tt undefined] if #[tt event.type === 'end'])
-  li #[b current] — a boolean, that equals #[tt true] if the callback is called with the current value/error of a property, or if the event represents an #[b end] of an already ended observable (note that #[a(href='#current-in-streams') streams may also emit current] values or errors)
+  li #[b current] — a boolean, that equals #[tt true] if the callback is called with the current value/error of a property, or if the event represents an #[b end] of an already ended observable (note that #[a(href='#current-in-streams') streams may also emit current values or errors])
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
@@ -108,3 +108,23 @@ pre(title='console output')
 +descr-method('off-log', 'offLog', 'obs.offLog([name])').
   Turns off logging. If #[b .log] was called with a #[b name] argument,
   #[b offLog] must be called with the same #[b name] argument.
+
+
++descr-method('to-promise', 'toPromise', 'obs.toPromise([PromiseConstructor])').
+  Another way to take events out of Kefir is to convert an Observable to a Promise.
+  If called without arguments the default #[tt gloabal.Promise] constructor is used,
+  alternatively you can pass a promise constructor
+  that supports following interface: #[tt new Promise(function(resolve, reject) { ... })].
+  The promise will be fulfilled or rejected at the moment source observable ends,
+  with the latest value or error. If observable ends without any value or error
+  the promise will never be fulfilled/rejected.
+
+pre(title='example').
+  var promise = Kefir.sequentially(1000, [1, 2]).toPromise();
+  promise.then(function(x) {
+    console.log('fulfilled with:', x);
+  });
+
+pre(title='console output')
+  :escapehtml
+    > fulfilled with: 2

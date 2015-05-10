@@ -323,14 +323,7 @@ div
 
 pre(title='example')
   :escapehtml
-    var myPromise = {
-      then: function(onSuccess, onError) {
-        var fulfill = function() {  onSuccess(1)  };
-        setTimeout(fulfill, 1000);
-      }
-    };
-
-    var result = Kefir.fromPromise(myPromise);
+    var result = Kefir.fromPromise(new Promise(function(fulfill) {  fulfill(1)  }));
     result.log();
 
 pre(title='console output')

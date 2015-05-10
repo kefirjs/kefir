@@ -1,3 +1,7 @@
+## 2.3.0 (10/05/2015)
+
+ - New method `.toPromise`
+
 ## 2.2.1 (09/05/2015)
 
  - A bug in `.offLog` fixed
