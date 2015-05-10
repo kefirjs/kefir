@@ -18,7 +18,7 @@ module.exports = function fromPromise(promise) {
       };
       let _promise = promise.then(onValue, onError);
 
-      // prevent promise/A+ libraries like Q to swallow exceptions
+      // prevent libraries like 'Q' or 'when' from swallowing exceptions
       if (_promise && typeof _promise.done === 'function') {
         _promise.done();
       }
