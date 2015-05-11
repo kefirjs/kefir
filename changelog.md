@@ -1,7 +1,8 @@
-## Next
+## 2.4.0 (11/05/2015)
 
  - New method `.flatMapErrors`
  - A bug in `.flatMap*` fixed (see [98f65b7](https://github.com/pozadi/kefir/commit/98f65b775e2a9785bb66fa1f4a98ffc9bd03b9ff))
+ - `Kefir.constant()` and `Kefir.contantError()` made cheaper and faster, so they can be used with `.flatMap` even more freely (see [1c9de75](https://github.com/pozadi/kefir/commit/1c9de75aa7ed38949716b9d117b430587bd3425c))
 
 ## 2.3.0 (10/05/2015)
 
