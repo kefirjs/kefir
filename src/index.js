@@ -326,21 +326,27 @@ Kefir.repeat = require('./many-sources/repeat');
 
 // Options = {concurLim: number|undefined, queueLim: number|undefined, drop: 'old'|'new'|undefiend}
 // (Stream|Property, Function|falsey, Options|undefined) -> Stream
-const flatMap = require('./many-sources/flat-map');
+const FlatMap = require('./many-sources/flat-map');
 Observable.prototype.flatMap = function(fn) {
-  return flatMap(this, fn);
+  return new FlatMap(this, fn).setName(this, 'flatMap');
 };
 Observable.prototype.flatMapLatest = function(fn) {
-  return flatMap(this, fn, {concurLim: 1, drop: 'old'}).setName(this, 'flatMapLatest');
+  return new FlatMap(this, fn, {concurLim: 1, drop: 'old'}).setName(this, 'flatMapLatest');
 };
 Observable.prototype.flatMapFirst = function(fn) {
-  return flatMap(this, fn, {concurLim: 1}).setName(this, 'flatMapFirst');
+  return new FlatMap(this, fn, {concurLim: 1}).setName(this, 'flatMapFirst');
 };
 Observable.prototype.flatMapConcat = function(fn) {
-  return flatMap(this, fn, {queueLim: -1, concurLim: 1}).setName(this, 'flatMapConcat');
+  return new FlatMap(this, fn, {queueLim: -1, concurLim: 1}).setName(this, 'flatMapConcat');
 };
 Observable.prototype.flatMapConcurLimit = function(fn, limit) {
-  return flatMap(this, fn, {queueLim: -1, concurLim: limit}).setName(this, 'flatMapConcurLimit');
+  return new FlatMap(this, fn, {queueLim: -1, concurLim: limit}).setName(this, 'flatMapConcurLimit');
+};
+
+// (Stream|Property, Function|falsey) -> Stream
+const FlatMapErrors = require('./many-sources/flat-map-errors');
+Observable.prototype.flatMapErrors = function(fn) {
+  return new FlatMapErrors(this, fn).setName(this, 'flatMapErrors');
 };
 
 

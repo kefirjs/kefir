@@ -517,3 +517,35 @@ pre(title='events in time').
 
   result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X
 div
+
+
+
+
++descr-method('flat-map-errors', 'flatMapErrors', 'obs.flatMapErrors([transform])').
+  Same as #[a(href='#flat-map') flatMap],
+  but operates on #[a(href='#about-errors') errors] while #[b values] just flow through.
+
+pre(title='example').
+  var source = Kefir.sequentially(100, [1, 2]).valuesToErrors();
+  var result = source.flatMapErrors(function(x) {
+    return Kefir.interval(40, x).take(2);
+  });
+  result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.valuesToErrors.flatMapErrors] <value> 1
+    > [sequentially.valuesToErrors.flatMapErrors] <value> 1
+    > [sequentially.valuesToErrors.flatMapErrors] <value> 2
+    > [sequentially.valuesToErrors.flatMapErrors] <value> 2
+    > [sequentially.valuesToErrors.flatMapErrors] <end>
+
+pre(title='events in time').
+  source:      ----------e---------eX
+                         1         2
+
+  spawned 1:             ---1---1X
+  spawned 2:                       ---2---2X
+
+  result:      -------------1---1-----2---2X
+div
