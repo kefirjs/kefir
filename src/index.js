@@ -343,6 +343,12 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   return new FlatMap(this, fn, {queueLim: -1, concurLim: limit}).setName(this, 'flatMapConcurLimit');
 };
 
+// (Stream|Property, Function|falsey) -> Stream
+const FlatMapErrors = require('./many-sources/flat-map-errors');
+Observable.prototype.flatMapErrors = function(fn) {
+  return new FlatMapErrors(this, fn);
+};
+
 
 
 

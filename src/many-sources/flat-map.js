@@ -5,8 +5,6 @@ const AbstractPool = require('./abstract-pool');
 
 
 
-// .flatMap()
-
 function FlatMap(source, fn, options) {
   AbstractPool.call(this, options);
   this._source = source;
