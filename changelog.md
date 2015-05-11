@@ -1,3 +1,8 @@
+## Next
+
+ - New method `.flatMapErrors`
+ - A bug in `.flatMap*` fixed (see (98f65b7)[https://github.com/pozadi/kefir/commit/98f65b775e2a9785bb66fa1f4a98ffc9bd03b9ff])
+
 ## 2.3.0 (10/05/2015)
 
  - New method `.toPromise`
