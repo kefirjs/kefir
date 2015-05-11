@@ -81,6 +81,13 @@ describe 'flatMapErrors', ->
       expect(a.flatMapErrors()).toEmit [1, 2, 3], ->
         send(a, [1, 2, 3])
 
+    it 'should be possible to add same obs twice on activation', ->
+      b = send(prop(), [1])
+      a = Kefir.stream (em) ->
+        em.error(b)
+        em.error(b)
+      expect(a.flatMapErrors()).toEmit [{current: 1}, {current: 1}]
+
 
 
 

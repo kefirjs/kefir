@@ -14,11 +14,12 @@ inherit(FlatMapErrors, FlatMap, {
   _handleMain(event) {
 
     if (event.type === ERROR) {
-      // FIXME: should be ._lastCurrentBeforeDeactivation
-      if (!this._activating || this._lastCurrent !== event.value) {
+      let sameCurr = this._activating && this._hadNoEvSinceDeact && this._lastCurrent === event.value;
+      if (!sameCurr) {
         this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
+      this._hadNoEvSinceDeact = false;
     }
 
     if (event.type === VALUE) {

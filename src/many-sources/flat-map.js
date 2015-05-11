@@ -28,16 +28,22 @@ inherit(FlatMap, AbstractPool, {
   _onDeactivation() {
     AbstractPool.prototype._onDeactivation.call(this);
     this._source.offAny(this._$handleMain);
+    this._hadNoEvSinceDeact = true;
   },
 
   _handleMain(event) {
 
     if (event.type === VALUE) {
-      // FIXME: should be ._lastCurrentBeforeDeactivation
-      if (!this._activating || this._lastCurrent !== event.value) {
+      // Is latest value before deactivation survived, and now is 'current' on this activation?
+      // We don't want to handle such values, to prevent to constantly add
+      // same observale on each activation/deactivation when our main source
+      // is a `Kefir.conatant()` for example.
+      let sameCurr = this._activating && this._hadNoEvSinceDeact && this._lastCurrent === event.value;
+      if (!sameCurr) {
         this._add(event.value, this._fn);
       }
       this._lastCurrent = event.value;
+      this._hadNoEvSinceDeact = false;
     }
 
     if (event.type === ERROR) {

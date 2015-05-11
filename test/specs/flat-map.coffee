@@ -120,6 +120,14 @@ describe 'flatMap', ->
       expect(unsubs).toBe(1)
 
 
+    it 'should be possible to add same obs twice on activation', ->
+      b = send(prop(), [1])
+      a = Kefir.stream (em) ->
+        em.emit(b)
+        em.emit(b)
+      expect(a.flatMap()).toEmit [{current: 1}, {current: 1}]
+
+
 
 
   describe 'property', ->
