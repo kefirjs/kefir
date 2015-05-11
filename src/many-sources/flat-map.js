@@ -74,6 +74,4 @@ inherit(FlatMap, AbstractPool, {
 
 
 
-module.exports = function flatMap(obs, fn /* Function | falsey */, options /* Object | undefined */) {
-  return new FlatMap(obs, fn, options);
-};
+module.exports = FlatMap;
