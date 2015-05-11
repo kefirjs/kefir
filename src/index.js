@@ -328,7 +328,7 @@ Kefir.repeat = require('./many-sources/repeat');
 // (Stream|Property, Function|falsey, Options|undefined) -> Stream
 const FlatMap = require('./many-sources/flat-map');
 Observable.prototype.flatMap = function(fn) {
-  return new FlatMap(this, fn);
+  return new FlatMap(this, fn).setName(this, 'flatMap');
 };
 Observable.prototype.flatMapLatest = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1, drop: 'old'}).setName(this, 'flatMapLatest');
@@ -346,7 +346,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
 // (Stream|Property, Function|falsey) -> Stream
 const FlatMapErrors = require('./many-sources/flat-map-errors');
 Observable.prototype.flatMapErrors = function(fn) {
-  return new FlatMapErrors(this, fn);
+  return new FlatMapErrors(this, fn).setName(this, 'flatMapErrors');
 };
 
 

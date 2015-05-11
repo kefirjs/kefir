@@ -16,8 +16,6 @@ function FlatMap(source, fn, options) {
 
 inherit(FlatMap, AbstractPool, {
 
-  _name: 'flatMap',
-
   _onActivation() {
     AbstractPool.prototype._onActivation.call(this);
     if (this._active) {

@@ -8,8 +8,6 @@ function FlatMapErrors(source, fn) {
 
 inherit(FlatMapErrors, FlatMap, {
 
-  _name: 'flatMapErrors',
-
   // Same as in FlatMap, only VALUE/ERROR flipped
   _handleMain(event) {
 
