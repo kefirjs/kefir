@@ -74,7 +74,12 @@ pre(title='console output')
 ul
   li #[b type] — a #[tt 'value'], #[tt 'error'], or #[tt 'end'] string
   li #[b value] — the emitted #[b value] or #[b error] (#[tt undefined] if #[tt event.type === 'end'])
-  li #[b current] — a boolean, that equals #[tt true] if the callback is called with the current value/error of a property, or if the event represents an #[b end] of an already ended observable (note that #[a(href='#current-in-streams') streams may also emit current values or errors])
+  li #[b current *] — a boolean, that equals #[tt true] if the callback is called with the current value/error of a property, or if the event represents an #[b end] of an already ended observable (note that #[a(href='#current-in-streams') streams may also emit current values or errors])
+
+p.
+  (*) The #[tt .current] property is
+  #[a(href='https://github.com/pozadi/kefir/issues/100') going to be removed]
+  in #[tt v3.0.0].
 
 pre(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
