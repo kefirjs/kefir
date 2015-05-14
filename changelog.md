@@ -1,3 +1,7 @@
+## 2.4.1 (14/05/2015)
+
+ - `.flatMap*`, `.pool`, and `.merge` was optimized for use with constants (`Kefir.contant*`, `Kefir.never`), combined with optimizations for constants in 2.4.0 this `foo.flatMap((x) => Kefir.constant(x + 1))` is only ~2x slower than `foo.map(x => x + 1)`
+
 ## 2.4.0 (11/05/2015)
 
  - New method `.flatMapErrors`

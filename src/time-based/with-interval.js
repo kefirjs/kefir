@@ -17,7 +17,8 @@ const S = timeBased({
   },
 
   _onTick() {
-    this._fn(this._emitter);
+    const fn = this._fn;
+    fn(this._emitter);
   }
 
 });

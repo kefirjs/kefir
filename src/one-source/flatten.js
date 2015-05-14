@@ -11,7 +11,8 @@ const mixin = {
   },
 
   _handleValue(x) {
-    const xs = this._fn(x);
+    const fn = this._fn;
+    const xs = fn(x);
     for (let i = 0; i < xs.length; i++) {
       this._emitValue(xs[i]);
     }

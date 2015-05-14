@@ -56,7 +56,8 @@ inherit(Zip, Stream, {
     for (let i = 0; i < this._buffers.length; i++) {
       values[i] = this._buffers[i].shift();
     }
-    this._emitValue(this._combinator(values));
+    const combinator = this._combinator;
+    this._emitValue(combinator(values));
   },
 
   _isFull() {

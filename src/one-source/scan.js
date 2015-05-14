@@ -17,7 +17,8 @@ const P = createProperty('scan', {
 
   _handleValue(x) {
     if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
-      x = this._fn(this._currentEvent.value, x);
+      const fn = this._fn;
+      x = fn(this._currentEvent.value, x);
     }
     this._emitValue(x);
   }

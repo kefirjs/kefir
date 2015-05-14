@@ -94,7 +94,8 @@ inherit(Combine, Stream, {
     }
 
     if (hasAllValues) {
-      this._emitValue(this._combinator(valuesCopy));
+      const combinator = this._combinator;
+      this._emitValue(combinator(valuesCopy));
     }
     if (hasErrors) {
       this._emitError(defaultErrorsCombinator(errorsCopy));

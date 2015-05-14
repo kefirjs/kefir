@@ -29,8 +29,9 @@ inherit(S, Stream, {
   _getSource() {
     if (!this._inLoop) {
       this._inLoop = true;
+      const generator = this._generator;
       while (this._source === null && this._alive && this._active) {
-        this._source = this._generator(this._iteration++);
+        this._source = generator(this._iteration++);
         if (this._source) {
           this._source.onAny(this._$handleAny);
         } else {

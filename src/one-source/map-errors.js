@@ -11,7 +11,8 @@ const mixin = {
   },
 
   _handleError(x) {
-    this._emitError(this._fn(x));
+    const fn = this._fn;
+    this._emitError(fn(x));
   }
 
 };

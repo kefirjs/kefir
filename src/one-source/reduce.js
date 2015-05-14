@@ -14,7 +14,8 @@ const mixin = {
   },
 
   _handleValue(x) {
-    this._result = (this._result === NOTHING) ? x : this._fn(this._result, x);
+    const fn = this._fn;
+    this._result = (this._result === NOTHING) ? x : fn(this._result, x);
   },
 
   _handleEnd() {

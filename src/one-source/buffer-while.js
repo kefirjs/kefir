@@ -21,7 +21,8 @@ const mixin = {
 
   _handleValue(x) {
     this._buff.push(x);
-    if (!this._fn(x)) {
+    const fn = this._fn;
+    if (!fn(x)) {
       this._flush();
     }
   },
