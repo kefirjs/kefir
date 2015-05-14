@@ -15,6 +15,7 @@ function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
   this._curSources = [];
   this._$handleSubAny = (event) => this._handleSubAny(event);
   this._$endHandlers = [];
+  this._currentlyAdding = null;
 
   if (this._concurLim === 0) {
     this._emitEnd();
@@ -54,21 +55,39 @@ inherit(AbstractPool, Stream, {
   },
 
   _addToCur(obs) {
-    this._curSources = concat(this._curSources, [obs]);
     if (this._active) {
-      this._subscribe(obs);
+      // Optimistion for the .flatMap(x => Kefir.constant(...)) case.
+      // We could just did following here, but it would be ~5x slower:
+      //
+      //     this._curSources = concat(this._curSources, [obs]);
+      //     this._subscribe(obs);
+      //
+      this._currentlyAdding = obs;
+      obs.onAny(this._$handleSubAny);
+      this._currentlyAdding = null;
+      if (obs._alive) {
+        this._curSources = concat(this._curSources, [obs]);
+        if (this._active) {
+          this._subToEnd(obs);
+        }
+      }
+    } else {
+      this._curSources = concat(this._curSources, [obs]);
     }
   },
 
-  _subscribe(obs) {
-    let onEnd = () => this._removeCur(obs);
+  _subToEnd(obs) {
+    const onEnd = () => this._removeCur(obs);
     this._$endHandlers.push({obs: obs, handler: onEnd});
+    obs.onEnd(onEnd);
+  },
 
+  _subscribe(obs) {
     obs.onAny(this._$handleSubAny);
 
     // it can become inactive in responce of subscribing to `obs.onAny` above
     if (this._active) {
-      obs.onEnd(onEnd);
+      this._subToEnd(obs);
     }
   },
 
@@ -130,6 +149,9 @@ inherit(AbstractPool, Stream, {
   _onDeactivation() {
     for (let i = 0, sources = this._curSources; i < sources.length; i++) {
       this._unsubscribe(sources[i]);
+    }
+    if (this._currentlyAdding !== null) {
+      this._unsubscribe(this._currentlyAdding);
     }
   },
 
