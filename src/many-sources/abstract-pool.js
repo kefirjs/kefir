@@ -56,7 +56,7 @@ inherit(AbstractPool, Stream, {
 
   _addToCur(obs) {
     if (this._active) {
-      // Optimistion for the .flatMap(x => Kefir.constant(...)) case.
+      // Optimization for the .flatMap(x => Kefir.constant(...)) case.
       // We could just did following here, but it would be ~5x slower:
       //
       //     this._curSources = concat(this._curSources, [obs]);
