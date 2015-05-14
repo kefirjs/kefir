@@ -103,6 +103,18 @@ describe 'Kefir.stream', ->
   it 'should not throw if not falsey but not a function returned', ->
     expect(Kefir.stream(-> true)).toEmit []
 
+  it 'emitter should return a boolean representing if anyone intrested in future events', ->
+    emitter = null
+    a = Kefir.stream (em) ->
+      emitter = em
+    activate(a)
+    expect(emitter.emit(1)).toBe(true);
+    deactivate(a)
+    expect(emitter.emit(1)).toBe(false);
+
+
+
+
 
 
 
