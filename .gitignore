@@ -4,3 +4,5 @@ bower-packages
 dist
 test/in-browser/spec/KefirSpecs.js
 index.html
+test.html
+test.js
