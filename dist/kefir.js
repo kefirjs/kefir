@@ -1,4 +1,4 @@
-/*! Kefir.js v2.4.0
+/*! Kefir.js v2.4.1
  *  https://github.com/pozadi/kefir
  */
 
@@ -1018,7 +1018,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _onTick: function _onTick() {
-	    this._emitValue(this._fn());
+	    var fn = this._fn;
+	    this._emitValue(fn());
 	  }
 
 	});
@@ -1053,7 +1054,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _onTick: function _onTick() {
-	    this._fn(this._emitter);
+	    var fn = this._fn;
+	    fn(this._emitter);
 	  }
 
 	});
@@ -1171,7 +1173,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _name: 'stream',
 
 	  _onActivation: function _onActivation() {
-	    this._unsubscribe = this._fn(emitter(this)) || null;
+	    var fn = this._fn;
+	    this._unsubscribe = fn(emitter(this)) || null;
 
 	    // fix https://github.com/pozadi/kefir/issues/35
 	    if (!this._active) {
@@ -1423,7 +1426,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    this._emitValue(this._fn(x));
+	    var fn = this._fn;
+	    this._emitValue(fn(x));
 	  }
 
 	};
@@ -1465,7 +1469,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    if (this._fn(x)) {
+	    var fn = this._fn;
+	    if (fn(x)) {
 	      this._emitValue(x);
 	    }
 	  }
@@ -1548,7 +1553,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    if (this._fn(x)) {
+	    var fn = this._fn;
+	    if (fn(x)) {
 	      this._emitValue(x);
 	    } else {
 	      this._emitEnd();
@@ -1675,7 +1681,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    if (this._fn !== null && !this._fn(x)) {
+	    var fn = this._fn;
+	    if (this._fn !== null && !fn(x)) {
 	      this._fn = null;
 	    }
 	    if (this._fn === null) {
@@ -1728,7 +1735,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    if (this._prev === NOTHING || !this._fn(this._prev, x)) {
+	    var fn = this._fn;
+	    if (this._prev === NOTHING || !fn(this._prev, x)) {
 	      this._prev = x;
 	      this._emitValue(x);
 	    }
@@ -1781,7 +1789,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _handleValue: function _handleValue(x) {
 	    if (this._prev !== NOTHING) {
-	      this._emitValue(this._fn(this._prev, x));
+	      var fn = this._fn;
+	      this._emitValue(fn(this._prev, x));
 	    }
 	    this._prev = x;
 	  }
@@ -1834,7 +1843,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _handleValue: function _handleValue(x) {
 	    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
-	      x = this._fn(this._currentEvent.value, x);
+	      var fn = this._fn;
+	      x = fn(this._currentEvent.value, x);
 	    }
 	    this._emitValue(x);
 	  }
@@ -1871,7 +1881,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    var xs = this._fn(x);
+	    var fn = this._fn;
+	    var xs = fn(x);
 	    for (var i = 0; i < xs.length; i++) {
 	      this._emitValue(xs[i]);
 	    }
@@ -2177,7 +2188,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    var result = this._fn(x);
+	    var fn = this._fn;
+	    var result = fn(x);
 	    if (result.convert) {
 	      this._emitError(result.error);
 	    } else {
@@ -2224,7 +2236,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleError: function _handleError(x) {
-	    var result = this._fn(x);
+	    var fn = this._fn;
+	    var result = fn(x);
 	    if (result.convert) {
 	      this._emitValue(result.value);
 	    } else {
@@ -2271,7 +2284,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleError: function _handleError(x) {
-	    this._emitError(this._fn(x));
+	    var fn = this._fn;
+	    this._emitError(fn(x));
 	  }
 
 	};
@@ -2313,7 +2327,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleError: function _handleError(x) {
-	    if (this._fn(x)) {
+	    var fn = this._fn;
+	    if (fn(x)) {
 	      this._emitError(x);
 	    }
 	  }
@@ -2450,7 +2465,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleEnd: function _handleEnd() {
-	    this._emitValue(this._fn());
+	    var fn = this._fn;
+	    this._emitValue(fn());
 	    this._emitEnd();
 	  }
 
@@ -2546,7 +2562,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _handleValue: function _handleValue(x) {
 	    this._buff.push(x);
-	    if (!this._fn(x)) {
+	    var fn = this._fn;
+	    if (!fn(x)) {
 	      this._flush();
 	    }
 	  },
@@ -2799,7 +2816,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    if (hasAllValues) {
-	      this._emitValue(this._combinator(valuesCopy));
+	      var combinator = this._combinator;
+	      this._emitValue(combinator(valuesCopy));
 	    }
 	    if (hasErrors) {
 	      this._emitError(defaultErrorsCombinator(errorsCopy));
@@ -2958,7 +2976,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var i = 0; i < this._buffers.length; i++) {
 	      values[i] = this._buffers[i].shift();
 	    }
-	    this._emitValue(this._combinator(values));
+	    var combinator = this._combinator;
+	    this._emitValue(combinator(values));
 	  },
 
 	  _isFull: function _isFull() {
@@ -3130,8 +3149,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _getSource: function _getSource() {
 	    if (!this._inLoop) {
 	      this._inLoop = true;
+	      var generator = this._generator;
 	      while (this._source === null && this._alive && this._active) {
-	        this._source = this._generator(this._iteration++);
+	        this._source = generator(this._iteration++);
 	        if (this._source) {
 	          this._source.onAny(this._$handleAny);
 	        } else {
@@ -3807,7 +3827,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    this._result = this._result === NOTHING ? x : this._fn(this._result, x);
+	    var fn = this._fn;
+	    this._result = this._result === NOTHING ? x : fn(this._result, x);
 	  },
 
 	  _handleEnd: function _handleEnd() {
@@ -4623,6 +4644,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _this._handleSubAny(event);
 	  };
 	  this._$endHandlers = [];
+	  this._currentlyAdding = null;
 
 	  if (this._concurLim === 0) {
 	    this._emitEnd();
@@ -4666,25 +4688,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _addToCur: function _addToCur(obs) {
-	    this._curSources = concat(this._curSources, [obs]);
 	    if (this._active) {
-	      this._subscribe(obs);
+	      // Optimization for the .flatMap(x => Kefir.constant(...)) case.
+	      // We could just did following here, but it would be ~5x slower:
+	      //
+	      //     this._curSources = concat(this._curSources, [obs]);
+	      //     this._subscribe(obs);
+	      //
+	      this._currentlyAdding = obs;
+	      obs.onAny(this._$handleSubAny);
+	      this._currentlyAdding = null;
+	      if (obs._alive) {
+	        this._curSources = concat(this._curSources, [obs]);
+	        if (this._active) {
+	          this._subToEnd(obs);
+	        }
+	      }
+	    } else {
+	      this._curSources = concat(this._curSources, [obs]);
 	    }
 	  },
 
-	  _subscribe: function _subscribe(obs) {
+	  _subToEnd: function _subToEnd(obs) {
 	    var _this3 = this;
 
 	    var onEnd = function onEnd() {
 	      return _this3._removeCur(obs);
 	    };
 	    this._$endHandlers.push({ obs: obs, handler: onEnd });
+	    obs.onEnd(onEnd);
+	  },
 
+	  _subscribe: function _subscribe(obs) {
 	    obs.onAny(this._$handleSubAny);
 
 	    // it can become inactive in responce of subscribing to `obs.onAny` above
 	    if (this._active) {
-	      obs.onEnd(onEnd);
+	      this._subToEnd(obs);
 	    }
 	  },
 
@@ -4748,6 +4788,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _onDeactivation: function _onDeactivation() {
 	    for (var i = 0, sources = this._curSources; i < sources.length; i++) {
 	      this._unsubscribe(sources[i]);
+	    }
+	    if (this._currentlyAdding !== null) {
+	      this._unsubscribe(this._currentlyAdding);
 	    }
 	  },
 
