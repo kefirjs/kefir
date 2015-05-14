@@ -11,7 +11,8 @@ const mixin = {
   },
 
   _handleValue(x) {
-    let result = this._fn(x);
+    const fn = this._fn;
+    let result = fn(x);
     if (result.convert) {
       this._emitError(result.error);
     } else {

@@ -11,7 +11,8 @@ const mixin = {
   },
 
   _handleValue(x) {
-    this._emitValue(this._fn(x));
+    const fn = this._fn;
+    this._emitValue(fn(x));
   }
 
 };

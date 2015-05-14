@@ -13,7 +13,8 @@ const S = timeBased({
   },
 
   _onTick() {
-    this._emitValue(this._fn());
+    const fn = this._fn;
+    this._emitValue(fn());
   }
 
 });

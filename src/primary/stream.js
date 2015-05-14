@@ -13,7 +13,8 @@ inherit(S, Stream, {
   _name: 'stream',
 
   _onActivation() {
-    this._unsubscribe = this._fn(emitter(this)) || null;
+    const fn = this._fn;
+    this._unsubscribe = fn(emitter(this)) || null;
 
     // fix https://github.com/pozadi/kefir/issues/35
     if (!this._active) {

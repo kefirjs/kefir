@@ -11,7 +11,8 @@ const mixin = {
   },
 
   _handleValue(x) {
-    if (this._fn !== null && !this._fn(x)) {
+    const fn = this._fn;
+    if (this._fn !== null && !fn(x)) {
       this._fn = null;
     }
     if (this._fn === null) {
