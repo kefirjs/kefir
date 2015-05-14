@@ -100,7 +100,8 @@ describe 'Kefir.stream', ->
       {sub: 1, unsub: 1}
     ]
 
-
+  it 'should not throw if not falsey but not a function returned', ->
+    expect(Kefir.stream(-> true)).toEmit []
 
 
 
