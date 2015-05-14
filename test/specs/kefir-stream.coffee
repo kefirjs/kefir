@@ -112,6 +112,18 @@ describe 'Kefir.stream', ->
     deactivate(a)
     expect(emitter.emit(1)).toBe(false)
 
+    a = Kefir.stream (em) ->
+      expect(em.emit(1)).toBe(true)
+      expect(em.emit(2)).toBe(false)
+      expect(em.emit(3)).toBe(false)
+    lastX = null
+    f = (x) ->
+      lastX = x
+      if x == 2
+        a.offValue(f)
+    a.onValue(f)
+    expect(lastX).toBe(2)
+
   it 'emitter should have methods `value` and `event`', ->
     expect(
       Kefir.stream (em) ->
