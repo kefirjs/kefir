@@ -25,5 +25,5 @@ const P = createProperty('withHandler', mixin);
 
 
 module.exports = function withHandler(obs, fn) {
-  return new (obs.ofSameType(S, P))(obs, {fn});
+  return new (obs._ofSameType(S, P))(obs, {fn});
 };

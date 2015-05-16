@@ -21,5 +21,5 @@ const P = createProperty('skip', mixin);
 
 
 module.exports = function skip(obs, n) {
-  return new (obs.ofSameType(S, P))(obs, {n});
+  return new (obs._ofSameType(S, P))(obs, {n});
 };

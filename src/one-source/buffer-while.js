@@ -43,5 +43,5 @@ const P = createProperty('bufferWhile', mixin);
 const id = x => x;
 
 module.exports = function bufferWhile(obs, fn, {flushOnEnd = true} = {}) {
-  return new (obs.ofSameType(S, P))(obs, {fn: fn || id, flushOnEnd});
+  return new (obs._ofSameType(S, P))(obs, {fn: fn || id, flushOnEnd});
 };

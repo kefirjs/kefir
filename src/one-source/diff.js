@@ -32,5 +32,5 @@ function defaultFn(a, b) {
 }
 
 module.exports = function diff(obs, fn, seed = NOTHING) {
-  return new (obs.ofSameType(S, P))(obs, {fn: fn || defaultFn, seed});
+  return new (obs._ofSameType(S, P))(obs, {fn: fn || defaultFn, seed});
 };

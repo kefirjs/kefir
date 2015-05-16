@@ -23,6 +23,6 @@ const P = createProperty('filterBy', mixin);
 
 
 module.exports = function filterBy(primary, secondary) {
-  return new (primary.ofSameType(S, P))(primary, secondary);
+  return new (primary._ofSameType(S, P))(primary, secondary);
 };
 

@@ -43,5 +43,5 @@ const P = createProperty('transduce', mixin);
 
 
 module.exports = function transduce(obs, transducer) {
-  return new (obs.ofSameType(S, P))(obs, {transducer});
+  return new (obs._ofSameType(S, P))(obs, {transducer});
 };

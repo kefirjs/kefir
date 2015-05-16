@@ -9,5 +9,5 @@ const P = createProperty('skipErrors', mixin);
 
 
 module.exports = function skipErrors(obs) {
-  return new (obs.ofSameType(S, P))(obs);
+  return new (obs._ofSameType(S, P))(obs);
 };

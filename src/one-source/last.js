@@ -29,5 +29,5 @@ const P = createProperty('last', mixin);
 
 
 module.exports = function last(obs) {
-  return new (obs.ofSameType(S, P))(obs);
+  return new (obs._ofSameType(S, P))(obs);
 };

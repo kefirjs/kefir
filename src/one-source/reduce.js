@@ -32,5 +32,5 @@ const P = createProperty('reduce', mixin);
 
 
 module.exports = function reduce(obs, fn, seed = NOTHING) {
-  return new (obs.ofSameType(S, P))(obs, {fn, seed});
+  return new (obs._ofSameType(S, P))(obs, {fn, seed});
 };
