@@ -458,3 +458,75 @@ result.log();
 source:  ---1---2---2---3 X
 result:  ----------------8X
 ```
+
+
+
+### obs.takeWhileBy(otherObs)
+
+Works like [takeWhile](http://pozadi.github.io/kefir/#take-while), but instead
+of using a predicate function it uses another observable. It takes values from
+**obs** observable until the first falsey value from **otherObs**.
+
+Note: it will not produce any value until the first value from **otherObs**.
+If that is not what you need, just turn your stream into a property with the
+current value at `true` by calling `.toProperty(() => true)`.
+
+```js
+// Example
+
+var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+var bar = Kefir.sequentially(200, [true, false, true]).delay(40).toProperty(() => true);
+var result = foo.takeWhileBy(bar);
+result.log();
+
+
+// Output
+> [sequentially.takeWhileBy] <value> 1
+> [sequentially.takeWhileBy] <value> 2
+> [sequentially.takeWhileBy] <value> 3
+> [sequentially.takeWhileBy] <value> 4
+> [sequentially.takeWhileBy] <end>
+
+
+// Events diagram
+
+foo:     ----1----2----3----4----5----6----7----8X
+bar:     t----------t---------f---------tX
+
+result:  ----1----2----3----4-X
+```
+
+
+
+
+### obs.skipWhileBy(otherObs)
+
+Works like [skipWhile](http://pozadi.github.io/kefir/#skip-while), but instead
+of using a predicate function it uses another observable. It skips values from
+**obs** observable until the first falsey value from **otherObs**.
+
+```js
+// Example
+
+var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+var bar = Kefir.sequentially(200, [true, false, true]).delay(40);
+var result = foo.skipWhileBy(bar);
+result.log();
+
+
+// Output
+
+> [sequentially.skipWhileBy] <value> 1
+> [sequentially.skipWhileBy] <value> 2
+> [sequentially.skipWhileBy] <value> 3
+> [sequentially.skipWhileBy] <value> 4
+> [sequentially.skipWhileBy] <end>
+
+
+// Events diagram
+
+foo:     ----1----2----3----4----5----6----7----8X
+bar:     -----------t---------f---------tX
+
+result:  ------------------------5----6----7----8X
+```

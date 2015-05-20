@@ -2,6 +2,7 @@
 
  - [emitter](http://pozadi.github.io/kefir/#emitter-object) methods now return a boolean representing whether anybody interested in future events (i.e. whether connected observable is active)
  - Another optimization for `.flatMap((x) => Kefir.constan(...))` case (see [9e4a58a](https://github.com/pozadi/kefir/commit/9e4a58a02ec5f80b3c3c6cf52e5e5065249aba50))
+ - Methods `.takeWhileBy` and `.skipWhileBy` are deprecated (see [#105](https://github.com/pozadi/kefir/issues/105))
 
 ## 2.4.1 (14/05/2015)
 
