@@ -14,9 +14,10 @@ inherit(S, Stream, {
 
   _onActivation() {
     const fn = this._fn;
-    this._unsubscribe = fn(emitter(this)) || null;
+    const unsubscribe = fn(emitter(this));
+    this._unsubscribe = (typeof unsubscribe === 'function') ? unsubscribe : null;
 
-    // fix https://github.com/pozadi/kefir/issues/35
+    // fix https://github.com/rpominov/kefir/issues/35
     if (!this._active) {
       this._callUnsubscribe();
     }

@@ -373,20 +373,6 @@ Observable.prototype.sampledBy = function(other, combinator) {
 
 // (Stream, Stream|Property) -> Stream
 // (Property, Stream|Property) -> Property
-const takeWhileBy = require('./two-sources/take-while-by');
-Observable.prototype.takeWhileBy = function(other) {
-  return takeWhileBy(this, other);
-};
-
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
-const skipWhileBy = require('./two-sources/skip-while-by');
-Observable.prototype.skipWhileBy = function(other) {
-  return skipWhileBy(this, other);
-};
-
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
 const skipUntilBy = require('./two-sources/skip-until-by');
 Observable.prototype.skipUntilBy = function(other) {
   return skipUntilBy(this, other);
@@ -554,3 +540,21 @@ Observable.prototype.not = deprecated('.not()', '.map((x) => !x)',
 // (Function, Function, Function|undefined) -> Stream
 const fromSubUnsub = require('./primary/from-sub-unsub');
 Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
+
+// (Stream, Stream|Property) -> Stream
+// (Property, Stream|Property) -> Property
+const takeWhileBy = require('./two-sources/take-while-by');
+Observable.prototype.takeWhileBy = deprecated('.takeWhileBy(foo)', '.skipUntilBy(foo.filter((x) => !x))',
+  function(other) {
+    return takeWhileBy(this, other);
+  }
+);
+
+// (Stream, Stream|Property) -> Stream
+// (Property, Stream|Property) -> Property
+const skipWhileBy = require('./two-sources/skip-while-by');
+Observable.prototype.skipWhileBy = deprecated('.skipWhileBy(foo)', '.takeUntilBy(foo.filter((x) => !x))',
+  function(other) {
+    return skipWhileBy(this, other);
+  }
+);

@@ -36,7 +36,7 @@ describe 'skipDuplicates', ->
 
 
     it 'should help with creating circular dependencies', ->
-      # https://github.com/pozadi/kefir/issues/42
+      # https://github.com/rpominov/kefir/issues/42
 
       a = Kefir.bus()
       b = a.map (x) -> x

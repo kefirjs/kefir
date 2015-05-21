@@ -30,6 +30,6 @@ const P = createProperty('takeWhileBy', mixin);
 
 
 module.exports = function takeWhileBy(primary, secondary) {
-  return new (primary.ofSameType(S, P))(primary, secondary);
+  return new (primary._ofSameType(S, P))(primary, secondary);
 };
 

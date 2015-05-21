@@ -36,5 +36,5 @@ const S = createStream('delay', mixin);
 const P = createProperty('delay', mixin);
 
 module.exports = function delay(obs, wait) {
-  return new (obs.ofSameType(S, P))(obs, {wait});
+  return new (obs._ofSameType(S, P))(obs, {wait});
 };

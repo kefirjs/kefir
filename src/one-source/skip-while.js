@@ -29,5 +29,5 @@ const P = createProperty('skipWhile', mixin);
 const id = x => x;
 
 module.exports = function skipWhile(obs, fn = id) {
-  return new (obs.ofSameType(S, P))(obs, {fn});
+  return new (obs._ofSameType(S, P))(obs, {fn});
 };

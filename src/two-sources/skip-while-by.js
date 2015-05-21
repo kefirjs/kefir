@@ -30,6 +30,6 @@ const P = createProperty('skipWhileBy', mixin);
 
 
 module.exports = function skipWhileBy(primary, secondary) {
-  return new (primary.ofSameType(S, P))(primary, secondary);
+  return new (primary._ofSameType(S, P))(primary, secondary);
 };
 

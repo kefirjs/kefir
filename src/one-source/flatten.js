@@ -27,5 +27,5 @@ const P = createProperty('flatten', mixin);
 const id = x => x;
 
 module.exports = function flatten(obs, fn = id) {
-  return new (obs.ofSameType(S, P))(obs, {fn});
+  return new (obs._ofSameType(S, P))(obs, {fn});
 };

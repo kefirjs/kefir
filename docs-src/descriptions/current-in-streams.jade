@@ -78,7 +78,7 @@ p.
   The second benefit is that it makes possible to not lose
   current values when converting properties to streams and then back to properties.
   For example, #[a(href='#combine') combine] always returns a stream
-  (#[a(href='https://github.com/pozadi/kefir/issues/44#issuecomment-72875317') why?])
+  (#[a(href='https://github.com/rpominov/kefir/issues/44#issuecomment-72875317') why?])
   but it'll still emit the current value.
   So one can do #[tt Kefir.combine([p1, p2], fn).toProperty()],
   and get a property combined from two other properties with the correct current value.

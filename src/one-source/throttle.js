@@ -77,5 +77,5 @@ const P = createProperty('throttle', mixin);
 
 
 module.exports = function throttle(obs, wait, {leading = true, trailing = true} = {}) {
-  return new (obs.ofSameType(S, P))(obs, {wait, leading, trailing});
+  return new (obs._ofSameType(S, P))(obs, {wait, leading, trailing});
 };

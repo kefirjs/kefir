@@ -48,5 +48,5 @@ const P = createProperty('bufferWhileBy', mixin);
 
 
 module.exports = function bufferWhileBy(primary, secondary, options /* optional */) {
-  return new (primary.ofSameType(S, P))(primary, secondary, options);
+  return new (primary._ofSameType(S, P))(primary, secondary, options);
 };

@@ -26,5 +26,5 @@ const P = createProperty('filterErrors', mixin);
 const id = x => x;
 
 module.exports = function filterErrors(obs, fn = id) {
-  return new (obs.ofSameType(S, P))(obs, {fn});
+  return new (obs._ofSameType(S, P))(obs, {fn});
 };

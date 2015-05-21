@@ -13,6 +13,6 @@ const P = createProperty('takeUntilBy', mixin);
 
 
 module.exports = function takeUntilBy(primary, secondary) {
-  return new (primary.ofSameType(S, P))(primary, secondary);
+  return new (primary._ofSameType(S, P))(primary, secondary);
 };
 

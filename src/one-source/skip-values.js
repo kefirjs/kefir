@@ -9,5 +9,5 @@ const P = createProperty('skipValues', mixin);
 
 
 module.exports = function skipValues(obs) {
-  return new (obs.ofSameType(S, P))(obs);
+  return new (obs._ofSameType(S, P))(obs);
 };

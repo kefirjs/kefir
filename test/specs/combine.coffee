@@ -210,7 +210,7 @@ describe 'combine', ->
       d = prop()
       expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b)
 
-    # https://github.com/pozadi/kefir/issues/98
+    # https://github.com/rpominov/kefir/issues/98
     it 'should work nice for emitating atomic updates', ->
       a = stream()
       b = a.map (x) -> x + 2

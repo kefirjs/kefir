@@ -69,19 +69,19 @@ describe 'Kefir.stream', ->
   it 'should support emitter.emitEvent', ->
     expect(
       Kefir.stream  (emitter) ->
-        emitter.emitEvent({type: 'value', value: 1, current: true});
-        emitter.emitEvent({type: 'error', value: -1, current: false});
-        emitter.emitEvent({type: 'value', value: 2, current: false});
+        emitter.emitEvent({type: 'value', value: 1, current: true})
+        emitter.emitEvent({type: 'error', value: -1, current: false})
+        emitter.emitEvent({type: 'value', value: 2, current: false})
         setTimeout ->
-          emitter.emitEvent({type: 'value', value: 3, current: true});
-          emitter.emitEvent({type: 'value', value: 4, current: false});
-          emitter.emitEvent({type: 'end', value: undefined, current: false});
+          emitter.emitEvent({type: 'value', value: 3, current: true})
+          emitter.emitEvent({type: 'value', value: 4, current: false})
+          emitter.emitEvent({type: 'end', value: undefined, current: false})
         , 1000
         null
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 3], [1000, 4], [1000, '<end>']]
 
 
-  # https://github.com/pozadi/kefir/issues/35
+  # https://github.com/rpominov/kefir/issues/35
   it 'should work with .take(1) and sync emit', ->
 
     log = []
@@ -100,6 +100,36 @@ describe 'Kefir.stream', ->
       {sub: 1, unsub: 1}
     ]
 
+  it 'should not throw if not falsey but not a function returned', ->
+    expect(Kefir.stream(-> true)).toEmit []
+
+  it 'emitter should return a boolean representing if anyone intrested in future events', ->
+    emitter = null
+    a = Kefir.stream (em) ->
+      emitter = em
+    activate(a)
+    expect(emitter.emit(1)).toBe(true)
+    deactivate(a)
+    expect(emitter.emit(1)).toBe(false)
+
+    a = Kefir.stream (em) ->
+      expect(em.emit(1)).toBe(true)
+      expect(em.emit(2)).toBe(false)
+      expect(em.emit(3)).toBe(false)
+    lastX = null
+    f = (x) ->
+      lastX = x
+      if x == 2
+        a.offValue(f)
+    a.onValue(f)
+    expect(lastX).toBe(2)
+
+  it 'emitter should have methods `value` and `event`', ->
+    expect(
+      Kefir.stream (em) ->
+        em.value(1)
+        em.event({type: 'value', value: 2})
+    ).toEmit [ { current : 1 }, { current : 2 } ]
 
 
 

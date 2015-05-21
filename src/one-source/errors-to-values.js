@@ -29,5 +29,5 @@ const P = createProperty('errorsToValues', mixin);
 const defFn = x => ({convert: true, value: x});
 
 module.exports = function errorsToValues(obs, fn = defFn) {
-  return new (obs.ofSameType(S, P))(obs, {fn});
+  return new (obs._ofSameType(S, P))(obs, {fn});
 };

@@ -27,5 +27,5 @@ const P = createProperty('slidingWindow', mixin);
 
 
 module.exports = function slidingWindow(obs, max, min = 0) {
-  return new (obs.ofSameType(S, P))(obs, {min, max});
+  return new (obs._ofSameType(S, P))(obs, {min, max});
 };

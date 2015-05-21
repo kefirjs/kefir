@@ -1,8 +1,24 @@
 module.exports = function emitter(obs) {
-  return {
-    emit: (x) => obs._emitValue(x),
-    error: (x) => obs._emitError(x),
-    end: () => obs._emitEnd(),
-    emitEvent: (e) => obs._emit(e.type, e.value)
-  };
+
+  function value(x) {
+    obs._emitValue(x);
+    return obs._active;
+  }
+
+  function error(x) {
+    obs._emitError(x);
+    return obs._active;
+  }
+
+  function end() {
+    obs._emitEnd();
+    return obs._active;
+  }
+
+  function event(e) {
+    obs._emit(e.type, e.value);
+    return obs._active;
+  }
+
+  return {value, error, end, event, emit: value, emitEvent: event};
 };

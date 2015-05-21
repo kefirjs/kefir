@@ -56,12 +56,33 @@ inherit(AbstractPool, Stream, {
 
   _addToCur(obs) {
     if (this._active) {
-      // Optimization for the .flatMap(x => Kefir.constant(...)) case.
-      // We could just did following here, but it would be ~5x slower:
+
+      // HACK:
+      //
+      // We have two optimizations for cases when `obs` is ended. We don't want
+      // to add such observable to the list, but only want to emit events
+      // from it (if it has some).
+      //
+      // Instead of this hacks, we could just did following,
+      // but it would be 5-8 times slower:
       //
       //     this._curSources = concat(this._curSources, [obs]);
       //     this._subscribe(obs);
       //
+
+      // #1
+      // This one for cases when `obs` already ended
+      // e.g., Kefir.constant() or Kefir.never()
+      if (!obs._alive) {
+        if (obs._currentEvent) {
+          this._emit(obs._currentEvent.type, obs._currentEvent.value);
+        }
+        return;
+      }
+
+      // #2
+      // This one is for cases when `obs` going to end synchronously on
+      // first subscriber e.g., Kefir.stream(em => {em.emit(1); em.end()})
       this._currentlyAdding = obs;
       obs.onAny(this._$handleSubAny);
       this._currentlyAdding = null;
@@ -71,6 +92,7 @@ inherit(AbstractPool, Stream, {
           this._subToEnd(obs);
         }
       }
+
     } else {
       this._curSources = concat(this._curSources, [obs]);
     }

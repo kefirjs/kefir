@@ -76,7 +76,7 @@ describe 'flatMap', ->
       ).toEmit [3, {error: -1}, 4, {error: -2}, 5], ->
         send(a, [1, 2, 3, -1, 4, -2, 5])
 
-    # https://github.com/pozadi/kefir/issues/29
+    # https://github.com/rpominov/kefir/issues/29
     it 'Bug in flatMap: exception thrown when resubscribing to stream', ->
       src = Kefir.emitter()
       stream1 = src.flatMap((x) -> x)
@@ -102,7 +102,7 @@ describe 'flatMap', ->
       expect(result).errorsToFlow(b)
       expect(result).errorsToFlow(c)
 
-    # https://github.com/pozadi/kefir/issues/92
+    # https://github.com/rpominov/kefir/issues/92
     it 'Bug "flatMap with take(1) doesn\'t unsubscribe from source"', ->
 
       subs = 0

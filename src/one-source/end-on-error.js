@@ -14,5 +14,5 @@ const P = createProperty('endOnError', mixin);
 
 
 module.exports = function endOnError(obs) {
-  return new (obs.ofSameType(S, P))(obs);
+  return new (obs._ofSameType(S, P))(obs);
 };
