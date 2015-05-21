@@ -81,7 +81,7 @@ describe 'Kefir.stream', ->
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 3], [1000, 4], [1000, '<end>']]
 
 
-  # https://github.com/pozadi/kefir/issues/35
+  # https://github.com/rpominov/kefir/issues/35
   it 'should work with .take(1) and sync emit', ->
 
     log = []

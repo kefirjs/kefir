@@ -48,7 +48,7 @@ inherit(Combine, Stream, {
     this._aliveCount = this._activeCount;
 
     // we need to suscribe to _passive_ sources before _active_
-    // (see https://github.com/pozadi/kefir/issues/98)
+    // (see https://github.com/rpominov/kefir/issues/98)
     for (let i = this._activeCount; i < this._sources.length; i++) {
       this._sources[i].onAny(this._$handlers[i]);
     }

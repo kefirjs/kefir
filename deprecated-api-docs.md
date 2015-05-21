@@ -1,7 +1,7 @@
 # Deprecated API Methods documentation
 
 All documentation on deprecated methods are moved
-from [main docs](http://pozadi.github.io/kefir/) to this file.
+from [main docs](http://rpominov.github.io/kefir/) to this file.
 
 
 
@@ -317,7 +317,7 @@ isAnyTrue:  --------t--t--t--
 
 ### `Kefir.sampledBy(passiveObss, activeObss, [combinator])`
 
-Same as [.combine](http://pozadi.github.io/kefir/#combine),
+Same as [.combine](http://rpominov.github.io/kefir/#combine),
 except passive observables goes as the first argument unlike second in **.combine**,
 and both `passiveObss` and `activeObss` are required.
 
@@ -326,14 +326,14 @@ and both `passiveObss` and `activeObss` are required.
 ### Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])
 
 Creates a stream from **subscribe** and **unsubscribe** functions.
-The **subscribe** function is called on each [activation](http://pozadi.github.io/kefir/#active-state)
+The **subscribe** function is called on each [activation](http://rpominov.github.io/kefir/#active-state)
 with a callback as argument,
 giving you an opportunity to subscribe with this callback to an original source of values.
 When all subscribers from the stream are removed, the **unsubscribe** function is called
 with the same callback, so you can unsubscribe from your original source.
 
 You can also provide a **transform** function, which will work the same way as in
-[fromEvents](http://pozadi.github.io/kefir/#from-event).
+[fromEvents](http://rpominov.github.io/kefir/#from-event).
 
 ```js
 // Example
@@ -374,7 +374,7 @@ stream:  ----•--------------•----•---
 Creates an emitter, which is an ordinary stream, but with additional methods:
 `.emit(value)`, `.error(error)`, `.end()`, and `.emitEvent()`.
 The first three are pretty self-descriptive, and the last one accepts an event object with the same format
-than in the [onAny](http://pozadi.github.io/kefir/#on-any) method, and emits that event.
+than in the [onAny](http://rpominov.github.io/kefir/#on-any) method, and emits that event.
 Once an emitter was created, one can easily emit all three kinds of events from it,
 using these methods.
 
@@ -434,7 +434,7 @@ bus.end();
 
 ### obs.reduce(fn, [seed])
 
-Similar to [.scan](http://pozadi.github.io/kefir/#scan),
+Similar to [.scan](http://rpominov.github.io/kefir/#scan),
 but emits only the last result just before end.
 
 ```js
@@ -463,7 +463,7 @@ result:  ----------------8X
 
 ### obs.takeWhileBy(otherObs)
 
-Works like [takeWhile](http://pozadi.github.io/kefir/#take-while), but instead
+Works like [takeWhile](http://rpominov.github.io/kefir/#take-while), but instead
 of using a predicate function it uses another observable. It takes values from
 **obs** observable until the first falsey value from **otherObs**.
 
@@ -501,7 +501,7 @@ result:  ----1----2----3----4-X
 
 ### obs.skipWhileBy(otherObs)
 
-Works like [skipWhile](http://pozadi.github.io/kefir/#skip-while), but instead
+Works like [skipWhile](http://rpominov.github.io/kefir/#skip-while), but instead
 of using a predicate function it uses another observable. It skips values from
 **obs** observable until the first falsey value from **otherObs**.
 

@@ -22,10 +22,10 @@
     "Observable"
   ],
   "author": "Roman Pominov <rpominov@gmail.com>",
-  "homepage": "https://github.com/pozadi/kefir",
+  "homepage": "https://github.com/rpominov/kefir",
   "repository": {
     "type": "git",
-    "url": "http://github.com/pozadi/kefir.git"
+    "url": "http://github.com/rpominov/kefir.git"
   },
   "license": "MIT",
   "devDependencies": {
