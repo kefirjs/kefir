@@ -4,22 +4,22 @@ All documentation on deprecated methods are moved
 from [main docs](http://rpominov.github.io/kefir/) to this file.
 
 
- - [Kefir.repeatedly(interval, values)](#kefirrepeatedlyinterval-values)
- - [obs.mapTo(value)](#obsmaptovalue)
- - [obs.pluck(propertyName)](#obspluckpropertyname)
- - [obs.invoke(methodName)](#obsinvokemethodname)
+ - [Kefir.repeatedly()](#kefirrepeatedlyinterval-values)
+ - [obs.mapTo()](#obsmaptovalue)
+ - [obs.pluck()](#obspluckpropertyname)
+ - [obs.invoke()](#obsinvokemethodname)
  - [obs.not()](#obsnot)
  - [obs.timestamp()](#obstimestamp)
- - [obs.tap(fn)](#obstapfn)
- - [Kefir.and(obss)](#kefirandobss)
- - [Kefir.or(obss)](#kefirorobss)
- - [Kefir.sampledBy(passiveObss, activeObss, [combinator])](#kefirsampledbypassiveobss-activeobss-combinator)
- - [Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])](#kefirfromsubunsubsubscribe-unsubscribe-transform)
+ - [obs.tap()](#obstapfn)
+ - [Kefir.and()](#kefirandobss)
+ - [Kefir.or()](#kefirorobss)
+ - [Kefir.sampledBy()](#kefirsampledbypassiveobss-activeobss-combinator)
+ - [Kefir.fromSubUnsub()](#kefirfromsubunsubsubscribe-unsubscribe-transform)
  - [Kefir.emitter()](#kefiremitter)
  - [Kefir.bus()](#kefirbus)
- - [obs.reduce(fn, [seed])](#obsreducefn-seed)
- - [obs.takeWhileBy(otherObs)](#obstakewhilebyotherobs)
- - [obs.skipWhileBy(otherObs)](#obsskipwhilebyotherobs)
+ - [obs.reduce()](#obsreducefn-seed)
+ - [obs.takeWhileBy()](#obstakewhilebyotherobs)
+ - [obs.skipWhileBy()](#obsskipwhilebyotherobs)
 
 
 ### `Kefir.repeatedly(interval, values)`
