@@ -11,7 +11,7 @@ p.
   Works like <a href="#filter">filter</a>, but instead of calling a predicate
   on each value from #[b obs] observable, it checks the last value from #[b otherObs].
 
-pre(title='example').
+pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
   var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
   var result = foo.filterBy(bar);
@@ -46,7 +46,7 @@ p.
   from #[b obs] and #[b otherObs] as arguments. The default #[b combinator]
   function is #[tt function(a,&nbsp;b)&nbsp;{return&nbsp;a}].
 
-pre(title='example').
+pre.javascript(title='example').
   var a = Kefir.sequentially(200, [2, 3]).toProperty(1);
   var b = Kefir.interval(100, 0).delay(40).take(5);
   var result = a.sampledBy(b);
@@ -73,7 +73,7 @@ div
 +descr-method('skip-until-by', 'skipUntilBy', 'obs.skipUntilBy(otherObs)').
   Skips values form #[b obs] until the first value from #[b otherObs].
 
-pre(title='example').
+pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
   var bar = Kefir.later(250, 0);
   var result = foo.skipUntilBy(bar);
@@ -99,7 +99,7 @@ div
   Takes values form #[b obs] until the first value form #[b otherObs] i.e.,
   ends on the first value from #[b otherObs].
 
-pre(title='example').
+pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
   var bar = Kefir.later(250, 0);
   var result = foo.takeUntilBy(bar);
@@ -127,7 +127,7 @@ div
   Also flushes the buffer before end, but you can disable that
   by passing #[tt {flushOnEnd: false}] as #[b options].
 
-pre(title='example').
+pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]).delay(40);
   var bar = Kefir.sequentially(300, [1, 2])
   var result = foo.bufferBy(bar);
@@ -162,7 +162,7 @@ div
   by passing #[tt {flushOnEnd: false}] as #[b options].
 
 
-pre(title='example').
+pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
   var bar = Kefir.sequentially(200, [false, true, false]).delay(40);
   var result = foo.bufferWhileBy(bar);
@@ -193,7 +193,7 @@ div
   i.e. answers the question «Has #[b obs] observable emitted a value
   since the last value from #[b otherObs] observable has been emitted?».
 
-pre(title='example').
+pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3]);
   var bar = Kefir.sequentially(100, [1, 2, 3]).delay(40);
   var result = foo.awaiting(bar);

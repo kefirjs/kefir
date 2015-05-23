@@ -19,7 +19,7 @@ p.
   Applies the given #[b fn] function to each value from the original observable
   and emits the value returned by #[b fn].
 
-pre(title='example').
+pre.javascript(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.map(function(x) {  return x + 1  });
   result.log();
@@ -47,7 +47,7 @@ div
 p.
   If no #[b predicate] is provided, the #[tt function(x) {return x}] will be used.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.filter(function(x) {  return x > 1  });
@@ -72,7 +72,7 @@ p.
 +descr-method('take', 'take', 'obs.take(n)').
   Emits the first #[b n] values from the original observable, then ends.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.take(2);
@@ -99,7 +99,7 @@ div
 p.
   If no #[b predicate] is provided, the #[tt function(x) {return x}] will be used.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.takeWhile(function(x) {  return x < 3  });
@@ -124,7 +124,7 @@ p.
 +descr-method('last', 'last', 'obs.last()').
   Emits only the last value from the original observable.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.last();
@@ -144,7 +144,7 @@ div
 +descr-method('skip', 'skip', 'obs.skip(n)').
   Skips the first #[b n] values from the original observable, then emits all the rest.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.skip(2);
@@ -170,7 +170,7 @@ div
 p.
   If no #[b predicate] is provided, the #[tt function(x) {return x}] will be used.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 3, 2]);
     var result = source.skipWhile(function(x) {  return x < 3  });
@@ -196,7 +196,7 @@ p.
   Skips duplicate values using #[tt ===] for comparison.
   Accepts an optional #[b comparator] function which is then used instead of #[tt ===].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3, 1]);
     var result = source.skipDuplicates();
@@ -217,7 +217,7 @@ div
 
 p With custom #[b comparator] function:
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2.1, 3, 1]);
     var result = source.skipDuplicates(function(a, b) {
@@ -255,7 +255,7 @@ p.
   If no #[b fn] function is provided, #[tt function(a, b) {return [a, b]}] will be used.
   If you want to omit #[b fn] but provide #[b seed], pass #[tt null] as #[b fn].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
     var result = source.diff(function(prev, next) {
@@ -289,7 +289,7 @@ div
 p.
   If no #[b seed] is provided, the first value will be used as a seed.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 2, 3]);
     var result = source.scan(function(prev, next) {
@@ -318,7 +318,7 @@ div
   For this method it's expected that the source observable emits arrays.
   The result observable will then emit each element of these arrays.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [[1], [], [2,3]]);
     var result = source.flatten();
@@ -349,7 +349,7 @@ p.
   to change the value — return an array with a single new value,
   to emit several values — return them in an array.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3, 4]);
     var result = source.flatten(function(x) {
@@ -383,7 +383,7 @@ p.
   with an exception for the current value of a property,
   or the end of an already ended observable. Doesn't delay #[a(href='#about-errors') errors].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(200, [1, 2, 3]);
     var result = source.delay(100);
@@ -419,7 +419,7 @@ p.
   pass #[tt {leading: false}]. And if you'd like to disable the emit
   on the trailing-edge, pass #[tt {trailing: false}].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(750, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
     var result = source.throttle(2500);
@@ -450,7 +450,7 @@ div
   trailing edge of the #[b wait] interval.
   If used on a property, the current value will always pass without any delay.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3, 0, 0, 0, 4, 5, 6]);
     source = source.filter(function(x) {return x > 0});
@@ -480,7 +480,7 @@ div
   if #[b convert] is set to #[tt true], the specified #[b error] will be emitted,
   otherwise the original value will be emitted, and the #[b error] property will be ignored.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3]);
     var result = source.valuesToErrors(function(x) {
@@ -513,7 +513,7 @@ div
 +descr-method('errors-to-values', 'errorsToValues', 'obs.errorsToValues([handler])').
   Same as #[a(href='#values-to-errors') valuesToErrors] but vice versa.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3]).valuesToErrors();
     var result = source.errorsToValues(function(x) {
@@ -546,7 +546,7 @@ div
   Applies the given #[b fn] function to each error from the original observable
   and emits the error returned by #[b fn].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
     var result = source.mapErrors(function(x) {
@@ -580,7 +580,7 @@ div
 p.
   If no #[b predicate] is provided, the #[tt function(x) {return x}] will be used.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
     var result = source.filterErrors(function(x) {
@@ -608,7 +608,7 @@ div
 +descr-method('end-on-error', 'endOnError', 'obs.endOnError()').
   Makes an observable to end on first error.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
       .valuesToErrors(function(x) {
@@ -637,7 +637,7 @@ div
 +descr-method('skip-values', 'skipValues', 'obs.skipValues()').
   Ignores all values from the original observable, emitting only errors and end.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
       .valuesToErrors(function(x) {
@@ -666,7 +666,7 @@ div
 +descr-method('skip-errors', 'skipErrors', 'obs.skipErrors()').
   Ignores all errors from the original observable, emitting only values and end.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
       .valuesToErrors(function(x) {
@@ -694,7 +694,7 @@ div
 +descr-method('skip-end', 'skipEnd', 'obs.skipEnd()').
   Ignores end of source observable.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.skipEnd();
@@ -719,7 +719,7 @@ div
   #[b fn] will be called on #[b obs]' end with no arguments,
   and whatever it return will be emitted in the result stream before end.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
     var result = source.beforeEnd(function() {  return 0  });
@@ -746,7 +746,7 @@ div
   where #[b n] is between #[b max] and #[b min] arguments.
   By default #[b min] equals #[tt 0].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
     var result = source.slidingWindow(3, 2)
@@ -779,7 +779,7 @@ p.
   If you want to omit #[b predicate] but pass #[b options],
   pass #[tt null] as #[b predicate].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
     var result = source.bufferWhile(function(x) {return x !== 3});
@@ -813,7 +813,7 @@ p.
   <a href="https://github.com/cognitect-labs/transducers-js">cognitect-labs/transducers-js</a>
   library is used.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var t = transducers;
     var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
@@ -856,7 +856,7 @@ p.
   and you can also call them any time later, for example to implement
   <a href="#delay">delay</a>.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, 1, 2, 3]);
     var result = source.withHandler(function(emitter, event) {

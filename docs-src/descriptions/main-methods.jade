@@ -9,7 +9,7 @@ p.
   #[b callback] will be called immediately (synchronously)
   with that value.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
   stream.onValue(function(x) {
     console.log('value:', x);
@@ -32,7 +32,7 @@ p.
   #[b callback] will be called immediately (synchronously)
   with that error.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
   stream.onError(function(x) {
     console.log('error:', x);
@@ -53,7 +53,7 @@ pre(title='console output')
 p.
   If observable is already ended, #[b callback] will be called immediately (synchronously).
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
   stream.onEnd(function() {
     console.log('stream ended');
@@ -81,7 +81,7 @@ p.
   #[a(href='https://github.com/rpominov/kefir/issues/100') going to be removed]
   in #[tt v3.0.0].
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
   stream.onAny(function(event) {
     console.log('event:', event);
@@ -100,7 +100,7 @@ pre(title='console output')
   Turns on logging of any event to the browser console.
   Accepts an optional #[b name] argument that will be shown in the log if provided.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.sequentially(1000, [1, 2]);
   stream.log('my stream');
 
@@ -124,7 +124,7 @@ pre(title='console output')
   with the latest value or error. If observable ends without any value or error
   the promise will never be fulfilled/rejected.
 
-pre(title='example').
+pre.javascript(title='example').
   var promise = Kefir.sequentially(1000, [1, 2]).toPromise();
   promise.then(function(x) {
     console.log('fulfilled with:', x);

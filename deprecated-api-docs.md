@@ -4,6 +4,23 @@ All documentation on deprecated methods are moved
 from [main docs](http://rpominov.github.io/kefir/) to this file.
 
 
+ - [Kefir.repeatedly()](#kefirrepeatedlyinterval-values)
+ - [obs.mapTo()](#obsmaptovalue)
+ - [obs.pluck()](#obspluckpropertyname)
+ - [obs.invoke()](#obsinvokemethodname)
+ - [obs.not()](#obsnot)
+ - [obs.timestamp()](#obstimestamp)
+ - [obs.tap()](#obstapfn)
+ - [Kefir.and()](#kefirandobss)
+ - [Kefir.or()](#kefirorobss)
+ - [Kefir.sampledBy()](#kefirsampledbypassiveobss-activeobss-combinator)
+ - [Kefir.fromSubUnsub()](#kefirfromsubunsubsubscribe-unsubscribe-transform)
+ - [Kefir.emitter()](#kefiremitter)
+ - [Kefir.bus()](#kefirbus)
+ - [obs.reduce()](#obsreducefn-seed)
+ - [obs.takeWhileBy()](#obstakewhilebyotherobs)
+ - [obs.skipWhileBy()](#obsskipwhilebyotherobs)
+
 
 ### `Kefir.repeatedly(interval, values)`
 
@@ -323,7 +340,7 @@ and both `passiveObss` and `activeObss` are required.
 
 
 
-### Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])
+### `Kefir.fromSubUnsub(subscribe, unsubscribe, [transform])`
 
 Creates a stream from **subscribe** and **unsubscribe** functions.
 The **subscribe** function is called on each [activation](http://rpominov.github.io/kefir/#active-state)
@@ -369,7 +386,7 @@ stream:  ----•--------------•----•---
 
 
 
-### Kefir.emitter()
+### `Kefir.emitter()`
 
 Creates an emitter, which is an ordinary stream, but with additional methods:
 `.emit(value)`, `.error(error)`, `.end()`, and `.emitEvent()`.
@@ -405,7 +422,7 @@ emitter:  ----1----e----X
 
 
 
-### Kefir.bus()
+### `Kefir.bus()`
 
 **Bus** is a `Kefir.pool()` with `Kefir.emitter()` methods so one can emit
 values from it directly.
@@ -432,7 +449,7 @@ bus.end();
 
 
 
-### obs.reduce(fn, [seed])
+### `obs.reduce(fn, [seed])`
 
 Similar to [.scan](http://rpominov.github.io/kefir/#scan),
 but emits only the last result just before end.
@@ -461,7 +478,7 @@ result:  ----------------8X
 
 
 
-### obs.takeWhileBy(otherObs)
+### `obs.takeWhileBy(otherObs)`
 
 Works like [takeWhile](http://rpominov.github.io/kefir/#take-while), but instead
 of using a predicate function it uses another observable. It takes values from
@@ -499,7 +516,7 @@ result:  ----1----2----3----4-X
 
 
 
-### obs.skipWhileBy(otherObs)
+### `obs.skipWhileBy(otherObs)`
 
 Works like [skipWhile](http://rpominov.github.io/kefir/#skip-while), but instead
 of using a predicate function it uses another observable. It skips values from

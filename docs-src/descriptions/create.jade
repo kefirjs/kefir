@@ -7,7 +7,7 @@ h2#create-stream Create a stream
 +descr-method('never', 'never', 'Kefir.never()').
   Creates a stream that already ended and will never produce any events.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.never();
   stream.log();
 
@@ -26,7 +26,7 @@ div
   Creates a stream that produces a single #[b value]
   after #[b wait] milliseconds, then ends.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.later(1000, 1);
   stream.log();
 
@@ -46,7 +46,7 @@ div
   Creates a stream that produces the same #[b value]
   each #[b interval] milliseconds. Never ends.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.interval(1000, 1);
   stream.log();
 
@@ -67,7 +67,7 @@ div
   delivered with the given #[b interval] in milliseconds.
   Ends after all #[b values] are delivered.
 
-pre(title='example').
+pre.javascript(title='example').
   var stream = Kefir.sequentially(1000, [1, 2, 3]);
   stream.log();
 
@@ -90,7 +90,7 @@ div
   and emits the values returned by #[b fn].
   Never ends.
 
-pre(title='example').
+pre.javascript(title='example').
   var start = new Date();
   var stream = Kefir.fromPoll(1000, function(){ return new Date() - start });
   stream.log();
@@ -118,7 +118,7 @@ div
   The #[b handler] function is called with one argument —
   an #[a(href="#emitter-object") emitter].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var start = new Date();
     var stream = Kefir.withInterval(1000, function(emitter) {
@@ -156,7 +156,7 @@ p.
   The #[b fn] function will be called at most once,
   when the first subscriber will be added to the stream.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var stream = Kefir.fromCallback(function(callback) {
       // we use setTimeout here just to simulate some asynchronous activity
@@ -183,7 +183,7 @@ div
   an error will be emitted from the result stream, otherwise a value is emitted.
   The stream will end after the first value or on error.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var stream = Kefir.fromNodeCallback(function(callback) {
       // we use setTimeout here just to simulate some asynchronous activity
@@ -213,7 +213,7 @@ p.
   If no #[b transform] function is provided, the first argument of the callback is emitted by default,
   i.e. the #[tt function(x) {return x}] is used as #[b transform].
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var stream = Kefir.fromEvents(document.body, 'click');
     stream.log()
@@ -240,7 +240,7 @@ a(name='from-binder')
   The #[b subscribe] function is called with #[a(href="#emitter-object") emitter] as an argument,
   which can be used to emit events from the result stream.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var stream = Kefir.stream(function(emitter) {
 
@@ -285,7 +285,7 @@ h2#create-property Create a property
 +descr-method('constant', 'constant', 'Kefir.constant(value)').
   Creates an ended property, with the specified #[b current value].
 
-pre(title='example').
+pre.javascript(title='example').
   var property = Kefir.constant(1);
   property.log();
 
@@ -303,7 +303,7 @@ div
 +descr-method('constant-error', 'constantError', 'Kefir.constantError(error)').
   Creates an ended property, with the specified #[b current error].
 
-pre(title='example').
+pre.javascript(title='example').
   var property = Kefir.constantError(1);
   property.log();
 
@@ -325,7 +325,7 @@ div
   #[a(href='https://github.com/kriskowal/q') Q] or
   #[a(href='https://github.com/cujojs/when') when] from swallowing exceptions.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var result = Kefir.fromPromise(new Promise(function(fulfill) {  fulfill(1)  }));
     result.log();

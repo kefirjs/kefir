@@ -13,7 +13,7 @@ ul
   li #[tt emitter.end()] accepts no arguments
   li #[tt emitter.emitEvent(event)] accepts one agrument (event object with same format as in #[a(href='#on-any') onAny] method). Note that the #[tt current] property of #[b event object] is ignored and is automatically set to an appropriate value for result event.
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     emitter.emit(123);
     emitter.error('Oh, snap!');

@@ -18,7 +18,7 @@ p.
   Let see some examples.
   Each of these streams will emit a value at the moment the first subscriber is added:
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
 
@@ -47,7 +47,7 @@ p.
   First benefit — it allows you to define the current value in
   #[a(href='#stream') Kefir.stream()]. It is easier to show with an example:
 
-pre(title='example')
+pre.javascript(title='example')
   :escapehtml
     var scrollTop = Kefir.stream(function(emitter) {
 

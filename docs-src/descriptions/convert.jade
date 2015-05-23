@@ -6,7 +6,7 @@ h2#convert Convert observables
   Accepts an optional #[b getCurrent] callback, which will be called on
   each #[a(href='#active-state') activation] to get the current value at that moment.
 
-pre(title='example').
+pre.javascript(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var result = source.toProperty(function() {
     return 0;
@@ -37,7 +37,7 @@ p.
   If you call #[b changes] on a stream, it will return a new stream with
   #[a(href='#current-in-streams') current values/errors] removed.
 
-pre(title='example').
+pre.javascript(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
   var property = source.toProperty(0);
   var result = property.changes();
