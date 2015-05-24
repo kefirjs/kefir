@@ -9,7 +9,8 @@ const P = createProperty('toProperty', {
 
   _onActivation() {
     if (this._getInitialCurrent !== null) {
-      this._emitValue(this._getInitialCurrent());
+      const getInitial = this._getInitialCurrent;
+      this._emitValue(getInitial());
     }
     this._source.onAny(this._$handleAny);  // copied from patterns/one-source
   }
@@ -19,5 +20,8 @@ const P = createProperty('toProperty', {
 
 
 module.exports = function toProperty(obs, fn = null) {
+  if (fn !== null && typeof fn !== 'function') {
+    throw new Error('You should call toProperty() with a function or no arguments.');
+  }
   return new P(obs, {fn});
 };

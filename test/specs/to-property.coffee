@@ -57,6 +57,14 @@ describe 'toProperty', ->
       deactivate(p)
       expect(getCurrent(p)).toBe(0)
 
+    it 'should throw when called with not a function', ->
+      err = null
+      try
+        stream().toProperty(1)
+      catch e
+        err = e
+      expect(err.message).toBe('You should call toProperty() with a function or no arguments.')
+
 
 
   describe 'property', ->
