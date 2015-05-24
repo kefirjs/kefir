@@ -39,7 +39,7 @@ p.
 
 pre.javascript(title='example').
   var source = Kefir.sequentially(100, [1, 2, 3]);
-  var property = source.toProperty(0);
+  var property = source.toProperty(function() {return 0});
   var result = property.changes();
   result.log();
 

@@ -103,7 +103,7 @@ p.
 pre.javascript(title='example').
   var a = Kefir.sequentially(100, [0, 1, 2, 3]);
   var b = Kefir.sequentially(160, [4, 5, 6]);
-  var c = Kefir.sequentially(100, [8, 9]).delay(260).toProperty(7);
+  var c = Kefir.sequentially(100, [8, 9]).delay(260).toProperty(function() {return 7});
   var result = Kefir.zip([a, b, c]);
   result.log();
 

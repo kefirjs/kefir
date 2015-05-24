@@ -13,7 +13,7 @@ p.
 
 pre.javascript(title='example').
   var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
-  var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(true);
+  var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(function() {return true});
   var result = foo.filterBy(bar);
   result.log();
 
@@ -47,7 +47,7 @@ p.
   function is #[tt function(a,&nbsp;b)&nbsp;{return&nbsp;a}].
 
 pre.javascript(title='example').
-  var a = Kefir.sequentially(200, [2, 3]).toProperty(1);
+  var a = Kefir.sequentially(200, [2, 3]).toProperty(function() {return 1});
   var b = Kefir.interval(100, 0).delay(40).take(5);
   var result = a.sampledBy(b);
   result.log();
