@@ -35,7 +35,7 @@
   ],
   "devDependencies": {
     "jquery": "2.1.4",
-    "transducers-js": "0.4.172"
+    "transducers-js": "0.4.174"
   },
   "exportsOverride": {
     "transducers-js": {
