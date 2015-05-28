@@ -35,6 +35,8 @@
     "benchmark": "1.0.0",
     "coffee-script": "1.9.2",
     "coffeeify": "1.1.0",
+    "flyd": "^0.1.6",
+    "flyd-filter": "^1.0.2",
     "grunt": "0.4.5",
     "grunt-bower-task": "0.4.0",
     "grunt-browserify": "3.8.0",
