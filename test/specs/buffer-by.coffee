@@ -21,10 +21,10 @@ describe 'bufferBy', ->
       expect(a.bufferBy(b)).toActivate(a, b)
 
     it 'should end when primary ends', ->
-      expect(send(stream(), ['<end>']).bufferBy(stream())).toEmit ['<end:current>']
+      expect(send(stream(), ['<end>']).bufferBy(stream())).toEmit [{current: []}, '<end:current>']
       a = stream()
       b = stream()
-      expect(a.bufferBy(b)).toEmit ['<end>'], -> send(a, ['<end>'])
+      expect(a.bufferBy(b)).toEmit [[], '<end>'], -> send(a, ['<end>'])
 
     it 'should flush buffer on end', ->
       expect(send(prop(), [1, '<end>']).bufferBy(stream())).toEmit [{current: [1]}, '<end:current>']
@@ -50,10 +50,10 @@ describe 'bufferBy', ->
       b = stream()
       expect(a.bufferBy(b, {flushOnEnd: false})).toEmit ['<end>'], -> send(b, ['<end>'])
 
-    it 'should flush buffer (if not empty) on each value from secondary', ->
+    it 'should flush buffer on each value from secondary', ->
       a = stream()
       b = stream()
-      expect(a.bufferBy(b)).toEmit [[1, 2], [3]], ->
+      expect(a.bufferBy(b)).toEmit [[], [1, 2], [], [3]], ->
         send(b, [0])
         send(a, [1, 2])
         send(b, [0])

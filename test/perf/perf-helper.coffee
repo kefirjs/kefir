@@ -2,6 +2,7 @@ Benchmark = require('benchmark')
 Kefir = require('../../dist/kefir.js')
 Bacon = require('baconjs')
 Rx = require('rx')
+flyd = require('flyd');
 
 Benchmark.options.maxTime = 3;
 Benchmark.options.minSamples = 15;
@@ -40,6 +41,12 @@ buildRx = (modify, _getVal=getVal) ->
   -> observer.onNext(_getVal())
 
 
+buildFlyd = (modify, _getVal=getVal) ->
+  stream = flyd.stream()
+  flyd.stream([modify(stream)], noop) 
+  -> stream(_getVal())
+
+
 exports.setupTest = (title, options) ->
   console.log ""
   console.log "#{title}"
@@ -64,6 +71,9 @@ exports.setupTest = (title, options) ->
 
   if options.rx
     suite.add('RxJS', buildRx(options.rx, options.getVal))
+
+  if options.flyd
+    suite.add('flyd', buildFlyd(options.flyd, options.getVal))
 
   suite.on 'cycle', (event) ->
     console.log String(event.target)
