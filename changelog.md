@@ -1,8 +1,8 @@
 ## 2.6.0 (05/06/2015)
 
  - A bug in `.bufferBy` fixed [#108](https://github.com/rpominov/kefir/issues/108)
- - Another (minor) perf improvement for `flatMap` and similar methods [c329c61](https://github.com/rpominov/kefir/commit/c329c61c4869a550e2b29eaa9ab6c7d4a7e899ad)).
- - The `.toProperty` method now throws with a meaningful message when called with not a function [544b689](https://github.com/rpominov/kefir/commit/544b689d9ffd165d09f3d04de8c40a4b59ceb04c)).
+ - Another (minor) perf improvement for `flatMap` and similar methods [c329c61](https://github.com/rpominov/kefir/commit/c329c61c4869a550e2b29eaa9ab6c7d4a7e899ad)
+ - The `.toProperty` method now throws with a meaningful message when called with not a function [544b689](https://github.com/rpominov/kefir/commit/544b689d9ffd165d09f3d04de8c40a4b59ceb04c)
 
 ## 2.5.0 (21/05/2015)
 
