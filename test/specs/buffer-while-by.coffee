@@ -76,7 +76,7 @@ describe 'bufferWhileBy', ->
       expect(a.bufferWhileBy(b)).toEmit [[1,2,3,4], [5], [6,7,8]], ->
         send(a, [1, 2]) # buffering
         send(b, [true])
-        send(a, [3]) # stil buffering
+        send(a, [3]) # still buffering
         send(b, [false])
         send(a, [4]) # flushing 1,2,3,4
         send(a, [5]) # flushing 5
@@ -111,6 +111,14 @@ describe 'bufferWhileBy', ->
       b = prop()
       expect(a.bufferWhileBy(b)).errorsToFlow(b)
 
+    it 'should flush on change if {flushOnChange === true}', ->
+      a = stream()
+      b = stream()
+      expect(a.bufferWhileBy(b, {flushOnChange: true})).toEmit [[1,2,3]], ->
+        send(a, [1, 2]) # buffering
+        send(b, [true])
+        send(a, [3]) # still buffering
+        send(b, [false]) # flush
 
 
   describe 'stream + stream', ->

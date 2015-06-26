@@ -158,8 +158,13 @@ div
   On each value from #[b obs] observable:
   if the last value from #[b otherObs] was truthy, adds the new value to the buffer,
   otherwise flushes the buffer (with the new value included).
-  Also flushes the buffer before end, but you can disable that
-  by passing #[tt {flushOnEnd: false}] as #[b options].
+
+p.
+  It supports two #[b options]: #[tt flushOnEnd] (by default #[tt true]) and
+  #[tt flushOnChange] (by default #[tt false]). If #[tt flushOnEnd] set to
+  #[tt false], the buffer won't be flushed when the main observable ends.
+  If #[tt flushOnChange] set to #[tt true], the buffer will be flushed when the
+  controlling observable emits #[tt false].
 
 
 pre.javascript(title='example').
