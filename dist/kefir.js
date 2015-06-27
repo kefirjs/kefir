@@ -1,4 +1,4 @@
-/*! Kefir.js v2.6.0
+/*! Kefir.js v2.7.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -710,7 +710,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  setName: function setName(sourceObs, /* optional */selfName) {
-	    this._name = selfName ? '' + sourceObs._name + '.' + selfName : sourceObs;
+	    this._name = selfName ? sourceObs._name + '.' + selfName : sourceObs;
 	    return this;
 	  },
 
@@ -718,7 +718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var name = arguments[0] === undefined ? this.toString() : arguments[0];
 
 	    var handler = function handler(event) {
-	      var type = '<' + event.type + '' + (event.current ? ':current' : '') + '>';
+	      var type = '<' + event.type + (event.current ? ':current' : '') + '>';
 	      if (event.type === END) {
 	        console.log(name, type);
 	      } else {
@@ -765,7 +765,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 
@@ -802,7 +802,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -875,7 +875,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 
@@ -1387,7 +1387,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 15 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 
@@ -1585,7 +1585,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 21 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 
@@ -1814,7 +1814,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    BaseClass.call(this);
 	    this._source = source;
-	    this._name = '' + source._name + '.' + name;
+	    this._name = source._name + '.' + name;
 	    this._init(options);
 	    this._$handleAny = function (event) {
 	      return _this._handleAny(event);
@@ -1912,7 +1912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 28 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -2608,7 +2608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 42 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 
@@ -3424,8 +3424,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	});
 
-	module.exports = function combine(active, _x, combinator) {
-	  var passive = arguments[1] === undefined ? [] : arguments[1];
+	module.exports = function combine(active, passive, combinator) {
+	  if (passive === undefined) passive = [];
 
 	  if (typeof passive === 'function') {
 	    combinator = passive;
@@ -4192,7 +4192,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    BaseClass.call(this);
 	    this._primary = primary;
 	    this._secondary = secondary;
-	    this._name = '' + primary._name + '.' + name;
+	    this._name = primary._name + '.' + name;
 	    this._lastSecondary = NOTHING;
 	    this._$handleSecondaryAny = function (event) {
 	      return _this._handleSecondaryAny(event);
@@ -4475,9 +4475,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var _ref$flushOnEnd = _ref.flushOnEnd;
 	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
+	    var _ref$flushOnChange = _ref.flushOnChange;
+	    var flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
 
 	    this._buff = [];
 	    this._flushOnEnd = flushOnEnd;
+	    this._flushOnChange = flushOnChange;
 	  },
 
 	  _free: function _free() {
@@ -4509,6 +4512,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
 	      this._emitEnd();
 	    }
+	  },
+
+	  _handleSecondaryValue: function _handleSecondaryValue(x) {
+	    if (this._flushOnChange && !x) {
+	      this._flush();
+	    }
+
+	    // from default _handleSecondaryValue
+	    this._lastSecondary = x;
 	  }
 
 	};
