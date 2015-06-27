@@ -1,15 +1,19 @@
+## 2.7.0 (27/06/2015)
+
+ - The `flushOnChange` option added to `.bufferWhileBy` [#116](https://github.com/rpominov/kefir/issues/116)
+
 ## 2.6.0 (05/06/2015)
 
- - A bug in `.bufferBy` fixed (see [#108](https://github.com/rpominov/kefir/issues/108))
- - Another (minor) perf improvement for `flatMap` and similar methods (see [c329c61](https://github.com/rpominov/kefir/commit/c329c61c4869a550e2b29eaa9ab6c7d4a7e899ad)).
- - The `.toProperty` method now throws with a meaningful message when called with not a function (see [544b689](https://github.com/rpominov/kefir/commit/544b689d9ffd165d09f3d04de8c40a4b59ceb04c)).
+ - A bug in `.bufferBy` fixed [#108](https://github.com/rpominov/kefir/issues/108)
+ - Another (minor) perf improvement for `flatMap` and similar methods [c329c61](https://github.com/rpominov/kefir/commit/c329c61c4869a550e2b29eaa9ab6c7d4a7e899ad)
+ - The `.toProperty` method now throws with a meaningful message when called with not a function [544b689](https://github.com/rpominov/kefir/commit/544b689d9ffd165d09f3d04de8c40a4b59ceb04c)
 
 ## 2.5.0 (21/05/2015)
 
  - The repository moved from `pozadi/kefir` to `rpominov/kefir`
  - [emitter](http://rpominov.github.io/kefir/#emitter-object) methods now return a boolean representing whether anybody interested in future events (i.e. whether connected observable is active)
- - Another optimization for `.flatMap((x) => Kefir.constan(...))` case (see [9e4a58a](https://github.com/rpominov/kefir/commit/9e4a58a02ec5f80b3c3c6cf52e5e5065249aba50))
- - Methods `.takeWhileBy` and `.skipWhileBy` are deprecated (see [#105](https://github.com/rpominov/kefir/issues/105))
+ - Another optimization for `.flatMap((x) => Kefir.constan(...))` case [9e4a58a](https://github.com/rpominov/kefir/commit/9e4a58a02ec5f80b3c3c6cf52e5e5065249aba50)
+ - Methods `.takeWhileBy` and `.skipWhileBy` are deprecated [#105](https://github.com/rpominov/kefir/issues/105)
 
 ## 2.4.1 (14/05/2015)
 
@@ -18,8 +22,8 @@
 ## 2.4.0 (11/05/2015)
 
  - New method `.flatMapErrors`
- - A bug in `.flatMap*` fixed (see [98f65b7](https://github.com/rpominov/kefir/commit/98f65b775e2a9785bb66fa1f4a98ffc9bd03b9ff))
- - `Kefir.constant()` and `Kefir.contantError()` made cheaper and faster, so they can be used with `.flatMap` even more freely (see [1c9de75](https://github.com/rpominov/kefir/commit/1c9de75aa7ed38949716b9d117b430587bd3425c))
+ - A bug in `.flatMap*` fixed [98f65b7](https://github.com/rpominov/kefir/commit/98f65b775e2a9785bb66fa1f4a98ffc9bd03b9ff)
+ - `Kefir.constant()` and `Kefir.contantError()` made cheaper and faster, so they can be used with `.flatMap` even more freely [1c9de75](https://github.com/rpominov/kefir/commit/1c9de75aa7ed38949716b9d117b430587bd3425c)
 
 ## 2.3.0 (10/05/2015)
 
@@ -32,53 +36,49 @@
 ## 2.2.0 (08/05/2015)
 
  - Codebase ported to ES6 (Babel) with CommonJS modules
- - A bug in .combine fixed (see [#98](https://github.com/rpominov/kefir/issues/98))
+ - A bug in .combine fixed [#98](https://github.com/rpominov/kefir/issues/98)
 
 ## 2.1.0 (28/04/2015)
 
  - New method `.last`
  - The `.reduce` method is deprecated in favor of `.scan(...).last()`
 
-## 2.0.2 (26/04/2015)
-
-No changes.
-
 ## 2.0.1 (26/04/2015)
 
- - A bug in `.flatMap` fixed (see [#92](https://github.com/rpominov/kefir/issues/92))
+ - A bug in `.flatMap` fixed [#92](https://github.com/rpominov/kefir/issues/92)
 
 ## 2.0.0 (22/04/2015)
 
 ### Breaking changes
 
- - Removed support of old transducers protocol in the `.transduce` (see [#79](https://github.com/rpominov/kefir/issues/79))
- - `stream.changes()` now returns a new stream with current values/errors removed (see [#56](https://github.com/rpominov/kefir/issues/56))
- - Properties now can't have both current value and current error at the same time (see [#55](https://github.com/rpominov/kefir/issues/55))
- - Better errors handling in `.combine` (see [#54](https://github.com/rpominov/kefir/issues/54))
- - The `.toProperty` method now accepts a callbak instead of a simple value (see [#82](https://github.com/rpominov/kefir/issues/82))
+ - Removed support of old transducers protocol in the `.transduce` [#79](https://github.com/rpominov/kefir/issues/79)
+ - `stream.changes()` now returns a new stream with current values/errors removed [#56](https://github.com/rpominov/kefir/issues/56)
+ - Properties now can't have both current value and current error at the same time [#55](https://github.com/rpominov/kefir/issues/55)
+ - Better errors handling in `.combine` [#54](https://github.com/rpominov/kefir/issues/54)
+ - The `.toProperty` method now accepts a callbak instead of a simple value [#82](https://github.com/rpominov/kefir/issues/82)
  - The `.fromEvent` method is renamed to `.fromEvents`
  - The `.fromBinder` method is renamed to `.stream`
- - The `.mapEnd` method is renamed to `.beforeEnd` (see [#89](https://github.com/rpominov/kefir/issues/89))
+ - The `.mapEnd` method is renamed to `.beforeEnd` [#89](https://github.com/rpominov/kefir/issues/89)
 
 ### Other changes
 
- - The `.fromSubUnsub` method is deprecated (see [#71](https://github.com/rpominov/kefir/issues/71))
- - Methods `Kefir.emitter()` and `Kefir.bus()` are deprecated (see [#88](https://github.com/rpominov/kefir/issues/88))
+ - The `.fromSubUnsub` method is deprecated [#71](https://github.com/rpominov/kefir/issues/71)
+ - Methods `Kefir.emitter()` and `Kefir.bus()` are deprecated [#88](https://github.com/rpominov/kefir/issues/88)
 
 ## 1.3.2 (26/04/2015)
 
- - A bug in `.flatMap` fixed (see [#92](https://github.com/rpominov/kefir/issues/92))
+ - A bug in `.flatMap` fixed [#92](https://github.com/rpominov/kefir/issues/92)
 
 ## 1.3.1 (04/04/2015)
 
- - The `.transduce` method updated to add support of new protocol (see [#78](https://github.com/rpominov/kefir/issues/78))
+ - The `.transduce` method updated to add support of new protocol [#78](https://github.com/rpominov/kefir/issues/78)
 
 
 ## 1.3.0 (29/03/2015)
 
  - Following methods are deprecated:
    `.repeatedly`, `.mapTo`, `.pluck`, `.invoke`, `.not`, `.timestamp`, `.tap`, `.and`, `.or`
-   (see [#71](https://github.com/rpominov/kefir/issues/71))
+   [#71](https://github.com/rpominov/kefir/issues/71)
 
 ## 1.2.0 (14/03/2015)
 
@@ -99,7 +99,7 @@ No changes.
 
 ## 0.5.3 (12/01/2015)
 
- - A bug in .fromBinder fixed (continuation of [#35](https://github.com/rpominov/kefir/issues/35))
+ - A bug in .fromBinder fixed (continuation of [#35](https://github.com/rpominov/kefir/issues/35)
 
 ## 0.5.2 (12/01/2015)
 

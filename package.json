@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
@@ -29,13 +29,13 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "5.5.3",
-    "babel-loader": "5.1.4",
-    "baconjs": "0.7.64",
+    "babel-core": "5.6.12",
+    "babel-loader": "5.2.2",
+    "baconjs": "0.7.65",
     "benchmark": "1.0.0",
     "coffee-script": "1.9.3",
     "coffeeify": "1.1.0",
-    "flyd": "0.1.6",
+    "flyd": "0.1.13",
     "flyd-filter": "1.0.2",
     "grunt": "0.4.5",
     "grunt-bower-task": "0.4.0",
@@ -51,11 +51,11 @@
     "rx": "2.5.3",
     "semver": "4.3.6",
     "shelljs": "0.5.1",
-    "sinon": "1.14.1",
+    "sinon": "1.15.3",
     "time-grunt": "1.2.1",
     "transducers-js": "0.4.174",
     "transducers.js": "0.3.2",
-    "webpack": "1.9.10",
+    "webpack": "1.9.12",
     "webpack-dev-server": "1.9.0"
   }
 }
