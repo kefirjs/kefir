@@ -1,3 +1,7 @@
+## 2.7.0 (27/06/2015)
+
+ - The `flushOnChange` option added to `.bufferWhileBy` [#116](https://github.com/rpominov/kefir/issues/116)
+
 ## 2.6.0 (05/06/2015)
 
  - A bug in `.bufferBy` fixed [#108](https://github.com/rpominov/kefir/issues/108)
