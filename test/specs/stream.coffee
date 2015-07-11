@@ -181,4 +181,31 @@ describe 'Stream', ->
       send(s, [1, 2])
       expect(log).toEqual(['a1', 'b1', 'a2'])
 
+    it 'should not call subscriber after unsubscribing (from another subscriber)', ->
+      log = []
+      a = ->
+        log.push 'a'
+      b = ->
+        s.offValue a
+        log.push 'unsub a'
+      s = stream()
+      s.onValue b
+      s.onValue a
+      send(s, [1])
+      expect(log).toEqual ['unsub a']
+
+    it 'should not call subscribers after end (fired from another subscriber)', ->
+      log = []
+      a = ->
+        log.push 'a'
+      b = ->
+        send(s, ['<end>'])
+        log.push 'end fired'
+      s = stream()
+      s.onValue b
+      s.onValue a
+      send(s, [1])
+      expect(log).toEqual ['end fired']
+
+
 
