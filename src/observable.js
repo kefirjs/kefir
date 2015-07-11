@@ -36,6 +36,7 @@ extend(Observable.prototype, {
   _clear() {
     this._setActive(false);
     this._alive = false;
+    this._dispatcher.cleanup();
     this._dispatcher = null;
     this._logHandlers = null;
   },

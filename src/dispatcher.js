@@ -1,6 +1,6 @@
 const {extend} = require('./utils/objects');
 const {VALUE, ERROR, ANY} = require('./constants');
-const {concat, removeByPred} = require('./utils/collections');
+const {concat, findByPred, remove, contains} = require('./utils/collections');
 
 function callSubscriber(type, fn, event) {
   if (type === ANY) {
@@ -16,6 +16,8 @@ function callSubscriber(type, fn, event) {
 
 function Dispatcher() {
   this._items = [];
+  this._inLoop = 0;
+  this._removedItems = null;
 }
 
 extend(Dispatcher.prototype, {
@@ -26,14 +28,32 @@ extend(Dispatcher.prototype, {
   },
 
   remove(type, fn) {
-    this._items = removeByPred(this._items, (x) => x.type === type && x.fn === fn);
+    const index = findByPred(this._items, (x) => x.type === type && x.fn === fn);
+    if (this._inLoop !== 0 && index !== -1) {
+      if (this._removedItems === null) {
+        this._removedItems = [];
+      }
+      this._removedItems.push(this._items[index]);
+    }
+    this._items = remove(this._items, index);
     return this._items.length;
   },
 
   dispatch(event) {
+    this._inLoop++;
     for (let i = 0, items = this._items; i < items.length; i++) {
-      callSubscriber(items[i].type, items[i].fn, event);
+      if (this._items !== null && (this._removedItems === null || !contains(this._removedItems, items[i]))) {
+        callSubscriber(items[i].type, items[i].fn, event);
+      }
     }
+    this._inLoop--;
+    if (this._inLoop === 0) {
+      this._removedItems = null;
+    }
+  },
+
+  cleanup() {
+    this._items = null;
   }
 
 });
