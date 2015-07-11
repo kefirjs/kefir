@@ -29,12 +29,16 @@ extend(Dispatcher.prototype, {
 
   remove(type, fn) {
     const index = findByPred(this._items, (x) => x.type === type && x.fn === fn);
+
+    // if we're currently in a notification loop,
+    // remember this subscriber was removed
     if (this._inLoop !== 0 && index !== -1) {
       if (this._removedItems === null) {
         this._removedItems = [];
       }
       this._removedItems.push(this._items[index]);
     }
+
     this._items = remove(this._items, index);
     return this._items.length;
   },
@@ -42,9 +46,18 @@ extend(Dispatcher.prototype, {
   dispatch(event) {
     this._inLoop++;
     for (let i = 0, items = this._items; i < items.length; i++) {
-      if (this._items !== null && (this._removedItems === null || !contains(this._removedItems, items[i]))) {
-        callSubscriber(items[i].type, items[i].fn, event);
+
+      // cleanup was called
+      if (this._items === null) {
+        break;
       }
+
+      // this subscriber was removed
+      if (this._removedItems !== null && contains(this._removedItems, items[i])) {
+        continue;
+      }
+
+      callSubscriber(items[i].type, items[i].fn, event);
     }
     this._inLoop--;
     if (this._inLoop === 0) {
