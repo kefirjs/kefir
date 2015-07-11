@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.7.0
+/*! Kefir.js v2.7.1
  *  https://github.com/rpominov/kefir
  */
 
@@ -625,6 +625,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _clear: function _clear() {
 	    this._setActive(false);
 	    this._alive = false;
+	    this._dispatcher.cleanup();
 	    this._dispatcher = null;
 	    this._logHandlers = null;
 	  },
@@ -716,7 +717,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  log: function log() {
-	    var name = arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
 
 	    var handler = function handler(event) {
 	      var type = '<' + event.type + (event.current ? ':current' : '') + '>';
@@ -740,7 +741,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  offLog: function offLog() {
-	    var name = arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
 
 	    if (this._logHandlers) {
 	      var handlerIndex = findByPred(this._logHandlers, function (obj) {
@@ -832,7 +833,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _require3 = __webpack_require__(5);
 
 	var concat = _require3.concat;
-	var removeByPred = _require3.removeByPred;
+	var findByPred = _require3.findByPred;
+	var _remove = _require3.remove;
+	var contains = _require3.contains;
 
 	function callSubscriber(type, fn, event) {
 	  if (type === ANY) {
@@ -848,6 +851,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function Dispatcher() {
 	  this._items = [];
+	  this._inLoop = 0;
+	  this._removedItems = null;
 	}
 
 	extend(Dispatcher.prototype, {
@@ -858,16 +863,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  remove: function remove(type, fn) {
-	    this._items = removeByPred(this._items, function (x) {
+	    var index = findByPred(this._items, function (x) {
 	      return x.type === type && x.fn === fn;
 	    });
+	    if (this._inLoop !== 0 && index !== -1) {
+	      if (this._removedItems === null) {
+	        this._removedItems = [];
+	      }
+	      this._removedItems.push(this._items[index]);
+	    }
+	    this._items = _remove(this._items, index);
 	    return this._items.length;
 	  },
 
 	  dispatch: function dispatch(event) {
+	    this._inLoop++;
 	    for (var i = 0, items = this._items; i < items.length; i++) {
-	      callSubscriber(items[i].type, items[i].fn, event);
+	      if (this._items !== null && (this._removedItems === null || !contains(this._removedItems, items[i]))) {
+	        callSubscriber(items[i].type, items[i].fn, event);
+	      }
 	    }
+	    this._inLoop--;
+	    if (this._inLoop === 0) {
+	      this._removedItems = null;
+	    }
+	  },
+
+	  cleanup: function cleanup() {
+	    this._items = null;
 	  }
 
 	});
@@ -1782,7 +1805,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 	module.exports = function toProperty(obs) {
-	  var fn = arguments[1] === undefined ? null : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
 	  if (fn !== null && typeof fn !== 'function') {
 	    throw new Error('You should call toProperty() with a function or no arguments.');
@@ -1926,7 +1949,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	module.exports = function (obs) {
-	  var Promise = arguments[1] === undefined ? getGlodalPromise() : arguments[1];
+	  var Promise = arguments.length <= 1 || arguments[1] === undefined ? getGlodalPromise() : arguments[1];
 
 	  var last = null;
 	  return new Promise(function (resolve, reject) {
@@ -1979,7 +2002,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function map(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2024,7 +2047,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function filter(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2110,7 +2133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function takeWhile(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2239,7 +2262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function skipWhile(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2291,7 +2314,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function skipDuplicates(obs) {
-	  var fn = arguments[1] === undefined ? eq : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? eq : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2344,7 +2367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	module.exports = function diff(obs, fn) {
-	  var seed = arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn || defaultFn, seed: seed });
 	};
@@ -2391,7 +2414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 	module.exports = function scan(obs, fn) {
-	  var seed = arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
 
 	  return new P(obs, { fn: fn, seed: seed });
 	};
@@ -2437,7 +2460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function flatten(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2597,7 +2620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var P = createProperty('throttle', mixin);
 
 	module.exports = function throttle(obs, wait) {
-	  var _ref2 = arguments[2] === undefined ? {} : arguments[2];
+	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 	  var _ref2$leading = _ref2.leading;
 	  var leading = _ref2$leading === undefined ? true : _ref2$leading;
@@ -2707,7 +2730,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var P = createProperty('debounce', mixin);
 
 	module.exports = function debounce(obs, wait) {
-	  var _ref2 = arguments[2] === undefined ? {} : arguments[2];
+	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 	  var _ref2$immediate = _ref2.immediate;
 	  var immediate = _ref2$immediate === undefined ? false : _ref2$immediate;
@@ -2758,7 +2781,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function valuesToErrors(obs) {
-	  var fn = arguments[1] === undefined ? defFn : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2806,7 +2829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function errorsToValues(obs) {
-	  var fn = arguments[1] === undefined ? defFn : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2849,7 +2872,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function mapErrors(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -2894,7 +2917,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function filterErrors(obs) {
-	  var fn = arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
 	};
@@ -3073,7 +3096,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var P = createProperty('slidingWindow', mixin);
 
 	module.exports = function slidingWindow(obs, max) {
-	  var min = arguments[2] === undefined ? 0 : arguments[2];
+	  var min = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
 
 	  return new (obs._ofSameType(S, P))(obs, { min: min, max: max });
 	};
@@ -3136,7 +3159,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = function bufferWhile(obs, fn) {
-	  var _ref2 = arguments[2] === undefined ? {} : arguments[2];
+	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
 	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
@@ -3640,7 +3663,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function AbstractPool() {
 	  var _this = this;
 
-	  var _ref = arguments[0] === undefined ? {} : arguments[0];
+	  var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 	  var _ref$queueLim = _ref.queueLim;
 	  var queueLim = _ref$queueLim === undefined ? 0 : _ref$queueLim;
@@ -4397,7 +4420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var mixin = {
 
 	  _init: function _init() {
-	    var _ref = arguments[0] === undefined ? {} : arguments[0];
+	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 	    var _ref$flushOnEnd = _ref.flushOnEnd;
 	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
@@ -4472,7 +4495,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var mixin = {
 
 	  _init: function _init() {
-	    var _ref = arguments[0] === undefined ? {} : arguments[0];
+	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 	    var _ref$flushOnEnd = _ref.flushOnEnd;
 	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
@@ -4698,7 +4721,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var P = createProperty('reduce', mixin);
 
 	module.exports = function reduce(obs, fn) {
-	  var seed = arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
 
 	  return new (obs._ofSameType(S, P))(obs, { fn: fn, seed: seed });
 	};
@@ -7281,9 +7304,9 @@ var sinon = (function () {
         var match = sinon.match;
 
         function mock(object) {
-            if (typeof console !== undefined && console.warn) {
-                console.warn("mock will be removed from Sinon.JS v2.0");
-            }
+            // if (typeof console !== undefined && console.warn) {
+            //     console.warn("mock will be removed from Sinon.JS v2.0");
+            // }
 
             if (!object) {
                 return sinon.expectation.create("Anonymous mock");
@@ -21267,21 +21290,37 @@ describe('Stream', function() {
       });
       return expect(count).toBe(0);
     });
-    return it('should correctly handle unsubscribe during call loop', function() {
+    it('should not call subscriber after unsubscribing (from another subscriber)', function() {
       var a, b, log, s;
-      s = stream();
       log = [];
-      a = function(x) {
-        log.push('a' + x);
-        return s.offValue(b);
+      a = function() {
+        return log.push('a');
       };
-      b = function(x) {
-        return log.push('b' + x);
+      b = function() {
+        s.offValue(a);
+        return log.push('unsub a');
       };
-      s.onValue(a);
+      s = stream();
       s.onValue(b);
-      send(s, [1, 2]);
-      return expect(log).toEqual(['a1', 'b1', 'a2']);
+      s.onValue(a);
+      send(s, [1]);
+      return expect(log).toEqual(['unsub a']);
+    });
+    return it('should not call subscribers after end (fired from another subscriber)', function() {
+      var a, b, log, s;
+      log = [];
+      a = function() {
+        return log.push('a');
+      };
+      b = function() {
+        send(s, ['<end>']);
+        return log.push('end fired');
+      };
+      s = stream();
+      s.onValue(b);
+      s.onValue(a);
+      send(s, [1]);
+      return expect(log).toEqual(['end fired']);
     });
   });
 });
