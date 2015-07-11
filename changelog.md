@@ -1,3 +1,7 @@
+## 2.7.1 (11/07/2015)
+
+ - A bug when listener could be called after unsubscribing or end fixed [#119](https://github.com/rpominov/kefir/issues/119)
+
 ## 2.7.0 (27/06/2015)
 
  - The `flushOnChange` option added to `.bufferWhileBy` [#116](https://github.com/rpominov/kefir/issues/116)
