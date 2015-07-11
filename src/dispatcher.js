@@ -42,7 +42,7 @@ extend(Dispatcher.prototype, {
   dispatch(event) {
     this._inLoop++;
     for (let i = 0, items = this._items; i < items.length; i++) {
-      if (this._removedItems === null || !contains(this._removedItems, items[i])) {
+      if (this._items !== null && (this._removedItems === null || !contains(this._removedItems, items[i]))) {
         callSubscriber(items[i].type, items[i].fn, event);
       }
     }
@@ -50,6 +50,10 @@ extend(Dispatcher.prototype, {
     if (this._inLoop === 0) {
       this._removedItems = null;
     }
+  },
+
+  cleanup() {
+    this._items = null;
   }
 
 });
