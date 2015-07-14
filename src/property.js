@@ -34,6 +34,7 @@ inherit(Property, Observable, {
 
   _emitEnd() {
     if (this._alive) {
+      this._alive = false
       if (!this._activating) {
         this._dispatcher.dispatch({type: END, current: this._activating});
       }

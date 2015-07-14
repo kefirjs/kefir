@@ -131,6 +131,17 @@ describe 'Kefir.stream', ->
         em.event({type: 'value', value: 2})
     ).toEmit [ { current : 1 }, { current : 2 } ]
 
+  it 'calling emitter.end() in undubscribe() should work fine', ->
+    em = null
+    s = Kefir.stream (_em) ->
+      em = _em
+      ->
+        em.end()
+    s.onValue(->)
+    em.emit(1)
+    em.end()
+
+
 
 
 
