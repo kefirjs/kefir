@@ -40,6 +40,8 @@ bower install kefir
 
 See [downloads](https://rpominov.github.io/kefir/#downloads) section in the docs.
 
+Also available on [jsDelivr](http://www.jsdelivr.com/#!kefir).
+
 
 # Development
 
