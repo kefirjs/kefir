@@ -35,7 +35,6 @@ extend(Observable.prototype, {
 
   _clear() {
     this._setActive(false);
-    this._alive = false;
     this._dispatcher.cleanup();
     this._dispatcher = null;
     this._logHandlers = null;
@@ -63,6 +62,7 @@ extend(Observable.prototype, {
 
   _emitEnd() {
     if (this._alive) {
+      this._alive = false
       this._dispatcher.dispatch({type: END, current: this._activating});
       this._clear();
     }

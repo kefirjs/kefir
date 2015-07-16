@@ -1,6 +1,10 @@
+## 2.7.2 (16/07/2015)
+
+ - A bug related to calling `emitter.end()` in response to an end event or in `unsubscribe()` function is fixed [83b06a7](https://github.com/rpominov/kefir/commit/83b06a7debb553dd7fd21c407c49b45da3e1b0ea)
+
 ## 2.7.1 (11/07/2015)
 
- - A bug when listener could be called after unsubscribing or end fixed [#119](https://github.com/rpominov/kefir/issues/119)
+ - A bug when listener could be called after unsubscribing or end is fixed [#119](https://github.com/rpominov/kefir/issues/119)
 
 ## 2.7.0 (27/06/2015)
 

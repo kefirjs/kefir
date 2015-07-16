@@ -52,6 +52,26 @@ describe 'Stream', ->
       s = stream()
       expect(s).toEmit [1, 2, '<end>'], -> send(s, [1, 2, '<end>', 3])
 
+    it 'calling ._emitEnd twice should work fine', ->
+      err = undefined
+      try
+        s = stream()
+        s._emitEnd()
+        s._emitEnd()
+      catch e
+        err = e
+      expect(err && err.message).toBe(undefined)
+
+    it 'calling ._emitEnd in an end handler should work fine', ->
+      err = undefined
+      try
+        s = stream()
+        s.onEnd ->
+          s._emitEnd()
+        s._emitEnd()
+      catch e
+        err = e
+      expect(err && err.message).toBe(undefined)
 
   describe 'active state', ->
 
