@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.7.1
+/*! Kefir.js v2.7.2
  *  https://github.com/rpominov/kefir
  */
 
@@ -624,7 +624,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _clear: function _clear() {
 	    this._setActive(false);
-	    this._alive = false;
 	    this._dispatcher.cleanup();
 	    this._dispatcher = null;
 	    this._logHandlers = null;
@@ -655,6 +654,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _emitEnd: function _emitEnd() {
 	    if (this._alive) {
+	      this._alive = false;
 	      this._dispatcher.dispatch({ type: END, current: this._activating });
 	      this._clear();
 	    }
@@ -866,12 +866,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var index = findByPred(this._items, function (x) {
 	      return x.type === type && x.fn === fn;
 	    });
+
+	    // if we're currently in a notification loop,
+	    // remember this subscriber was removed
 	    if (this._inLoop !== 0 && index !== -1) {
 	      if (this._removedItems === null) {
 	        this._removedItems = [];
 	      }
 	      this._removedItems.push(this._items[index]);
 	    }
+
 	    this._items = _remove(this._items, index);
 	    return this._items.length;
 	  },
@@ -879,9 +883,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  dispatch: function dispatch(event) {
 	    this._inLoop++;
 	    for (var i = 0, items = this._items; i < items.length; i++) {
-	      if (this._items !== null && (this._removedItems === null || !contains(this._removedItems, items[i]))) {
-	        callSubscriber(items[i].type, items[i].fn, event);
+
+	      // cleanup was called
+	      if (this._items === null) {
+	        break;
 	      }
+
+	      // this subscriber was removed
+	      if (this._removedItems !== null && contains(this._removedItems, items[i])) {
+	        continue;
+	      }
+
+	      callSubscriber(items[i].type, items[i].fn, event);
 	    }
 	    this._inLoop--;
 	    if (this._inLoop === 0) {
@@ -1132,6 +1145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _emitEnd: function _emitEnd() {
 	    if (this._alive) {
+	      this._alive = false;
 	      if (!this._activating) {
 	        this._dispatcher.dispatch({ type: END, current: this._activating });
 	      }
@@ -18386,7 +18400,7 @@ describe('Kefir.stream', function() {
     a.onValue(f);
     return expect(lastX).toBe(2);
   });
-  return it('emitter should have methods `value` and `event`', function() {
+  it('emitter should have methods `value` and `event`', function() {
     return expect(Kefir.stream(function(em) {
       em.value(1);
       return em.event({
@@ -18400,6 +18414,19 @@ describe('Kefir.stream', function() {
         current: 2
       }
     ]);
+  });
+  return it('calling emitter.end() in undubscribe() should work fine', function() {
+    var em, s;
+    em = null;
+    s = Kefir.stream(function(_em) {
+      em = _em;
+      return function() {
+        return em.end();
+      };
+    });
+    s.onValue(function() {});
+    em.emit(1);
+    return em.end();
   });
 });
 
@@ -19044,12 +19071,40 @@ describe('Property', function() {
       send(s, ['<end>']);
       return expect(s).not.toBeActive();
     });
-    return it('should stop deliver new values after end', function() {
+    it('should stop deliver new values after end', function() {
       var s;
       s = prop();
       return expect(s).toEmit([1, 2, '<end>'], function() {
         return send(s, [1, 2, '<end>', 3]);
       });
+    });
+    it('calling ._emitEnd twice should work fine', function() {
+      var e, err, s;
+      err = void 0;
+      try {
+        s = prop();
+        s._emitEnd();
+        s._emitEnd();
+      } catch (_error) {
+        e = _error;
+        err = e;
+      }
+      return expect(err && err.message).toBe(void 0);
+    });
+    return it('calling ._emitEnd in an end handler should work fine', function() {
+      var e, err, s;
+      err = void 0;
+      try {
+        s = prop();
+        s.onEnd(function() {
+          return s._emitEnd();
+        });
+        s._emitEnd();
+      } catch (_error) {
+        e = _error;
+        err = e;
+      }
+      return expect(err && err.message).toBe(void 0);
     });
   });
   describe('active state', function() {
@@ -21101,12 +21156,40 @@ describe('Stream', function() {
       send(s, ['<end>']);
       return expect(s).not.toBeActive();
     });
-    return it('should stop deliver new values after end', function() {
+    it('should stop deliver new values after end', function() {
       var s;
       s = stream();
       return expect(s).toEmit([1, 2, '<end>'], function() {
         return send(s, [1, 2, '<end>', 3]);
       });
+    });
+    it('calling ._emitEnd twice should work fine', function() {
+      var e, err, s;
+      err = void 0;
+      try {
+        s = stream();
+        s._emitEnd();
+        s._emitEnd();
+      } catch (_error) {
+        e = _error;
+        err = e;
+      }
+      return expect(err && err.message).toBe(void 0);
+    });
+    return it('calling ._emitEnd in an end handler should work fine', function() {
+      var e, err, s;
+      err = void 0;
+      try {
+        s = stream();
+        s.onEnd(function() {
+          return s._emitEnd();
+        });
+        s._emitEnd();
+      } catch (_error) {
+        e = _error;
+        err = e;
+      }
+      return expect(err && err.message).toBe(void 0);
     });
   });
   describe('active state', function() {

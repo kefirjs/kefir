@@ -1,4 +1,4 @@
-/*! Kefir.js v2.7.1
+/*! Kefir.js v2.7.2
  *  https://github.com/rpominov/kefir
  */
 
@@ -623,7 +623,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _clear: function _clear() {
 	    this._setActive(false);
-	    this._alive = false;
 	    this._dispatcher.cleanup();
 	    this._dispatcher = null;
 	    this._logHandlers = null;
@@ -654,6 +653,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _emitEnd: function _emitEnd() {
 	    if (this._alive) {
+	      this._alive = false;
 	      this._dispatcher.dispatch({ type: END, current: this._activating });
 	      this._clear();
 	    }
@@ -865,12 +865,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var index = findByPred(this._items, function (x) {
 	      return x.type === type && x.fn === fn;
 	    });
+
+	    // if we're currently in a notification loop,
+	    // remember this subscriber was removed
 	    if (this._inLoop !== 0 && index !== -1) {
 	      if (this._removedItems === null) {
 	        this._removedItems = [];
 	      }
 	      this._removedItems.push(this._items[index]);
 	    }
+
 	    this._items = _remove(this._items, index);
 	    return this._items.length;
 	  },
@@ -878,9 +882,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  dispatch: function dispatch(event) {
 	    this._inLoop++;
 	    for (var i = 0, items = this._items; i < items.length; i++) {
-	      if (this._items !== null && (this._removedItems === null || !contains(this._removedItems, items[i]))) {
-	        callSubscriber(items[i].type, items[i].fn, event);
+
+	      // cleanup was called
+	      if (this._items === null) {
+	        break;
 	      }
+
+	      // this subscriber was removed
+	      if (this._removedItems !== null && contains(this._removedItems, items[i])) {
+	        continue;
+	      }
+
+	      callSubscriber(items[i].type, items[i].fn, event);
 	    }
 	    this._inLoop--;
 	    if (this._inLoop === 0) {
@@ -1131,6 +1144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _emitEnd: function _emitEnd() {
 	    if (this._alive) {
+	      this._alive = false;
 	      if (!this._activating) {
 	        this._dispatcher.dispatch({ type: END, current: this._activating });
 	      }
