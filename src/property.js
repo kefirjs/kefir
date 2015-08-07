@@ -16,19 +16,19 @@ inherit(Property, Observable, {
 
   _emitValue(value) {
     if (this._alive) {
+      this._currentEvent = {type: VALUE, value, current: true};
       if (!this._activating) {
         this._dispatcher.dispatch({type: VALUE, value, current: this._activating});
       }
-      this._currentEvent = {type: VALUE, value, current: true};
     }
   },
 
   _emitError(value) {
     if (this._alive) {
+      this._currentEvent = {type: ERROR, value, current: true};
       if (!this._activating) {
         this._dispatcher.dispatch({type: ERROR, value, current: this._activating});
       }
-      this._currentEvent = {type: ERROR, value, current: true};
     }
   },
 
