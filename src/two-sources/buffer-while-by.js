@@ -15,7 +15,7 @@ const mixin = {
   },
 
   _flush() {
-    if (this._buff !== null && this._buff.length !== 0) {
+    if (this._buff !== null) {
       this._emitValue(this._buff);
       this._buff = [];
     }

@@ -164,7 +164,8 @@ p.
   #[tt flushOnChange] (by default #[tt false]). If #[tt flushOnEnd] set to
   #[tt false], the buffer won't be flushed when the main observable ends.
   If #[tt flushOnChange] set to #[tt true], the buffer will be flushed when the
-  controlling observable emits #[tt false].
+  controlling observable emits #[tt false]. If #[b obs] finished before #[b otherObs]
+  emitted any value, emits empty array and ends.
 
 
 pre.javascript(title='example').
@@ -221,4 +222,3 @@ pre(title='events in time').
 
   result:  f---t-f--t-f--t-fX
 div
-
