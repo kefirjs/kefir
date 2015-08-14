@@ -161,3 +161,4 @@ describe 'bufferWhileBy', ->
       a = send(prop(), [1])
       b = send(prop(), [true])
       expect(a.bufferWhileBy(b)).toEmit []
+
