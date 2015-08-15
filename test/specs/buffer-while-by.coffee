@@ -32,6 +32,12 @@ describe 'bufferWhileBy', ->
       b = stream()
       expect(a.bufferWhileBy(b, {emitEmpty: true})).toEmit [[], '<end>'], -> send(a, ['<end>'])
 
+    it 'should flush empty buffer and then end when primary ends (w/ {flushOnChange: true, emitEmpty: true})', ->
+      expect(send(stream(), ['<end>']).bufferWhileBy(stream(), {flushOnChange: true, emitEmpty: true})).toEmit [{current: []}, '<end:current>']
+      a = stream()
+      b = stream()
+      expect(a.bufferWhileBy(b, {flushOnChange: true, emitEmpty: true})).toEmit [[], '<end>'], -> send(a, ['<end>'])
+
     it 'should flush buffer on end', ->
       expect(send(prop(), [1, '<end>']).bufferWhileBy(stream())).toEmit [{current: [1]}, '<end:current>']
       a = stream()
