@@ -160,11 +160,12 @@ div
   otherwise flushes the buffer (with the new value included).
 
 p.
-  It supports two #[b options]: #[tt flushOnEnd] (by default #[tt true]) and
-  #[tt flushOnChange] (by default #[tt false]). If #[tt flushOnEnd] set to
-  #[tt false], the buffer won't be flushed when the main observable ends.
+  It supports three #[b options]: #[tt flushOnEnd] (by default #[tt true]),
+  #[tt flushOnChange] (by default #[tt false]) and #[tt emitEmpty] (by default #[tt false]). 
+  If #[tt flushOnEnd] set to #[tt false], the buffer won't be flushed when the main observable ends.
   If #[tt flushOnChange] set to #[tt true], the buffer will be flushed when the
-  controlling observable emits #[tt false].
+  controlling observable emits #[tt false]. If #[tt emitEmpty] set to #[tt true],
+  it will emit empty array when buffer supposed to be flushed, but it's empty.
 
 
 pre.javascript(title='example').
@@ -221,4 +222,3 @@ pre(title='events in time').
 
   result:  f---t-f--t-f--t-fX
 div
-
