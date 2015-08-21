@@ -1,4 +1,4 @@
-/*! Kefir.js v2.7.2
+/*! Kefir.js v2.8.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -4514,8 +4514,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
 	    var _ref$flushOnChange = _ref.flushOnChange;
 	    var flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
+	    var _ref$emitEmpty = _ref.emitEmpty;
+	    var emitEmpty = _ref$emitEmpty === undefined ? false : _ref$emitEmpty;
 
 	    this._buff = [];
+	    this._emitEmpty = emitEmpty;
 	    this._flushOnEnd = flushOnEnd;
 	    this._flushOnChange = flushOnChange;
 	  },
@@ -4525,7 +4528,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _flush: function _flush() {
-	    if (this._buff !== null && this._buff.length !== 0) {
+	    if (this._buff !== null && (this._emitEmpty || this._buff.length > 0)) {
 	      this._emitValue(this._buff);
 	      this._buff = [];
 	    }
