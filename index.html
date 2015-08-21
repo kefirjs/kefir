@@ -1299,7 +1299,7 @@ won't be flushed when the main observable ends.
 </p><p>If <tt>options.flushOnChange</tt> is <tt>true</tt>, the buffer will be also flushed
 each time the controlling observable emits <tt>false</tt>.
 </p><p>If <tt>options.emitEmpty</tt> is <tt>true</tt>, the result observable
-will emit empty arrays in cases when the buffer supposed to be flushed,
+will emit <tt>[]</tt> in cases, when the buffer supposed to be flushed,
 but it's empty.
 </p><p>The default options are <tt>{flushOnEnd: true, flushOnChange: false, emitEmpty: false}</tt>.
 
