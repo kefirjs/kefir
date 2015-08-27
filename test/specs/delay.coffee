@@ -1,5 +1,4 @@
-{stream, prop, send, Kefir} = require('../test-helpers.coffee')
-
+{stream, prop, send, shakyTimeTest, Kefir} = require('../test-helpers.coffee')
 
 describe 'delay', ->
 
@@ -29,6 +28,12 @@ describe 'delay', ->
       a = stream()
       expect(a.delay(100)).errorsToFlow(a)
 
+    it 'works with undependable setTimeout', ->
+      shakyTimeTest 2, (expectToEmitOverShakyTime) ->
+        a = stream()
+        expectToEmitOverShakyTime a.delay(0), [4, '<end>'], (tick) ->
+          send(a, [4])
+          send(a, ['<end>'])
 
   describe 'property', ->
 

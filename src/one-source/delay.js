@@ -1,11 +1,20 @@
 const {createStream, createProperty} = require('../patterns/one-source');
 
+const END_MARKER = {};
+
 const mixin = {
 
   _init({wait}) {
     this._wait = Math.max(0, wait);
     this._buff = [];
-    this._$shiftBuff = () => this._emitValue(this._buff.shift());
+    this._$shiftBuff = () => {
+      const value = this._buff.shift();
+      if (value === END_MARKER) {
+        this._emitEnd();
+      } else {
+        this._emitValue(value);
+      }
+    };
   },
 
   _free() {
@@ -26,7 +35,8 @@ const mixin = {
     if (this._activating) {
       this._emitEnd();
     } else {
-      setTimeout(() => this._emitEnd(), this._wait);
+      this._buff.push(END_MARKER);
+      setTimeout(this._$shiftBuff, this._wait);
     }
   }
 

@@ -1,5 +1,6 @@
 Kefir = require("../dist/kefir")
 sinon = require('sinon')
+Combinatorics = require('js-combinatorics')
 
 Kefir.DEPRECATION_WARNINGS = false;
 
@@ -67,6 +68,36 @@ exports.prop = ->
 
 exports.stream = ->
   new Kefir.Stream()
+
+# This will run the callback timeoutCount^timeoutCount times. Each time, the
+# callback will be expected to call setTimeout exactly timeoutCount times. The
+# setTimeout callbacks may be scheduled as normal, or with an up to
+# timeoutCount-1 extra delay added. This will test all combinations. This is to
+# test compatibility with browser bugs that reorder setTimeout callbacks. See
+# https://github.com/rpominov/kefir/issues/134 for more information.
+exports.shakyTimeTest = (timeoutCount, cb) ->
+  delayValues = [0..timeoutCount-1]
+  Combinatorics.baseN(delayValues, timeoutCount).forEach (order) =>
+    expectToEmitOverShakyTime = (stream, expectedLog, cb, timeLimit = 10000) =>
+      log = null
+      exports.withFakeTime (tick) =>
+        originalST = global.setTimeout
+        global.setTimeout = sinon.spy ->
+          delay = order.shift()
+          if delay == 0
+            originalST.apply this, arguments
+          else
+            _arguments = arguments
+            originalST =>
+              originalST.apply this, _arguments
+            , delay
+        log = exports.watchWithTime(stream)
+        cb?(tick)
+        tick(timeLimit)
+        expect(global.setTimeout.callCount).toBe(timeoutCount)
+        global.setTimeout = originalST
+      expect(log.map ([time, value]) -> value).toEqual(expectedLog)
+    cb expectToEmitOverShakyTime
 
 exports.withFakeTime = (cb) ->
   clock = sinon.useFakeTimers(10000)
@@ -206,4 +237,3 @@ beforeEach ->
       return !@isNot
 
   }
-
