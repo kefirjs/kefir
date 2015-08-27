@@ -145,18 +145,18 @@ beforeEach ->
 
     # Test with setTimeout not guaranteeing order. See
     # https://github.com/rpominov/kefir/issues/134
-    toEmitOverShakyTime: (expectedLog, cb, timeLimit = 1000) ->
+    toEmitOverShakyTime: (stOrder, expectedLog, cb, timeLimit = 1000) ->
       log = null
       exports.withFakeTime (tick) =>
         originalST = global.setTimeout
         global.setTimeout = ->
-          if Math.random() > 0.5
-            originalST.apply this, arguments
-          else
+          if stOrder.shift()
             _arguments = arguments
             originalST =>
               originalST.apply this, _arguments
             , 0
+          else
+            originalST.apply this, arguments
         log = exports.watchWithTime(@actual)
         cb?(tick)
         tick(timeLimit)

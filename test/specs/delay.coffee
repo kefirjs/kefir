@@ -30,10 +30,10 @@ describe 'delay', ->
       expect(a.delay(100)).errorsToFlow(a)
 
     it 'works with undependable setTimeout', ->
-      for i in [0...10]
+      for order in [[false, false], [false, true], [true, false], [true, true]]
         a = stream()
-        expect(a.delay(0)).toEmitOverShakyTime [i, '<end>'], (tick) ->
-          send(a, [i])
+        expect(a.delay(0)).toEmitOverShakyTime order, [4, '<end>'], (tick) ->
+          send(a, [4])
           send(a, ['<end>'])
 
   describe 'property', ->
