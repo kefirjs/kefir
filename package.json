@@ -46,6 +46,7 @@
     "grunt-webpack": "1.0.11",
     "inquirer": "0.9.0",
     "jasmine-node": "1.14.5",
+    "js-combinatorics": "0.5.0",
     "load-grunt-tasks": "3.2.0",
     "node-libs-browser": "0.5.2",
     "rx": "3.1.0",
