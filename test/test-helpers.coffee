@@ -143,6 +143,27 @@ beforeEach ->
       @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
       @env.equals_(expectedLog, log)
 
+    # Test with setTimeout not guaranteeing order. See
+    # https://github.com/rpominov/kefir/issues/134
+    toEmitOverShakyTime: (expectedLog, cb, timeLimit = 1000) ->
+      log = null
+      exports.withFakeTime (tick) =>
+        originalST = global.setTimeout
+        global.setTimeout = ->
+          if Math.random() > 0.5
+            originalST.apply this, arguments
+          else
+            _arguments = arguments
+            originalST =>
+              originalST.apply this, _arguments
+            , 0
+        log = exports.watchWithTime(@actual)
+        cb?(tick)
+        tick(timeLimit)
+        global.setTimeout = originalST
+      @message = -> "Expected to emit #{jasmine.pp(expectedLog)}, actually emitted #{jasmine.pp(log)}"
+      @env.equals_(expectedLog, log.map ([time, value]) -> value)
+
     toActivate: (obss...) ->
 
       orOp = (a, b) -> a || b
@@ -206,4 +227,3 @@ beforeEach ->
       return !@isNot
 
   }
-

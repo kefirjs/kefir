@@ -29,6 +29,12 @@ describe 'delay', ->
       a = stream()
       expect(a.delay(100)).errorsToFlow(a)
 
+    it 'works with undependable setTimeout', ->
+      for i in [0...10]
+        a = stream()
+        expect(a.delay(0)).toEmitOverShakyTime [i, '<end>'], (tick) ->
+          send(a, [i])
+          send(a, ['<end>'])
 
   describe 'property', ->
 
