@@ -1,5 +1,4 @@
-{stream, prop, send, Kefir} = require('../test-helpers.coffee')
-Combinatorics = require('js-combinatorics');
+{stream, prop, send, shakyTimeTest, Kefir} = require('../test-helpers.coffee')
 
 describe 'delay', ->
 
@@ -30,9 +29,9 @@ describe 'delay', ->
       expect(a.delay(100)).errorsToFlow(a)
 
     it 'works with undependable setTimeout', ->
-      Combinatorics.baseN([false, true], 2).forEach (order) ->
+      shakyTimeTest 2, (expectToEmitOverShakyTime) ->
         a = stream()
-        expect(a.delay(0)).toEmitOverShakyTime order, [4, '<end>'], (tick) ->
+        expectToEmitOverShakyTime a.delay(0), [4, '<end>'], (tick) ->
           send(a, [4])
           send(a, ['<end>'])
 
