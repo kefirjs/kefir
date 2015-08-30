@@ -71,7 +71,11 @@ exports.stream = ->
 
 # This function changes timers' IDs so "simultaneous" timers are reversed
 # Also sets createdAt to 0 so closk.tick will sort by ID
-# Not sure how well it works with interval timers (setInterval), probably bad
+# FIXME:
+#   1) Not sure how well it works with interval timers (setInterval), probably bad
+#   2) We need to restore (unshake) them back somehow (after calling tick)
+#   Hopefully we'll get a native implementation, and wont have to fix those
+#   https://github.com/sinonjs/lolex/issues/24
 shakeTimers = (clock) ->
   ids = Object.keys(clock.timers)
   timers = ids.map (id) -> clock.timers[id]
