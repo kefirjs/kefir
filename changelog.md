@@ -1,3 +1,7 @@
+## 2.8.1 (30/08/2015)
+
+ - A bug in `.delay` fixed [#134](https://github.com/rpominov/kefir/issues/134)
+
 ## 2.8.0 (21/08/2015)
 
  - The `emitEmpty` option added to `.bufferWhileBy` [#129](https://github.com/rpominov/kefir/pull/129)
