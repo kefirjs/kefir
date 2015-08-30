@@ -1,4 +1,4 @@
-/*! Kefir.js v2.8.0
+/*! Kefir.js v2.8.1
  *  https://github.com/rpominov/kefir
  */
 
@@ -2489,6 +2489,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
+	var END_MARKER = {};
+
 	var mixin = {
 
 	  _init: function _init(_ref) {
@@ -2499,7 +2501,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._wait = Math.max(0, wait);
 	    this._buff = [];
 	    this._$shiftBuff = function () {
-	      return _this._emitValue(_this._buff.shift());
+	      var value = _this._buff.shift();
+	      if (value === END_MARKER) {
+	        _this._emitEnd();
+	      } else {
+	        _this._emitValue(value);
+	      }
 	    };
 	  },
 
@@ -2518,14 +2525,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleEnd: function _handleEnd() {
-	    var _this2 = this;
-
 	    if (this._activating) {
 	      this._emitEnd();
 	    } else {
-	      setTimeout(function () {
-	        return _this2._emitEnd();
-	      }, this._wait);
+	      this._buff.push(END_MARKER);
+	      setTimeout(this._$shiftBuff, this._wait);
 	    }
 	  }
 

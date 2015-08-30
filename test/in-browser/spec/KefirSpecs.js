@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.8.0
+/*! Kefir.js v2.8.1
  *  https://github.com/rpominov/kefir
  */
 
@@ -2490,6 +2490,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
+	var END_MARKER = {};
+
 	var mixin = {
 
 	  _init: function _init(_ref) {
@@ -2500,7 +2502,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._wait = Math.max(0, wait);
 	    this._buff = [];
 	    this._$shiftBuff = function () {
-	      return _this._emitValue(_this._buff.shift());
+	      var value = _this._buff.shift();
+	      if (value === END_MARKER) {
+	        _this._emitEnd();
+	      } else {
+	        _this._emitValue(value);
+	      }
 	    };
 	  },
 
@@ -2519,14 +2526,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _handleEnd: function _handleEnd() {
-	    var _this2 = this;
-
 	    if (this._activating) {
 	      this._emitEnd();
 	    } else {
-	      setTimeout(function () {
-	        return _this2._emitEnd();
-	      }, this._wait);
+	      this._buff.push(END_MARKER);
+	      setTimeout(this._$shiftBuff, this._wait);
 	    }
 	  }
 
@@ -15645,9 +15649,9 @@ describe('debounce', function() {
 
 
 },{"../test-helpers.coffee":107}],46:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
+var Kefir, prop, ref, send, shakyTimeTest, stream;
 
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, shakyTimeTest = ref.shakyTimeTest, Kefir = ref.Kefir;
 
 describe('delay', function() {
   describe('stream', function() {
@@ -15673,10 +15677,22 @@ describe('delay', function() {
         return send(a, ['<end>']);
       });
     });
-    return it('errors should flow', function() {
+    it('errors should flow', function() {
       var a;
       a = stream();
       return expect(a.delay(100)).errorsToFlow(a);
+    });
+    return describe('works with undependable setTimeout', function() {
+      return shakyTimeTest(function(expectToEmitOverShakyTime) {
+        var a;
+        a = stream();
+        return expectToEmitOverShakyTime(a.delay(10), [[10, 1], [15, 4], [15, '<end>']], function(tick) {
+          send(a, [1]);
+          tick(5);
+          send(a, [4]);
+          return send(a, ['<end>']);
+        });
+      });
     });
   });
   return describe('property', function() {
@@ -24335,7 +24351,7 @@ describe('zip', function() {
 
 
 },{"../test-helpers.coffee":107}],107:[function(require,module,exports){
-var Kefir, _activateHelper, logItem, sinon,
+var Kefir, _activateHelper, logItem, shakeTimers, sinon,
   slice = [].slice;
 
 Kefir = require("../dist/kefir");
@@ -24401,9 +24417,9 @@ exports.watchWithTime = function(obs) {
 };
 
 exports.send = function(obs, events) {
-  var event, i, len;
-  for (i = 0, len = events.length; i < len; i++) {
-    event = events[i];
+  var event, j, len;
+  for (j = 0, len = events.length; j < len; j++) {
+    event = events[j];
     if (event === '<end>') {
       obs._emitEnd();
     }
@@ -24436,12 +24452,63 @@ exports.stream = function() {
   return new Kefir.Stream();
 };
 
-exports.withFakeTime = function(cb) {
-  var clock;
-  clock = sinon.useFakeTimers(10000);
-  cb(function(t) {
-    return clock.tick(t);
+shakeTimers = function(clock) {
+  var ids, timers;
+  ids = Object.keys(clock.timers);
+  timers = ids.map(function(id) {
+    return clock.timers[id];
   });
+  timers.sort(function(a, b) {
+    if (a.callAt < b.callAt) {
+      return -1;
+    }
+    if (a.callAt > b.callAt) {
+      return 1;
+    }
+    if (a.immediate && !b.immediate) {
+      return -1;
+    }
+    if (!a.immediate && b.immediate) {
+      return 1;
+    }
+    if (a.createdAt < b.createdAt) {
+      return 1;
+    }
+    if (a.createdAt > b.createdAt) {
+      return -1;
+    }
+    if (a.id < b.id) {
+      return 1;
+    }
+    if (a.id > b.id) {
+      return -1;
+    }
+  });
+  ids.sort(function(a, b) {
+    return a - b;
+  });
+  return timers.forEach(function(timer, i) {
+    var id;
+    id = ids[i];
+    timer.createdAt = 0;
+    timer.id = id;
+    return clock.timers[id] = timer;
+  });
+};
+
+exports.withFakeTime = function(cb, reverseSimultaneous) {
+  var clock, tick;
+  if (reverseSimultaneous == null) {
+    reverseSimultaneous = false;
+  }
+  clock = sinon.useFakeTimers(10000);
+  tick = function(t) {
+    if (reverseSimultaneous) {
+      shakeTimers(clock);
+    }
+    return clock.tick(t);
+  };
+  cb(tick, clock);
   return clock.restore();
 };
 
@@ -24453,6 +24520,23 @@ exports.withDOM = function(cb) {
   document.body.appendChild(div);
   cb(div);
   return document.body.removeChild(div);
+};
+
+exports.shakyTimeTest = function(testCb) {
+  it('[shaky time test: normal run]', function() {
+    var expectToEmitOverShakyTime;
+    expectToEmitOverShakyTime = function(stream, expectedLog, cb, timeLimit) {
+      return expect(stream).toEmitInTime(expectedLog, cb, timeLimit);
+    };
+    return testCb(expectToEmitOverShakyTime);
+  });
+  return it('[shaky time test: reverse run]', function() {
+    var expectToEmitOverShakyTime;
+    expectToEmitOverShakyTime = function(stream, expectedLog, cb, timeLimit) {
+      return expect(stream).toEmitInTime(expectedLog, cb, timeLimit, true);
+    };
+    return testCb(expectToEmitOverShakyTime);
+  });
 };
 
 beforeEach(function() {
@@ -24557,10 +24641,13 @@ beforeEach(function() {
         return this.env.equals_(expectedLog, log);
       }
     },
-    toEmitInTime: function(expectedLog, cb, timeLimit) {
+    toEmitInTime: function(expectedLog, cb, timeLimit, reverseSimultaneous) {
       var log;
       if (timeLimit == null) {
         timeLimit = 10000;
+      }
+      if (reverseSimultaneous == null) {
+        reverseSimultaneous = false;
       }
       log = null;
       exports.withFakeTime((function(_this) {
@@ -24571,7 +24658,7 @@ beforeEach(function() {
           }
           return tick(timeLimit);
         };
-      })(this));
+      })(this), reverseSimultaneous);
       this.message = function() {
         return "Expected to emit " + (jasmine.pp(expectedLog)) + ", actually emitted " + (jasmine.pp(log));
       };
@@ -24605,18 +24692,18 @@ beforeEach(function() {
         correctResults["some " + notNotStr + "activated at second try"] = false;
       }
       check = function(test, conditions) {
-        var condition, i, j, len, len1;
+        var condition, j, k, len, len1;
         if (correctResults[test] === true) {
-          for (i = 0, len = conditions.length; i < len; i++) {
-            condition = conditions[i];
+          for (j = 0, len = conditions.length; j < len; j++) {
+            condition = conditions[j];
             if (!condition) {
               tests[test] = false;
               return;
             }
           }
         } else {
-          for (j = 0, len1 = conditions.length; j < len1; j++) {
-            condition = conditions[j];
+          for (k = 0, len1 = conditions.length; k < len1; k++) {
+            condition = conditions[k];
             if (condition) {
               return;
             }
@@ -24625,50 +24712,50 @@ beforeEach(function() {
         }
       };
       check("some activated at start", (function() {
-        var i, len, results;
+        var j, len, results;
         results = [];
-        for (i = 0, len = obss.length; i < len; i++) {
-          obs = obss[i];
+        for (j = 0, len = obss.length; j < len; j++) {
+          obs = obss[j];
           results.push(!obs._active);
         }
         return results;
       })());
       exports.activate(this.actual);
       check("some " + notNotStr + "activated", (function() {
-        var i, len, results;
+        var j, len, results;
         results = [];
-        for (i = 0, len = obss.length; i < len; i++) {
-          obs = obss[i];
+        for (j = 0, len = obss.length; j < len; j++) {
+          obs = obss[j];
           results.push(obs._active);
         }
         return results;
       })());
       exports.deactivate(this.actual);
       check("some " + notNotStr + "deactivated", (function() {
-        var i, len, results;
+        var j, len, results;
         results = [];
-        for (i = 0, len = obss.length; i < len; i++) {
-          obs = obss[i];
+        for (j = 0, len = obss.length; j < len; j++) {
+          obs = obss[j];
           results.push(!obs._active);
         }
         return results;
       })());
       exports.activate(this.actual);
       check("some " + notNotStr + "activated at second try", (function() {
-        var i, len, results;
+        var j, len, results;
         results = [];
-        for (i = 0, len = obss.length; i < len; i++) {
-          obs = obss[i];
+        for (j = 0, len = obss.length; j < len; j++) {
+          obs = obss[j];
           results.push(obs._active);
         }
         return results;
       })());
       exports.deactivate(this.actual);
       check("some " + notNotStr + "deactivated at second try", (function() {
-        var i, len, results;
+        var j, len, results;
         results = [];
-        for (i = 0, len = obss.length; i < len; i++) {
-          obs = obss[i];
+        for (j = 0, len = obss.length; j < len; j++) {
+          obs = obss[j];
           results.push(!obs._active);
         }
         return results;
@@ -24686,10 +24773,10 @@ beforeEach(function() {
           return results;
         })()).join(', ');
         obssNames = ((function() {
-          var i, len, results;
+          var j, len, results;
           results = [];
-          for (i = 0, len = obss.length; i < len; i++) {
-            obs = obss[i];
+          for (j = 0, len = obss.length; j < len; j++) {
+            obs = obss[j];
             results.push(obs.toString());
           }
           return results;
