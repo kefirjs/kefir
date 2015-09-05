@@ -176,6 +176,15 @@ describe 'Property', ->
       send(p, [1])
       expect(spy.args).toEqual [[1]]
 
+    it 'should update catched current error before dispatching it', ->
+      p = send(prop(), [{error: 0}])
+      spy = sinon.spy()
+      p.onError (x) ->
+        if x == 1
+          p.onError spy
+      send(p, [{error: 1}])
+      expect(spy.args).toEqual [[1]]
+
 
 
 
