@@ -6,37 +6,39 @@ Kefir.DEPRECATION_WARNINGS = false;
 exports.Kefir = Kefir
 
 
-logItem = (event) ->
+logItem = (event, isCurrent) ->
   if event.type == 'value'
-    if event.current
+    if isCurrent
       {current: event.value}
     else
       event.value
   else if event.type == 'error'
-    if event.current
+    if isCurrent
       {currentError: event.value}
     else
       {error: event.value}
   else
-    if event.current
+    if isCurrent
       '<end:current>'
     else
       '<end>'
 
 exports.watch = (obs) ->
   log = []
-  fn = (event) ->
-    log.push(logItem event)
-  unwatch = ->
-    obs.offAny fn
+  fn = (event) -> log.push(logItem event, isCurrent)
+  unwatch = -> obs.offAny fn
+  isCurrent = true
   obs.onAny fn
+  isCurrent = false
   {log, unwatch}
 
 exports.watchWithTime = (obs) ->
   startTime = new Date()
   log = []
+  isCurrent = true
   obs.onAny (event) ->
-    log.push([(new Date() - startTime), (logItem event)])
+    log.push([(new Date() - startTime), (logItem event, isCurrent)])
+  isCurrent = false
   log
 
 

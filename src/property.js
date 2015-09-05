@@ -16,18 +16,18 @@ inherit(Property, Observable, {
 
   _emitValue(value) {
     if (this._alive) {
-      this._currentEvent = {type: VALUE, value, current: true};
+      this._currentEvent = {type: VALUE, value};
       if (!this._activating) {
-        this._dispatcher.dispatch({type: VALUE, value, current: this._activating});
+        this._dispatcher.dispatch({type: VALUE, value});
       }
     }
   },
 
   _emitError(value) {
     if (this._alive) {
-      this._currentEvent = {type: ERROR, value, current: true};
+      this._currentEvent = {type: ERROR, value};
       if (!this._activating) {
-        this._dispatcher.dispatch({type: ERROR, value, current: this._activating});
+        this._dispatcher.dispatch({type: ERROR, value});
       }
     }
   },
@@ -36,7 +36,7 @@ inherit(Property, Observable, {
     if (this._alive) {
       this._alive = false
       if (!this._activating) {
-        this._dispatcher.dispatch({type: END, current: this._activating});
+        this._dispatcher.dispatch({type: END});
       }
       this._clear();
     }
@@ -52,7 +52,7 @@ inherit(Property, Observable, {
       callSubscriber(type, fn, this._currentEvent);
     }
     if (!this._alive) {
-      callSubscriber(type, fn, {type: END, current: true});
+      callSubscriber(type, fn, {type: END});
     }
     return this;
   },
