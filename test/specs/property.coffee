@@ -1,5 +1,5 @@
 {prop, send, activate, Kefir} = require('../test-helpers.coffee')
-
+sinon = require('sinon')
 
 
 describe 'Property', ->
@@ -165,6 +165,16 @@ describe 'Property', ->
       expect(p).toEmit [{currentError: 1}]
       send(p, [2])
       expect(p).toEmit [{current: 2}]
+
+
+    it 'should update catched current value before dispatching it', ->
+      p = send(prop(), [0])
+      spy = sinon.spy()
+      p.onValue (x) ->
+        if x == 1
+          p.onValue spy
+      send(p, [1])
+      expect(spy.args).toEqual [[1]]
 
 
 
