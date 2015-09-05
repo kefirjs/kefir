@@ -147,15 +147,9 @@ beforeEach ->
     toBeStream: ->
       @message = -> "Expected #{@actual.toString()} to be instance of Stream"
       @actual instanceof Kefir.Stream
-    toBeEmitter: ->
-      @message = -> "Expected #{@actual.toString()} to be instance of Emitter"
-      @actual instanceof Kefir.Emitter
     toBePool: ->
       @message = -> "Expected #{@actual.toString()} to be instance of Pool"
       @actual instanceof Kefir.Pool
-    toBeBus: ->
-      @message = -> "Expected #{@actual.toString()} to be instance of Bus"
-      @actual instanceof Kefir.Bus
 
     toBeActive: -> @actual._active
 

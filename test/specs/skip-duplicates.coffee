@@ -38,12 +38,12 @@ describe 'skipDuplicates', ->
     it 'should help with creating circular dependencies', ->
       # https://github.com/rpominov/kefir/issues/42
 
-      a = Kefir.bus()
-      b = a.map (x) -> x
-      a.plug b.skipDuplicates()
-
+      a = stream()
+      b = Kefir.pool()
+      b.plug(a)
+      b.plug(b.map((x) -> x).skipDuplicates())
       expect(b).toEmit [1, 1], ->
-        a.emit(1)
+        send(a, [1])
 
 
   describe 'property', ->
