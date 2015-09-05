@@ -1,6 +1,6 @@
 function spread(fn, length) {
   switch(length) {
-    case 0: return function(a) {return fn();};
+    case 0: return function() {return fn();};
     case 1: return function(a) {return fn(a[0]);};
     case 2: return function(a) {return fn(a[0], a[1]);};
     case 3: return function(a) {return fn(a[0], a[1], a[2]);};

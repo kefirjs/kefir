@@ -36,7 +36,7 @@ const mixin = {
     }
   },
 
-  _handleSecondaryEnd(x) {
+  _handleSecondaryEnd() {
     if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
       this._emitEnd();
     }

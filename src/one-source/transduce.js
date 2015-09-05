@@ -8,7 +8,7 @@ function xformForObs(obs) {
       return null;
     },
 
-    '@@transducer/result'(res) {
+    '@@transducer/result'() {
       obs._emitEnd();
       return null;
     }

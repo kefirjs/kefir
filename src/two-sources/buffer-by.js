@@ -37,11 +37,11 @@ const mixin = {
     this._buff.push(x);
   },
 
-  _handleSecondaryValue(x) {
+  _handleSecondaryValue() {
     this._flush();
   },
 
-  _handleSecondaryEnd(x) {
+  _handleSecondaryEnd() {
     if (!this._flushOnEnd) {
       this._emitEnd();
     }

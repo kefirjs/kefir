@@ -2,7 +2,7 @@ const {createStream, createProperty} = require('../patterns/two-sources');
 
 const mixin = {
 
-  _handleSecondaryValue(x) {
+  _handleSecondaryValue() {
     this._emitEnd();
   }
 

@@ -78,7 +78,7 @@ inherit(Combine, Stream, {
     let hasErrors = false;
     let length = this._latestValues.length;
     let valuesCopy = new Array(length);
-    let errorsCopy = new Array(length);;
+    let errorsCopy = new Array(length);
 
     for (let i = 0; i < length; i++) {
       valuesCopy[i] = this._latestValues[i];

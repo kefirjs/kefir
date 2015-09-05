@@ -14,7 +14,7 @@ module.exports = function timeBased(mixin) {
 
   inherit(AnonymousStream, Stream, {
 
-    _init(options) {},
+    _init() {},
     _free() {},
 
     _onTick() {},
