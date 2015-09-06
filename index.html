@@ -28,17 +28,13 @@ that will produce three numbers with interval of 100 milliseconds:
 </p><pre title="example" class="javascript">var numbers = Kefir.sequentially(100, [1, 2, 3]);
 </pre><p>Now let's create another stream based on the first one.
 As you might guess, it will produce 2, 4, and 6.
-</p><pre title="example" class="javascript">var numbers2 = numbers.map(function(x) {
-  return x * 2;
-});
+</p><pre title="example" class="javascript">var numbers2 = numbers.map(x =&gt; x * 2);
 </pre><p>Suppose we don't want number 4 to be in the sequence,
 no problem, we can filter it out:
-</p><pre title="example" class="javascript">var numbers3 = numbers2.filter(function(x) {
-  return x !== 4;
-});
+</p><pre title="example" class="javascript">var numbers3 = numbers2.filter(x =&gt; x !== 4);
 </pre><p>Ok, I think numbers3 stream is what we want,
 it's time to subscribe to it and to get the values:
-</p><pre title="example" class="javascript">numbers3.onValue(function(x) {
+</p><pre title="example" class="javascript">numbers3.onValue(x =&gt; {
   logger.log(x);
 });
 </pre><script>function Logger(domNode, divider) {
@@ -70,46 +66,35 @@ button click events:
 </p><pre title="example" class="javascript">var btnClicks = Kefir.fromEvents(document.querySelector(&#x27;#ex-2-btn&#x27;), &#x27;click&#x27;);
 </pre><p>Also let's create a stream of a text input value changes:
 </p><pre title="example" class="javascript">var inputValue = Kefir.fromEvents(document.querySelector(&#x27;#ex-2-input&#x27;), &#x27;keyup&#x27;)
-  .map(function(event) {
-    return event.target.value;
-  });
+  .map(event =&gt; event.target.value);
 </pre><p>That a good begining, we have streams representing user actions,
 now we can transform and combine them to create our desired result stream.
 First we want to have a <a href="#about-observables">property</a>
 representing how many times user clicked the button,
 we will use <a href="#scan">scan</a> method to create it:
-</p><pre title="example" class="javascript">var clicksCount = btnClicks.scan(function(sum, event) {
-  return sum + 1;
-}, 0);
+</p><pre title="example" class="javascript">var clicksCount = btnClicks.scan(sum =&gt; sum + 1, 0);
 </pre><p>Now we have two numbers, first is clicks count, and second is text field
 content, which actually a string, but let's fix that:
-</p><pre title="example" class="javascript">var inputNumber = inputValue.map(function(text) {
-  return parseInt(text, 10);
-});
+</p><pre title="example" class="javascript">var inputNumber = inputValue.map(text =&gt; parseInt(text, 10));
 </pre><p>Done, but now it can produce the <tt>NaN</tt> if user type "banana" or something
 instead of a number. Let's fix this too
 using <a href="#about-errors">errors handling</a> that Kefir provides:
-</p><pre title="example" class="javascript">var fixedInputNumber = inputValue.valuesToErrors(function(x) {
-  return {
-    convert: isNaN(x),
-    error: &#x27;banana?&#x27;
-  };
-});
+</p><pre title="example" class="javascript">var fixedInputNumber = inputValue.flatMap(
+  x =&gt; isNaN(x)
+    ? Kefir.constantError(&#x27;banana?&#x27;)
+    : Kefir.constant(x)
+);
 </pre><p>Almost done, final step is to combine our two dynamic number values.
 Suppose we want to multiply them:
-</p><pre title="example" class="javascript">function multiply(a, b) {
-  return a * b;
-}
-
-var theResult = Kefir.combine([fixedInputNumber, clicksCount], multiply);
+</p><pre title="example" class="javascript">var theResult = Kefir.combine([fixedInputNumber, clicksCount], (a, b) =&gt; a * b);
 </pre><p>Good, let's display the result:
 </p><pre title="example" class="javascript">var outputElement = document.querySelector(&#x27;#ex-2-output&#x27;);
 
 theResult
-  .onValue(function(x) {
+  .onValue(x =&gt; {
     outputElement.innerHTML = x;
   })
-  .onError(function(error) {
+  .onError(error =&gt; {
     outputElement.innerHTML = &#x27;&lt;span style=&quot;color:red&quot;&gt;&#x27; + error + &#x27;&lt;/span&gt;&#x27;;
   });
 </pre><p><button id="ex-2-btn">click me</button> <span id="ex-2-count-output"></span> * <input id="ex-2-input" placeholder="try &quot;banana&quot;"> =  <span id="ex-2-output"></span></p><script>var clicksCount = Kefir
@@ -126,11 +111,10 @@ var fixedInputNumber = Kefir
   .map(function(text) {
     return parseInt(text, 10);
   })
-  .valuesToErrors(function(x) {
-    return {
-      convert: isNaN(x),
-      error: 'banana?'
-    };
+  .flatMap(function(x) {
+    return isNaN(x)
+      ? Kefir.constantError('banana?')
+      : Kefir.constant(x)
   });
 
 var theResult = Kefir.combine([fixedInputNumber, clicksCount], function(a, b) {
@@ -193,7 +177,7 @@ with the given <b>interval</b> in milliseconds,
 and emits the values returned by <b>fn</b>.
 Never ends.
 </p><pre title="example" class="javascript">var start = new Date();
-var stream = Kefir.fromPoll(1000, function(){ return new Date() - start });
+var stream = Kefir.fromPoll(1000, () =&gt; new Date() - start);
 stream.log();
 </pre><pre title="console output">&gt; [fromPoll] &lt;value&gt; 1001
 &gt; [fromPoll] &lt;value&gt; 2002
@@ -209,7 +193,7 @@ with the given <b>interval</b> in milliseconds.
 The <b>handler</b> function is called with one argument —
 an <a href="#emitter-object">emitter</a>.
 </p><pre title="example" class="javascript">var start = new Date();
-var stream = Kefir.withInterval(1000, function(emitter) {
+var stream = Kefir.withInterval(1000, emitter =&gt; {
   var time = new Date() - start;
   if (time &lt; 4000) {
     emitter.emit(time);   // emit a value
@@ -232,9 +216,9 @@ as the first argument to a stream.
 Emits at most one value when <b>callback</b> is called, then ends.
 The <b>fn</b> function will be called at most once,
 when the first subscriber will be added to the stream.
-</p><pre title="example" class="javascript">var stream = Kefir.fromCallback(function(callback) {
+</p><pre title="example" class="javascript">var stream = Kefir.fromCallback(callback =&gt; {
   // we use setTimeout here just to simulate some asynchronous activity
-  setTimeout(function() {  callback(1)  }, 1000);
+  setTimeout(() =&gt; callback(1), 1000);
 });
 stream.log();
 </pre><pre title="console output">&gt; [fromCallback] &lt;value&gt; 1
@@ -245,9 +229,9 @@ is a Node.JS style callback — <tt>callback(error,&nbsp;result)</tt>.
 If the <b>error</b> argument of the <b>callback</b> is truthy,
 an error will be emitted from the result stream, otherwise a value is emitted.
 The stream will end after the first value or on error.
-</p><pre title="example" class="javascript">var stream = Kefir.fromNodeCallback(function(callback) {
+</p><pre title="example" class="javascript">var stream = Kefir.fromNodeCallback(callback =&gt; {
   // we use setTimeout here just to simulate some asynchronous activity
-  setTimeout(function() {  callback(null, 1)  }, 1000);
+  setTimeout(() =&gt; callback(null, 1), 1000);
 });
 stream.log();
 </pre><pre title="console output">&gt; [fromNodeCallback] &lt;value&gt; 1
@@ -258,7 +242,7 @@ object, or an object that supports event listeners using <tt>on/off</tt> methods
 with the same arguments and context (<tt>this</tt>) as the event listener callback.
 And the value returned by <b>transform</b> will be emitted from the stream.
 If no <b>transform</b> function is provided, the first argument of the callback is emitted by default,
-i.e. the <tt>function(x) {return x}</tt> is used as <b>transform</b>.
+i.e. the function <tt>x&nbsp;=&gt;&nbsp;x</tt> is used as <b>transform</b>.
 </p><pre title="example" class="javascript">var stream = Kefir.fromEvents(document.body, &#x27;click&#x27;);
 stream.log()
 </pre><pre title="console output">&gt; [fromEvents] &lt;value&gt; MouseEvent {dataTransfer: null, y: 474, x: 551 ...}
@@ -270,12 +254,12 @@ called on each <a href="#active-state">activation</a>,
 and if a function is returned from <b>subscribe</b>, it will be called on the following <b>deactivation</b>.
 The <b>subscribe</b> function is called with <a href="#emitter-object">emitter</a> as an argument,
 which can be used to emit events from the result stream.
-</p><pre title="example" class="javascript">var stream = Kefir.stream(function(emitter) {
+</p><pre title="example" class="javascript">var stream = Kefir.stream(emitter =&gt; {
 
   var count = 0;
   emitter.emit(count);
 
-  var intervalId = setInterval(function() {
+  var intervalId = setInterval(() =&gt; {
     count++;
     if (count &lt; 4) {
       emitter.emit(count);
@@ -284,7 +268,7 @@ which can be used to emit events from the result stream.
     }
   }, 1000);
 
-  return function() {
+  return () =&gt; {
     clearInterval(intervalId);
   }
 
@@ -309,7 +293,7 @@ interface to subscribe to the promise. Also calls <tt>promise.done()</tt>
 (if there is such methods) to prevent libraries like
 <a href="https://github.com/kriskowal/q">Q</a> or
 <a href="https://github.com/cujojs/when">when</a> from swallowing exceptions.
-</p><pre title="example" class="javascript">var result = Kefir.fromPromise(new Promise(function(fulfill) {  fulfill(1)  }));
+</p><pre title="example" class="javascript">var result = Kefir.fromPromise(new Promise(fulfill =&gt; fulfill(1)));
 result.log();
 </pre><pre title="console output">&gt; [fromPromise] &lt;value&gt; 1
 &gt; [fromPromise] &lt;end&gt;
@@ -317,9 +301,7 @@ result.log();
 Accepts an optional <b>getCurrent</b> callback, which will be called on
 each <a href="#active-state">activation</a> to get the current value at that moment.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.toProperty(function() {
-  return 0;
-});
+var result = source.toProperty(() =&gt; 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.toProperty] &lt;value:current&gt; 0
 &gt; [sequentially.toProperty] &lt;value&gt; 1
@@ -333,7 +315,7 @@ If the property has a current value (or error), it will be ignored
 </p><p>If you call <b>changes</b> on a stream, it will return a new stream with
 <a href="#current-in-streams">current values/errors</a> removed.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var property = source.toProperty(function() {return 0});
+var property = source.toProperty(() =&gt; 0);
 var result = property.changes();
 result.log();
 </pre><pre title="console output">&gt; [sequentially.toProperty.changes] &lt;value&gt; 1
@@ -346,8 +328,8 @@ result:    ----1----2----3X</pre><div></div><h2 id="main-methods">Subscribe / ad
 <b>callback</b> will be called immediately (synchronously)
 with that value.
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
-stream.onValue(function(x) {
-  console.log('value:', x);
+stream.onValue(x =&gt; {
+  console.log(&#x27;value:&#x27;, x);
 });
 </pre><pre title="console output">&gt; value: 1
 &gt; value: 2
@@ -358,8 +340,8 @@ stream.onValue(function(x) {
 <b>callback</b> will be called immediately (synchronously)
 with that error.
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
-stream.onError(function(x) {
-  console.log('error:', x);
+stream.onError(x =&gt; {
+  console.log(&#x27;error:&#x27;, x);
 });
 </pre><pre title="console output">&gt; error: 1
 &gt; error: 2
@@ -368,8 +350,8 @@ stream.onError(function(x) {
 </p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(callback)</code><br/>Subscribes <b>callback</b> to ending of an observable.
 </p><p>If observable is already ended, <b>callback</b> will be called immediately (synchronously).
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
-stream.onEnd(function() {
-  console.log('stream ended');
+stream.onEnd(() =&gt; {
+  console.log(&#x27;stream ended&#x27;);
 });
 </pre><pre title="console output">&gt; stream ended
 </pre><p id="off-end"><a href="#off-end" class="header">offEnd</a><code>obs.offEnd(callback)</code><br/>Unsubscribes <b>callback</b> from ending of an observable.
@@ -380,8 +362,8 @@ contains three attributes — <b>type</b>, <b>value</b>, and <b>current</b>.
 <a href="https://github.com/rpominov/kefir/issues/100">going to be removed</a>
 in <tt>v3.0.0</tt>.
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
-stream.onAny(function(event) {
-  console.log('event:', event);
+stream.onAny(event =&gt; {
+  console.log(&#x27;event:&#x27;, event);
 });
 </pre><pre title="console output">&gt; event: Object {type: &quot;value&quot;, value: 1, current: false}
 &gt; event: Object {type: &quot;error&quot;, value: 2, current: false}
@@ -390,7 +372,7 @@ stream.onAny(function(event) {
 </p><p id="log"><a href="#log" class="header">log</a><code>obs.log([name])</code><br/>Turns on logging of any event to the browser console.
 Accepts an optional <b>name</b> argument that will be shown in the log if provided.
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
-stream.log('my stream');
+stream.log(&#x27;my stream&#x27;);
 </pre><pre title="console output">&gt; my stream &lt;value&gt; 1
 &gt; my stream &lt;value&gt; 2
 &gt; my stream &lt;end&gt;
@@ -400,13 +382,13 @@ stream.log('my stream');
 </p><p id="to-promise"><a href="#to-promise" class="header">toPromise</a><code>obs.toPromise([PromiseConstructor])</code><br/>Another way to take events out of Kefir is to convert an Observable to a Promise.
 If called without arguments the default <tt>gloabal.Promise</tt> constructor is used,
 alternatively you can pass a promise constructor
-that supports following interface: <tt>new Promise(function(resolve, reject) { ... })</tt>.
+that supports following interface: <tt>new Promise((resolve, reject) =&gt; { ... })</tt>.
 The promise will be fulfilled or rejected at the moment source observable ends,
 with the latest value or error. If observable ends without any value or error
 the promise will never be fulfilled/rejected.
 </p><pre title="example" class="javascript">var promise = Kefir.sequentially(1000, [1, 2]).toPromise();
-promise.then(function(x) {
-  console.log('fulfilled with:', x);
+promise.then(x =&gt; {
+  console.log(&#x27;fulfilled with:&#x27;, x);
 });
 </pre><pre title="console output">&gt; fulfilled with: 2</pre><h2 id="modify">Modify an observable</h2><p>All methods in this section create a new observable of same type* from an original one.
 The new observable applies some transformation to each event from the original one
@@ -422,7 +404,7 @@ that always returns a property.
 </p><p id="map"><a href="#map" class="header">map</a><code>obs.map(fn)</code><br/>Applies the given <b>fn</b> function to each value from the original observable
 and emits the value returned by <b>fn</b>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.map(function(x) {  return x + 1  });
+var result = source.map(x =&gt; x + 1);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.map] &lt;value&gt; 2
 &gt; [sequentially.map] &lt;value&gt; 3
@@ -430,9 +412,9 @@ result.log();
 &gt; [sequentially.map] &lt;end&gt;</pre><div></div><pre title="events in time">source: ---1---2---3X
 result: ---2---3---4X</pre><div></div><p id="filter"><a href="#filter" class="header">filter</a><code>obs.filter([predicate])</code><br/>Filters values from the original observable
 using the given <b>predicate</b> function.
-</p><p>If no <b>predicate</b> is provided, the <tt>function(x) {return x}</tt> will be used.
+</p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.filter(function(x) {  return x &gt; 1  });
+var result = source.filter(x =&gt; x &gt; 1);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.filter] &lt;value&gt; 2
 &gt; [sequentially.filter] &lt;value&gt; 3
@@ -452,9 +434,9 @@ result.log();
 result: ---1---2X</pre><div></div><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>obs.takeWhile([predicate])</code><br/>Emits values from the original observable until the given <b>predicate</b>
 function applied to a value returns false.
 Ends when the <b>predicate</b> returns false.
-</p><p>If no <b>predicate</b> is provided, the <tt>function(x) {return x}</tt> will be used.
+</p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.takeWhile(function(x) {  return x &lt; 3  });
+var result = source.takeWhile(x =&gt; x &lt; 3);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.takeWhile] &lt;value&gt; 1
 &gt; [sequentially.takeWhile] &lt;value&gt; 2
@@ -480,9 +462,9 @@ result.log();
 result: -----------3X</pre><div></div><p id="skip-while"><a href="#skip-while" class="header">skipWhile</a><code>obs.skipWhile([predicate])</code><br/>Skips values from the original observable until the given <b>predicate</b>
 function applied to a value returns false,
 then stops applying the <b>predicate</b> to values and emits all of them.
-</p><p>If no <b>predicate</b> is provided, the <tt>function(x) {return x}</tt> will be used.
+</p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 3, 2]);
-var result = source.skipWhile(function(x) {  return x &lt; 3  });
+var result = source.skipWhile(x =&gt; x &lt; 3);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.skipWhile] &lt;value&gt; 3
 &gt; [sequentially.skipWhile] &lt;value&gt; 2
@@ -503,9 +485,9 @@ result.log();
 &gt; [sequentially.skipDuplicates] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---2---3---1X
 result: ---1---2-------3---1X</pre><div></div><p>With custom <b>comparator</b> function:</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 2.1, 3, 1]);
-var result = source.skipDuplicates(function(a, b) {
-  return Math.round(a) === Math.round(b);
-});
+var result = source.skipDuplicates(
+  (a, b) =&gt; Math.round(a) === Math.round(b)
+);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.skipDuplicates] &lt;value&gt; 1
 &gt; [sequentially.skipDuplicates] &lt;value&gt; 2
@@ -520,12 +502,10 @@ At first time, calls <b>fn</b> with <b>seed</b> and current value.
 Emits whatever <b>fn</b> returns.
 </p><p>If no <b>seed</b> is provided, the first value will be used as a seed,
 and the result observable won't emit on first value.
-</p><p>If no <b>fn</b> function is provided, <tt>function(a, b) {return [a, b]}</tt> will be used.
+</p><p>If no <b>fn</b> function is provided, <tt>(a, b) =&gt; [a, b]</tt> will be used.
 If you want to omit <b>fn</b> but provide <b>seed</b>, pass <tt>null</tt> as <b>fn</b>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-var result = source.diff(function(prev, next) {
-  return next - prev;
-}, 0);
+var result = source.diff((prev, next) =&gt; next - prev, 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.diff] &lt;value&gt; 1
 &gt; [sequentially.diff] &lt;value&gt; 1
@@ -541,9 +521,7 @@ At first time, calls <b>fn</b> with <b>seed</b> as previous result.
 Emits whatever <b>fn</b> returns. Always creates a property.
 </p><p>If no <b>seed</b> is provided, the first value will be used as a seed.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 2, 3]);
-var result = source.scan(function(prev, next) {
-  return next + prev;
-}, 0);
+var result = source.scan((prev, next) =&gt; next + prev, 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.scan] &lt;value:current&gt; 0
 &gt; [sequentially.scan] &lt;value&gt; 1
@@ -574,7 +552,7 @@ If you want to skip a value, return an empty array,
 to change the value — return an array with a single new value,
 to emit several values — return them in an array.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3, 4]);
-var result = source.flatten(function(x) {
+var result = source.flatten(x =&gt; {
   if (x % 2 === 0) {
     return [x * 10];
   } else {
@@ -628,7 +606,7 @@ observable to emit a value on the leading instead of the
 trailing edge of the <b>wait</b> interval.
 If used on a property, the current value will always pass without any delay.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3, 0, 0, 0, 4, 5, 6]);
-source = source.filter(function(x) {return x &gt; 0});
+source = source.filter(x =&gt; x &gt; 0);
 var result = source.debounce(250);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.filter.debounce] &lt;value&gt; 3
@@ -641,7 +619,7 @@ and must return an object with two properties <tt>{convert: Boolean, error: AnyT
 if <b>convert</b> is set to <tt>true</tt>, the specified <b>error</b> will be emitted,
 otherwise the original value will be emitted, and the <b>error</b> property will be ignored.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3]);
-var result = source.valuesToErrors(function(x) {
+var result = source.valuesToErrors(x =&gt; {
   return {
     convert: x &lt; 0,
     error: x * 2
@@ -658,7 +636,7 @@ result.log();
 result:  ---•---e---•---eX
             0  -2   2  -6</pre><div></div><p id="errors-to-values"><a href="#errors-to-values" class="header">errorsToValues</a><code>obs.errorsToValues([handler])</code><br/>Same as <a href="#values-to-errors">valuesToErrors</a> but vice versa.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3]).valuesToErrors();
-var result = source.errorsToValues(function(x) {
+var result = source.errorsToValues(x =&gt; {
   return {
     convert: x &gt;= 0,
     value: x * 2
@@ -676,9 +654,7 @@ result:  ---•---e---•---eX
             0  -1   4  -3</pre><div></div><p id="map-errors"><a href="#map-errors" class="header">mapErrors</a><code>obs.mapErrors(fn)</code><br/>Applies the given <b>fn</b> function to each error from the original observable
 and emits the error returned by <b>fn</b>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
-var result = source.mapErrors(function(x) {
-  return x * 2;
-});
+var result = source.mapErrors(x =&gt; x * 2);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.valuesToErrors.mapErrors] &lt;error&gt; 0
 &gt; [sequentially.valuesToErrors.mapErrors] &lt;error&gt; 2
@@ -690,11 +666,9 @@ result.log();
 result:  ---e---e---e---eX
             0   2   4   6</pre><div></div><p id="filter-errors"><a href="#filter-errors" class="header">filterErrors</a><code>obs.filterErrors([predicate])</code><br/>Filters errors from the original observable
 using the given <b>predicate</b> function.
-</p><p>If no <b>predicate</b> is provided, the <tt>function(x) {return x}</tt> will be used.
+</p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
-var result = source.filterErrors(function(x) {
-  return (x % 2) === 0;
-});
+var result = source.filterErrors(x =&gt; (x % 2) === 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.valuesToErrors.filterErrors] &lt;error&gt; 0
 &gt; [sequentially.valuesToErrors.filterErrors] &lt;error&gt; 2
@@ -704,7 +678,7 @@ result.log();
 result:  ---e-------e----X
             0       2</pre><div></div><p id="end-on-error"><a href="#end-on-error" class="header">endOnError</a><code>obs.endOnError()</code><br/>Makes an observable to end on first error.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3])
-  .valuesToErrors(function(x) {
+  .valuesToErrors(x =&gt; {
     return {convert: x &lt; 0, error: x};
   });
 var result = source.endOnError()
@@ -717,7 +691,7 @@ result.log();
 result:  ---•---eX
             0  -1</pre><div></div><p id="skip-values"><a href="#skip-values" class="header">skipValues</a><code>obs.skipValues()</code><br/>Ignores all values from the original observable, emitting only errors and end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3])
-  .valuesToErrors(function(x) {
+  .valuesToErrors(x =&gt; {
     return {convert: x &lt; 0, error: x};
   });
 var result = source.skipValues()
@@ -730,7 +704,7 @@ result.log();
 result:  -------e-------eX
                -1      -3</pre><div></div><p id="skip-errors"><a href="#skip-errors" class="header">skipErrors</a><code>obs.skipErrors()</code><br/>Ignores all errors from the original observable, emitting only values and end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3])
-  .valuesToErrors(function(x) {
+  .valuesToErrors(x =&gt; {
     return {convert: x &lt; 0, error: x};
   });
 var result = source.skipErrors()
@@ -753,7 +727,7 @@ result:  ---1---2---3---</pre><div></div><p id="before-end"><a href="#before-end
 <b>fn</b> will be called on <b>obs</b>' end with no arguments,
 and whatever it return will be emitted in the result stream before end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.beforeEnd(function() {  return 0  });
+var result = source.beforeEnd(() =&gt; 0);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.beforeEnd] &lt;value&gt; 1
 &gt; [sequentially.beforeEnd] &lt;value&gt; 2
@@ -778,11 +752,11 @@ result:  -----------------•--------•--------•--------•X
 If it returns <tt>true</tt>, adds the value to the buffer, otherwise flushes the buffer.
 Also flushes the buffer before end, but you can disable that
 by passing <tt>{flushOnEnd: false}</tt> as <b>options</b>.
-</p><p>The default <b>predicate</b> is <tt>function(x) {return x}</tt>.
+</p><p>The default <b>predicate</b> is <tt>x =&gt; x</tt>.
 If you want to omit <b>predicate</b> but pass <b>options</b>,
 pass <tt>null</tt> as <b>predicate</b>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
-var result = source.bufferWhile(function(x) {return x !== 3});
+var result = source.bufferWhile(x =&gt; x !== 3);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.bufferWhile] &lt;value&gt; [1, 2, 3]
 &gt; [sequentially.bufferWhile] &lt;value&gt; [4, 5]
@@ -801,8 +775,8 @@ library is used.
 </p><pre title="example" class="javascript">var t = transducers;
 var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
 var myTransducer = t.comp(
-  t.map(function(x) {return x + 10}),
-  t.filter(function(x) {return x % 2 === 0}),
+  t.map(x =&gt; x + 10),
+  t.filter(x =&gt; x % 2 === 0),
   t.take(2)
 );
 var result = source.transduce(myTransducer);
@@ -825,7 +799,7 @@ the <b>emitter</b> methods several times in each <b>handler</b> execution,
 and you can also call them any time later, for example to implement
 <a href="#delay">delay</a>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, 1, 2, 3]);
-var result = source.withHandler(function(emitter, event) {
+var result = source.withHandler((emitter, event) =&gt; {
   if (event.type === &#x27;end&#x27;) {
     emitter.emit(&#x27;bye&#x27;);
     emitter.end();
@@ -855,11 +829,7 @@ If no <b>combinator</b> is provided, it emits an array containing the latest val
 </p><pre title="example" class="javascript">var a = Kefir.sequentially(100, [1, 3]);
 var b = Kefir.sequentially(100, [2, 4]).delay(40);
 
-function sum(a, b) {
-  return a + b;
-}
-
-var result = Kefir.combine([a, b], sum);
+var result = Kefir.combine([a, b], (a, b) =&gt; a + b);
 result.log();
 </pre><pre title="console output">&gt; [combine] &lt;value&gt; 3
 &gt; [combine] &lt;value&gt; 5
@@ -875,11 +845,7 @@ but all the values will be available in the combinator function.
 var b = Kefir.sequentially(100, [2, 4]).delay(40);
 var c = Kefir.sequentially(60, [5, 6, 7]);
 
-function sum(a, b, c) {
-  return a + b + c;
-}
-
-var result = Kefir.combine([a, b], [c], sum);
+var result = Kefir.combine([a, b], [c], (a, b, c) =&gt; a + b + c);
 result.log();
 </pre><pre title="console output">&gt; [combine] &lt;value&gt; 9
 &gt; [combine] &lt;value&gt; 12
@@ -914,7 +880,7 @@ or only observables of course.
 </p><p>The result stream ends when all sources end.
 </p><pre title="example" class="javascript">var a = Kefir.sequentially(100, [0, 1, 2, 3]);
 var b = Kefir.sequentially(160, [4, 5, 6]);
-var c = Kefir.sequentially(100, [8, 9]).delay(260).toProperty(function() {return 7});
+var c = Kefir.sequentially(100, [8, 9]).delay(260).toProperty(() =&gt; 7);
 var result = Kefir.zip([a, b, c]);
 result.log();
 </pre><pre title="console output">&gt; [zip] &lt;value&gt; [0, 4, 7]
@@ -1007,7 +973,7 @@ calls <b>generator</b> again to get a new one and so on.
 </p><p>The <b>generator</b> function is called with one argument — iteration number
 starting from <tt>0</tt>. If a falsy value is returned
 from the <b>generator</b>, the stream ends.
-</p><pre title="example" class="javascript">var result = Kefir.repeat(function(i) {
+</p><pre title="example" class="javascript">var result = Kefir.repeat(i =&gt; {
   if (i &lt; 3) {
     return Kefir.sequentially(100, [i, i]);
   } else {
@@ -1028,9 +994,7 @@ spawned 3:                  ---2---2X
 
 result:     ---0---0---1---1---2---2X</pre><div></div><p><img data-emoji="point_up"> Note that with this method
 it is possible to create an infinite loop. Consider this example:
-</p><pre title="example" class="javascript">var result = Kefir.repeat(function() {
-  return Kefir.constant(1);
-});
+</p><pre title="example" class="javascript">var result = Kefir.repeat(() =&gt; Kefir.constant(1));
 
 // When we subscribe to it (directly or via .log)
 // we already are in an infinite loop.
@@ -1046,7 +1010,7 @@ In this case, <tt>.take</tt> won't help, because you'll never get any single
 value from it, but <b>generator</b> will be called over and over.
 The only escape path here is to define an escape condition in the
 <b>generator</b>:
-</p><pre title="example" class="javascript">var result = Kefir.repeat(function(i) {
+</p><pre title="example" class="javascript">var result = Kefir.repeat(i =&gt; {
 
   // Defining that a new observable will be spawned at most 10 times
   if (i &gt;= 10) {
@@ -1066,9 +1030,7 @@ either provide a <b>transform</b> function which will return observables,
 or you can use the source <b>obs</b> observable that already emits observables.
 </p><p><b>flatMap</b> ends when <b>obs</b> and all spawned observables end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.flatMap(function(x) {
-  return Kefir.interval(40, x).take(4);
-});
+var result = source.flatMap(x =&gt; Kefir.interval(40, x).take(4));
 result.log();
 </pre><pre title="console output">&gt; [sequentially.flatMap] &lt;value&gt; 1
 &gt; [sequentially.flatMap] &lt;value&gt; 1
@@ -1092,9 +1054,7 @@ spawned 3:                                 ---3---3---3---3X
 result:      -------------1---1---1-2-1-2---2-3-2-3---3---3X</pre><div></div><p id="flat-map-latest"><a href="#flat-map-latest" class="header">flatMapLatest</a><code>obs.flatMapLatest([fn])</code><br/>Like <b>flatMap</b>, but repeats events only from the latest added observable
 i.e., switching from one observable to another.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.flatMapLatest(function(x) {
-  return Kefir.interval(40, x).take(4);
-});
+var result = source.flatMapLatest(x =&gt; Kefir.interval(40, x).take(4));
 result.log();
 </pre><pre title="console output">&gt; [sequentially.flatMapLatest] &lt;value&gt; 1
 &gt; [sequentially.flatMapLatest] &lt;value&gt; 1
@@ -1114,9 +1074,7 @@ spawned 3:                                 ---3---3---3---3X
 result:      -------------1---1-----2---2-----3---3---3---3X</pre><div></div><p id="flat-map-first"><a href="#flat-map-first" class="header">flatMapFirst</a><code>obs.flatMapFirst([fn])</code><br/>Like <b>flatMap</b>, but adds a new observable only if the previous one ended.
 Otherwise, it just ignores the new observable.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.flatMapFirst(function(x) {
-  return Kefir.interval(40, x).take(4);
-});
+var result = source.flatMapFirst(x =&gt; Kefir.interval(40, x).take(4));
 result.log();
 </pre><pre title="console output">&gt; [sequentially.flatMapFirst] &lt;value&gt; 1
 &gt; [sequentially.flatMapFirst] &lt;value&gt; 1
@@ -1138,9 +1096,7 @@ result:      -------------1---1---1---1-------3---3---3---3X</pre><div></div><p 
 Then, when the current source ends, it takes the oldest observable from the queue,
 and switches to it.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.flatMapConcat(function(x) {
-  return Kefir.interval(40, x).take(4);
-});
+var result = source.flatMapConcat(x =&gt; Kefir.interval(40, x).take(4));
 result.log();
 </pre><pre title="console output">&gt; [sequentially.flatMapConcat] &lt;value&gt; 1
 &gt; [sequentially.flatMapConcat] &lt;value&gt; 1
@@ -1164,9 +1120,7 @@ spawned 3:                                             ---3---3---3---3X
 result:      -------------1---1---1---1---2---2---2---2---3---3---3---3X</pre><div></div><p id="flat-map-with-concurrency-limit"><a href="#flat-map-with-concurrency-limit" class="header">flatMapConcurLimit</a><code>obs.flatMapConcurLimit([fn], limit)</code><br/>Like <a href="#flat-map-concat">flatMapConcat</a>, but with a configurable number of concurent sources.
 In other words <b>flatMapConcat</b> is <tt>flatMapConcurLimit(fn, 1)</tt>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.flatMapConcurLimit(function(x) {
-  return Kefir.interval(40, x).take(6);
-}, 2);
+var result = source.flatMapConcurLimit(x =&gt; Kefir.interval(40, x).take(6), 2);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.flatMapConcurLimit] &lt;value&gt; 1
 &gt; [sequentially.flatMapConcurLimit] &lt;value&gt; 1
@@ -1196,9 +1150,7 @@ spawned 3:                                     ---3---3---3---3---3---3X
 result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><p id="flat-map-errors"><a href="#flat-map-errors" class="header">flatMapErrors</a><code>obs.flatMapErrors([transform])</code><br/>Same as <a href="#flat-map">flatMap</a>,
 but operates on <a href="#about-errors">errors</a> while <b>values</b> just flow through.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2]).valuesToErrors();
-var result = source.flatMapErrors(function(x) {
-  return Kefir.interval(40, x).take(2);
-});
+var result = source.flatMapErrors(x =&gt; Kefir.interval(40, x).take(2));
 result.log();
 </pre><pre title="console output">&gt; [sequentially.valuesToErrors.flatMapErrors] &lt;value&gt; 1
 &gt; [sequentially.valuesToErrors.flatMapErrors] &lt;value&gt; 1
@@ -1219,7 +1171,7 @@ observable (on which the method was called).
 </p><p id="filter-by"><a href="#filter-by" class="header">filterBy</a><code>obs.filterBy(otherObs)</code><br/>Works like <a href="#filter">filter</a>, but instead of calling a predicate
 on each value from <b>obs</b> observable, it checks the last value from <b>otherObs</b>.
 </p><pre title="example" class="javascript">var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
-var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(function() {return true});
+var bar = Kefir.sequentially(200, [false, true, false]).delay(40).toProperty(() =&gt; true);
 var result = foo.filterBy(bar);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.filterBy] &lt;value&gt; 1
@@ -1236,8 +1188,8 @@ on each value from <b>otherObs</b>. Ends when <b>otherObs</b> ends.
 <b>combinator</b> function which will be used to form the value emitted
 by the result stream. It is called with the latest values
 from <b>obs</b> and <b>otherObs</b> as arguments. The default <b>combinator</b>
-function is <tt>function(a,&nbsp;b)&nbsp;{return&nbsp;a}</tt>.
-</p><pre title="example" class="javascript">var a = Kefir.sequentially(200, [2, 3]).toProperty(function() {return 1});
+function is <tt>(a,&nbsp;b)&nbsp;=&gt;&nbsp;a</tt>.
+</p><pre title="example" class="javascript">var a = Kefir.sequentially(200, [2, 3]).toProperty(() =&gt; 1);
 var b = Kefir.interval(100, 0).delay(40).take(5);
 var result = a.sampledBy(b);
 result.log();
@@ -1374,7 +1326,7 @@ el.addEventListener(&#x27;click&#x27;, emitter.emit.bind(emitter));
 el.addEventListener(&#x27;click&#x27;, emitter.emit);</pre><div></div><h2 id="about-errors">Errors</h2><p>Kefir supports an additional channel to pass data through observables — errors.
 Unlike values, errors normally just flow through the observable chain
 without any transformation. Consider this example:
-</p><pre title="example" class="javascript">var foo = Kefir.stream(function(emitter) {
+</p><pre title="example" class="javascript">var foo = Kefir.stream(emitter =&gt; {
   emitter.emit(0);
   emitter.emit(2);
   emitter.error(-1);
@@ -1382,15 +1334,7 @@ without any transformation. Consider this example:
   emitter.end();
 });
 
-function add2(x) {
-  return x + 2;
-}
-
-function gt3(x) {
-  return x &gt; 3;
-}
-
-var bar = foo.map(add2).filter(gt3);
+var bar = foo.map(x =&gt; x + 2).filter(x =&gt; x &gt; 3);
 bar.log();
 
 </pre><pre title="console output">&gt; [stream.map.filter] &lt;value&gt; 4
@@ -1418,13 +1362,11 @@ but there are still situations when they can be created.
 Each of these streams will emit a value at the moment the first subscriber is added:
 </p><pre title="example" class="javascript">var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
 
-var s2 = Kefir.stream(function(emitter) {
+var s2 = Kefir.stream(emitter =&gt; {
   emitter.emit(1);
 });
 
-var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)], function(x) {
-  return x * x;
-});
+var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)]);
 </pre><p>When a stream emits a value like this, it is internally considered as a <b>current</b> value.
 The <a href="#log">log</a> method will mark it as current,
 and in <a href="#on-any">onAny</a> subscriber, <tt>event.current</tt> will be equal to <b>true</b>.
@@ -1436,7 +1378,7 @@ Second issue is that it may be considered as a not semantically correct behaviou
 i.e., because the moment when the stream emits values depends on when it gets subscribers...
 </p><p>First benefit — it allows you to define the current value in
 <a href="#stream">Kefir.stream()</a>. It is easier to show with an example:
-</p><pre title="example" class="javascript">var scrollTop = Kefir.stream(function(emitter) {
+</p><pre title="example" class="javascript">var scrollTop = Kefir.stream(emitter =&gt; {
 
   function emitScrollY() {
     emitter.emit(window.scrollY);
@@ -1446,7 +1388,7 @@ i.e., because the moment when the stream emits values depends on when it gets su
 
   window.addEventListener(&#x27;scroll&#x27;, emitScrollY);
 
-  return function() {
+  return () =&gt; {
     window.removeEventListener(&#x27;scroll&#x27;, emitScrollY);
   };
 
