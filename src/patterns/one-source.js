@@ -17,7 +17,7 @@ function createConstructor(BaseClass, name) {
 function createClassMethods(BaseClass) {
   return {
 
-    _init(options) {},
+    _init() {},
     _free() {},
 
     _handleValue(x) {
