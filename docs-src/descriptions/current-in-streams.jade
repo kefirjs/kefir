@@ -22,13 +22,11 @@ pre.javascript(title='example')
   :escapehtml
     var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
 
-    var s2 = Kefir.stream(function(emitter) {
+    var s2 = Kefir.stream(emitter => {
       emitter.emit(1);
     });
 
-    var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)], function(x) {
-      return x * x;
-    });
+    var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)]);
 
 p.
   When a stream emits a value like this, it is internally considered as a #[b current] value.
@@ -49,7 +47,7 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var scrollTop = Kefir.stream(function(emitter) {
+    var scrollTop = Kefir.stream(emitter => {
 
       function emitScrollY() {
         emitter.emit(window.scrollY);
@@ -59,7 +57,7 @@ pre.javascript(title='example')
 
       window.addEventListener('scroll', emitScrollY);
 
-      return function() {
+      return () => {
         window.removeEventListener('scroll', emitScrollY);
       };
 

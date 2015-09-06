@@ -7,7 +7,7 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var foo = Kefir.stream(function(emitter) {
+    var foo = Kefir.stream(emitter => {
       emitter.emit(0);
       emitter.emit(2);
       emitter.error(-1);
@@ -15,15 +15,7 @@ pre.javascript(title='example')
       emitter.end();
     });
 
-    function add2(x) {
-      return x + 2;
-    }
-
-    function gt3(x) {
-      return x > 3;
-    }
-
-    var bar = foo.map(add2).filter(gt3);
+    var bar = foo.map(x => x + 2).filter(x => x > 3);
     bar.log();
 
 

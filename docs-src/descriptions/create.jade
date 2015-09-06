@@ -90,10 +90,11 @@ div
   and emits the values returned by #[b fn].
   Never ends.
 
-pre.javascript(title='example').
-  var start = new Date();
-  var stream = Kefir.fromPoll(1000, function(){ return new Date() - start });
-  stream.log();
+pre.javascript(title='example')
+  :escapehtml
+    var start = new Date();
+    var stream = Kefir.fromPoll(1000, () => new Date() - start);
+    stream.log();
 
 pre(title='console output')
   :escapehtml
@@ -121,7 +122,7 @@ div
 pre.javascript(title='example')
   :escapehtml
     var start = new Date();
-    var stream = Kefir.withInterval(1000, function(emitter) {
+    var stream = Kefir.withInterval(1000, emitter => {
       var time = new Date() - start;
       if (time < 4000) {
         emitter.emit(time);   // emit a value
@@ -158,9 +159,9 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var stream = Kefir.fromCallback(function(callback) {
+    var stream = Kefir.fromCallback(callback => {
       // we use setTimeout here just to simulate some asynchronous activity
-      setTimeout(function() {  callback(1)  }, 1000);
+      setTimeout(() => callback(1), 1000);
     });
     stream.log();
 
@@ -185,9 +186,9 @@ div
 
 pre.javascript(title='example')
   :escapehtml
-    var stream = Kefir.fromNodeCallback(function(callback) {
+    var stream = Kefir.fromNodeCallback(callback => {
       // we use setTimeout here just to simulate some asynchronous activity
-      setTimeout(function() {  callback(null, 1)  }, 1000);
+      setTimeout(() => callback(null, 1), 1000);
     });
     stream.log();
 
@@ -211,7 +212,7 @@ p.
   with the same arguments and context (#[tt this]) as the event listener callback.
   And the value returned by #[b transform] will be emitted from the stream.
   If no #[b transform] function is provided, the first argument of the callback is emitted by default,
-  i.e. the #[tt function(x) {return x}] is used as #[b transform].
+  i.e. the function #[tt x&nbsp;=&gt;&nbsp;x] is used as #[b transform].
 
 pre.javascript(title='example')
   :escapehtml
@@ -242,12 +243,12 @@ a(name='from-binder')
 
 pre.javascript(title='example')
   :escapehtml
-    var stream = Kefir.stream(function(emitter) {
+    var stream = Kefir.stream(emitter => {
 
       var count = 0;
       emitter.emit(count);
 
-      var intervalId = setInterval(function() {
+      var intervalId = setInterval(() => {
         count++;
         if (count < 4) {
           emitter.emit(count);
@@ -256,7 +257,7 @@ pre.javascript(title='example')
         }
       }, 1000);
 
-      return function() {
+      return () => {
         clearInterval(intervalId);
       }
 
@@ -327,7 +328,7 @@ div
 
 pre.javascript(title='example')
   :escapehtml
-    var result = Kefir.fromPromise(new Promise(function(fulfill) {  fulfill(1)  }));
+    var result = Kefir.fromPromise(new Promise(fulfill => fulfill(1)));
     result.log();
 
 pre(title='console output')

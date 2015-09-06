@@ -9,11 +9,12 @@ p.
   #[b callback] will be called immediately (synchronously)
   with that value.
 
-pre.javascript(title='example').
-  var stream = Kefir.sequentially(1000, [1, 2]);
-  stream.onValue(function(x) {
-    console.log('value:', x);
-  });
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]);
+    stream.onValue(x => {
+      console.log('value:', x);
+    });
 
 pre(title='console output')
   :escapehtml
@@ -32,11 +33,12 @@ p.
   #[b callback] will be called immediately (synchronously)
   with that error.
 
-pre.javascript(title='example').
-  var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
-  stream.onError(function(x) {
-    console.log('error:', x);
-  });
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
+    stream.onError(x => {
+      console.log('error:', x);
+    });
 
 pre(title='console output')
   :escapehtml
@@ -53,11 +55,12 @@ pre(title='console output')
 p.
   If observable is already ended, #[b callback] will be called immediately (synchronously).
 
-pre.javascript(title='example').
-  var stream = Kefir.sequentially(1000, [1, 2]);
-  stream.onEnd(function() {
-    console.log('stream ended');
-  });
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]);
+    stream.onEnd(() => {
+      console.log('stream ended');
+    });
 
 pre(title='console output')
   :escapehtml
@@ -81,11 +84,12 @@ p.
   #[a(href='https://github.com/rpominov/kefir/issues/100') going to be removed]
   in #[tt v3.0.0].
 
-pre.javascript(title='example').
-  var stream = Kefir.sequentially(1000, [1, 2]);
-  stream.onAny(function(event) {
-    console.log('event:', event);
-  });
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]);
+    stream.onAny(event => {
+      console.log('event:', event);
+    });
 
 pre(title='console output')
   :escapehtml
@@ -100,9 +104,10 @@ pre(title='console output')
   Turns on logging of any event to the browser console.
   Accepts an optional #[b name] argument that will be shown in the log if provided.
 
-pre.javascript(title='example').
-  var stream = Kefir.sequentially(1000, [1, 2]);
-  stream.log('my stream');
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]);
+    stream.log('my stream');
 
 pre(title='console output')
   :escapehtml
@@ -119,16 +124,17 @@ pre(title='console output')
   Another way to take events out of Kefir is to convert an Observable to a Promise.
   If called without arguments the default #[tt gloabal.Promise] constructor is used,
   alternatively you can pass a promise constructor
-  that supports following interface: #[tt new Promise(function(resolve, reject) { ... })].
+  that supports following interface: #[tt new Promise((resolve, reject) =&gt; { ... })].
   The promise will be fulfilled or rejected at the moment source observable ends,
   with the latest value or error. If observable ends without any value or error
   the promise will never be fulfilled/rejected.
 
-pre.javascript(title='example').
-  var promise = Kefir.sequentially(1000, [1, 2]).toPromise();
-  promise.then(function(x) {
-    console.log('fulfilled with:', x);
-  });
+pre.javascript(title='example')
+  :escapehtml
+    var promise = Kefir.sequentially(1000, [1, 2]).toPromise();
+    promise.then(x => {
+      console.log('fulfilled with:', x);
+    });
 
 pre(title='console output')
   :escapehtml
