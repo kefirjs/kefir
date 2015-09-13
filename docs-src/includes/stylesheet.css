@@ -138,6 +138,11 @@ pre {
   overflow: auto;
   position: relative;
 }
+  @media (max-width: 800px) {
+    pre[title]:not([title=example]) {
+      padding-top: 18px;
+    }
+  }
   pre[title]:not([title=example]):after {
     content: attr(title);
     position: absolute;
