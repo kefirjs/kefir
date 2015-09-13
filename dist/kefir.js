@@ -1,4 +1,4 @@
-/*! Kefir.js v2.8.1
+/*! Kefir.js v2.8.2
  *  https://github.com/rpominov/kefir
  */
 
@@ -6,7 +6,7 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define(factory);
+		define([], factory);
 	else if(typeof exports === 'object')
 		exports["Kefir"] = factory();
 	else
@@ -1251,7 +1251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  inherit(AnonymousStream, Stream, {
 
-	    _init: function _init(options) {},
+	    _init: function _init() {},
 	    _free: function _free() {},
 
 	    _onTick: function _onTick() {},
@@ -1629,7 +1629,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function spread(fn, length) {
 	  switch (length) {
 	    case 0:
-	      return function (a) {
+	      return function () {
 	        return fn();
 	      };
 	    case 1:
@@ -1862,7 +1862,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createClassMethods(BaseClass) {
 	  return {
 
-	    _init: function _init(options) {},
+	    _init: function _init() {},
 	    _free: function _free() {},
 
 	    _handleValue: function _handleValue(x) {
@@ -2407,6 +2407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var seed = _ref.seed;
 
 	    this._fn = fn;
+	    this._seed = seed;
 	    if (seed !== NOTHING) {
 	      this._emitValue(seed);
 	    }
@@ -2414,14 +2415,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _free: function _free() {
 	    this._fn = null;
+	    this._seed = null;
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
-	      var fn = this._fn;
-	      x = fn(this._currentEvent.value, x);
+	    var fn = this._fn;
+	    if (this._currentEvent === null || this._currentEvent.type === ERROR) {
+	      this._emitValue(this._seed === NOTHING ? x : fn(this._seed, x));
+	    } else {
+	      this._emitValue(fn(this._currentEvent.value, x));
 	    }
-	    this._emitValue(x);
 	  }
 
 	});
@@ -3203,7 +3206,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return null;
 	    },
 
-	    '@@transducer/result': function transducerResult(res) {
+	    '@@transducer/result': function transducerResult() {
 	      obs._emitEnd();
 	      return null;
 	    }
@@ -3391,7 +3394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var hasErrors = false;
 	    var length = this._latestValues.length;
 	    var valuesCopy = new Array(length);
-	    var errorsCopy = new Array(length);;
+	    var errorsCopy = new Array(length);
 
 	    for (var i = 0; i < length; i++) {
 	      valuesCopy[i] = this._latestValues[i];
@@ -4247,7 +4250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function createClassMethods(BaseClass) {
 	  return {
-	    _init: function _init(options) {},
+	    _init: function _init() {},
 	    _free: function _free() {},
 
 	    _handlePrimaryValue: function _handlePrimaryValue(x) {
@@ -4410,7 +4413,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var mixin = {
 
-	  _handleSecondaryValue: function _handleSecondaryValue(x) {
+	  _handleSecondaryValue: function _handleSecondaryValue() {
 	    this._emitEnd();
 	  }
 
@@ -4475,11 +4478,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._buff.push(x);
 	  },
 
-	  _handleSecondaryValue: function _handleSecondaryValue(x) {
+	  _handleSecondaryValue: function _handleSecondaryValue() {
 	    this._flush();
 	  },
 
-	  _handleSecondaryEnd: function _handleSecondaryEnd(x) {
+	  _handleSecondaryEnd: function _handleSecondaryEnd() {
 	    if (!this._flushOnEnd) {
 	      this._emitEnd();
 	    }
@@ -4552,7 +4555,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 
-	  _handleSecondaryEnd: function _handleSecondaryEnd(x) {
+	  _handleSecondaryEnd: function _handleSecondaryEnd() {
 	    if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
 	      this._emitEnd();
 	    }

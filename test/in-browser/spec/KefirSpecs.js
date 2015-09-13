@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.8.1
+/*! Kefir.js v2.8.2
  *  https://github.com/rpominov/kefir
  */
 
@@ -7,7 +7,7 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define(factory);
+		define([], factory);
 	else if(typeof exports === 'object')
 		exports["Kefir"] = factory();
 	else
@@ -1252,7 +1252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  inherit(AnonymousStream, Stream, {
 
-	    _init: function _init(options) {},
+	    _init: function _init() {},
 	    _free: function _free() {},
 
 	    _onTick: function _onTick() {},
@@ -1630,7 +1630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function spread(fn, length) {
 	  switch (length) {
 	    case 0:
-	      return function (a) {
+	      return function () {
 	        return fn();
 	      };
 	    case 1:
@@ -1863,7 +1863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createClassMethods(BaseClass) {
 	  return {
 
-	    _init: function _init(options) {},
+	    _init: function _init() {},
 	    _free: function _free() {},
 
 	    _handleValue: function _handleValue(x) {
@@ -2408,6 +2408,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var seed = _ref.seed;
 
 	    this._fn = fn;
+	    this._seed = seed;
 	    if (seed !== NOTHING) {
 	      this._emitValue(seed);
 	    }
@@ -2415,14 +2416,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _free: function _free() {
 	    this._fn = null;
+	    this._seed = null;
 	  },
 
 	  _handleValue: function _handleValue(x) {
-	    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
-	      var fn = this._fn;
-	      x = fn(this._currentEvent.value, x);
+	    var fn = this._fn;
+	    if (this._currentEvent === null || this._currentEvent.type === ERROR) {
+	      this._emitValue(this._seed === NOTHING ? x : fn(this._seed, x));
+	    } else {
+	      this._emitValue(fn(this._currentEvent.value, x));
 	    }
-	    this._emitValue(x);
 	  }
 
 	});
@@ -3204,7 +3207,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return null;
 	    },
 
-	    '@@transducer/result': function transducerResult(res) {
+	    '@@transducer/result': function transducerResult() {
 	      obs._emitEnd();
 	      return null;
 	    }
@@ -3392,7 +3395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var hasErrors = false;
 	    var length = this._latestValues.length;
 	    var valuesCopy = new Array(length);
-	    var errorsCopy = new Array(length);;
+	    var errorsCopy = new Array(length);
 
 	    for (var i = 0; i < length; i++) {
 	      valuesCopy[i] = this._latestValues[i];
@@ -4248,7 +4251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function createClassMethods(BaseClass) {
 	  return {
-	    _init: function _init(options) {},
+	    _init: function _init() {},
 	    _free: function _free() {},
 
 	    _handlePrimaryValue: function _handlePrimaryValue(x) {
@@ -4411,7 +4414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var mixin = {
 
-	  _handleSecondaryValue: function _handleSecondaryValue(x) {
+	  _handleSecondaryValue: function _handleSecondaryValue() {
 	    this._emitEnd();
 	  }
 
@@ -4476,11 +4479,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._buff.push(x);
 	  },
 
-	  _handleSecondaryValue: function _handleSecondaryValue(x) {
+	  _handleSecondaryValue: function _handleSecondaryValue() {
 	    this._flush();
 	  },
 
-	  _handleSecondaryEnd: function _handleSecondaryEnd(x) {
+	  _handleSecondaryEnd: function _handleSecondaryEnd() {
 	    if (!this._flushOnEnd) {
 	      this._emitEnd();
 	    }
@@ -4553,7 +4556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 
-	  _handleSecondaryEnd: function _handleSecondaryEnd(x) {
+	  _handleSecondaryEnd: function _handleSecondaryEnd() {
 	    if (!this._flushOnEnd && (this._lastSecondary === NOTHING || this._lastSecondary)) {
 	      this._emitEnd();
 	    }
@@ -19368,20 +19371,20 @@ describe('Property', function() {
       });
     });
     it('calling ._emitEnd twice should work fine', function() {
-      var e, err, s;
+      var e, err, error, s;
       err = void 0;
       try {
         s = prop();
         s._emitEnd();
         s._emitEnd();
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         err = e;
       }
       return expect(err && err.message).toBe(void 0);
     });
     return it('calling ._emitEnd in an end handler should work fine', function() {
-      var e, err, s;
+      var e, err, error, s;
       err = void 0;
       try {
         s = prop();
@@ -19389,8 +19392,8 @@ describe('Property', function() {
           return s._emitEnd();
         });
         s._emitEnd();
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         err = e;
       }
       return expect(err && err.message).toBe(void 0);
@@ -19992,9 +19995,11 @@ describe('sampledBy', function() {
 
 
 },{"../test-helpers.coffee":107}],81:[function(require,module,exports){
-var Kefir, minus, noop, prop, ref, send, stream;
+var Kefir, activate, deactivate, minus, noop, prop, ref, send, sinon, stream;
 
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
+
+sinon = require('sinon');
 
 noop = function() {};
 
@@ -20037,10 +20042,62 @@ describe('scan', function() {
         return send(a, [0, 1, 3, '<end>']);
       });
     });
-    return it('errors should flow', function() {
+    it('errors should flow', function() {
       var a;
       a = stream();
       return expect(a.scan(minus)).errorsToFlow(a);
+    });
+    it('should never pass a value as current result if seed specified (test with error)', function() {
+      var a, b, handler;
+      a = stream();
+      handler = sinon.stub().returns('abc');
+      b = a.scan(handler, 'seed');
+      activate(b);
+      send(a, [
+        1, {
+          error: 'err'
+        }, 2, 3, '<end>'
+      ]);
+      deactivate(b);
+      return expect(handler.args.filter(function(xs) {
+        return typeof xs[0] === 'number';
+      })).toEqual([]);
+    });
+    it('should fall back to the seed after error, if seed specified', function() {
+      var a;
+      a = stream();
+      return expect(a.scan((function(res, x) {
+        return res + x;
+      }), 'seed')).toEmit([
+        {
+          current: 'seed'
+        }, 'seed1', {
+          error: 'err'
+        }, 'seed2', 'seed23', '<end>'
+      ], function() {
+        return send(a, [
+          1, {
+            error: 'err'
+          }, 2, 3, '<end>'
+        ]);
+      });
+    });
+    return it('should use next value after error as seed, if seed not specified', function() {
+      var a;
+      a = stream();
+      return expect(a.scan(function() {
+        return 'abc';
+      })).toEmit([
+        1, 'abc', {
+          error: 'err'
+        }, 3, 'abc', '<end>'
+      ], function() {
+        return send(a, [
+          1, 2, {
+            error: 'err'
+          }, 3, 4, '<end>'
+        ]);
+      });
     });
   });
   return describe('property', function() {
@@ -20090,7 +20147,7 @@ describe('scan', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":107,"sinon":6}],82:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -21437,20 +21494,20 @@ describe('Stream', function() {
       });
     });
     it('calling ._emitEnd twice should work fine', function() {
-      var e, err, s;
+      var e, err, error, s;
       err = void 0;
       try {
         s = stream();
         s._emitEnd();
         s._emitEnd();
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         err = e;
       }
       return expect(err && err.message).toBe(void 0);
     });
     return it('calling ._emitEnd in an end handler should work fine', function() {
-      var e, err, s;
+      var e, err, error, s;
       err = void 0;
       try {
         s = stream();
@@ -21458,8 +21515,8 @@ describe('Stream', function() {
           return s._emitEnd();
         });
         s._emitEnd();
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         err = e;
       }
       return expect(err && err.message).toBe(void 0);
@@ -23207,13 +23264,13 @@ describe('toPromise', function() {
       return expect(promise.result).toBe(-2);
     });
     return it('should throw when called without Promise constructor and there is no global promise', function() {
-      var e, error;
+      var e, error, error1;
       _global.Promise = void 0;
       error = null;
       try {
         stream().toPromise();
-      } catch (_error) {
-        e = _error;
+      } catch (error1) {
+        e = error1;
         error = e;
       }
       return expect(error.message).toBe('There isn\'t default Promise, use shim or parameter');
@@ -23344,12 +23401,12 @@ describe('toProperty', function() {
       return expect(getCurrent(p)).toBe(0);
     });
     return it('should throw when called with not a function', function() {
-      var e, err;
+      var e, err, error;
       err = null;
       try {
         stream().toProperty(1);
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         err = e;
       }
       return expect(err.message).toBe('You should call toProperty() with a function or no arguments.');
