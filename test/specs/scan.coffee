@@ -44,7 +44,7 @@ describe 'scan', ->
 
     it 'should fall back to the seed after error, if seed specified', ->
       a = stream()
-      expect(a.scan (-> 'abc'), 'seed').toEmit [{current: 'seed'}, 'abc', {error: 'err'}, 'seed', 'abc', '<end>'], ->
+      expect(a.scan ((res, x) -> res + x), 'seed').toEmit [{current: 'seed'}, 'seed1', {error: 'err'}, 'seed2', 'seed23', '<end>'], ->
         send(a, [1, {error: 'err'}, 2, 3, '<end>'])
 
     it 'should use next value after error as seed, if seed not specified', ->
