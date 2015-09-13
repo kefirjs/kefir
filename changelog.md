@@ -1,3 +1,7 @@
+## 2.8.2 (13/10/2015)
+
+ - A bug in `.scan` fixed [#148](https://github.com/rpominov/kefir/issues/148)
+
 ## 2.8.1 (30/08/2015)
 
  - A bug in `.delay` fixed [#134](https://github.com/rpominov/kefir/issues/134)
