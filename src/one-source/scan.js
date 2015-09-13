@@ -6,6 +6,7 @@ const P = createProperty('scan', {
 
   _init({fn, seed}) {
     this._fn = fn;
+    this._seed = seed;
     if (seed !== NOTHING) {
       this._emitValue(seed);
     }
@@ -13,14 +14,16 @@ const P = createProperty('scan', {
 
   _free() {
     this._fn = null;
+    this._seed = null;
   },
 
   _handleValue(x) {
-    if (this._currentEvent !== null && this._currentEvent.type !== ERROR) {
-      const fn = this._fn;
-      x = fn(this._currentEvent.value, x);
+    const fn = this._fn;
+    if (this._currentEvent === null || this._currentEvent.type === ERROR) {
+      this._emitValue(this._seed === NOTHING ? x : fn(this._seed, x));
+    } else {
+      this._emitValue(fn(this._currentEvent.value, x));
     }
-    this._emitValue(x);
   }
 
 });

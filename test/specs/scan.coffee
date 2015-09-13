@@ -1,4 +1,5 @@
-{stream, prop, send, Kefir} = require('../test-helpers.coffee')
+{stream, prop, send, Kefir, activate, deactivate} = require('../test-helpers.coffee')
+sinon = require('sinon')
 
 noop = ->
 minus = (prev, next) -> prev - next
@@ -31,6 +32,25 @@ describe 'scan', ->
     it 'errors should flow', ->
       a = stream()
       expect(a.scan minus).errorsToFlow(a)
+
+    it 'should never pass a value as current result if seed specified (test with error)', ->
+      a = stream()
+      handler = sinon.stub().returns('abc')
+      b = a.scan handler, 'seed'
+      activate(b)
+      send(a, [1, {error: 'err'}, 2, 3, '<end>'])
+      deactivate(b)
+      expect(handler.args.filter((xs) -> typeof xs[0] == 'number')).toEqual([])
+
+    it 'should fall back to the seed after error, if seed specified', ->
+      a = stream()
+      expect(a.scan ((res, x) -> res + x), 'seed').toEmit [{current: 'seed'}, 'seed1', {error: 'err'}, 'seed2', 'seed23', '<end>'], ->
+        send(a, [1, {error: 'err'}, 2, 3, '<end>'])
+
+    it 'should use next value after error as seed, if seed not specified', ->
+      a = stream()
+      expect(a.scan -> 'abc').toEmit [1, 'abc', {error: 'err'}, 3, 'abc', '<end>'], ->
+        send(a, [1, 2, {error: 'err'}, 3, 4, '<end>'])
 
 
 

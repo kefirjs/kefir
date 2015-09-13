@@ -43,6 +43,10 @@ optgroup{font-weight:700}
 table{border-collapse:collapse;border-spacing:0}
 td,th{padding:0}
 
+h1,h2,h3,h4,h5,h6,strong,th,b {
+  font-weight: 500;
+}
+
 figure {
   margin: 1em 0;
 }
@@ -115,17 +119,13 @@ ul {
     margin-bottom: 10px;
   }
 code, pre, tt {
-  font-family: Monaco, Consolas, "Lucida Console", monospace;
+  font-family: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace;
   font-size: 12px;
   line-height: 18px;
   font-style: normal;
 }
   tt {
-    padding: 0px 3px;
     background: #fbfbfb;
-    border: 1px solid #ddd;
-    zoom: 1;
-    font-size: .8em;
   }
 code {
   margin-left: 20px;
@@ -133,13 +133,17 @@ code {
 pre {
   font-size: 12px;
   padding: 2px 2px 2px 12px;
-  border-left: 2px solid #DFDFDF;
+  border-left: 3px solid #DFDFDF;
   margin: 0 0 30px;
   overflow: auto;
-  background: #fbfbfb;
   position: relative;
 }
-  pre[title]:after {
+  @media (max-width: 800px) {
+    pre[title]:not([title=example]) {
+      padding-top: 18px;
+    }
+  }
+  pre[title]:not([title=example]):after {
     content: attr(title);
     position: absolute;
     top: 0;
@@ -147,7 +151,6 @@ pre {
     padding: 0 .5em;
     font-size: .8em;
     color: #8b8b8b;
-    background: rgba(251, 251, 251, 0.9);
   }
   pre + pre {
     margin-top: -10px;
@@ -155,17 +158,16 @@ pre {
 
 
 .sidebar {
-  background: #fff;
+  background: #fbfbfb;
   position: fixed;
   top: 0; left: 0; bottom: 0;
-  width: 240px;
+  width: 210px;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 15px 30px 30px;
   border-right: 1px solid #bbb;
-  box-shadow: 0 0 20px #ccc;
-  font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
+  font-family: "Fira Sans", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
 }
 @media (max-width: 1200px) {
   .sidebar {
@@ -177,14 +179,14 @@ pre {
   }
   .toc-title {
     display: block;
-    font-weight: bold;
+    font-weight: 500;
     margin-top: 20px;
     line-height: 1.2;
     margin-bottom: 10px;
   }
   .toc-section {
-    font-size: 11px;
-    line-height: 14px;
+    font-size: 12px;
+    line-height: 17px;
     margin: 5px 0 0 0;
     padding-left: 0px;
     list-style-type: none;
@@ -201,8 +203,8 @@ pre {
 
 .container {
   max-width: 680px;
-  margin: 40px 10px 50px 330px;
-  font-family: Helvetica, Arial, sans-serif;
+  margin: 40px 10px 50px 300px;
+  font-family: "Fira Sans", Helvetica, Arial, sans-serif;
 }
 @media (max-width: 1200px) {
   .container {
@@ -212,7 +214,7 @@ pre {
   .header {
     font-size: 16px;
     line-height: 30px;
-    font-weight: bold;
+    font-weight: 500;
     color: inherit;
   }
   .alias, .shorthand {
@@ -225,7 +227,7 @@ pre {
     font-family: Helvetica, Arial, sans-serif;
     font-style: italic;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 500;
     margin-right: .5em;
   }
   .shorthand:before {
