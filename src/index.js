@@ -200,20 +200,6 @@ Observable.prototype.debounce = function(wait, options) {
 
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
-const valuesToErrors = require('./one-source/values-to-errors');
-Observable.prototype.valuesToErrors = function(fn) {
-  return valuesToErrors(this, fn);
-};
-
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const errorsToValues = require('./one-source/errors-to-values');
-Observable.prototype.errorsToValues = function(fn) {
-  return errorsToValues(this, fn);
-};
-
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
 const mapErrors = require('./one-source/map-errors');
 Observable.prototype.mapErrors = function(fn) {
   return mapErrors(this, fn);
@@ -224,13 +210,6 @@ Observable.prototype.mapErrors = function(fn) {
 const filterErrors = require('./one-source/filter-errors');
 Observable.prototype.filterErrors = function(fn) {
   return filterErrors(this, fn);
-};
-
-// (Stream) -> Stream
-// (Property) -> Property
-const endOnError = require('./one-source/end-on-error');
-Observable.prototype.endOnError = function() {
-  return endOnError(this);
 };
 
 // (Stream) -> Stream
@@ -408,8 +387,47 @@ Observable.prototype.bufferWhileBy = function(other, options) {
   return bufferWhileBy(this, other, options);
 };
 
+
+
+
+
+// Deprecated
+// -----------------------------------------------------------------------------
+
+function warn(msg) {
+  if (Kefir.DEPRECATION_WARNINGS !== false && console && typeof console.warn === 'function') {
+    const msg2 = '\nHere is an Error object for you containing the call stack:';
+    console.warn(msg, msg2, new Error());
+  }
+}
+
 // (Stream|Property, Stream|Property) -> Property
 const awaiting = require('./two-sources/awaiting');
 Observable.prototype.awaiting = function(other) {
+  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145')
   return awaiting(this, other);
+};
+
+// (Stream, Function|undefined) -> Stream
+// (Property, Function|undefined) -> Property
+const valuesToErrors = require('./one-source/values-to-errors');
+Observable.prototype.valuesToErrors = function(fn) {
+  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149')
+  return valuesToErrors(this, fn);
+};
+
+// (Stream, Function|undefined) -> Stream
+// (Property, Function|undefined) -> Property
+const errorsToValues = require('./one-source/errors-to-values');
+Observable.prototype.errorsToValues = function(fn) {
+  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149')
+  return errorsToValues(this, fn);
+};
+
+// (Stream) -> Stream
+// (Property) -> Property
+const endOnError = require('./one-source/end-on-error');
+Observable.prototype.endOnError = function() {
+  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150')
+  return endOnError(this);
 };
