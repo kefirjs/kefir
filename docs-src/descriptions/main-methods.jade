@@ -35,15 +35,14 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
-    stream.onError(x => {
+    var property = Kefir.constantError(1);
+    property.onError(x => {
       console.log('error:', x);
     });
 
 pre(title='console output')
   :escapehtml
     > error: 1
-    > error: 2
 
 +descr-method('off-error', 'offError', 'obs.offError(callback)').
   Unsubscribes #[b callback] from errors on an observable.

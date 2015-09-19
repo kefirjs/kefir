@@ -501,17 +501,16 @@ div
 
 pre.javascript(title='example')
   :escapehtml
-    var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
+    var source = Kefir.sequentially(100, [1, 2, 3]).flatMap(Kefir.constantError);
     var result = source.mapErrors(x => x * 2);
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.valuesToErrors.mapErrors] <error> 0
-    > [sequentially.valuesToErrors.mapErrors] <error> 2
-    > [sequentially.valuesToErrors.mapErrors] <error> 4
-    > [sequentially.valuesToErrors.mapErrors] <error> 6
-    > [sequentially.valuesToErrors.mapErrors] <end>
+    > [sequentially.flatMap.mapErrors] <error> 2
+    > [sequentially.flatMap.mapErrors] <error> 4
+    > [sequentially.flatMap.mapErrors] <error> 6
+    > [sequentially.flatMap.mapErrors] <end>
 
 pre(title='events in time')
   :escapehtml
@@ -533,15 +532,15 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
+    var source = Kefir.sequentially(100, [0, 1, 2, 3]).flatMap(Kefir.constantError);
     var result = source.filterErrors(x => (x % 2) === 0);
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.valuesToErrors.filterErrors] <error> 0
-    > [sequentially.valuesToErrors.filterErrors] <error> 2
-    > [sequentially.valuesToErrors.filterErrors] <end>
+    > [sequentially.flatMap.filterErrors] <error> 0
+    > [sequentially.flatMap.filterErrors] <error> 2
+    > [sequentially.flatMap.filterErrors] <end>
 
 pre(title='events in time')
   :escapehtml
@@ -561,17 +560,15 @@ div
 pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
-      .valuesToErrors(x => {
-        return {convert: x < 0, error: x};
-      });
+      .flatMap(x => x < 0 ? Kefir.constantError(x) : Kefir.constant(x));
     var result = source.skipValues()
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.valuesToErrors.skipValues] <error> -1
-    > [sequentially.valuesToErrors.skipValues] <error> -3
-    > [sequentially.valuesToErrors.skipValues] <end>
+    > [sequentially.flatMap.skipValues] <error> -1
+    > [sequentially.flatMap.skipValues] <error> -3
+    > [sequentially.flatMap.skipValues] <end>
 
 pre(title='events in time')
   :escapehtml
@@ -590,17 +587,15 @@ div
 pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
-      .valuesToErrors(x => {
-        return {convert: x < 0, error: x};
-      });
+      .flatMap(x => x < 0 ? Kefir.constantError(x) : Kefir.constant(x));
     var result = source.skipErrors()
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.valuesToErrors.skipErrors] <value> 0
-    > [sequentially.valuesToErrors.skipErrors] <value> 2
-    > [sequentially.valuesToErrors.skipErrors] <end>
+    > [sequentially.flatMap.skipErrors] <value> 0
+    > [sequentially.flatMap.skipErrors] <value> 2
+    > [sequentially.flatMap.skipErrors] <end>
 
 pre(title='events in time')
   :escapehtml
