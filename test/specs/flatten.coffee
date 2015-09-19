@@ -33,8 +33,8 @@ describe 'flatten', ->
 
   describe 'property', ->
 
-    it 'should return property', ->
-      expect(prop().flatten ->).toBeProperty()
+    it 'should return stream', ->
+      expect(prop().flatten ->).toBeStream()
 
     it 'should activate/deactivate source', ->
       a = prop()
@@ -52,7 +52,7 @@ describe 'flatten', ->
 
     it 'should handle current correctly', ->
       expect(
-        send(prop(), [1]).flatten (x) -> [1..x]
+        send(prop(), [1]).flatten (x) -> [x]
       ).toEmit [{current: 1}]
       expect(
         send(prop(), [{error: 0}]).flatten ->
@@ -61,11 +61,4 @@ describe 'flatten', ->
     it 'should handle multiple currents correctly', ->
       expect(
         send(prop(), [2]).flatten (x) -> [1..x]
-      ).toEmit [{current: 2}]
-
-    it 'if no `fn` provided should use the `id` function by default', ->
-      a = send(prop(), [[1]])
-      expect(a.flatten()).toEmit [{current: 1}, 2, 3, 4, '<end>'], ->
-        send(a, [[2], [], [3, 4], '<end>'])
-
-
+      ).toEmit [{current: 1}, {current: 2}]

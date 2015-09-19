@@ -1,7 +1,7 @@
 h2#modify Modify an observable
 
 p.
-  All methods in this section create a new observable of same type* from an original one.
+  Most methods in this section create a new observable of same type* from an original one.
   The new observable applies some transformation to each event from the original one
   and emits the result of the transformation.
   In most cases a transformation is applied only to #[b value] events,
@@ -10,8 +10,7 @@ p.
 p.
   #[b *] For example if the original observable was a stream,
   then the new one will also be a stream. Same for properties.
-  This rule has one exception for the <a href="#scan">scan</a> method,
-  that always returns a property.
+
 
 
 
@@ -313,7 +312,10 @@ div
 
 +descr-method('flatten', 'flatten', 'obs.flatten([transformer])').
   For this method it's expected that the source observable emits arrays.
-  The result observable will then emit each element of these arrays.
+  The result stream will then emit each element of these arrays.
+
+p.
+  Always returns a stream.
 
 pre.javascript(title='example')
   :escapehtml
