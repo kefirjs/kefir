@@ -91,6 +91,31 @@ div
 
 
 
++descr-method('take-errors', 'takeErrors', 'obs.takeErrors(n)').
+  Same as #[a(href='#take') take] but for #[a(href='#about-errors') errors].
+
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3])
+      .flatMap(x => Kefir.constantError(x));
+    var result = source.takeErrors(2);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMap.takeErrors] <error> 1
+    > [sequentially.flatMap.takeErrors] <error> 2
+    > [sequentially.flatMap.takeErrors] <end>
+
+pre(title='events in time').
+  source: ---e---e---eX
+             1   2   3
+  result: ---e---eX
+             1   2
+div
+
+
+
 +descr-method('take-while', 'takeWhile', 'obs.takeWhile([predicate])').
   Emits values from the original observable until the given #[b predicate]
   function applied to a value returns false.
