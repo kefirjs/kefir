@@ -41,7 +41,7 @@ describe 'repeat', ->
     sum = (a, b) -> a + b
     genConstant = -> Kefir.constant(1)
 
-    a = Kefir.repeat(genConstant).take(3000).reduce(sum, 0)
+    a = Kefir.repeat(genConstant).take(3000).scan(sum, 0).last()
     expect(a).toEmit [{current: 3000}, '<end:current>']
 
 
@@ -85,33 +85,4 @@ describe 'repeat', ->
       {current: 2},
       '<end:current>'
     ]
-
-  # https://github.com/baconjs/bacon.js/issues/521
-  it 'should work with @AgentME\'s setup', ->
-
-    allSpawned = []
-
-    i = 0
-    step = ->
-      if ++i == 1
-        a = Kefir.later(1, 'later')
-        allSpawned.push(a)
-        a
-      else
-        a = Kefir.constant(5)
-        b = Kefir.repeatedly(200, [6, 7, 8])
-        c = a.merge(b)
-        allSpawned.push(a)
-        allSpawned.push(b)
-        allSpawned.push(c)
-        c
-
-    expect(Kefir.repeat(step).take(2)).toEmitInTime [
-      [1, 'later'],
-      [1, 5],
-      [1, '<end>']
-    ], (->), 100
-
-    for obs in allSpawned
-      expect(obs).not.toBeActive()
 

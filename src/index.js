@@ -113,6 +113,13 @@ Observable.prototype.take = function(n) {
   return take(this, n);
 };
 
+// (Stream, number) -> Stream
+// (Property, number) -> Property
+const takeErrors = require('./one-source/take-errors');
+Observable.prototype.takeErrors = function(n) {
+  return takeErrors(this, n);
+};
+
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
 const takeWhile = require('./one-source/take-while');
@@ -193,20 +200,6 @@ Observable.prototype.debounce = function(wait, options) {
 
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
-const valuesToErrors = require('./one-source/values-to-errors');
-Observable.prototype.valuesToErrors = function(fn) {
-  return valuesToErrors(this, fn);
-};
-
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const errorsToValues = require('./one-source/errors-to-values');
-Observable.prototype.errorsToValues = function(fn) {
-  return errorsToValues(this, fn);
-};
-
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
 const mapErrors = require('./one-source/map-errors');
 Observable.prototype.mapErrors = function(fn) {
   return mapErrors(this, fn);
@@ -217,13 +210,6 @@ Observable.prototype.mapErrors = function(fn) {
 const filterErrors = require('./one-source/filter-errors');
 Observable.prototype.filterErrors = function(fn) {
   return filterErrors(this, fn);
-};
-
-// (Stream) -> Stream
-// (Property) -> Property
-const endOnError = require('./one-source/end-on-error');
-Observable.prototype.endOnError = function() {
-  return endOnError(this);
 };
 
 // (Stream) -> Stream
@@ -401,13 +387,6 @@ Observable.prototype.bufferWhileBy = function(other, options) {
   return bufferWhileBy(this, other, options);
 };
 
-// (Stream|Property, Stream|Property) -> Property
-const awaiting = require('./two-sources/awaiting');
-Observable.prototype.awaiting = function(other) {
-  return awaiting(this, other);
-};
-
-
 
 
 
@@ -415,146 +394,40 @@ Observable.prototype.awaiting = function(other) {
 // Deprecated
 // -----------------------------------------------------------------------------
 
-
-Kefir.DEPRECATION_WARNINGS = true;
-function deprecated(name, alt, fn) {
-  return function() {
-    if (Kefir.DEPRECATION_WARNINGS && (typeof console !== 'undefined') && console.log) {
-
-      const message = `Method \`${name}\` is deprecated, and to be removed in v3.0.0.
-Use \`${alt}\` instead.
-To disable all warnings like this set \`Kefir.DEPRECATION_WARNINGS = false\`.`;
-
-      console.log(message);
-    }
-    return fn.apply(this, arguments);
-  };
+function warn(msg) {
+  if (Kefir.DEPRECATION_WARNINGS !== false && console && typeof console.warn === 'function') {
+    const msg2 = '\nHere is an Error object for you containing the call stack:';
+    console.warn(msg, msg2, new Error());
+  }
 }
 
+// (Stream|Property, Stream|Property) -> Property
+const awaiting = require('./two-sources/awaiting');
+Observable.prototype.awaiting = function(other) {
+  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145')
+  return awaiting(this, other);
+};
 
-// () -> Emitter
-const Emitter = Kefir.Emitter = require('./primary/emitter');
-Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()',
-  function() {
-    return new Emitter();
-  }
-);
+// (Stream, Function|undefined) -> Stream
+// (Property, Function|undefined) -> Property
+const valuesToErrors = require('./one-source/values-to-errors');
+Observable.prototype.valuesToErrors = function(fn) {
+  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149')
+  return valuesToErrors(this, fn);
+};
 
-// () -> Bus
-const Bus = Kefir.Bus = require('./many-sources/bus');
-Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()',
-  function() {
-    return new Bus();
-  }
-);
-
-// (Stream, Function, any|undefined) -> Stream
-// (Property, Function, any|undefined) -> Property
-const reduce = require('./one-source/reduce');
-Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()',
-  function(fn, seed) {
-    return reduce(this, fn, seed);
-  }
-);
-
-// (Array<Stream|Property>, Array<Stream|Property>, Function|undefined) -> Stream
-const sampledByManyItems = require('./many-sources/sampled-by');
-Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine()', sampledByManyItems);
-
-// (number, Array<any>) -> Stream
-const repeatedly = require('./time-based/repeatedly');
-Kefir.repeatedly = deprecated('Kefir.repeatedly()', 'Kefir.repeat(() => Kefir.sequentially(...)})', repeatedly);
-
-// (Stream, any) -> Stream
-// (Property, any) -> Property
-const mapTo = require('./one-source/map-to');
-Observable.prototype.mapTo = deprecated('.mapTo()', '.map(() => value)',
-  function(x) {
-    return mapTo(this, x);
-  }
-);
-
-// (Stream, Function) -> Stream
-// (Property, Function) -> Property
-const tap = require('./one-source/tap');
-Observable.prototype.tap = deprecated('.tap()', '.map((v) => {fn(v); return v})',
-  function(fn) {
-    return tap(this, fn);
-  }
-);
-
-// (Stream, string) -> Stream
-// (Property, string) -> Property
-const pluck = require('./one-source/pluck');
-Observable.prototype.pluck = deprecated('.pluck()', '.map((x) => x.foo)',
-  function(propName) {
-    return pluck(this, propName);
-  }
-);
-
-// (Stream, string, Array) -> Stream
-// (Property, string, Array) -> Property
-const invoke = require('./one-source/invoke');
-Observable.prototype.invoke = deprecated('.invoke()', '.map((x) => x.foo())',
-  function(methodName, ...args) {
-    return invoke(this, methodName, args);
-  }
-);
+// (Stream, Function|undefined) -> Stream
+// (Property, Function|undefined) -> Property
+const errorsToValues = require('./one-source/errors-to-values');
+Observable.prototype.errorsToValues = function(fn) {
+  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149')
+  return errorsToValues(this, fn);
+};
 
 // (Stream) -> Stream
 // (Property) -> Property
-const timestamp = require('./one-source/timestamp');
-Observable.prototype.timestamp = deprecated('.timestamp()', '.map((x) => {value: x, time: Date.now()})',
-  function() {
-    return timestamp(this);
-  }
-);
-
-// (Array<Stream|Property>) -> Stream
-const and = require('./many-sources/and');
-Kefir.and = deprecated('Kefir.and()', 'Kefir.combine([a, b], (a, b) => a && b)', and);
-Observable.prototype.and = deprecated('.and()', '.combine(other, (a, b) => a && b)',
-  function(other) {
-    return and([this, other]);
-  }
-);
-
-// (Array<Stream|Property>) -> Stream
-const or = require('./many-sources/or');
-Kefir.or = deprecated('Kefir.or()', 'Kefir.combine([a, b], (a, b) => a || b)', or);
-Observable.prototype.or = deprecated('.or()', '.combine(other, (a, b) => a || b)',
-  function(other) {
-    return or([this, other]);
-  }
-);
-
-// (Stream) -> Stream
-// (Property) -> Property
-const not = require('./one-source/not');
-Observable.prototype.not = deprecated('.not()', '.map((x) => !x)',
-  function() {
-    return not(this);
-  }
-);
-
-// (Function, Function, Function|undefined) -> Stream
-const fromSubUnsub = require('./primary/from-sub-unsub');
-Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
-
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
-const takeWhileBy = require('./two-sources/take-while-by');
-Observable.prototype.takeWhileBy = deprecated('.takeWhileBy(foo)', '.skipUntilBy(foo.filter((x) => !x))',
-  function(other) {
-    return takeWhileBy(this, other);
-  }
-);
-
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
-const skipWhileBy = require('./two-sources/skip-while-by');
-Observable.prototype.skipWhileBy = deprecated('.skipWhileBy(foo)', '.takeUntilBy(foo.filter((x) => !x))',
-  function(other) {
-    return skipWhileBy(this, other);
-  }
-);
+const endOnError = require('./one-source/end-on-error');
+Observable.prototype.endOnError = function() {
+  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150')
+  return endOnError(this);
+};
