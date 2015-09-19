@@ -126,10 +126,17 @@ div
 
 
 +descr-method('buffer-by', 'bufferBy', 'obs.bufferBy(otherObs, [options])').
-  Buffers all values from #[b obs] observable,
-  and flushes the buffer on each value from #[b otherObs].
-  Also flushes the buffer before end, but you can disable that
-  by passing #[tt {flushOnEnd: false}] as #[b options].
+  Buffers all values from #[b obs] observable, and flushes the buffer
+  on each value from #[b otherObs]. Also flushes the buffer before end.
+
+p.
+  If #[tt options.flushOnEnd] is #[tt false], the buffer
+  won't be flushed when the main observable ends.
+
+p.
+  The result observable will emit #[tt []] in cases, when the buffer supposed to be flushed,
+  but it's empty.
+
 
 pre.javascript(title='example')
   :escapehtml
@@ -173,8 +180,7 @@ p.
   each time the controlling observable emits #[tt false].
 
 p.
-  If #[tt options.emitEmpty] is #[tt true], the result observable
-  will emit #[tt []] in cases, when the buffer supposed to be flushed,
+  The result observable will emit #[tt []] in cases, when the buffer supposed to be flushed,
   but it's empty.
 
 p.
