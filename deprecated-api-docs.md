@@ -3,6 +3,8 @@
 All documentation on deprecated methods are moved
 from [main docs](http://rpominov.github.io/kefir/) to this file.
 
+See also [2.x's version of this document](https://github.com/rpominov/kefir/blob/v2/deprecated-api-docs.md) containing docs on methods that were removed in 3.0.
+
 
 ### `obs.awaiting(otherObs)` [#145](https://github.com/rpominov/kefir/issues/145)
 
