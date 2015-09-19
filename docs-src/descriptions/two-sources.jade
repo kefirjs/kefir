@@ -210,36 +210,3 @@ pre(title='events in time').
                  [1, 2, 3]  [4]      [5, 6, 7]  [8]
 div
 
-
-
-
-
-+descr-method('awaiting', 'awaiting', 'obs.awaiting(otherObs)').
-  Returns a property that represents the awaiting status of two observables,
-  i.e. answers the question «Has #[b obs] observable emitted a value
-  since the last value from #[b otherObs] observable has been emitted?».
-
-pre.javascript(title='example')
-  :escapehtml
-    var foo = Kefir.sequentially(100, [1, 2, 3]);
-    var bar = Kefir.sequentially(100, [1, 2, 3]).delay(40);
-    var result = foo.awaiting(bar);
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.awaiting] <value:current> false
-    > [sequentially.awaiting] <value> true
-    > [sequentially.awaiting] <value> false
-    > [sequentially.awaiting] <value> true
-    > [sequentially.awaiting] <value> false
-    > [sequentially.awaiting] <value> true
-    > [sequentially.awaiting] <value> false
-    > [sequentially.awaiting] <end>
-
-pre(title='events in time').
-  foo:     ----1----2----3X
-  bar:     ------1----2----3X
-
-  result:  f---t-f--t-f--t-fX
-div
