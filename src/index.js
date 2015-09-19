@@ -113,6 +113,13 @@ Observable.prototype.take = function(n) {
   return take(this, n);
 };
 
+// (Stream, number) -> Stream
+// (Property, number) -> Property
+const takeErrors = require('./one-source/take-errors');
+Observable.prototype.takeErrors = function(n) {
+  return takeErrors(this, n);
+};
+
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
 const takeWhile = require('./one-source/take-while');
