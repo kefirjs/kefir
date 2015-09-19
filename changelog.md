@@ -1,10 +1,10 @@
 ## 3.0.0
 
- - All previously deprecated methods removed. Full list: repeatedly, mapTo, pluck, invoke, not, timestamp, tap, and, or, sampledBy, fromSubUnsub, emitter, bus, reduce, takeWhileBy, skipWhileBy. See also [deprecated API docs of v2.x](https://github.com/rpominov/kefir/blob/v2/deprecated-api-docs.md).
+ - All previously deprecated methods removed. Full list can be found in [deprecated API docs of v2.x](https://github.com/rpominov/kefir/blob/v2/deprecated-api-docs.md).
  - New deprecations: [errorsToValues & valuesToErrors](https://github.com/rpominov/kefir/issues/149), [endOnError](https://github.com/rpominov/kefir/issues/150), [awaiting](https://github.com/rpominov/kefir/issues/145).
  - New method `.takeErrors` replacing deprecated `.endOnError` [#150](https://github.com/rpominov/kefir/issues/150)
  - The `emitEmpty` option from `.bufferWhileBy` removed, it now always emits `[]` if necessary [#131](https://github.com/rpominov/kefir/issues/131)
- - Property now sets its current value **before** dispathcing [#127](https://github.com/rpominov/kefir/issues/127)
+ - Property now sets its current value **before** dispatching [#127](https://github.com/rpominov/kefir/issues/127)
  - Event objects now don't contain `.current` property [#100](https://github.com/rpominov/kefir/issues/100)
  - The `.flatten` method now always returns a stream [#144](https://github.com/rpominov/kefir/issues/144)
 
