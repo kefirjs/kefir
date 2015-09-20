@@ -2,24 +2,24 @@
 
 
 
-describe 'skipValues', ->
+describe 'ignoreValues', ->
 
 
   describe 'stream', ->
 
     it 'should return stream', ->
-      expect(stream().skipValues()).toBeStream()
+      expect(stream().ignoreValues()).toBeStream()
 
     it 'should activate/deactivate source', ->
       a = stream()
-      expect(a.skipValues()).toActivate(a)
+      expect(a.ignoreValues()).toActivate(a)
 
     it 'should be ended if source was ended', ->
-      expect(send(stream(), ['<end>']).skipValues()).toEmit ['<end:current>']
+      expect(send(stream(), ['<end>']).ignoreValues()).toEmit ['<end:current>']
 
     it 'should handle events', ->
       a = stream()
-      expect(a.skipValues()).toEmit [{error: -1}, {error: -2}, '<end>'], ->
+      expect(a.ignoreValues()).toEmit [{error: -1}, {error: -2}, '<end>'], ->
         send(a, [1, {error: -1}, 2, {error: -2}, '<end>'])
 
 
@@ -29,18 +29,18 @@ describe 'skipValues', ->
   describe 'property', ->
 
     it 'should return property', ->
-      expect(prop().skipValues()).toBeProperty()
+      expect(prop().ignoreValues()).toBeProperty()
 
     it 'should activate/deactivate source', ->
       a = prop()
-      expect(a.skipValues()).toActivate(a)
+      expect(a.ignoreValues()).toActivate(a)
 
     it 'should be ended if source was ended', ->
-      expect(send(prop(), ['<end>']).skipValues()).toEmit ['<end:current>']
+      expect(send(prop(), ['<end>']).ignoreValues()).toEmit ['<end:current>']
 
     it 'should handle events and current', ->
       a = send(prop(), [1, {error: -1}])
-      expect(a.skipValues()).toEmit [{currentError: -1}, {error: -2}, {error: -3}, '<end>'], ->
+      expect(a.ignoreValues()).toEmit [{currentError: -1}, {error: -2}, {error: -3}, '<end>'], ->
         send(a, [2, {error: -2}, 3, {error: -3}, '<end>'])
 
 

@@ -551,21 +551,21 @@ div
 
 
 
-+descr-method('skip-values', 'skipValues', 'obs.skipValues()').
++descr-method('ignore-values', 'ignoreValues', 'obs.ignoreValues()').
   Ignores all values from the original observable, emitting only errors and end.
 
 pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
       .flatMap(x => x < 0 ? Kefir.constantError(x) : Kefir.constant(x));
-    var result = source.skipValues()
+    var result = source.ignoreValues()
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.flatMap.skipValues] <error> -1
-    > [sequentially.flatMap.skipValues] <error> -3
-    > [sequentially.flatMap.skipValues] <end>
+    > [sequentially.flatMap.ignoreValues] <error> -1
+    > [sequentially.flatMap.ignoreValues] <error> -3
+    > [sequentially.flatMap.ignoreValues] <end>
 
 pre(title='events in time')
   :escapehtml
@@ -578,21 +578,21 @@ div
 
 
 
-+descr-method('skip-errors', 'skipErrors', 'obs.skipErrors()').
++descr-method('ignore-errors', 'ignoreErrors', 'obs.ignoreErrors()').
   Ignores all errors from the original observable, emitting only values and end.
 
 pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [0, -1, 2, -3])
       .flatMap(x => x < 0 ? Kefir.constantError(x) : Kefir.constant(x));
-    var result = source.skipErrors()
+    var result = source.ignoreErrors()
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.flatMap.skipErrors] <value> 0
-    > [sequentially.flatMap.skipErrors] <value> 2
-    > [sequentially.flatMap.skipErrors] <end>
+    > [sequentially.flatMap.ignoreErrors] <value> 0
+    > [sequentially.flatMap.ignoreErrors] <value> 2
+    > [sequentially.flatMap.ignoreErrors] <end>
 
 pre(title='events in time')
   :escapehtml
@@ -604,20 +604,20 @@ div
 
 
 
-+descr-method('skip-end', 'skipEnd', 'obs.skipEnd()').
++descr-method('ignore-end', 'ignoreEnd', 'obs.ignoreEnd()').
   Ignores end of source observable.
 
 pre.javascript(title='example')
   :escapehtml
     var source = Kefir.sequentially(100, [1, 2, 3]);
-    var result = source.skipEnd();
+    var result = source.ignoreEnd();
     result.log();
 
 pre(title='console output')
   :escapehtml
-    > [sequentially.skipEnd] <value> 1
-    > [sequentially.skipEnd] <value> 2
-    > [sequentially.skipEnd] <value> 3
+    > [sequentially.ignoreEnd] <value> 1
+    > [sequentially.ignoreEnd] <value> 2
+    > [sequentially.ignoreEnd] <value> 3
 
 pre(title='events in time').
   source:  ---1---2---3X

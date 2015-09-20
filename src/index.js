@@ -214,23 +214,23 @@ Observable.prototype.filterErrors = function(fn) {
 
 // (Stream) -> Stream
 // (Property) -> Property
-const skipValues = require('./one-source/skip-values');
-Observable.prototype.skipValues = function() {
-  return skipValues(this);
+const ignoreValues = require('./one-source/ignore-values');
+Observable.prototype.ignoreValues = function() {
+  return ignoreValues(this);
 };
 
 // (Stream) -> Stream
 // (Property) -> Property
-const skipErrors = require('./one-source/skip-errors');
-Observable.prototype.skipErrors = function() {
-  return skipErrors(this);
+const ignoreErrors = require('./one-source/ignore-errors');
+Observable.prototype.ignoreErrors = function() {
+  return ignoreErrors(this);
 };
 
 // (Stream) -> Stream
 // (Property) -> Property
-const skipEnd = require('./one-source/skip-end');
-Observable.prototype.skipEnd = function() {
-  return skipEnd(this);
+const ignoreEnd = require('./one-source/ignore-end');
+Observable.prototype.ignoreEnd = function() {
+  return ignoreEnd(this);
 };
 
 // (Stream, Function) -> Stream
