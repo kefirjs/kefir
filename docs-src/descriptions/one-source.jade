@@ -40,6 +40,33 @@ div
 
 
 
++descr-method('map-errors', 'mapErrors', 'obs.mapErrors(fn)').
+  Same as #[a(href='#map') map] but for #[a(href='#about-errors') errors].
+
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3]).flatMap(Kefir.constantError);
+    var result = source.mapErrors(x => x * 2);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMap.mapErrors] <error> 2
+    > [sequentially.flatMap.mapErrors] <error> 4
+    > [sequentially.flatMap.mapErrors] <error> 6
+    > [sequentially.flatMap.mapErrors] <end>
+
+pre(title='events in time')
+  :escapehtml
+    source:  ---e---e---e---eX
+                0   1   2   3
+    result:  ---e---e---e---eX
+                0   2   4   6
+div
+
+
+
+
 +descr-method('filter', 'filter', 'obs.filter([predicate])').
   Filters values from the original observable
   using the given #[b predicate] function.
@@ -66,6 +93,34 @@ div
 
 p.
   See also <a href="#filter-by">filterBy</a>.
+
+
+
+
++descr-method('filter-errors', 'filterErrors', 'obs.filterErrors([predicate])').
+  Same as #[a(href='#filter') filter] but for #[a(href='#about-errors') errors].
+
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [0, 1, 2, 3]).flatMap(Kefir.constantError);
+    var result = source.filterErrors(x => (x % 2) === 0);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.flatMap.filterErrors] <error> 0
+    > [sequentially.flatMap.filterErrors] <error> 2
+    > [sequentially.flatMap.filterErrors] <end>
+
+pre(title='events in time')
+  :escapehtml
+    source:  ---e---e---e---eX
+                0   1   2   3
+    result:  ---e-------e----X
+                0       2
+div
+
+
 
 
 
@@ -492,64 +547,6 @@ pre(title='events in time').
   source:  ---1---2---3---------------4---5---6X
   result:  ----------------------3---------------------6X
 div
-
-
-
-+descr-method('map-errors', 'mapErrors', 'obs.mapErrors(fn)').
-  Applies the given #[b fn] function to each error from the original observable
-  and emits the error returned by #[b fn].
-
-pre.javascript(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3]).flatMap(Kefir.constantError);
-    var result = source.mapErrors(x => x * 2);
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.flatMap.mapErrors] <error> 2
-    > [sequentially.flatMap.mapErrors] <error> 4
-    > [sequentially.flatMap.mapErrors] <error> 6
-    > [sequentially.flatMap.mapErrors] <end>
-
-pre(title='events in time')
-  :escapehtml
-    source:  ---e---e---e---eX
-                0   1   2   3
-    result:  ---e---e---e---eX
-                0   2   4   6
-div
-
-
-
-
-+descr-method('filter-errors', 'filterErrors', 'obs.filterErrors([predicate])').
-  Filters errors from the original observable
-  using the given #[b predicate] function.
-
-p.
-  If no #[b predicate] is provided, the function #[tt x =&gt; x] will be used.
-
-pre.javascript(title='example')
-  :escapehtml
-    var source = Kefir.sequentially(100, [0, 1, 2, 3]).flatMap(Kefir.constantError);
-    var result = source.filterErrors(x => (x % 2) === 0);
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [sequentially.flatMap.filterErrors] <error> 0
-    > [sequentially.flatMap.filterErrors] <error> 2
-    > [sequentially.flatMap.filterErrors] <end>
-
-pre(title='events in time')
-  :escapehtml
-    source:  ---e---e---e---eX
-                0   1   2   3
-    result:  ---e-------e----X
-                0       2
-div
-
 
 
 
