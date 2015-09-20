@@ -3,7 +3,7 @@
  - All previously deprecated methods removed. Full list can be found in [deprecated API docs of v2.x](https://github.com/rpominov/kefir/blob/v2/deprecated-api-docs.md).
  - New deprecations: [errorsToValues & valuesToErrors](https://github.com/rpominov/kefir/issues/149), [endOnError](https://github.com/rpominov/kefir/issues/150), [awaiting](https://github.com/rpominov/kefir/issues/145).
  - New method `.takeErrors` replacing deprecated `.endOnError` [#150](https://github.com/rpominov/kefir/issues/150)
- - Methods `.skipValues`, `.skipErrors`, and `.skipEnd` are renamed to `.ignoreValues`, `.ignoreErrors`, and `.ignoreEnd` [#152](https://github.com/rpominov/kefir/issues/150)
+ - Methods `.skipValues`, `.skipErrors`, and `.skipEnd` are renamed to `.ignoreValues`, `.ignoreErrors`, and `.ignoreEnd` [#152](https://github.com/rpominov/kefir/issues/152)
  - The `emitEmpty` option from `.bufferWhileBy` removed, it now always emits `[]` if necessary [#131](https://github.com/rpominov/kefir/issues/131)
  - Property now sets its current value **before** dispatching [#127](https://github.com/rpominov/kefir/issues/127)
  - Event objects now don't contain `.current` property [#100](https://github.com/rpominov/kefir/issues/100)
