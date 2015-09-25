@@ -101,6 +101,22 @@ extend(Observable.prototype, {
     return this._on(ANY, fn);
   },
 
+  subscribe(observer) {
+    let stream = this.takeErrors(1);
+    let fn = function(event) {
+      if (event.type === "value" && observer.next) {
+        observer.next(event.value);
+      } else if (event.type == "error" && observer.error) {
+        observer.error(event.value);
+      } else if (event.type === "end" && observer.complete) {
+        observer.complete(event.value);
+      }
+    }
+
+    stream.onAny(fn);
+    return () => stream.offAny(fn);
+  },
+
   offValue(fn) {
     return this._off(VALUE, fn);
   },
@@ -166,6 +182,7 @@ extend(Observable.prototype, {
 
 });
 
+Observable.prototype[require('./utils/symbol')('observable')] = function() { return this; }
 
 // extend() can't handle `toString` in IE8
 Observable.prototype.toString = function() {
