@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! Kefir.js v2.8.2
+/*! Kefir.js v3.0.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -162,64 +162,71 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return take(this, n);
 	};
 
+	// (Stream, number) -> Stream
+	// (Property, number) -> Property
+	var takeErrors = __webpack_require__(32);
+	Observable.prototype.takeErrors = function (n) {
+	  return takeErrors(this, n);
+	};
+
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var takeWhile = __webpack_require__(32);
+	var takeWhile = __webpack_require__(33);
 	Observable.prototype.takeWhile = function (fn) {
 	  return takeWhile(this, fn);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var last = __webpack_require__(33);
+	var last = __webpack_require__(34);
 	Observable.prototype.last = function () {
 	  return last(this);
 	};
 
 	// (Stream, number) -> Stream
 	// (Property, number) -> Property
-	var skip = __webpack_require__(34);
+	var skip = __webpack_require__(35);
 	Observable.prototype.skip = function (n) {
 	  return skip(this, n);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var skipWhile = __webpack_require__(35);
+	var skipWhile = __webpack_require__(36);
 	Observable.prototype.skipWhile = function (fn) {
 	  return skipWhile(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var skipDuplicates = __webpack_require__(36);
+	var skipDuplicates = __webpack_require__(37);
 	Observable.prototype.skipDuplicates = function (fn) {
 	  return skipDuplicates(this, fn);
 	};
 
 	// (Stream, Function|falsey, any|undefined) -> Stream
 	// (Property, Function|falsey, any|undefined) -> Property
-	var diff = __webpack_require__(37);
+	var diff = __webpack_require__(38);
 	Observable.prototype.diff = function (fn, seed) {
 	  return diff(this, fn, seed);
 	};
 
 	// (Stream|Property, Function, any|undefined) -> Property
-	var scan = __webpack_require__(38);
+	var scan = __webpack_require__(39);
 	Observable.prototype.scan = function (fn, seed) {
 	  return scan(this, fn, seed);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var flatten = __webpack_require__(39);
+	var flatten = __webpack_require__(40);
 	Observable.prototype.flatten = function (fn) {
 	  return flatten(this, fn);
 	};
 
 	// (Stream, number) -> Stream
 	// (Property, number) -> Property
-	var delay = __webpack_require__(40);
+	var delay = __webpack_require__(41);
 	Observable.prototype.delay = function (wait) {
 	  return delay(this, wait);
 	};
@@ -227,7 +234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {leading: boolean|undefined, trailing: boolean|undefined}
 	// (Stream, number, Options|undefined) -> Stream
 	// (Property, number, Options|undefined) -> Property
-	var throttle = __webpack_require__(41);
+	var throttle = __webpack_require__(42);
 	Observable.prototype.throttle = function (wait, options) {
 	  return throttle(this, wait, options);
 	};
@@ -235,77 +242,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {immediate: boolean|undefined}
 	// (Stream, number, Options|undefined) -> Stream
 	// (Property, number, Options|undefined) -> Property
-	var debounce = __webpack_require__(43);
+	var debounce = __webpack_require__(44);
 	Observable.prototype.debounce = function (wait, options) {
 	  return debounce(this, wait, options);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var valuesToErrors = __webpack_require__(44);
-	Observable.prototype.valuesToErrors = function (fn) {
-	  return valuesToErrors(this, fn);
-	};
-
-	// (Stream, Function|undefined) -> Stream
-	// (Property, Function|undefined) -> Property
-	var errorsToValues = __webpack_require__(45);
-	Observable.prototype.errorsToValues = function (fn) {
-	  return errorsToValues(this, fn);
-	};
-
-	// (Stream, Function|undefined) -> Stream
-	// (Property, Function|undefined) -> Property
-	var mapErrors = __webpack_require__(46);
+	var mapErrors = __webpack_require__(45);
 	Observable.prototype.mapErrors = function (fn) {
 	  return mapErrors(this, fn);
 	};
 
 	// (Stream, Function|undefined) -> Stream
 	// (Property, Function|undefined) -> Property
-	var filterErrors = __webpack_require__(47);
+	var filterErrors = __webpack_require__(46);
 	Observable.prototype.filterErrors = function (fn) {
 	  return filterErrors(this, fn);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var endOnError = __webpack_require__(48);
-	Observable.prototype.endOnError = function () {
-	  return endOnError(this);
+	var ignoreValues = __webpack_require__(47);
+	Observable.prototype.ignoreValues = function () {
+	  return ignoreValues(this);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var skipValues = __webpack_require__(49);
-	Observable.prototype.skipValues = function () {
-	  return skipValues(this);
+	var ignoreErrors = __webpack_require__(48);
+	Observable.prototype.ignoreErrors = function () {
+	  return ignoreErrors(this);
 	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var skipErrors = __webpack_require__(50);
-	Observable.prototype.skipErrors = function () {
-	  return skipErrors(this);
-	};
-
-	// (Stream) -> Stream
-	// (Property) -> Property
-	var skipEnd = __webpack_require__(51);
-	Observable.prototype.skipEnd = function () {
-	  return skipEnd(this);
+	var ignoreEnd = __webpack_require__(49);
+	Observable.prototype.ignoreEnd = function () {
+	  return ignoreEnd(this);
 	};
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var beforeEnd = __webpack_require__(52);
+	var beforeEnd = __webpack_require__(50);
 	Observable.prototype.beforeEnd = function (fn) {
 	  return beforeEnd(this, fn);
 	};
 
 	// (Stream, number, number|undefined) -> Stream
 	// (Property, number, number|undefined) -> Property
-	var slidingWindow = __webpack_require__(53);
+	var slidingWindow = __webpack_require__(51);
 	Observable.prototype.slidingWindow = function (max, min) {
 	  return slidingWindow(this, max, min);
 	};
@@ -313,21 +299,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {flushOnEnd: boolean|undefined}
 	// (Stream, Function|falsey, Options|undefined) -> Stream
 	// (Property, Function|falsey, Options|undefined) -> Property
-	var bufferWhile = __webpack_require__(54);
+	var bufferWhile = __webpack_require__(52);
 	Observable.prototype.bufferWhile = function (fn, options) {
 	  return bufferWhile(this, fn, options);
 	};
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var transduce = __webpack_require__(55);
+	var transduce = __webpack_require__(53);
 	Observable.prototype.transduce = function (transducer) {
 	  return transduce(this, transducer);
 	};
 
 	// (Stream, Function) -> Stream
 	// (Property, Function) -> Property
-	var withHandler = __webpack_require__(56);
+	var withHandler = __webpack_require__(54);
 	Observable.prototype.withHandler = function (fn) {
 	  return withHandler(this, fn);
 	};
@@ -337,41 +323,41 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// (Array<Stream|Property>, Function|undefiend) -> Stream
 	// (Array<Stream|Property>, Array<Stream|Property>, Function|undefiend) -> Stream
-	var combine = Kefir.combine = __webpack_require__(57);
+	var combine = Kefir.combine = __webpack_require__(55);
 	Observable.prototype.combine = function (other, combinator) {
 	  return combine([this, other], combinator);
 	};
 
 	// (Array<Stream|Property>, Function|undefiend) -> Stream
-	var zip = Kefir.zip = __webpack_require__(58);
+	var zip = Kefir.zip = __webpack_require__(56);
 	Observable.prototype.zip = function (other, combinator) {
 	  return zip([this, other], combinator);
 	};
 
 	// (Array<Stream|Property>) -> Stream
-	var merge = Kefir.merge = __webpack_require__(59);
+	var merge = Kefir.merge = __webpack_require__(57);
 	Observable.prototype.merge = function (other) {
 	  return merge([this, other]);
 	};
 
 	// (Array<Stream|Property>) -> Stream
-	var concat = Kefir.concat = __webpack_require__(61);
+	var concat = Kefir.concat = __webpack_require__(59);
 	Observable.prototype.concat = function (other) {
 	  return concat([this, other]);
 	};
 
 	// () -> Pool
-	var Pool = Kefir.Pool = __webpack_require__(63);
+	var Pool = Kefir.Pool = __webpack_require__(61);
 	Kefir.pool = function () {
 	  return new Pool();
 	};
 
 	// (Function) -> Stream
-	Kefir.repeat = __webpack_require__(62);
+	Kefir.repeat = __webpack_require__(60);
 
 	// Options = {concurLim: number|undefined, queueLim: number|undefined, drop: 'old'|'new'|undefiend}
 	// (Stream|Property, Function|falsey, Options|undefined) -> Stream
-	var FlatMap = __webpack_require__(64);
+	var FlatMap = __webpack_require__(62);
 	Observable.prototype.flatMap = function (fn) {
 	  return new FlatMap(this, fn).setName(this, 'flatMap');
 	};
@@ -389,7 +375,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	// (Stream|Property, Function|falsey) -> Stream
-	var FlatMapErrors = __webpack_require__(65);
+	var FlatMapErrors = __webpack_require__(63);
 	Observable.prototype.flatMapErrors = function (fn) {
 	  return new FlatMapErrors(this, fn).setName(this, 'flatMapErrors');
 	};
@@ -399,28 +385,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var filterBy = __webpack_require__(66);
+	var filterBy = __webpack_require__(64);
 	Observable.prototype.filterBy = function (other) {
 	  return filterBy(this, other);
 	};
 
 	// (Stream, Stream|Property, Function|undefiend) -> Stream
 	// (Property, Stream|Property, Function|undefiend) -> Property
-	var sampledBy2items = __webpack_require__(68);
+	var sampledBy2items = __webpack_require__(66);
 	Observable.prototype.sampledBy = function (other, combinator) {
 	  return sampledBy2items(this, other, combinator);
 	};
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var skipUntilBy = __webpack_require__(69);
+	var skipUntilBy = __webpack_require__(67);
 	Observable.prototype.skipUntilBy = function (other) {
 	  return skipUntilBy(this, other);
 	};
 
 	// (Stream, Stream|Property) -> Stream
 	// (Property, Stream|Property) -> Property
-	var takeUntilBy = __webpack_require__(70);
+	var takeUntilBy = __webpack_require__(68);
 	Observable.prototype.takeUntilBy = function (other) {
 	  return takeUntilBy(this, other);
 	};
@@ -428,7 +414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {flushOnEnd: boolean|undefined}
 	// (Stream, Stream|Property, Options|undefined) -> Stream
 	// (Property, Stream|Property, Options|undefined) -> Property
-	var bufferBy = __webpack_require__(71);
+	var bufferBy = __webpack_require__(69);
 	Observable.prototype.bufferBy = function (other, options) {
 	  return bufferBy(this, other, options);
 	};
@@ -436,137 +422,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	// Options = {flushOnEnd: boolean|undefined}
 	// (Stream, Stream|Property, Options|undefined) -> Stream
 	// (Property, Stream|Property, Options|undefined) -> Property
-	var bufferWhileBy = __webpack_require__(72);
+	var bufferWhileBy = __webpack_require__(70);
 	Observable.prototype.bufferWhileBy = function (other, options) {
 	  return bufferWhileBy(this, other, options);
-	};
-
-	// (Stream|Property, Stream|Property) -> Property
-	var awaiting = __webpack_require__(73);
-	Observable.prototype.awaiting = function (other) {
-	  return awaiting(this, other);
 	};
 
 	// Deprecated
 	// -----------------------------------------------------------------------------
 
-	Kefir.DEPRECATION_WARNINGS = true;
-	function deprecated(name, alt, fn) {
-	  return function () {
-	    if (Kefir.DEPRECATION_WARNINGS && typeof console !== 'undefined' && console.log) {
-
-	      var message = 'Method `' + name + '` is deprecated, and to be removed in v3.0.0.\nUse `' + alt + '` instead.\nTo disable all warnings like this set `Kefir.DEPRECATION_WARNINGS = false`.';
-
-	      console.log(message);
-	    }
-	    return fn.apply(this, arguments);
-	  };
+	function warn(msg) {
+	  if (Kefir.DEPRECATION_WARNINGS !== false && console && typeof console.warn === 'function') {
+	    var msg2 = '\nHere is an Error object for you containing the call stack:';
+	    console.warn(msg, msg2, new Error());
+	  }
 	}
 
-	// () -> Emitter
-	var Emitter = Kefir.Emitter = __webpack_require__(74);
-	Kefir.emitter = deprecated('Kefir.emitter()', 'Kefir.stream()', function () {
-	  return new Emitter();
-	});
+	// (Stream|Property, Stream|Property) -> Property
+	var awaiting = __webpack_require__(71);
+	Observable.prototype.awaiting = function (other) {
+	  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145');
+	  return awaiting(this, other);
+	};
 
-	// () -> Bus
-	var Bus = Kefir.Bus = __webpack_require__(75);
-	Kefir.bus = deprecated('Kefir.bus()', 'Kefir.pool() or Kefir.stream()', function () {
-	  return new Bus();
-	});
+	// (Stream, Function|undefined) -> Stream
+	// (Property, Function|undefined) -> Property
+	var valuesToErrors = __webpack_require__(72);
+	Observable.prototype.valuesToErrors = function (fn) {
+	  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149');
+	  return valuesToErrors(this, fn);
+	};
 
-	// (Stream, Function, any|undefined) -> Stream
-	// (Property, Function, any|undefined) -> Property
-	var reduce = __webpack_require__(76);
-	Observable.prototype.reduce = deprecated('.reduce(fn, seed)', '.scan(fn, seed).last()', function (fn, seed) {
-	  return reduce(this, fn, seed);
-	});
-
-	// (Array<Stream|Property>, Array<Stream|Property>, Function|undefined) -> Stream
-	var sampledByManyItems = __webpack_require__(77);
-	Kefir.sampledBy = deprecated('Kefir.sampledBy()', 'Kefir.combine()', sampledByManyItems);
-
-	// (number, Array<any>) -> Stream
-	var repeatedly = __webpack_require__(78);
-	Kefir.repeatedly = deprecated('Kefir.repeatedly()', 'Kefir.repeat(() => Kefir.sequentially(...)})', repeatedly);
-
-	// (Stream, any) -> Stream
-	// (Property, any) -> Property
-	var mapTo = __webpack_require__(79);
-	Observable.prototype.mapTo = deprecated('.mapTo()', '.map(() => value)', function (x) {
-	  return mapTo(this, x);
-	});
-
-	// (Stream, Function) -> Stream
-	// (Property, Function) -> Property
-	var tap = __webpack_require__(80);
-	Observable.prototype.tap = deprecated('.tap()', '.map((v) => {fn(v); return v})', function (fn) {
-	  return tap(this, fn);
-	});
-
-	// (Stream, string) -> Stream
-	// (Property, string) -> Property
-	var pluck = __webpack_require__(81);
-	Observable.prototype.pluck = deprecated('.pluck()', '.map((x) => x.foo)', function (propName) {
-	  return pluck(this, propName);
-	});
-
-	// (Stream, string, Array) -> Stream
-	// (Property, string, Array) -> Property
-	var invoke = __webpack_require__(82);
-	Observable.prototype.invoke = deprecated('.invoke()', '.map((x) => x.foo())', function (methodName) {
-	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	    args[_key - 1] = arguments[_key];
-	  }
-
-	  return invoke(this, methodName, args);
-	});
+	// (Stream, Function|undefined) -> Stream
+	// (Property, Function|undefined) -> Property
+	var errorsToValues = __webpack_require__(73);
+	Observable.prototype.errorsToValues = function (fn) {
+	  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149');
+	  return errorsToValues(this, fn);
+	};
 
 	// (Stream) -> Stream
 	// (Property) -> Property
-	var timestamp = __webpack_require__(83);
-	Observable.prototype.timestamp = deprecated('.timestamp()', '.map((x) => {value: x, time: Date.now()})', function () {
-	  return timestamp(this);
-	});
-
-	// (Array<Stream|Property>) -> Stream
-	var and = __webpack_require__(84);
-	Kefir.and = deprecated('Kefir.and()', 'Kefir.combine([a, b], (a, b) => a && b)', and);
-	Observable.prototype.and = deprecated('.and()', '.combine(other, (a, b) => a && b)', function (other) {
-	  return and([this, other]);
-	});
-
-	// (Array<Stream|Property>) -> Stream
-	var or = __webpack_require__(85);
-	Kefir.or = deprecated('Kefir.or()', 'Kefir.combine([a, b], (a, b) => a || b)', or);
-	Observable.prototype.or = deprecated('.or()', '.combine(other, (a, b) => a || b)', function (other) {
-	  return or([this, other]);
-	});
-
-	// (Stream) -> Stream
-	// (Property) -> Property
-	var not = __webpack_require__(86);
-	Observable.prototype.not = deprecated('.not()', '.map((x) => !x)', function () {
-	  return not(this);
-	});
-
-	// (Function, Function, Function|undefined) -> Stream
-	var fromSubUnsub = __webpack_require__(20);
-	Kefir.fromSubUnsub = deprecated('.fromSubUnsub()', 'Kefir.stream()', fromSubUnsub);
-
-	// (Stream, Stream|Property) -> Stream
-	// (Property, Stream|Property) -> Property
-	var takeWhileBy = __webpack_require__(87);
-	Observable.prototype.takeWhileBy = deprecated('.takeWhileBy(foo)', '.skipUntilBy(foo.filter((x) => !x))', function (other) {
-	  return takeWhileBy(this, other);
-	});
-
-	// (Stream, Stream|Property) -> Stream
-	// (Property, Stream|Property) -> Property
-	var skipWhileBy = __webpack_require__(88);
-	Observable.prototype.skipWhileBy = deprecated('.skipWhileBy(foo)', '.takeUntilBy(foo.filter((x) => !x))', function (other) {
-	  return skipWhileBy(this, other);
-	});
+	var endOnError = __webpack_require__(74);
+	Observable.prototype.endOnError = function () {
+	  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150');
+	  return endOnError(this);
+	};
 
 /***/ },
 /* 1 */
@@ -642,20 +542,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _emitValue: function _emitValue(value) {
 	    if (this._alive) {
-	      this._dispatcher.dispatch({ type: VALUE, value: value, current: this._activating });
+	      this._dispatcher.dispatch({ type: VALUE, value: value });
 	    }
 	  },
 
 	  _emitError: function _emitError(value) {
 	    if (this._alive) {
-	      this._dispatcher.dispatch({ type: ERROR, value: value, current: this._activating });
+	      this._dispatcher.dispatch({ type: ERROR, value: value });
 	    }
 	  },
 
 	  _emitEnd: function _emitEnd() {
 	    if (this._alive) {
 	      this._alive = false;
-	      this._dispatcher.dispatch({ type: END, current: this._activating });
+	      this._dispatcher.dispatch({ type: END });
 	      this._clear();
 	    }
 	  },
@@ -665,7 +565,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this._dispatcher.add(type, fn);
 	      this._setActive(true);
 	    } else {
-	      callSubscriber(type, fn, { type: END, current: true });
+	      callSubscriber(type, fn, { type: END });
 	    }
 	    return this;
 	  },
@@ -719,8 +619,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  log: function log() {
 	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
 
+	    var isCurrent = undefined;
 	    var handler = function handler(event) {
-	      var type = '<' + event.type + (event.current ? ':current' : '') + '>';
+	      var type = '<' + event.type + (isCurrent ? ':current' : '') + '>';
 	      if (event.type === END) {
 	        console.log(name, type);
 	      } else {
@@ -735,7 +636,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this._logHandlers.push({ name: name, handler: handler });
 	    }
 
+	    isCurrent = true;
 	    this.onAny(handler);
+	    isCurrent = false;
 
 	    return this;
 	  },
@@ -1127,19 +1030,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  _emitValue: function _emitValue(value) {
 	    if (this._alive) {
+	      this._currentEvent = { type: VALUE, value: value };
 	      if (!this._activating) {
-	        this._dispatcher.dispatch({ type: VALUE, value: value, current: this._activating });
+	        this._dispatcher.dispatch({ type: VALUE, value: value });
 	      }
-	      this._currentEvent = { type: VALUE, value: value, current: true };
 	    }
 	  },
 
 	  _emitError: function _emitError(value) {
 	    if (this._alive) {
+	      this._currentEvent = { type: ERROR, value: value };
 	      if (!this._activating) {
-	        this._dispatcher.dispatch({ type: ERROR, value: value, current: this._activating });
+	        this._dispatcher.dispatch({ type: ERROR, value: value });
 	      }
-	      this._currentEvent = { type: ERROR, value: value, current: true };
 	    }
 	  },
 
@@ -1147,7 +1050,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (this._alive) {
 	      this._alive = false;
 	      if (!this._activating) {
-	        this._dispatcher.dispatch({ type: END, current: this._activating });
+	        this._dispatcher.dispatch({ type: END });
 	      }
 	      this._clear();
 	    }
@@ -1162,7 +1065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      callSubscriber(type, fn, this._currentEvent);
 	    }
 	    if (!this._alive) {
-	      callSubscriber(type, fn, { type: END, current: true });
+	      callSubscriber(type, fn, { type: END });
 	    }
 	    return this;
 	  },
@@ -2101,12 +2004,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	var S = createStream('take', mixin);
 	var P = createProperty('take', mixin);
 
-	module.exports = function takeWhile(obs, n) {
+	module.exports = function take(obs, n) {
 	  return new (obs._ofSameType(S, P))(obs, { n: n });
 	};
 
 /***/ },
 /* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _require = __webpack_require__(26);
+
+	var createStream = _require.createStream;
+	var createProperty = _require.createProperty;
+
+	var mixin = {
+
+	  _init: function _init(_ref) {
+	    var n = _ref.n;
+
+	    this._n = n;
+	    if (n <= 0) {
+	      this._emitEnd();
+	    }
+	  },
+
+	  _handleError: function _handleError(x) {
+	    this._n--;
+	    this._emitError(x);
+	    if (this._n === 0) {
+	      this._emitEnd();
+	    }
+	  }
+
+	};
+
+	var S = createStream('takeErrors', mixin);
+	var P = createProperty('takeErrors', mixin);
+
+	module.exports = function takeErrors(obs, n) {
+	  return new (obs._ofSameType(S, P))(obs, { n: n });
+	};
+
+/***/ },
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2153,7 +2095,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2198,7 +2140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2234,7 +2176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2282,7 +2224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2334,7 +2276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2387,7 +2329,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2437,7 +2379,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2445,7 +2387,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _require = __webpack_require__(26);
 
 	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
 
 	var mixin = {
 
@@ -2470,7 +2411,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var S = createStream('flatten', mixin);
-	var P = createProperty('flatten', mixin);
 
 	var id = function id(x) {
 	  return x;
@@ -2479,11 +2419,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = function flatten(obs) {
 	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
 
-	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
+	  return new S(obs, { fn: fn });
 	};
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2547,7 +2487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2557,7 +2497,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var now = __webpack_require__(42);
+	var now = __webpack_require__(43);
 
 	var mixin = {
 
@@ -2652,7 +2592,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2664,7 +2604,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2674,7 +2614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var now = __webpack_require__(42);
+	var now = __webpack_require__(43);
 
 	var mixin = {
 
@@ -2760,103 +2700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(26);
-
-	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
-
-	var mixin = {
-
-	  _init: function _init(_ref) {
-	    var fn = _ref.fn;
-
-	    this._fn = fn;
-	  },
-
-	  _free: function _free() {
-	    this._fn = null;
-	  },
-
-	  _handleValue: function _handleValue(x) {
-	    var fn = this._fn;
-	    var result = fn(x);
-	    if (result.convert) {
-	      this._emitError(result.error);
-	    } else {
-	      this._emitValue(x);
-	    }
-	  }
-
-	};
-
-	var S = createStream('valuesToErrors', mixin);
-	var P = createProperty('valuesToErrors', mixin);
-
-	var defFn = function defFn(x) {
-	  return { convert: true, error: x };
-	};
-
-	module.exports = function valuesToErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
-
-	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
-	};
-
-/***/ },
 /* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(26);
-
-	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
-
-	var mixin = {
-
-	  _init: function _init(_ref) {
-	    var fn = _ref.fn;
-
-	    this._fn = fn;
-	  },
-
-	  _free: function _free() {
-	    this._fn = null;
-	  },
-
-	  _handleError: function _handleError(x) {
-	    var fn = this._fn;
-	    var result = fn(x);
-	    if (result.convert) {
-	      this._emitValue(result.value);
-	    } else {
-	      this._emitError(x);
-	    }
-	  }
-
-	};
-
-	var S = createStream('errorsToValues', mixin);
-	var P = createProperty('errorsToValues', mixin);
-
-	var defFn = function defFn(x) {
-	  return { convert: true, value: x };
-	};
-
-	module.exports = function errorsToValues(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
-
-	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
-	};
-
-/***/ },
-/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2899,7 +2743,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2944,6 +2788,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _require = __webpack_require__(26);
+
+	var createStream = _require.createStream;
+	var createProperty = _require.createProperty;
+
+	var mixin = {
+	  _handleValue: function _handleValue() {}
+	};
+
+	var S = createStream('ignoreValues', mixin);
+	var P = createProperty('ignoreValues', mixin);
+
+	module.exports = function ignoreValues(obs) {
+	  return new (obs._ofSameType(S, P))(obs);
+	};
+
+/***/ },
 /* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -2955,18 +2821,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createProperty = _require.createProperty;
 
 	var mixin = {
-
-	  _handleError: function _handleError(x) {
-	    this._emitError(x);
-	    this._emitEnd();
-	  }
-
+	  _handleError: function _handleError() {}
 	};
 
-	var S = createStream('endOnError', mixin);
-	var P = createProperty('endOnError', mixin);
+	var S = createStream('ignoreErrors', mixin);
+	var P = createProperty('ignoreErrors', mixin);
 
-	module.exports = function endOnError(obs) {
+	module.exports = function ignoreErrors(obs) {
 	  return new (obs._ofSameType(S, P))(obs);
 	};
 
@@ -2982,62 +2843,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createProperty = _require.createProperty;
 
 	var mixin = {
-	  _handleValue: function _handleValue() {}
+	  _handleEnd: function _handleEnd() {}
 	};
 
-	var S = createStream('skipValues', mixin);
-	var P = createProperty('skipValues', mixin);
+	var S = createStream('ignoreEnd', mixin);
+	var P = createProperty('ignoreEnd', mixin);
 
-	module.exports = function skipValues(obs) {
+	module.exports = function ignoreEnd(obs) {
 	  return new (obs._ofSameType(S, P))(obs);
 	};
 
 /***/ },
 /* 50 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(26);
-
-	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
-
-	var mixin = {
-	  _handleError: function _handleError() {}
-	};
-
-	var S = createStream('skipErrors', mixin);
-	var P = createProperty('skipErrors', mixin);
-
-	module.exports = function skipErrors(obs) {
-	  return new (obs._ofSameType(S, P))(obs);
-	};
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(26);
-
-	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
-
-	var mixin = {
-	  _handleEnd: function _handleEnd() {}
-	};
-
-	var S = createStream('skipEnd', mixin);
-	var P = createProperty('skipEnd', mixin);
-
-	module.exports = function skipEnd(obs) {
-	  return new (obs._ofSameType(S, P))(obs);
-	};
-
-/***/ },
-/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3075,7 +2892,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 53 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3123,7 +2940,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 54 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3189,7 +3006,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 55 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3247,7 +3064,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 56 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3287,7 +3104,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 57 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3480,7 +3297,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 58 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3617,7 +3434,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 59 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3626,7 +3443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var inherit = _require.inherit;
 
-	var AbstractPool = __webpack_require__(60);
+	var AbstractPool = __webpack_require__(58);
 	var never = __webpack_require__(8);
 
 	function Merge(sources) {
@@ -3652,7 +3469,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 60 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3896,12 +3713,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = AbstractPool;
 
 /***/ },
-/* 61 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var repeat = __webpack_require__(62);
+	var repeat = __webpack_require__(60);
 
 	module.exports = function concat(observables) {
 	  return repeat(function (index) {
@@ -3910,7 +3727,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 62 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3995,7 +3812,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 63 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4004,7 +3821,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var inherit = _require.inherit;
 
-	var AbstractPool = __webpack_require__(60);
+	var AbstractPool = __webpack_require__(58);
 
 	function Pool() {
 	  AbstractPool.call(this);
@@ -4029,7 +3846,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Pool;
 
 /***/ },
-/* 64 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4044,7 +3861,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var inherit = _require2.inherit;
 
-	var AbstractPool = __webpack_require__(60);
+	var AbstractPool = __webpack_require__(58);
 
 	function FlatMap(source, fn, options) {
 	  var _this = this;
@@ -4120,7 +3937,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = FlatMap;
 
 /***/ },
-/* 65 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4135,7 +3952,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var inherit = _require2.inherit;
 
-	var FlatMap = __webpack_require__(64);
+	var FlatMap = __webpack_require__(62);
 
 	function FlatMapErrors(source, fn) {
 	  FlatMap.call(this, source, fn);
@@ -4173,12 +3990,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = FlatMapErrors;
 
 /***/ },
-/* 66 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(67);
+	var _require = __webpack_require__(65);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -4211,7 +4028,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 67 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4345,12 +4162,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = { createStream: createStream, createProperty: createProperty };
 
 /***/ },
-/* 68 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var combine = __webpack_require__(57);
+	var combine = __webpack_require__(55);
 
 	var id2 = function id2(_, x) {
 	  return x;
@@ -4364,12 +4181,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 69 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(67);
+	var _require = __webpack_require__(65);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -4402,12 +4219,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 70 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(67);
+	var _require = __webpack_require__(65);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -4428,12 +4245,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 71 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(67);
+	var _require = __webpack_require__(65);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -4499,12 +4316,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 72 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _require = __webpack_require__(67);
+	var _require = __webpack_require__(65);
 
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
@@ -4522,11 +4339,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
 	    var _ref$flushOnChange = _ref.flushOnChange;
 	    var flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
-	    var _ref$emitEmpty = _ref.emitEmpty;
-	    var emitEmpty = _ref$emitEmpty === undefined ? false : _ref$emitEmpty;
 
 	    this._buff = [];
-	    this._emitEmpty = emitEmpty;
 	    this._flushOnEnd = flushOnEnd;
 	    this._flushOnChange = flushOnChange;
 	  },
@@ -4536,7 +4350,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  _flush: function _flush() {
-	    if (this._buff !== null && (this._emitEmpty || this._buff.length > 0)) {
+	    if (this._buff !== null) {
 	      this._emitValue(this._buff);
 	      this._buff = [];
 	    }
@@ -4581,14 +4395,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 73 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var merge = __webpack_require__(59);
+	var merge = __webpack_require__(57);
 	var map = __webpack_require__(29);
-	var skipDuplicates = __webpack_require__(36);
+	var skipDuplicates = __webpack_require__(37);
 	var toProperty = __webpack_require__(25);
 
 	var f = function f() {
@@ -4606,99 +4420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(2);
-
-	var inherit = _require.inherit;
-
-	var Stream = __webpack_require__(6);
-
-	function Emitter() {
-	  Stream.call(this);
-	}
-
-	inherit(Emitter, Stream, {
-
-	  _name: 'emitter',
-
-	  emit: function emit(x) {
-	    this._emitValue(x);
-	    return this;
-	  },
-
-	  error: function error(x) {
-	    this._emitError(x);
-	    return this;
-	  },
-
-	  end: function end() {
-	    this._emitEnd();
-	    return this;
-	  },
-
-	  emitEvent: function emitEvent(event) {
-	    this._emit(event.type, event.value);
-	  }
-
-	});
-
-	module.exports = Emitter;
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(2);
-
-	var inherit = _require.inherit;
-
-	var AbstractPool = __webpack_require__(60);
-
-	function Bus() {
-	  AbstractPool.call(this);
-	}
-
-	inherit(Bus, AbstractPool, {
-
-	  _name: 'bus',
-
-	  plug: function plug(obs) {
-	    this._add(obs);
-	    return this;
-	  },
-	  unplug: function unplug(obs) {
-	    this._remove(obs);
-	    return this;
-	  },
-
-	  emit: function emit(x) {
-	    this._emitValue(x);
-	    return this;
-	  },
-	  error: function error(x) {
-	    this._emitError(x);
-	    return this;
-	  },
-	  end: function end() {
-	    this._emitEnd();
-	    return this;
-	  },
-	  emitEvent: function emitEvent(event) {
-	    this._emit(event.type, event.value);
-	  }
-
-	});
-
-	module.exports = Bus;
-
-/***/ },
-/* 76 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4708,338 +4430,116 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createStream = _require.createStream;
 	var createProperty = _require.createProperty;
 
-	var _require2 = __webpack_require__(3);
+	var mixin = {
 
-	var NOTHING = _require2.NOTHING;
+	  _init: function _init(_ref) {
+	    var fn = _ref.fn;
+
+	    this._fn = fn;
+	  },
+
+	  _free: function _free() {
+	    this._fn = null;
+	  },
+
+	  _handleValue: function _handleValue(x) {
+	    var fn = this._fn;
+	    var result = fn(x);
+	    if (result.convert) {
+	      this._emitError(result.error);
+	    } else {
+	      this._emitValue(x);
+	    }
+	  }
+
+	};
+
+	var S = createStream('valuesToErrors', mixin);
+	var P = createProperty('valuesToErrors', mixin);
+
+	var defFn = function defFn(x) {
+	  return { convert: true, error: x };
+	};
+
+	module.exports = function valuesToErrors(obs) {
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
+
+	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
+	};
+
+/***/ },
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _require = __webpack_require__(26);
+
+	var createStream = _require.createStream;
+	var createProperty = _require.createProperty;
 
 	var mixin = {
 
 	  _init: function _init(_ref) {
 	    var fn = _ref.fn;
-	    var seed = _ref.seed;
 
 	    this._fn = fn;
-	    this._result = seed;
 	  },
 
 	  _free: function _free() {
 	    this._fn = null;
-	    this._result = null;
 	  },
 
-	  _handleValue: function _handleValue(x) {
+	  _handleError: function _handleError(x) {
 	    var fn = this._fn;
-	    this._result = this._result === NOTHING ? x : fn(this._result, x);
-	  },
-
-	  _handleEnd: function _handleEnd() {
-	    if (this._result !== NOTHING) {
-	      this._emitValue(this._result);
+	    var result = fn(x);
+	    if (result.convert) {
+	      this._emitValue(result.value);
+	    } else {
+	      this._emitError(x);
 	    }
+	  }
+
+	};
+
+	var S = createStream('errorsToValues', mixin);
+	var P = createProperty('errorsToValues', mixin);
+
+	var defFn = function defFn(x) {
+	  return { convert: true, value: x };
+	};
+
+	module.exports = function errorsToValues(obs) {
+	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
+
+	  return new (obs._ofSameType(S, P))(obs, { fn: fn });
+	};
+
+/***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _require = __webpack_require__(26);
+
+	var createStream = _require.createStream;
+	var createProperty = _require.createProperty;
+
+	var mixin = {
+
+	  _handleError: function _handleError(x) {
+	    this._emitError(x);
 	    this._emitEnd();
 	  }
 
 	};
 
-	var S = createStream('reduce', mixin);
-	var P = createProperty('reduce', mixin);
-
-	module.exports = function reduce(obs, fn) {
-	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
-
-	  return new (obs._ofSameType(S, P))(obs, { fn: fn, seed: seed });
-	};
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var combine = __webpack_require__(57);
-
-	var _require = __webpack_require__(21);
-
-	var apply = _require.apply;
-
-	var _require2 = __webpack_require__(5);
-
-	var circleShift = _require2.circleShift;
-
-	module.exports = function sampledBy(passive, active, combinator) {
-
-	  var _combinator = combinator;
-
-	  // we need to flip `passive` and `active` in combinator function
-	  if (passive.length > 0) {
-	    _combinator = function () {
-	      var args = circleShift(arguments, passive.length);
-	      return combinator ? apply(combinator, null, args) : args;
-	    };
-	  }
-
-	  return combine(active, passive, _combinator).setName('sampledBy');
-	};
-
-/***/ },
-/* 78 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var timeBased = __webpack_require__(10);
-
-	var _require = __webpack_require__(5);
-
-	var cloneArray = _require.cloneArray;
-
-	var S = timeBased({
-
-	  _name: 'repeatedly',
-
-	  _init: function _init(_ref) {
-	    var xs = _ref.xs;
-
-	    this._xs = cloneArray(xs);
-	    this._i = -1;
-	  },
-
-	  _onTick: function _onTick() {
-	    if (this._xs.length > 0) {
-	      this._i = (this._i + 1) % this._xs.length;
-	      this._emitValue(this._xs[this._i]);
-	    }
-	  }
-
-	});
-
-	module.exports = function repeatedly(wait, xs) {
-	  return new S(wait, { xs: xs });
-	};
-
-/***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var map = __webpack_require__(29);
-
-	module.exports = function mapTo(obs, x) {
-	  return map(obs, function () {
-	    return x;
-	  }).setName(obs, 'mapTo');
-	};
-
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var map = __webpack_require__(29);
-
-	module.exports = function tap(obs, fn) {
-	  return map(obs, function (x) {
-	    fn(x);return x;
-	  }).setName(obs, 'tap');
-	};
-
-/***/ },
-/* 81 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var map = __webpack_require__(29);
-
-	module.exports = function pluck(obs, propName) {
-	  return map(obs, function (x) {
-	    return x[propName];
-	  }).setName(obs, 'pluck');
-	};
-
-/***/ },
-/* 82 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var map = __webpack_require__(29);
-
-	var _require = __webpack_require__(21);
-
-	var apply = _require.apply;
-
-	module.exports = function invoke(obs, methodName, args) {
-
-	  var fn = args.length === 0 ? function (x) {
-	    return x[methodName]();
-	  } : function (x) {
-	    return apply(x[methodName], x, args);
-	  };
-
-	  return map(obs, fn).setName(obs, 'invoke');
-	};
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var map = __webpack_require__(29);
-	var now = __webpack_require__(42);
-
-	module.exports = function timestamp(obs) {
-	  return map(obs, function (x) {
-	    return { value: x, time: now() };
-	  }).setName(obs, 'timestamp');
-	};
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var combine = __webpack_require__(57);
-
-	function fn() {
-	  var i = undefined;
-	  for (i = 0; i < arguments.length; i++) {
-	    if (!arguments[i]) {
-	      return arguments[i];
-	    }
-	  }
-	  return arguments[i - 1];
-	}
-
-	module.exports = function and(observables) {
-	  return combine(observables, [], fn).setName('and');
-	};
-
-/***/ },
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var combine = __webpack_require__(57);
-
-	function fn() {
-	  var i = undefined;
-	  for (i = 0; i < arguments.length; i++) {
-	    if (arguments[i]) {
-	      return arguments[i];
-	    }
-	  }
-	  return arguments[i - 1];
-	}
-
-	module.exports = function or(observables) {
-	  return combine(observables, [], fn).setName('or');
-	};
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var map = __webpack_require__(29);
-
-	module.exports = function not(obs) {
-	  return map(obs, function (x) {
-	    return !x;
-	  }).setName(obs, 'not');
-	};
-
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(67);
-
-	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
-
-	var _require2 = __webpack_require__(3);
-
-	var NOTHING = _require2.NOTHING;
-
-	var mixin = {
-
-	  _handlePrimaryValue: function _handlePrimaryValue(x) {
-	    if (this._lastSecondary !== NOTHING) {
-	      this._emitValue(x);
-	    }
-	  },
-
-	  _handleSecondaryValue: function _handleSecondaryValue(x) {
-	    this._lastSecondary = x;
-	    if (!this._lastSecondary) {
-	      this._emitEnd();
-	    }
-	  },
-
-	  _handleSecondaryEnd: function _handleSecondaryEnd() {
-	    if (this._lastSecondary === NOTHING) {
-	      this._emitEnd();
-	    }
-	  }
-
-	};
-
-	var S = createStream('takeWhileBy', mixin);
-	var P = createProperty('takeWhileBy', mixin);
-
-	module.exports = function takeWhileBy(primary, secondary) {
-	  return new (primary._ofSameType(S, P))(primary, secondary);
-	};
-
-/***/ },
-/* 88 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _require = __webpack_require__(67);
-
-	var createStream = _require.createStream;
-	var createProperty = _require.createProperty;
-
-	var mixin = {
-
-	  _init: function _init() {
-	    this._hasFalseyFromSecondary = false;
-	  },
-
-	  _handlePrimaryValue: function _handlePrimaryValue(x) {
-	    if (this._hasFalseyFromSecondary) {
-	      this._emitValue(x);
-	    }
-	  },
-
-	  _handleSecondaryValue: function _handleSecondaryValue(x) {
-	    this._hasFalseyFromSecondary = this._hasFalseyFromSecondary || !x;
-	  },
-
-	  _handleSecondaryEnd: function _handleSecondaryEnd() {
-	    if (!this._hasFalseyFromSecondary) {
-	      this._emitEnd();
-	    }
-	  }
-
-	};
-
-	var S = createStream('skipWhileBy', mixin);
-	var P = createProperty('skipWhileBy', mixin);
-
-	module.exports = function skipWhileBy(primary, secondary) {
-	  return new (primary._ofSameType(S, P))(primary, secondary);
+	var S = createStream('endOnError', mixin);
+	var P = createProperty('endOnError', mixin);
+
+	module.exports = function endOnError(obs) {
+	  return new (obs._ofSameType(S, P))(obs);
 	};
 
 /***/ }
@@ -14170,7 +13670,7 @@ describe('beforeEnd', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],36:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],36:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -14336,7 +13836,7 @@ describe('bufferBy', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],37:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],37:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -14358,37 +13858,23 @@ describe('bufferWhileBy', function() {
       b = prop();
       return expect(a.bufferWhileBy(b)).toActivate(a, b);
     });
-    it('should end when primary ends (w/o {emitEmpty: true})', function() {
+    it('should flush empty buffer and then end when primary ends', function() {
       var a, b;
-      expect(send(stream(), ['<end>']).bufferWhileBy(stream())).toEmit(['<end:current>']);
-      a = stream();
-      b = stream();
-      return expect(a.bufferWhileBy(b)).toEmit(['<end>'], function() {
-        return send(a, ['<end>']);
-      });
-    });
-    it('should flush empty buffer and then end when primary ends (w/ {emitEmpty: true})', function() {
-      var a, b;
-      expect(send(stream(), ['<end>']).bufferWhileBy(stream(), {
-        emitEmpty: true
-      })).toEmit([
+      expect(send(stream(), ['<end>']).bufferWhileBy(stream())).toEmit([
         {
           current: []
         }, '<end:current>'
       ]);
       a = stream();
       b = stream();
-      return expect(a.bufferWhileBy(b, {
-        emitEmpty: true
-      })).toEmit([[], '<end>'], function() {
+      return expect(a.bufferWhileBy(b)).toEmit([[], '<end>'], function() {
         return send(a, ['<end>']);
       });
     });
-    it('should flush empty buffer when secondary emits false (w/ {flushOnChange: true, emitEmpty: true})', function() {
+    it('should flush empty buffer when secondary emits false (w/ {flushOnChange: true})', function() {
       var a, b;
       expect(stream().bufferWhileBy(send(prop(), [false]), {
-        flushOnChange: true,
-        emitEmpty: true
+        flushOnChange: true
       })).toEmit([
         {
           current: []
@@ -14397,8 +13883,7 @@ describe('bufferWhileBy', function() {
       a = stream();
       b = stream();
       return expect(a.bufferWhileBy(b, {
-        flushOnChange: true,
-        emitEmpty: true
+        flushOnChange: true
       })).toEmit([[]], function() {
         return send(b, [true, false]);
       });
@@ -14592,7 +14077,7 @@ describe('bufferWhileBy', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],38:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],38:[function(require,module,exports){
 var Kefir, not3, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -14692,206 +14177,7 @@ describe('bufferWhile', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],39:[function(require,module,exports){
-var Kefir, activate, deactivate, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
-
-describe('bus', function() {
-  it('should return stream', function() {
-    expect(Kefir.bus()).toBeStream();
-    return expect(new Kefir.Bus()).toBeStream();
-  });
-  it('should return bus', function() {
-    expect(Kefir.bus()).toBeBus();
-    return expect(new Kefir.Bus()).toBeBus();
-  });
-  it('should not be ended', function() {
-    return expect(Kefir.bus()).toEmit([]);
-  });
-  it('should emit events', function() {
-    var a;
-    a = Kefir.bus();
-    return expect(a).toEmit([
-      1, 2, {
-        error: -1
-      }, 3, '<end>'
-    ], function() {
-      a.emit(1);
-      a.emit(2);
-      a.error(-1);
-      a.emit(3);
-      return a.end();
-    });
-  });
-  it('should emit events via .emitEvent', function() {
-    var a;
-    a = Kefir.bus();
-    return expect(a).toEmit([
-      1, 2, {
-        error: -1
-      }, 3, '<end>'
-    ], function() {
-      a.emitEvent({
-        type: 'value',
-        value: 1,
-        current: false
-      });
-      a.emitEvent({
-        type: 'value',
-        value: 2,
-        current: true
-      });
-      a.emitEvent({
-        type: 'error',
-        value: -1,
-        current: false
-      });
-      a.emitEvent({
-        type: 'value',
-        value: 3,
-        current: false
-      });
-      return a.emitEvent({
-        type: 'end',
-        value: void 0,
-        current: false
-      });
-    });
-  });
-  it('should return stream', function() {
-    return expect(Kefir.bus()).toBeStream();
-  });
-  it('should activate sources', function() {
-    var a, b, bus, c;
-    a = stream();
-    b = prop();
-    c = stream();
-    bus = Kefir.bus().plug(a).plug(b).plug(c);
-    expect(bus).toActivate(a, b, c);
-    bus.unplug(b);
-    expect(bus).toActivate(a, c);
-    return expect(bus).not.toActivate(b);
-  });
-  it('should deliver events from observables', function() {
-    var a, b, bus, c;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    bus = Kefir.bus().plug(a).plug(b).plug(c);
-    return expect(bus).toEmit([
-      {
-        current: 0
-      }, 1, 2, 3, 4, 5, 6
-    ], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(c, [3]);
-      send(a, ['<end>']);
-      send(b, [4, '<end>']);
-      return send(c, [5, 6, '<end>']);
-    });
-  });
-  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
-    var a, b, bus, c;
-    a = send(prop(), [0]);
-    b = send(prop(), [1]);
-    c = send(prop(), [2]);
-    bus = Kefir.bus().plug(a).plug(b).plug(c);
-    expect(bus).toEmit([
-      {
-        current: 0
-      }, {
-        current: 1
-      }, {
-        current: 2
-      }
-    ]);
-    bus = Kefir.bus().plug(a).plug(b).plug(c);
-    activate(bus);
-    expect(bus).toEmit([]);
-    bus = Kefir.bus().plug(a).plug(b).plug(c);
-    activate(bus);
-    deactivate(bus);
-    return expect(bus).toEmit([
-      {
-        current: 0
-      }, {
-        current: 1
-      }, {
-        current: 2
-      }
-    ]);
-  });
-  it('should not deliver events from removed sources', function() {
-    var a, b, bus, c;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    bus = Kefir.bus().plug(a).plug(b).plug(c).unplug(b);
-    return expect(bus).toEmit([1, 3, 5, 6], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(c, [3]);
-      send(a, ['<end>']);
-      send(b, [4, '<end>']);
-      return send(c, [5, 6, '<end>']);
-    });
-  });
-  it('should correctly handle current values of new sub sources', function() {
-    var b, bus, c;
-    bus = Kefir.bus();
-    b = send(prop(), [1]);
-    c = send(prop(), [2]);
-    return expect(bus).toEmit([1, 2], function() {
-      bus.plug(b);
-      return bus.plug(c);
-    });
-  });
-  it('errors should flow', function() {
-    var a, b, c, pool;
-    a = stream();
-    b = prop();
-    c = stream();
-    pool = Kefir.bus();
-    pool.plug(a);
-    expect(pool).errorsToFlow(a);
-    pool.unplug(a);
-    expect(pool).not.errorsToFlow(a);
-    pool.plug(a);
-    pool.plug(b);
-    expect(pool).errorsToFlow(a);
-    expect(pool).errorsToFlow(b);
-    pool.unplug(b);
-    expect(pool).not.errorsToFlow(b);
-    pool.plug(c);
-    return expect(pool).errorsToFlow(c);
-  });
-  return it('should deactivate sources on end', function() {
-    var a, b, bus, c, i, j, len, len1, obs, ref1, ref2, results;
-    a = stream();
-    b = prop();
-    c = stream();
-    bus = Kefir.bus().plug(a).plug(b).plug(c);
-    bus.onEnd(function() {});
-    ref1 = [a, b, c];
-    for (i = 0, len = ref1.length; i < len; i++) {
-      obs = ref1[i];
-      expect(obs).toBeActive();
-    }
-    bus.end();
-    ref2 = [a, b, c];
-    results = [];
-    for (j = 0, len1 = ref2.length; j < len1; j++) {
-      obs = ref2[j];
-      results.push(expect(obs).not.toBeActive());
-    }
-    return results;
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],40:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],39:[function(require,module,exports){
 var Kefir, prop, ref, send, stream, streamWithCurrent;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15002,7 +14288,7 @@ describe('changes', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],41:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],40:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -15287,7 +14573,7 @@ describe('combine', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],42:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],41:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -15413,7 +14699,7 @@ describe('concat', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],43:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],42:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -15432,7 +14718,7 @@ describe('constantError', function() {
 });
 
 
-},{"../../dist/kefir":1}],44:[function(require,module,exports){
+},{"../../dist/kefir":1}],43:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -15451,7 +14737,7 @@ describe('constant', function() {
 });
 
 
-},{"../../dist/kefir":1}],45:[function(require,module,exports){
+},{"../../dist/kefir":1}],44:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15651,7 +14937,7 @@ describe('debounce', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],46:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],45:[function(require,module,exports){
 var Kefir, prop, ref, send, shakyTimeTest, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, shakyTimeTest = ref.shakyTimeTest, Kefir = ref.Kefir;
@@ -15736,7 +15022,7 @@ describe('delay', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],47:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],46:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -15845,77 +15131,7 @@ describe('diff', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],48:[function(require,module,exports){
-var Kefir;
-
-Kefir = require('../../dist/kefir');
-
-describe('emitter', function() {
-  it('should return stream', function() {
-    expect(Kefir.emitter()).toBeStream();
-    return expect(new Kefir.Emitter()).toBeStream();
-  });
-  it('should return emitter', function() {
-    expect(Kefir.emitter()).toBeEmitter();
-    return expect(new Kefir.Emitter()).toBeEmitter();
-  });
-  it('should not be ended', function() {
-    return expect(Kefir.emitter()).toEmit([]);
-  });
-  it('should emit events', function() {
-    var a;
-    a = Kefir.emitter();
-    return expect(a).toEmit([
-      1, 2, {
-        error: -1
-      }, 3, '<end>'
-    ], function() {
-      a.emit(1);
-      a.emit(2);
-      a.error(-1);
-      a.emit(3);
-      return a.end();
-    });
-  });
-  return it('should emit events via .emitEvent', function() {
-    var a;
-    a = Kefir.emitter();
-    return expect(a).toEmit([
-      1, 2, {
-        error: -1
-      }, 3, '<end>'
-    ], function() {
-      a.emitEvent({
-        type: 'value',
-        value: 1,
-        current: false
-      });
-      a.emitEvent({
-        type: 'value',
-        value: 2,
-        current: true
-      });
-      a.emitEvent({
-        type: 'error',
-        value: -1,
-        current: false
-      });
-      a.emitEvent({
-        type: 'value',
-        value: 3,
-        current: false
-      });
-      return a.emitEvent({
-        type: 'end',
-        value: void 0,
-        current: false
-      });
-    });
-  });
-});
-
-
-},{"../../dist/kefir":1}],49:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],47:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16029,7 +15245,7 @@ describe('endOnError', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],50:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],48:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16155,7 +15371,7 @@ describe('errorsToValues', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],51:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],49:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16432,7 +15648,7 @@ describe('filterBy', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],52:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],50:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16616,7 +15832,7 @@ describe('filterErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],53:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],51:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -16766,7 +15982,7 @@ describe('filter', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],54:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],52:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -16900,7 +16116,7 @@ describe('flatMapConcat', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],55:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],53:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17132,7 +16348,7 @@ describe('flatMapErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],56:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],54:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17286,7 +16502,7 @@ describe('flatMapFirst', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],57:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],55:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17419,7 +16635,7 @@ describe('flatMapLatest', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],58:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],56:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17590,7 +16806,7 @@ describe('flatMapConcurLimit', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],59:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],57:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -17698,17 +16914,16 @@ describe('flatMap', function() {
     });
     it('Bug in flatMap: exception thrown when resubscribing to stream', function() {
       var handler, src, stream1, sub;
-      src = Kefir.emitter();
+      src = stream();
       stream1 = src.flatMap(function(x) {
         return x;
       });
       handler = function() {};
       stream1.onValue(handler);
-      sub = Kefir.emitter();
-      src.emit(sub);
-      src.end();
+      sub = stream();
+      send(src, [sub, '<end>']);
       stream1.offValue(handler);
-      sub.end();
+      send(sub, ['<end>']);
       return stream1.onValue(handler);
     });
     it('errors should flow', function() {
@@ -17839,7 +17054,7 @@ describe('flatMap', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],60:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],58:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -17892,8 +17107,8 @@ describe('flatten', function() {
     });
   });
   return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().flatten(function() {})).toBeProperty();
+    it('should return stream', function() {
+      return expect(prop().flatten(function() {})).toBeStream();
     });
     it('should activate/deactivate source', function() {
       var a;
@@ -17931,12 +17146,7 @@ describe('flatten', function() {
     });
     it('should handle current correctly', function() {
       expect(send(prop(), [1]).flatten(function(x) {
-        var i, results;
-        return (function() {
-          results = [];
-          for (var i = 1; 1 <= x ? i <= x : i >= x; 1 <= x ? i++ : i--){ results.push(i); }
-          return results;
-        }).apply(this);
+        return [x];
       })).toEmit([
         {
           current: 1
@@ -17952,7 +17162,7 @@ describe('flatten', function() {
         }
       ]);
     });
-    it('should handle multiple currents correctly', function() {
+    return it('should handle multiple currents correctly', function() {
       return expect(send(prop(), [2]).flatten(function(x) {
         var i, results;
         return (function() {
@@ -17962,26 +17172,17 @@ describe('flatten', function() {
         }).apply(this);
       })).toEmit([
         {
+          current: 1
+        }, {
           current: 2
         }
       ]);
-    });
-    return it('if no `fn` provided should use the `id` function by default', function() {
-      var a;
-      a = send(prop(), [[1]]);
-      return expect(a.flatten()).toEmit([
-        {
-          current: 1
-        }, 2, 3, 4, '<end>'
-      ], function() {
-        return send(a, [[2], [], [3, 4], '<end>']);
-      });
     });
   });
 });
 
 
-},{"../test-helpers.coffee":107}],61:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],59:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -18043,7 +17244,7 @@ describe('fromCallback', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],62:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],60:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -18175,7 +17376,7 @@ describe('fromEvents', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],63:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],61:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -18257,7 +17458,7 @@ describe('fromNodeCallback', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],64:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],62:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -18276,7 +17477,7 @@ describe('fromPoll', function() {
 });
 
 
-},{"../../dist/kefir":1}],65:[function(require,module,exports){
+},{"../../dist/kefir":1}],63:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -18400,96 +17601,233 @@ describe('fromPromise', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],66:[function(require,module,exports){
-var Kefir, activate, deactivate, noop, ref,
-  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+},{"../test-helpers.coffee":100}],64:[function(require,module,exports){
+var Kefir, prop, ref, send, stream;
 
-ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
 
-noop = function() {};
-
-describe('fromSubUnsub', function() {
-  var Target;
-  Target = (function() {
-    function Target() {
-      this.unsub = bind(this.unsub, this);
-      this.sub = bind(this.sub, this);
-      this.listener = null;
-    }
-
-    Target.prototype.sub = function(fn) {
-      return this.listener = fn;
-    };
-
-    Target.prototype.unsub = function(fn) {
-      return this.listener = null;
-    };
-
-    return Target;
-
-  })();
-  it('should return stream', function() {
-    return expect(Kefir.fromSubUnsub(noop, noop, noop)).toBeStream();
-  });
-  it('should not be ended', function() {
-    return expect(Kefir.fromSubUnsub(noop, noop, noop)).toEmit([]);
-  });
-  it('should subscribe/unsubscribe from target', function() {
-    var a, target;
-    target = new Target();
-    a = Kefir.fromSubUnsub(target.sub, target.unsub);
-    expect(target.listener).toBe(null);
-    activate(a);
-    expect(target.listener).toEqual(jasmine.any(Function));
-    deactivate(a);
-    return expect(target.listener).toBe(null);
-  });
-  it('should emit values', function() {
-    var a, target;
-    target = new Target();
-    a = Kefir.fromSubUnsub(target.sub, target.unsub);
-    return expect(a).toEmit([1, 2, 3], function() {
-      target.listener(1);
-      target.listener(2);
-      return target.listener(3);
+describe('ignoreEnd', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().ignoreEnd()).toBeStream();
     });
-  });
-  return it('should accept optional transformer and call it properly', function() {
-    var a, target;
-    target = new Target();
-    a = Kefir.fromSubUnsub(target.sub, target.unsub, function(a, b) {
-      return [this, a, b];
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreEnd()).toActivate(a);
     });
-    return expect(a).toEmit([
-      [
-        {
-          a: 1
-        }, void 0, void 0
-      ], [
-        {
-          b: 1
-        }, 1, void 0
-      ], [
-        {
-          c: 1
-        }, 1, 2
-      ]
-    ], function() {
-      target.listener.call({
-        a: 1
+    it('should not be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).ignoreEnd()).toEmit([]);
+    });
+    it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreEnd()).toEmit([1, 2], function() {
+        return send(a, [1, 2, '<end>']);
       });
-      target.listener.call({
-        b: 1
-      }, 1);
-      return target.listener.call({
-        c: 1
-      }, 1, 2);
+    });
+    return it('errors should flow', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreEnd()).errorsToFlow(a);
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().ignoreEnd()).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.ignoreEnd()).toActivate(a);
+    });
+    it('should not be ended if source was ended', function() {
+      expect(send(prop(), ['<end>']).ignoreEnd()).toEmit([]);
+      return expect(send(prop(), [1, '<end>']).ignoreEnd()).toEmit([
+        {
+          current: 1
+        }
+      ]);
+    });
+    it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [1]);
+      return expect(a.ignoreEnd()).toEmit([
+        {
+          current: 1
+        }, 2, 3
+      ], function() {
+        return send(a, [2, 3, '<end>']);
+      });
+    });
+    return it('errors should flow', function() {
+      var a;
+      a = prop();
+      return expect(a.ignoreEnd()).errorsToFlow(a);
     });
   });
 });
 
 
-},{"../test-helpers.coffee":107}],67:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],65:[function(require,module,exports){
+var Kefir, prop, ref, send, stream;
+
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+
+describe('ignoreErrors', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().ignoreErrors()).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreErrors()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).ignoreErrors()).toEmit(['<end:current>']);
+    });
+    return it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreErrors()).toEmit([1, 2, '<end>'], function() {
+        return send(a, [
+          1, {
+            error: -1
+          }, 2, {
+            error: -2
+          }, '<end>'
+        ]);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().ignoreErrors()).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.ignoreErrors()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(prop(), ['<end>']).ignoreErrors()).toEmit(['<end:current>']);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [
+        {
+          error: -1
+        }
+      ]);
+      expect(a.ignoreErrors()).toEmit([2, 3, '<end>'], function() {
+        return send(a, [
+          2, {
+            error: -2
+          }, 3, {
+            error: -3
+          }, '<end>'
+        ]);
+      });
+      a = send(prop(), [1]);
+      return expect(a.ignoreErrors()).toEmit([
+        {
+          current: 1
+        }, 2, 3, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: -2
+          }, 3, {
+            error: -3
+          }, '<end>'
+        ]);
+      });
+    });
+  });
+});
+
+
+},{"../test-helpers.coffee":100}],66:[function(require,module,exports){
+var Kefir, prop, ref, send, stream;
+
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+
+describe('ignoreValues', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().ignoreValues()).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreValues()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).ignoreValues()).toEmit(['<end:current>']);
+    });
+    return it('should handle events', function() {
+      var a;
+      a = stream();
+      return expect(a.ignoreValues()).toEmit([
+        {
+          error: -1
+        }, {
+          error: -2
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          1, {
+            error: -1
+          }, 2, {
+            error: -2
+          }, '<end>'
+        ]);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().ignoreValues()).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.ignoreValues()).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(prop(), ['<end>']).ignoreValues()).toEmit(['<end:current>']);
+    });
+    return it('should handle events and current', function() {
+      var a;
+      a = send(prop(), [
+        1, {
+          error: -1
+        }
+      ]);
+      return expect(a.ignoreValues()).toEmit([
+        {
+          currentError: -1
+        }, {
+          error: -2
+        }, {
+          error: -3
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          2, {
+            error: -2
+          }, 3, {
+            error: -3
+          }, '<end>'
+        ]);
+      });
+    });
+  });
+});
+
+
+},{"../test-helpers.coffee":100}],67:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -18731,7 +18069,7 @@ describe('Kefir.stream', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],69:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],69:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -18823,7 +18161,7 @@ describe('last', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],70:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],70:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -18941,7 +18279,7 @@ describe('mapErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],72:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],72:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -19047,7 +18385,7 @@ describe('map', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],73:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],73:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -19165,7 +18503,7 @@ describe('merge', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],74:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],74:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -19302,10 +18640,12 @@ describe('pool', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],76:[function(require,module,exports){
-var Kefir, activate, prop, ref, send;
+},{"../test-helpers.coffee":100}],76:[function(require,module,exports){
+var Kefir, activate, prop, ref, send, sinon;
 
 ref = require('../test-helpers.coffee'), prop = ref.prop, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
+
+sinon = require('sinon');
 
 describe('Property', function() {
   describe('new', function() {
@@ -19535,7 +18875,7 @@ describe('Property', function() {
       });
       return expect(count).toBe(0);
     });
-    return it('can\'t have current value and error at same time', function() {
+    it('can\'t have current value and error at same time', function() {
       var p;
       p = send(prop(), [0]);
       expect(p).toEmit([
@@ -19560,116 +18900,43 @@ describe('Property', function() {
         }
       ]);
     });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],77:[function(require,module,exports){
-var Kefir, minus, noop, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-noop = function() {};
-
-minus = function(prev, next) {
-  return prev - next;
-};
-
-describe('reduce', function() {
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(stream().reduce(noop, 0)).toBeStream();
+    it('should update catched current value before dispatching it', function() {
+      var p, spy;
+      p = send(prop(), [0]);
+      spy = sinon.spy();
+      p.onValue(function(x) {
+        if (x === 1) {
+          return p.onValue(spy);
+        }
+      });
+      send(p, [1]);
+      return expect(spy.args).toEqual([[1]]);
     });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(a.reduce(noop, 0)).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).reduce(noop, 0)).toEmit([
+    return it('should update catched current error before dispatching it', function() {
+      var p, spy;
+      p = send(prop(), [
         {
-          current: 0
-        }, '<end:current>'
+          error: 0
+        }
       ]);
-    });
-    it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(a.reduce(minus, 0)).toEmit([-4, '<end>'], function() {
-        return send(a, [1, 3, '<end>']);
+      spy = sinon.spy();
+      p.onError(function(x) {
+        if (x === 1) {
+          return p.onError(spy);
+        }
       });
-    });
-    it('if no seed provided uses first value as seed', function() {
-      var a;
-      a = stream();
-      expect(a.reduce(minus)).toEmit([-4, '<end>'], function() {
-        return send(a, [0, 1, 3, '<end>']);
-      });
-      a = stream();
-      expect(a.reduce(minus)).toEmit([0, '<end>'], function() {
-        return send(a, [0, '<end>']);
-      });
-      a = stream();
-      return expect(a.reduce(minus)).toEmit(['<end>'], function() {
-        return send(a, ['<end>']);
-      });
-    });
-    return it('errors should flow', function() {
-      var a;
-      a = stream();
-      return expect(a.reduce(minus)).errorsToFlow(a);
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().reduce(noop, 0)).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(a.reduce(noop, 0)).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).reduce(noop, 0)).toEmit([
+      send(p, [
         {
-          current: 0
-        }, '<end:current>'
+          error: 1
+        }
       ]);
-    });
-    it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [1]);
-      return expect(a.reduce(minus, 0)).toEmit([-10, '<end>'], function() {
-        return send(a, [3, 6, '<end>']);
-      });
-    });
-    it('if no seed provided uses first value as seed', function() {
-      var a;
-      a = send(prop(), [0]);
-      expect(a.reduce(minus)).toEmit([-4, '<end>'], function() {
-        return send(a, [1, 3, '<end>']);
-      });
-      a = send(prop(), [0]);
-      expect(a.reduce(minus)).toEmit([0, '<end>'], function() {
-        return send(a, ['<end>']);
-      });
-      a = send(prop(), [0, '<end>']);
-      return expect(a.reduce(minus)).toEmit([
-        {
-          current: 0
-        }, '<end:current>'
-      ]);
-    });
-    return it('errors should flow', function() {
-      var a;
-      a = prop();
-      return expect(a.reduce(minus)).errorsToFlow(a);
+      return expect(spy.args).toEqual([[1]]);
     });
   });
 });
 
 
-},{"../test-helpers.coffee":107}],78:[function(require,module,exports){
+},{"../test-helpers.coffee":100,"sinon":6}],77:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -19717,7 +18984,7 @@ describe('repeat', function() {
     genConstant = function() {
       return Kefir.constant(1);
     };
-    a = Kefir.repeat(genConstant).take(3000).reduce(sum, 0);
+    a = Kefir.repeat(genConstant).take(3000).scan(sum, 0).last();
     return expect(a).toEmit([
       {
         current: 3000
@@ -19752,7 +19019,7 @@ describe('repeat', function() {
     });
     return expect(b).toActivate(a);
   });
-  it('should end when falsy value returned from generator', function() {
+  return it('should end when falsy value returned from generator', function() {
     var a;
     a = Kefir.repeat(function(i) {
       if (i < 3) {
@@ -19771,56 +19038,10 @@ describe('repeat', function() {
       }, '<end:current>'
     ]);
   });
-  return it('should work with @AgentME\'s setup', function() {
-    var allSpawned, i, j, len, obs, results, step;
-    allSpawned = [];
-    i = 0;
-    step = function() {
-      var a, b, c;
-      if (++i === 1) {
-        a = Kefir.later(1, 'later');
-        allSpawned.push(a);
-        return a;
-      } else {
-        a = Kefir.constant(5);
-        b = Kefir.repeatedly(200, [6, 7, 8]);
-        c = a.merge(b);
-        allSpawned.push(a);
-        allSpawned.push(b);
-        allSpawned.push(c);
-        return c;
-      }
-    };
-    expect(Kefir.repeat(step).take(2)).toEmitInTime([[1, 'later'], [1, 5], [1, '<end>']], (function() {}), 100);
-    results = [];
-    for (j = 0, len = allSpawned.length; j < len; j++) {
-      obs = allSpawned[j];
-      results.push(expect(obs).not.toBeActive());
-    }
-    return results;
-  });
 });
 
 
-},{"../test-helpers.coffee":107}],79:[function(require,module,exports){
-var Kefir;
-
-Kefir = require('../../dist/kefir');
-
-describe('repeatedly', function() {
-  it('should return stream', function() {
-    return expect(Kefir.repeatedly(100, [1, 2, 3])).toBeStream();
-  });
-  it('should emmit nothing if empty array provided', function() {
-    return expect(Kefir.repeatedly(100, [])).toEmitInTime([], null, 750);
-  });
-  return it('should repeat values from array at certain time', function() {
-    return expect(Kefir.repeatedly(100, [1, 2, 3])).toEmitInTime([[100, 1], [200, 2], [300, 3], [400, 1], [500, 2], [600, 3], [700, 1]], null, 750);
-  });
-});
-
-
-},{"../../dist/kefir":1}],80:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],78:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -19828,65 +19049,34 @@ ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, s
 
 describe('sampledBy', function() {
   it('should return stream', function() {
-    expect(Kefir.sampledBy([], [])).toBeStream();
-    expect(Kefir.sampledBy([stream(), prop()], [stream(), prop()])).toBeStream();
     expect(prop().sampledBy(stream())).toBeStream();
     return expect(stream().sampledBy(prop())).toBeStream();
   });
-  it('should be ended if empty array provided', function() {
-    expect(Kefir.sampledBy([stream(), prop()], [])).toEmit(['<end:current>']);
-    return expect(Kefir.sampledBy([], [stream(), prop()])).toEmit([]);
-  });
   it('should be ended if array of ended observables provided', function() {
-    var a, b, c;
+    var a;
     a = send(stream(), ['<end>']);
-    b = send(prop(), ['<end>']);
-    c = send(stream(), ['<end>']);
-    expect(Kefir.sampledBy([stream(), prop()], [a, b, c])).toEmit(['<end:current>']);
     return expect(prop().sampledBy(a)).toEmit(['<end:current>']);
   });
   it('should be ended and emmit current (once) if array of ended properties provided and each of them has current', function() {
-    var a, b, c, s1, s2;
+    var a, b, s2;
     a = send(prop(), [1, '<end>']);
     b = send(prop(), [2, '<end>']);
-    c = send(prop(), [3, '<end>']);
-    s1 = Kefir.sampledBy([a], [b, c]);
     s2 = a.sampledBy(b);
-    expect(s1).toEmit([
-      {
-        current: [1, 2, 3]
-      }, '<end:current>'
-    ]);
     expect(s2).toEmit([
       {
         current: 1
       }, '<end:current>'
     ]);
-    expect(s1).toEmit(['<end:current>']);
     return expect(s2).toEmit(['<end:current>']);
   });
   it('should activate sources', function() {
-    var a, b, c;
+    var a, b;
     a = stream();
     b = prop();
-    c = stream();
-    expect(Kefir.sampledBy([a], [b, c])).toActivate(a, b, c);
     return expect(a.sampledBy(b)).toActivate(a, b);
   });
   it('should handle events and current from observables', function() {
-    var a, b, c, d;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    d = stream();
-    expect(Kefir.sampledBy([a, b], [c, d])).toEmit([[1, 0, 2, 3], [1, 4, 5, 3], [1, 4, 6, 3], [1, 4, 6, 7], '<end>'], function() {
-      send(a, [1]);
-      send(c, [2]);
-      send(d, [3]);
-      send(b, [4, '<end>']);
-      send(c, [5, 6, '<end>']);
-      return send(d, [7, '<end>']);
-    });
+    var a, b;
     a = stream();
     b = send(prop(), [0]);
     return expect(a.sampledBy(b)).toEmit([2, 4, 4, '<end>'], function() {
@@ -19898,24 +19088,12 @@ describe('sampledBy', function() {
     });
   });
   it('should accept optional combinator function', function() {
-    var a, b, c, d, join;
+    var a, b, join;
     join = function() {
       var args;
       args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       return args.join('+');
     };
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    d = stream();
-    expect(Kefir.sampledBy([a, b], [c, d], join)).toEmit(['1+0+2+3', '1+4+5+3', '1+4+6+3', '1+4+6+7', '<end>'], function() {
-      send(a, [1]);
-      send(c, [2]);
-      send(d, [3]);
-      send(b, [4, '<end>']);
-      send(c, [5, 6, '<end>']);
-      return send(d, [7, '<end>']);
-    });
     a = stream();
     b = send(prop(), [0]);
     return expect(a.sampledBy(b, join)).toEmit(['2+3', '4+5', '4+6', '<end>'], function() {
@@ -19925,20 +19103,6 @@ describe('sampledBy', function() {
       send(a, [4]);
       return send(b, [5, 6, '<end>']);
     });
-  });
-  it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
-    var a, b, c, sb;
-    a = send(prop(), [0]);
-    b = send(prop(), [1]);
-    c = send(prop(), [2]);
-    sb = Kefir.sampledBy([a], [b, c]);
-    activate(sb);
-    deactivate(sb);
-    return expect(sb).toEmit([
-      {
-        current: [0, 1, 2]
-      }
-    ]);
   });
   it('one sampledBy should remove listeners of another', function() {
     var a, b, s1, s2;
@@ -19953,31 +19117,8 @@ describe('sampledBy', function() {
       return send(b, [1]);
     });
   });
-  it('errors should flow', function() {
-    var a, b, c, d;
-    a = stream();
-    b = prop();
-    c = stream();
-    d = prop();
-    expect(Kefir.sampledBy([a, b], [c, d])).errorsToFlow(c);
-    a = stream();
-    b = prop();
-    c = stream();
-    d = prop();
-    return expect(Kefir.sampledBy([a, b], [c, d])).errorsToFlow(d);
-  });
   return it('should work nice for emitating atomic updates', function() {
     var a, b, c;
-    a = stream();
-    b = a.map(function(x) {
-      return x + 2;
-    });
-    c = a.map(function(x) {
-      return x * 2;
-    });
-    expect(Kefir.sampledBy([b], [c])).toEmit([[3, 2], [4, 4], [5, 6]], function() {
-      return send(a, [1, 2, 3]);
-    });
     a = stream();
     b = a.map(function(x) {
       return x + 2;
@@ -19994,7 +19135,7 @@ describe('sampledBy', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],81:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],79:[function(require,module,exports){
 var Kefir, activate, deactivate, minus, noop, prop, ref, send, sinon, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -20147,7 +19288,7 @@ describe('scan', function() {
 });
 
 
-},{"../test-helpers.coffee":107,"sinon":6}],82:[function(require,module,exports){
+},{"../test-helpers.coffee":100,"sinon":6}],80:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -20165,7 +19306,7 @@ describe('sequentially', function() {
 });
 
 
-},{"../../dist/kefir":1}],83:[function(require,module,exports){
+},{"../../dist/kefir":1}],81:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -20208,13 +19349,14 @@ describe('skipDuplicates', function() {
     });
     return it('should help with creating circular dependencies', function() {
       var a, b;
-      a = Kefir.bus();
-      b = a.map(function(x) {
+      a = stream();
+      b = Kefir.pool();
+      b.plug(a);
+      b.plug(b.map(function(x) {
         return x;
-      });
-      a.plug(b.skipDuplicates());
+      }).skipDuplicates());
       return expect(b).toEmit([1, 1], function() {
-        return a.emit(1);
+        return send(a, [1]);
       });
     });
   });
@@ -20261,154 +19403,7 @@ describe('skipDuplicates', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],84:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-describe('skipEnd', function() {
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(stream().skipEnd()).toBeStream();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(a.skipEnd()).toActivate(a);
-    });
-    it('should not be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).skipEnd()).toEmit([]);
-    });
-    it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(a.skipEnd()).toEmit([1, 2], function() {
-        return send(a, [1, 2, '<end>']);
-      });
-    });
-    return it('errors should flow', function() {
-      var a;
-      a = stream();
-      return expect(a.skipEnd()).errorsToFlow(a);
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().skipEnd()).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(a.skipEnd()).toActivate(a);
-    });
-    it('should not be ended if source was ended', function() {
-      expect(send(prop(), ['<end>']).skipEnd()).toEmit([]);
-      return expect(send(prop(), [1, '<end>']).skipEnd()).toEmit([
-        {
-          current: 1
-        }
-      ]);
-    });
-    it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [1]);
-      return expect(a.skipEnd()).toEmit([
-        {
-          current: 1
-        }, 2, 3
-      ], function() {
-        return send(a, [2, 3, '<end>']);
-      });
-    });
-    return it('errors should flow', function() {
-      var a;
-      a = prop();
-      return expect(a.skipEnd()).errorsToFlow(a);
-    });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],85:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-describe('skipErrors', function() {
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(stream().skipErrors()).toBeStream();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(a.skipErrors()).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).skipErrors()).toEmit(['<end:current>']);
-    });
-    return it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(a.skipErrors()).toEmit([1, 2, '<end>'], function() {
-        return send(a, [
-          1, {
-            error: -1
-          }, 2, {
-            error: -2
-          }, '<end>'
-        ]);
-      });
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().skipErrors()).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(a.skipErrors()).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).skipErrors()).toEmit(['<end:current>']);
-    });
-    return it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [
-        {
-          error: -1
-        }
-      ]);
-      expect(a.skipErrors()).toEmit([2, 3, '<end>'], function() {
-        return send(a, [
-          2, {
-            error: -2
-          }, 3, {
-            error: -3
-          }, '<end>'
-        ]);
-      });
-      a = send(prop(), [1]);
-      return expect(a.skipErrors()).toEmit([
-        {
-          current: 1
-        }, 2, 3, '<end>'
-      ], function() {
-        return send(a, [
-          2, {
-            error: -2
-          }, 3, {
-            error: -3
-          }, '<end>'
-        ]);
-      });
-    });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],86:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],82:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -20700,381 +19695,7 @@ describe('skipUntilBy', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],87:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-describe('skipValues', function() {
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(stream().skipValues()).toBeStream();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(a.skipValues()).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).skipValues()).toEmit(['<end:current>']);
-    });
-    return it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(a.skipValues()).toEmit([
-        {
-          error: -1
-        }, {
-          error: -2
-        }, '<end>'
-      ], function() {
-        return send(a, [
-          1, {
-            error: -1
-          }, 2, {
-            error: -2
-          }, '<end>'
-        ]);
-      });
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().skipValues()).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(a.skipValues()).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).skipValues()).toEmit(['<end:current>']);
-    });
-    return it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [
-        1, {
-          error: -1
-        }
-      ]);
-      return expect(a.skipValues()).toEmit([
-        {
-          currentError: -1
-        }, {
-          error: -2
-        }, {
-          error: -3
-        }, '<end>'
-      ], function() {
-        return send(a, [
-          2, {
-            error: -2
-          }, 3, {
-            error: -3
-          }, '<end>'
-        ]);
-      });
-    });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],88:[function(require,module,exports){
-var Kefir, activate, deactivate, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
-
-describe('skipWhileBy', function() {
-  describe('common', function() {
-    it('errors should flow', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      expect(a.skipWhileBy(b)).errorsToFlow(a);
-      a = stream();
-      b = stream();
-      expect(a.skipWhileBy(b)).errorsToFlow(b);
-      a = prop();
-      b = stream();
-      expect(a.skipWhileBy(b)).errorsToFlow(a);
-      a = prop();
-      b = stream();
-      expect(a.skipWhileBy(b)).errorsToFlow(b);
-      a = stream();
-      b = prop();
-      expect(a.skipWhileBy(b)).errorsToFlow(a);
-      a = stream();
-      b = prop();
-      expect(a.skipWhileBy(b)).errorsToFlow(b);
-      a = prop();
-      b = prop();
-      expect(a.skipWhileBy(b)).errorsToFlow(a);
-      a = prop();
-      b = prop();
-      return expect(a.skipWhileBy(b)).errorsToFlow(b);
-    });
-    return it('errors should flow after first falsey value from secondary', function() {
-      var a, b, res;
-      a = stream();
-      b = stream();
-      res = a.skipUntilBy(b);
-      activate(res);
-      send(b, [true, false]);
-      deactivate(res);
-      return expect(res).errorsToFlow(b);
-    });
-  });
-  describe('stream, stream', function() {
-    it('should return a stream', function() {
-      return expect(stream().skipWhileBy(stream())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toActivate(a, b);
-    });
-    it('should do activate secondary after first falsey value from it', function() {
-      var a, b, res;
-      a = stream();
-      b = stream();
-      res = a.skipWhileBy(b);
-      activate(res);
-      send(b, [true, false]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).skipWhileBy(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(stream().skipWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should skip values as expected', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  describe('stream, property', function() {
-    it('should return a stream', function() {
-      return expect(stream().skipWhileBy(prop())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toActivate(a, b);
-    });
-    it('should do activate secondary after first falsey value from it', function() {
-      var a, b, res;
-      a = stream();
-      b = prop();
-      res = a.skipWhileBy(b);
-      activate(res);
-      send(b, [true, false]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).skipWhileBy(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(stream().skipWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has truthy current', function() {
-      return expect(stream().skipWhileBy(send(prop(), [true, '<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has falsey current', function() {
-      return expect(stream().skipWhileBy(send(prop(), [false, '<end>']))).toEmit([]);
-    });
-    it('should end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should skip values as expected', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  describe('property, stream', function() {
-    it('should return a property', function() {
-      return expect(prop().skipWhileBy(stream())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toActivate(a, b);
-    });
-    it('should do activate secondary after first falsey value from it', function() {
-      var a, b, res;
-      a = prop();
-      b = stream();
-      res = a.skipWhileBy(b);
-      activate(res);
-      send(b, [true, false]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).skipWhileBy(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(prop().skipWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.skipWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should skip values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = stream();
-      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-  return describe('property, property', function() {
-    it('should return a property', function() {
-      return expect(prop().skipWhileBy(prop())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toActivate(a, b);
-    });
-    it('should do activate secondary after first falsey value from it', function() {
-      var a, b, res;
-      a = prop();
-      b = prop();
-      res = a.skipWhileBy(b);
-      activate(res);
-      send(b, [true, false]);
-      deactivate(res);
-      expect(res).toActivate(a);
-      return expect(res).toActivate(b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).skipWhileBy(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(prop().skipWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended and has falsey current', function() {
-      return expect(prop().skipWhileBy(send(prop(), [false, '<end>']))).toEmit([]);
-    });
-    it('should be ended if secondary was ended but has truthy current', function() {
-      return expect(prop().skipWhileBy(send(prop(), [true, '<end>']))).toEmit(['<end:current>']);
-    });
-    it('should end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.skipWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should skip values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = send(prop(), [true]);
-      return expect(a.skipWhileBy(b)).toEmit([7, 8, 9, '<end>'], function() {
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9, '<end>']);
-      });
-    });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],89:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],83:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21211,7 +19832,7 @@ describe('skipWhile', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],90:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],84:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21320,7 +19941,7 @@ describe('skip', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],91:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],85:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -21425,7 +20046,7 @@ describe('slidingWindow', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],92:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],86:[function(require,module,exports){
 var Kefir, activate, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -21739,153 +20360,10 @@ describe('Stream', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],93:[function(require,module,exports){
-var Kefir, expectToBehaveAsMap, prop, ref, send, stream;
+},{"../test-helpers.coffee":100}],87:[function(require,module,exports){
+var prop, ref, send, stream;
 
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-expectToBehaveAsMap = function(gen, mapFn, toObj) {
-  var mapEv;
-  if (toObj == null) {
-    toObj = function(x) {
-      return x;
-    };
-  }
-  mapEv = function(events, mapFn) {
-    var event, i, len, results;
-    results = [];
-    for (i = 0, len = events.length; i < len; i++) {
-      event = events[i];
-      if (event === '<end>') {
-        results.push('<end>');
-      } else if ((event != null ? event.current : void 0) != null) {
-        results.push({
-          current: mapFn(event.current)
-        });
-      } else {
-        results.push(mapFn(event));
-      }
-    }
-    return results;
-  };
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(gen(stream())).toBeStream();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(gen(a)).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(gen(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    return it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(gen(a)).toEmit(mapEv(mapEv([1, 2, '<end>'], toObj), mapFn), function() {
-        return send(a, mapEv([1, 2, '<end>'], toObj));
-      });
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(gen(prop())).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(gen(a)).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(gen(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    return it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [toObj(1)]);
-      return expect(gen(a)).toEmit(mapEv(mapEv([
-        {
-          current: 1
-        }, 2, 3, '<end>'
-      ], toObj), mapFn), function() {
-        return send(a, mapEv([2, 3, '<end>'], toObj));
-      });
-    });
-  });
-};
-
-describe('mapTo', function() {
-  return expectToBehaveAsMap(function(s) {
-    return s.mapTo(1);
-  }, function() {
-    return 1;
-  });
-});
-
-describe('not', function() {
-  return expectToBehaveAsMap(function(s) {
-    return s.not();
-  }, function(x) {
-    return !x;
-  });
-});
-
-describe('pluck', function() {
-  return expectToBehaveAsMap(function(s) {
-    return s.pluck('foo');
-  }, function(x) {
-    return x.foo;
-  }, function(x) {
-    return {
-      foo: x
-    };
-  });
-});
-
-describe('invoke w/o args', function() {
-  return expectToBehaveAsMap(function(s) {
-    return s.invoke('bar');
-  }, function(x) {
-    return x.bar();
-  }, function(x) {
-    return {
-      foo: x,
-      bar: function() {
-        return this.foo;
-      }
-    };
-  });
-});
-
-describe('invoke w/ args', function() {
-  return expectToBehaveAsMap(function(s) {
-    return s.invoke('bar', 1, 2);
-  }, function(x) {
-    return x.bar(1, 2);
-  }, function(x) {
-    return {
-      foo: x,
-      bar: function(a, b) {
-        return this.foo + a + b;
-      }
-    };
-  });
-});
-
-describe('tap', function() {
-  return expectToBehaveAsMap(function(s) {
-    return s.tap(function(x) {
-      return x.foo += 1;
-    });
-  }, function(x) {
-    x.foo += 1;
-    return x;
-  }, function(x) {
-    return {
-      foo: x
-    };
-  });
-});
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send;
 
 describe('setName', function() {
   it('should return same observable', function() {
@@ -21902,39 +20380,6 @@ describe('setName', function() {
     expect(a.toString()).toBe('[foo]');
     a.setName(stream().setName('foo'), 'bar');
     return expect(a.toString()).toBe('[foo.bar]');
-  });
-});
-
-describe('and', function() {
-  return it('should work as expected', function() {
-    var a, b, c;
-    a = stream();
-    b = prop();
-    c = send(prop(), [1]);
-    return expect(Kefir.and([a, b, c])).toEmit([false, false, 10, 11, 0], function() {
-      send(a, [true]);
-      send(b, [false]);
-      send(c, [10]);
-      send(b, [1]);
-      send(c, [11]);
-      return send(a, [0]);
-    });
-  });
-});
-
-describe('or', function() {
-  return it('should work as expected', function() {
-    var a, b, c;
-    a = stream();
-    b = prop();
-    c = send(prop(), [1]);
-    return expect(Kefir.or([a, b, c])).toEmit([true, 1, 2, 1, 11], function() {
-      send(a, [true]);
-      send(b, [false]);
-      send(a, [0]);
-      send(b, [2, false]);
-      return send(c, [11]);
-    });
   });
 });
 
@@ -21990,7 +20435,169 @@ describe('awaiting', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],94:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],88:[function(require,module,exports){
+var Kefir, prop, ref, send, stream;
+
+ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
+
+describe('takeErrors', function() {
+  describe('stream', function() {
+    it('should return stream', function() {
+      return expect(stream().takeErrors(3)).toBeStream();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = stream();
+      return expect(a.takeErrors(3)).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(stream(), ['<end>']).takeErrors(3)).toEmit(['<end:current>']);
+    });
+    it('should be ended if `n` is 0', function() {
+      return expect(stream().takeErrors(0)).toEmit(['<end:current>']);
+    });
+    it('should handle events (less than `n`)', function() {
+      var a;
+      a = stream();
+      return expect(a.takeErrors(3)).toEmit([
+        {
+          error: 1
+        }, {
+          error: 2
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          {
+            error: 1
+          }, {
+            error: 2
+          }, '<end>'
+        ]);
+      });
+    });
+    it('should handle events (more than `n`)', function() {
+      var a;
+      a = stream();
+      return expect(a.takeErrors(3)).toEmit([
+        {
+          error: 1
+        }, {
+          error: 2
+        }, {
+          error: 3
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          {
+            error: 1
+          }, {
+            error: 2
+          }, {
+            error: 3
+          }, {
+            error: 4
+          }, {
+            error: 5
+          }, '<end>'
+        ]);
+      });
+    });
+    return it('values should flow', function() {
+      var a;
+      a = stream();
+      return expect(a.takeErrors(1)).toEmit([1, 2, 3, '<end>'], function() {
+        return send(a, [1, 2, 3, '<end>']);
+      });
+    });
+  });
+  return describe('property', function() {
+    it('should return property', function() {
+      return expect(prop().takeErrors(3)).toBeProperty();
+    });
+    it('should activate/deactivate source', function() {
+      var a;
+      a = prop();
+      return expect(a.takeErrors(3)).toActivate(a);
+    });
+    it('should be ended if source was ended', function() {
+      return expect(send(prop(), ['<end>']).takeErrors(3)).toEmit(['<end:current>']);
+    });
+    it('should be ended if `n` is 0', function() {
+      return expect(prop().takeErrors(0)).toEmit(['<end:current>']);
+    });
+    it('should handle events and current (less than `n`)', function() {
+      var a;
+      a = send(prop(), [
+        {
+          error: 1
+        }
+      ]);
+      return expect(a.takeErrors(3)).toEmit([
+        {
+          currentError: 1
+        }, {
+          error: 2
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          {
+            error: 2
+          }, '<end>'
+        ]);
+      });
+    });
+    it('should handle events and current (more than `n`)', function() {
+      var a;
+      a = send(prop(), [
+        {
+          error: 1
+        }
+      ]);
+      return expect(a.takeErrors(3)).toEmit([
+        {
+          currentError: 1
+        }, {
+          error: 2
+        }, {
+          error: 3
+        }, '<end>'
+      ], function() {
+        return send(a, [
+          {
+            error: 2
+          }, {
+            error: 3
+          }, {
+            error: 4
+          }, {
+            error: 5
+          }, '<end>'
+        ]);
+      });
+    });
+    it('should work correctly with .constant', function() {
+      return expect(Kefir.constantError(1).takeErrors(1)).toEmit([
+        {
+          currentError: 1
+        }, '<end:current>'
+      ]);
+    });
+    return it('values should flow', function() {
+      var a;
+      a = send(prop(), [1]);
+      return expect(a.takeErrors(1)).toEmit([
+        {
+          current: 1
+        }, 2, 3, 4, '<end>'
+      ], function() {
+        return send(a, [2, 3, 4, '<end>']);
+      });
+    });
+  });
+});
+
+
+},{"../test-helpers.coffee":100}],89:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22262,284 +20869,7 @@ describe('takeUntilBy', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],95:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-describe('takeWhileBy', function() {
-  describe('common', function() {
-    return it('errors should flow', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      expect(a.takeWhileBy(b)).errorsToFlow(a);
-      a = stream();
-      b = stream();
-      expect(a.takeWhileBy(b)).errorsToFlow(b);
-      a = prop();
-      b = stream();
-      expect(a.takeWhileBy(b)).errorsToFlow(a);
-      a = prop();
-      b = stream();
-      expect(a.takeWhileBy(b)).errorsToFlow(b);
-      a = stream();
-      b = prop();
-      expect(a.takeWhileBy(b)).errorsToFlow(a);
-      a = stream();
-      b = prop();
-      expect(a.takeWhileBy(b)).errorsToFlow(b);
-      a = prop();
-      b = prop();
-      expect(a.takeWhileBy(b)).errorsToFlow(a);
-      a = prop();
-      b = prop();
-      return expect(a.takeWhileBy(b)).errorsToFlow(b);
-    });
-  });
-  describe('stream, stream', function() {
-    it('should return a stream', function() {
-      return expect(stream().takeWhileBy(stream())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toActivate(a, b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).takeWhileBy(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(stream().takeWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should end on first falsey value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, false]);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should take values as expected', function() {
-      var a, b;
-      a = stream();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit([3, 4, 5, 6, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9]);
-      });
-    });
-  });
-  describe('stream, property', function() {
-    it('should return a stream', function() {
-      return expect(stream().takeWhileBy(prop())).toBeStream();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toActivate(a, b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(stream(), ['<end>']).takeWhileBy(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(stream().takeWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has falsey current', function() {
-      return expect(stream().takeWhileBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has truthy current', function() {
-      return expect(stream().takeWhileBy(send(prop(), [true, '<end>']))).toEmit([]);
-    });
-    it('should end on first falsey value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, false]);
-      });
-    });
-    it('should not end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should take values as expected', function() {
-      var a, b;
-      a = stream();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit([3, 4, 5, 6, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9]);
-      });
-    });
-  });
-  describe('property, stream', function() {
-    it('should return a property', function() {
-      return expect(prop().takeWhileBy(stream())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toActivate(a, b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).takeWhileBy(stream())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended', function() {
-      return expect(prop().takeWhileBy(send(stream(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should end on first falsey value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, false]);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should take values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = stream();
-      return expect(a.takeWhileBy(b)).toEmit([3, 4, 5, 6, '<end>'], function() {
-        send(b, [true]);
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9]);
-      });
-    });
-  });
-  return describe('property, property', function() {
-    it('should return a property', function() {
-      return expect(prop().takeWhileBy(prop())).toBeProperty();
-    });
-    it('should activate/deactivate sources', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toActivate(a, b);
-    });
-    it('should be ended if primary was ended', function() {
-      return expect(send(prop(), ['<end>']).takeWhileBy(prop())).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has no current', function() {
-      return expect(prop().takeWhileBy(send(prop(), ['<end>']))).toEmit(['<end:current>']);
-    });
-    it('should be ended if secondary was ended and has falsey current', function() {
-      return expect(prop().takeWhileBy(send(prop(), [false, '<end>']))).toEmit(['<end:current>']);
-    });
-    it('should not be ended if secondary was ended but has truthy current', function() {
-      return expect(prop().takeWhileBy(send(prop(), [true, '<end>']))).toEmit([]);
-    });
-    it('should end on first falsey value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit(['<end>'], function() {
-        return send(b, [true, false]);
-      });
-    });
-    it('should not end when secondary ends if only value from it was truthy', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(b, [true, '<end>']);
-      });
-    });
-    it('should ignore values from primary until first value from secondary', function() {
-      var a, b;
-      a = prop();
-      b = prop();
-      return expect(a.takeWhileBy(b)).toEmit([], function() {
-        return send(a, [1, 2]);
-      });
-    });
-    return it('should take values as expected', function() {
-      var a, b;
-      a = send(prop(), [0]);
-      b = send(prop(), [true]);
-      return expect(a.takeWhileBy(b)).toEmit([
-        {
-          current: 0
-        }, 3, 4, 5, 6, '<end>'
-      ], function() {
-        send(a, [3, 4]);
-        send(b, [1]);
-        send(a, [5, 6]);
-        send(b, [false]);
-        send(a, [7, 8]);
-        send(b, [true]);
-        return send(a, [9]);
-      });
-    });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],96:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],90:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22685,7 +21015,7 @@ describe('takeWhile', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],97:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],91:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22779,7 +21109,7 @@ describe('take', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],98:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],92:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23062,95 +21392,7 @@ describe('throttle', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],99:[function(require,module,exports){
-var Kefir, prop, ref, send, stream;
-
-ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
-
-describe('timestamp', function() {
-  describe('stream', function() {
-    it('should return stream', function() {
-      return expect(stream().timestamp()).toBeStream();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = stream();
-      return expect(a.timestamp()).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(stream(), ['<end>']).timestamp()).toEmit(['<end:current>']);
-    });
-    return it('should handle events', function() {
-      var a;
-      a = stream();
-      return expect(a.timestamp()).toEmitInTime([
-        [
-          0, {
-            value: 1,
-            time: 10000
-          }
-        ], [
-          50, {
-            value: 2,
-            time: 10050
-          }
-        ], [150, '<end>']
-      ], function(tick) {
-        send(a, [1]);
-        tick(50);
-        send(a, [2]);
-        tick(100);
-        return send(a, ['<end>']);
-      });
-    });
-  });
-  return describe('property', function() {
-    it('should return property', function() {
-      return expect(prop().timestamp()).toBeProperty();
-    });
-    it('should activate/deactivate source', function() {
-      var a;
-      a = prop();
-      return expect(a.timestamp()).toActivate(a);
-    });
-    it('should be ended if source was ended', function() {
-      return expect(send(prop(), ['<end>']).timestamp()).toEmit(['<end:current>']);
-    });
-    return it('should handle events and current', function() {
-      var a;
-      a = send(prop(), [1]);
-      return expect(a.timestamp()).toEmitInTime([
-        [
-          0, {
-            current: {
-              value: 1,
-              time: 10000
-            }
-          }
-        ], [
-          0, {
-            value: 2,
-            time: 10000
-          }
-        ], [
-          50, {
-            value: 3,
-            time: 10050
-          }
-        ], [150, '<end>']
-      ], function(tick) {
-        send(a, [2]);
-        tick(50);
-        send(a, [3]);
-        tick(100);
-        return send(a, ['<end>']);
-      });
-    });
-  });
-});
-
-
-},{"../test-helpers.coffee":107}],100:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],93:[function(require,module,exports){
 (function (global){
 var Promise1, Promise2, _global, originalGlobalPromise, prop, ref, send, stream;
 
@@ -23308,7 +21550,7 @@ describe('toPromise', function() {
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../test-helpers.coffee":107}],101:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],94:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -23496,7 +21738,7 @@ describe('toProperty', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],102:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],95:[function(require,module,exports){
 var Kefir, comp, noop, prop, ref, send, stream, testWithLib,
   slice = [].slice;
 
@@ -23777,7 +22019,7 @@ describe('transduce', function() {
 });
 
 
-},{"../test-helpers.coffee":107,"transducers-js":33,"transducers.js":34}],103:[function(require,module,exports){
+},{"../test-helpers.coffee":100,"transducers-js":33,"transducers.js":34}],96:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23907,7 +22149,7 @@ describe('valuesToErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],104:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],97:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -24148,7 +22390,7 @@ describe('withHandler', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],105:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],98:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -24222,7 +22464,7 @@ describe('withInterval', function() {
 });
 
 
-},{"../../dist/kefir":1}],106:[function(require,module,exports){
+},{"../../dist/kefir":1}],99:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -24407,7 +22649,7 @@ describe('zip', function() {
 });
 
 
-},{"../test-helpers.coffee":107}],107:[function(require,module,exports){
+},{"../test-helpers.coffee":100}],100:[function(require,module,exports){
 var Kefir, _activateHelper, logItem, shakeTimers, sinon,
   slice = [].slice;
 
@@ -24419,9 +22661,9 @@ Kefir.DEPRECATION_WARNINGS = false;
 
 exports.Kefir = Kefir;
 
-logItem = function(event) {
+logItem = function(event, isCurrent) {
   if (event.type === 'value') {
-    if (event.current) {
+    if (isCurrent) {
       return {
         current: event.value
       };
@@ -24429,7 +22671,7 @@ logItem = function(event) {
       return event.value;
     }
   } else if (event.type === 'error') {
-    if (event.current) {
+    if (isCurrent) {
       return {
         currentError: event.value
       };
@@ -24439,7 +22681,7 @@ logItem = function(event) {
       };
     }
   } else {
-    if (event.current) {
+    if (isCurrent) {
       return '<end:current>';
     } else {
       return '<end>';
@@ -24448,15 +22690,17 @@ logItem = function(event) {
 };
 
 exports.watch = function(obs) {
-  var fn, log, unwatch;
+  var fn, isCurrent, log, unwatch;
   log = [];
   fn = function(event) {
-    return log.push(logItem(event));
+    return log.push(logItem(event, isCurrent));
   };
   unwatch = function() {
     return obs.offAny(fn);
   };
+  isCurrent = true;
   obs.onAny(fn);
+  isCurrent = false;
   return {
     log: log,
     unwatch: unwatch
@@ -24464,12 +22708,14 @@ exports.watch = function(obs) {
 };
 
 exports.watchWithTime = function(obs) {
-  var log, startTime;
+  var isCurrent, log, startTime;
   startTime = new Date();
   log = [];
+  isCurrent = true;
   obs.onAny(function(event) {
-    return log.push([new Date() - startTime, logItem(event)]);
+    return log.push([new Date() - startTime, logItem(event, isCurrent)]);
   });
+  isCurrent = false;
   return log;
 };
 
@@ -24610,23 +22856,11 @@ beforeEach(function() {
       };
       return this.actual instanceof Kefir.Stream;
     },
-    toBeEmitter: function() {
-      this.message = function() {
-        return "Expected " + (this.actual.toString()) + " to be instance of Emitter";
-      };
-      return this.actual instanceof Kefir.Emitter;
-    },
     toBePool: function() {
       this.message = function() {
         return "Expected " + (this.actual.toString()) + " to be instance of Pool";
       };
       return this.actual instanceof Kefir.Pool;
-    },
-    toBeBus: function() {
-      this.message = function() {
-        return "Expected " + (this.actual.toString()) + " to be instance of Bus";
-      };
-      return this.actual instanceof Kefir.Bus;
     },
     toBeActive: function() {
       return this.actual._active;
@@ -24851,4 +23085,4 @@ beforeEach(function() {
 });
 
 
-},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106]);
+},{"../dist/kefir":1,"sinon":6}]},{},[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99]);

@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Kefir.js — fast and light Reactive Programming library for JavaScript inspired by Bacon.js and RxJS</title><meta name="viewport" content="width=device-width, initial-scale=1"><style type="text/css">html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}h1,h2,h3,h4,h5,h6,strong,th,b{font-weight:500}figure{margin:1em 0}figure img{max-width:100%}body{font-size:14px;line-height:22px;background:#f4f4f4;color:#000;min-width:700px}a{color:#476cff;text-decoration:none}a:hover{text-decoration:underline}p{margin:20px 0}h2{padding-top:1em}h2{font-size:20px}h2 small,h2 sup,h2 sub{font-weight:normal}h1 small{color:#b1b1b1;line-height:2}h1 sup{font-weight:normal}table,tr,td{margin:0;padding:0}td,th{padding:2px 14px 2px 0}th{text-align:left}table .rule{padding:5px 0}table .rule:after{content:'';display:block;border-bottom:solid 1px #ddd}hr{height:0;border:none;border-bottom:solid 1px #ddd}ul{list-style-type:square;padding:0 0 0 20px}li{margin-bottom:10px}code,pre,tt{font-family:"Fira Mono", Monaco, Consolas, "Lucida Console", monospace;font-size:12px;line-height:18px;font-style:normal}tt{background:#fbfbfb}code{margin-left:20px}pre{font-size:12px;padding:2px 2px 2px 12px;border-left:3px solid #DFDFDF;margin:0 0 30px;overflow:auto;position:relative}@media (max-width: 800px){pre[title]:not([title=example]){padding-top:18px}}pre[title]:not([title=example]):after{content:attr(title);position:absolute;top:0;right:0;padding:0 .5em;font-size:.8em;color:#8b8b8b}pre + pre{margin-top:-10px}.sidebar{background:#fbfbfb;position:fixed;top:0;left:0;bottom:0;width:210px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:15px 30px 30px;border-right:1px solid #bbb;font-family:"Fira Sans", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif}@media (max-width: 1200px){.sidebar{width:170px}}.sidebar a{color:inherit}.toc-title{display:block;font-weight:500;margin-top:20px;line-height:1.2;margin-bottom:10px}.toc-section{font-size:12px;line-height:17px;margin:5px 0 0 0;padding-left:0px;list-style-type:none}.toc-section li{margin:0 0 3px 0}.toc-section a{text-decoration:none}.toc-section a:hover{text-decoration:underline}.container{max-width:680px;margin:40px 10px 50px 300px;font-family:"Fira Sans", Helvetica, Arial, sans-serif}@media (max-width: 1200px){.container{margin-left:260px}}.header{font-size:16px;line-height:30px;font-weight:500;color:inherit}.alias,.shorthand{display:block;margin-left:1em;margin-bottom:.4em}.alias:before,.shorthand:before{content:'Alias:';font-family:Helvetica, Arial, sans-serif;font-style:italic;font-size:1.1em;font-weight:500;margin-right:.5em}.shorthand:before{content:'Shorthand for:'}p[id]{margin-top:4em}h2[id]:not(.no-extra-padding){margin-top:3em}h2[id] + p[id]{margin-top:3em}.logo-img{width:60px;height:60px;vertical-align:bottom;margin-bottom:-4px}[data-emoji]{width:20px;height:20px;visibility:hidden}[data-emoji][src]{visibility:visible}</style><script src="bower-packages/jquery/jquery.js"></script><script src="bower-packages/transducers-js/transducers.js"></script><script src="dist/kefir.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/tomorrow.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono|Fira+Sans:400,400italic,500"><style type="text/css">.hljs {
   background: transparent;
   padding: 2px 2px 2px 12px;
-}</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script></head><body><div class="sidebar"><a href="#" class="toc-title">Kefir.js</a><ul class="toc-section"><li><a href="#installation">Installation</a></li></ul><a href="#examples" class="toc-title">Examples</a><a href="#about-observables" class="toc-title">Intro to  Streams and Properties</a><a href="#create-stream" class="toc-title">Create a stream</a><ul class="toc-section"><li><a href="#never">never</a></li><li><a href="#later">later</a></li><li><a href="#interval">interval</a></li><li><a href="#sequentially">sequentially</a></li><li><a href="#from-poll">fromPoll</a></li><li><a href="#with-interval">withInterval</a></li><li><a href="#from-callback">fromCallback</a></li><li><a href="#from-node-callback">fromNodeCallback</a></li><li><a href="#from-event">fromEvents</a></li><li><a href="#stream">stream</a></li></ul><a href="#create-property" class="toc-title">Create a property</a><ul class="toc-section"><li><a href="#constant">constant</a></li><li><a href="#constant-error">constantError</a></li><li><a href="#from-promise">fromPromise</a></li></ul><a href="#convert" class="toc-title">Convert observables</a><ul class="toc-section"><li><a href="#to-property">toProperty</a></li><li><a href="#changes">changes</a></li></ul><a href="#main-methods" class="toc-title">Subscribe / add side effects</a><ul class="toc-section"><li><a href="#on-value">onValue</a></li><li><a href="#off-value">offValue</a></li><li><a href="#on-error">onError</a></li><li><a href="#off-error">offError</a></li><li><a href="#on-end">onEnd</a></li><li><a href="#off-end">offEnd</a></li><li><a href="#on-any">onAny</a></li><li><a href="#off-any">offAny</a></li><li><a href="#log">log</a></li><li><a href="#off-log">offLog</a></li><li><a href="#to-promise">toPromise</a></li></ul><a href="#modify" class="toc-title">Modify an observable</a><ul class="toc-section"><li><a href="#map">map</a></li><li><a href="#filter">filter</a></li><li><a href="#take">take</a></li><li><a href="#take-while">takeWhile</a></li><li><a href="#last">last</a></li><li><a href="#skip">skip</a></li><li><a href="#skip-while">skipWhile</a></li><li><a href="#skip-duplicates">skipDuplicates</a></li><li><a href="#diff">diff</a></li><li><a href="#scan">scan</a></li><li><a href="#flatten">flatten</a></li><li><a href="#delay">delay</a></li><li><a href="#throttle">throttle</a></li><li><a href="#debounce">debounce</a></li><li><a href="#values-to-errors">valuesToErrors</a></li><li><a href="#errors-to-values">errorsToValues</a></li><li><a href="#map-errors">mapErrors</a></li><li><a href="#filter-errors">filterErrors</a></li><li><a href="#end-on-error">endOnError</a></li><li><a href="#skip-values">skipValues</a></li><li><a href="#skip-errors">skipErrors</a></li><li><a href="#skip-end">skipEnd</a></li><li><a href="#before-end">beforeEnd</a></li><li><a href="#sliding-window">slidingWindow</a></li><li><a href="#buffer-while">bufferWhile</a></li><li><a href="#transduce">transduce</a></li><li><a href="#with-handler">withHandler</a></li></ul><a href="#combine-observables" class="toc-title">Combine observables</a><ul class="toc-section"><li><a href="#combine">combine</a></li><li><a href="#zip">zip</a></li><li><a href="#merge">merge</a></li><li><a href="#concat">concat</a></li><li><a href="#pool">pool</a></li><li><a href="#repeat">repeat</a></li><li><a href="#flat-map">flatMap</a></li><li><a href="#flat-map-latest">flatMapLatest</a></li><li><a href="#flat-map-first">flatMapFirst</a></li><li><a href="#flat-map-concat">flatMapConcat</a></li><li><a href="#flat-map-with-concurrency-limit">flatMapConcurLimit</a></li><li><a href="#flat-map-errors">flatMapErrors</a></li></ul><a href="#combine-two" class="toc-title">Combine two observables</a><ul class="toc-section"><li><a href="#filter-by">filterBy</a></li><li><a href="#obs-sampled-by">sampledBy</a></li><li><a href="#skip-until-by">skipUntilBy</a></li><li><a href="#take-until-by">takeUntilBy</a></li><li><a href="#buffer-by">bufferBy</a></li><li><a href="#buffer-while-by">bufferWhileBy</a></li><li><a href="#awaiting">awaiting</a></li></ul><a href="#active-state" class="toc-title">Activation and deactivation of observables</a><a href="#emitter-object" class="toc-title">Emitter</a><a href="#about-errors" class="toc-title">Errors</a><a href="#current-in-streams" class="toc-title">Current values/errors in streams</a></div><div class="container"><h1><img src="Kefir.svg" class="logo-img"> Kefir.js <sup>2.8.2 (<a href="https://github.com/rpominov/kefir/blob/master/changelog.md">changelog</a>)</sup></h1><p>Kefir &mdash; is a Reactive Programming
+}</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script></head><body><div class="sidebar"><a href="#" class="toc-title">Kefir.js</a><ul class="toc-section"><li><a href="#installation">Installation</a></li></ul><a href="#examples" class="toc-title">Examples</a><a href="#about-observables" class="toc-title">Intro to  Streams and Properties</a><a href="#create-stream" class="toc-title">Create a stream</a><ul class="toc-section"><li><a href="#never">never</a></li><li><a href="#later">later</a></li><li><a href="#interval">interval</a></li><li><a href="#sequentially">sequentially</a></li><li><a href="#from-poll">fromPoll</a></li><li><a href="#with-interval">withInterval</a></li><li><a href="#from-callback">fromCallback</a></li><li><a href="#from-node-callback">fromNodeCallback</a></li><li><a href="#from-event">fromEvents</a></li><li><a href="#stream">stream</a></li></ul><a href="#create-property" class="toc-title">Create a property</a><ul class="toc-section"><li><a href="#constant">constant</a></li><li><a href="#constant-error">constantError</a></li><li><a href="#from-promise">fromPromise</a></li></ul><a href="#convert" class="toc-title">Convert observables</a><ul class="toc-section"><li><a href="#to-property">toProperty</a></li><li><a href="#changes">changes</a></li></ul><a href="#main-methods" class="toc-title">Subscribe / add side effects</a><ul class="toc-section"><li><a href="#on-value">onValue</a></li><li><a href="#off-value">offValue</a></li><li><a href="#on-error">onError</a></li><li><a href="#off-error">offError</a></li><li><a href="#on-end">onEnd</a></li><li><a href="#off-end">offEnd</a></li><li><a href="#on-any">onAny</a></li><li><a href="#off-any">offAny</a></li><li><a href="#log">log</a></li><li><a href="#off-log">offLog</a></li><li><a href="#to-promise">toPromise</a></li></ul><a href="#modify" class="toc-title">Modify an observable</a><ul class="toc-section"><li><a href="#map">map</a></li><li><a href="#map-errors">mapErrors</a></li><li><a href="#filter">filter</a></li><li><a href="#filter-errors">filterErrors</a></li><li><a href="#take">take</a></li><li><a href="#take-errors">takeErrors</a></li><li><a href="#take-while">takeWhile</a></li><li><a href="#last">last</a></li><li><a href="#skip">skip</a></li><li><a href="#skip-while">skipWhile</a></li><li><a href="#skip-duplicates">skipDuplicates</a></li><li><a href="#diff">diff</a></li><li><a href="#scan">scan</a></li><li><a href="#flatten">flatten</a></li><li><a href="#delay">delay</a></li><li><a href="#throttle">throttle</a></li><li><a href="#debounce">debounce</a></li><li><a href="#ignore-values">ignoreValues</a></li><li><a href="#ignore-errors">ignoreErrors</a></li><li><a href="#ignore-end">ignoreEnd</a></li><li><a href="#before-end">beforeEnd</a></li><li><a href="#sliding-window">slidingWindow</a></li><li><a href="#buffer-while">bufferWhile</a></li><li><a href="#transduce">transduce</a></li><li><a href="#with-handler">withHandler</a></li></ul><a href="#combine-observables" class="toc-title">Combine observables</a><ul class="toc-section"><li><a href="#combine">combine</a></li><li><a href="#zip">zip</a></li><li><a href="#merge">merge</a></li><li><a href="#concat">concat</a></li><li><a href="#pool">pool</a></li><li><a href="#repeat">repeat</a></li><li><a href="#flat-map">flatMap</a></li><li><a href="#flat-map-latest">flatMapLatest</a></li><li><a href="#flat-map-first">flatMapFirst</a></li><li><a href="#flat-map-concat">flatMapConcat</a></li><li><a href="#flat-map-with-concurrency-limit">flatMapConcurLimit</a></li><li><a href="#flat-map-errors">flatMapErrors</a></li></ul><a href="#combine-two" class="toc-title">Combine two observables</a><ul class="toc-section"><li><a href="#filter-by">filterBy</a></li><li><a href="#obs-sampled-by">sampledBy</a></li><li><a href="#skip-until-by">skipUntilBy</a></li><li><a href="#take-until-by">takeUntilBy</a></li><li><a href="#buffer-by">bufferBy</a></li><li><a href="#buffer-while-by">bufferWhileBy</a></li></ul><a href="#active-state" class="toc-title">Activation and deactivation of observables</a><a href="#emitter-object" class="toc-title">Emitter</a><a href="#about-errors" class="toc-title">Errors</a><a href="#current-in-streams" class="toc-title">Current values/errors in streams</a></div><div class="container"><h1><img src="Kefir.svg" class="logo-img"> Kefir.js <sup>3.0.0 (<a href="https://github.com/rpominov/kefir/blob/master/changelog.md">changelog</a>)</sup></h1><p>Kefir &mdash; is a Reactive Programming
 library for JavaScript inspired by
 <a href="https://github.com/baconjs/bacon.js">Bacon.js</a>
 and
@@ -21,7 +21,7 @@ and have fun reading
 </p><h2 id="installation">Installation</h2><p>Kefir is available as an NPM and a Bower package, as well as a simple file download.
 </p><h3 id="npm">NPM</h3><pre>npm install kefir
 </pre><h3 id="bower">Bower</h3><pre>bower install kefir
-</pre><h3 id="downloads">Downloads <sup>(2.8.2)</sup></h3><table><tr><th rowspan="1" valign="top">For Development</th><td><a href="dist/kefir.js">kefir.js</a></td><td><i>~ 100 KB</i></td></tr><tr><th rowspan="1" valign="top">For Production</th><td><a href="dist/kefir.min.js">kefir.min.js</a></td><td><i>~ 10 KB (when gzipped)</i></td></tr><tr><td colspan="3" class="rule"></td></tr><tr><th>All files</th><td><a href="https://github.com/rpominov/kefir/archive/2.8.2.zip">kefir-2.8.2.zip</a></td><td>... including documentation, tests, source maps, etc.</td></tr></table><p>Kefir also available on <a href="http://www.jsdelivr.com/#!kefir">jsDelivr</a>.</p><h2 id="examples">Examples</h2><p>Let's start from a quick little example to get you a feel
+</pre><h3 id="downloads">Downloads <sup>(3.0.0)</sup></h3><table><tr><th rowspan="1" valign="top">For Development</th><td><a href="dist/kefir.js">kefir.js</a></td><td><i>~ 100 KB</i></td></tr><tr><th rowspan="1" valign="top">For Production</th><td><a href="dist/kefir.min.js">kefir.min.js</a></td><td><i>~ 10 KB (when gzipped)</i></td></tr><tr><td colspan="3" class="rule"></td></tr><tr><th>All files</th><td><a href="https://github.com/rpominov/kefir/archive/3.0.0.zip">kefir-3.0.0.zip</a></td><td>... including documentation, tests, source maps, etc.</td></tr></table><p>Kefir also available on <a href="http://www.jsdelivr.com/#!kefir">jsDelivr</a>.</p><h2 id="examples">Examples</h2><p>Let's start from a quick little example to get you a feel
 of what is it like to program with Kefir.
 First we create a stream of events
 that will produce three numbers with interval of 100 milliseconds:
@@ -339,12 +339,11 @@ stream.onValue(x =&gt; {
 </p><p>If called on a property, which has a current error,
 <b>callback</b> will be called immediately (synchronously)
 with that error.
-</p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]).valuesToErrors();
-stream.onError(x =&gt; {
+</p><pre title="example" class="javascript">var property = Kefir.constantError(1);
+property.onError(x =&gt; {
   console.log(&#x27;error:&#x27;, x);
 });
 </pre><pre title="console output">&gt; error: 1
-&gt; error: 2
 </pre><p id="off-error"><a href="#off-error" class="header">offError</a><code>obs.offError(callback)</code><br/>Unsubscribes <b>callback</b> from errors on an observable.
 
 </p><p id="on-end"><a href="#on-end" class="header">onEnd</a><code>obs.onEnd(callback)</code><br/>Subscribes <b>callback</b> to ending of an observable.
@@ -358,16 +357,13 @@ stream.onEnd(() =&gt; {
 </p><p id="on-any"><a href="#on-any" class="header">onAny</a><code>obs.onAny(callback)</code><br/>Subscribes <b>callback</b> to all three types of events.
 Callback is called with an <b>event object</b> as argument. Each event object
 contains three attributes — <b>type</b>, <b>value</b>, and <b>current</b>.
-</p><ul><li><b>type</b> — a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string</li><li><b>value</b> — the emitted <b>value</b> or <b>error</b> (<tt>undefined</tt> if <tt>event.type === 'end'</tt>)</li><li><b>current *</b> — a boolean, that equals <tt>true</tt> if the callback is called with the current value/error of a property, or if the event represents an <b>end</b> of an already ended observable (note that <a href="#current-in-streams">streams may also emit current values or errors</a>)</li></ul><p>(*) The <tt>.current</tt> property is
-<a href="https://github.com/rpominov/kefir/issues/100">going to be removed</a>
-in <tt>v3.0.0</tt>.
-</p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
+</p><ul><li><b>type</b> — a <tt>'value'</tt>, <tt>'error'</tt>, or <tt>'end'</tt> string</li><li><b>value</b> — the emitted <b>value</b> or <b>error</b> (<tt>undefined</tt> if <tt>event.type === 'end'</tt>)</li></ul><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
 stream.onAny(event =&gt; {
   console.log(&#x27;event:&#x27;, event);
 });
-</pre><pre title="console output">&gt; event: Object {type: &quot;value&quot;, value: 1, current: false}
-&gt; event: Object {type: &quot;error&quot;, value: 2, current: false}
-&gt; event: Object {type: &quot;end&quot;, value: undefined, current: false}
+</pre><pre title="console output">&gt; event: Object {type: &quot;value&quot;, value: 1}
+&gt; event: Object {type: &quot;error&quot;, value: 2}
+&gt; event: Object {type: &quot;end&quot;, value: undefined}
 </pre><p id="off-any"><a href="#off-any" class="header">offAny</a><code>obs.offAny(callback)</code><br/>Unsubscribes an <b>onAny</b> subscriber.
 </p><p id="log"><a href="#log" class="header">log</a><code>obs.log([name])</code><br/>Turns on logging of any event to the browser console.
 Accepts an optional <b>name</b> argument that will be shown in the log if provided.
@@ -390,15 +386,14 @@ the promise will never be fulfilled/rejected.
 promise.then(x =&gt; {
   console.log(&#x27;fulfilled with:&#x27;, x);
 });
-</pre><pre title="console output">&gt; fulfilled with: 2</pre><h2 id="modify">Modify an observable</h2><p>All methods in this section create a new observable of same type* from an original one.
+</pre><pre title="console output">&gt; fulfilled with: 2</pre><h2 id="modify">Modify an observable</h2><p>Most methods in this section create a new observable of same type* from an original one.
 The new observable applies some transformation to each event from the original one
 and emits the result of the transformation.
 In most cases a transformation is applied only to <b>value</b> events,
 <b>end</b> and <b>error</b> events just passes through untouched.
 </p><p><b>*</b> For example if the original observable was a stream,
 then the new one will also be a stream. Same for properties.
-This rule has one exception for the <a href="#scan">scan</a> method,
-that always returns a property.
+
 
 
 </p><p id="map"><a href="#map" class="header">map</a><code>obs.map(fn)</code><br/>Applies the given <b>fn</b> function to each value from the original observable
@@ -410,7 +405,18 @@ result.log();
 &gt; [sequentially.map] &lt;value&gt; 3
 &gt; [sequentially.map] &lt;value&gt; 4
 &gt; [sequentially.map] &lt;end&gt;</pre><div></div><pre title="events in time">source: ---1---2---3X
-result: ---2---3---4X</pre><div></div><p id="filter"><a href="#filter" class="header">filter</a><code>obs.filter([predicate])</code><br/>Filters values from the original observable
+result: ---2---3---4X</pre><div></div><p id="map-errors"><a href="#map-errors" class="header">mapErrors</a><code>obs.mapErrors(fn)</code><br/>Same as <a href="#map">map</a> but for <a href="#about-errors">errors</a>.
+</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]).flatMap(Kefir.constantError);
+var result = source.mapErrors(x =&gt; x * 2);
+result.log();
+</pre><pre title="console output">&gt; [sequentially.flatMap.mapErrors] &lt;error&gt; 2
+&gt; [sequentially.flatMap.mapErrors] &lt;error&gt; 4
+&gt; [sequentially.flatMap.mapErrors] &lt;error&gt; 6
+&gt; [sequentially.flatMap.mapErrors] &lt;end&gt;
+</pre><pre title="events in time">source:  ---e---e---e---eX
+            0   1   2   3
+result:  ---e---e---e---eX
+            0   2   4   6</pre><div></div><p id="filter"><a href="#filter" class="header">filter</a><code>obs.filter([predicate])</code><br/>Filters values from the original observable
 using the given <b>predicate</b> function.
 </p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
@@ -423,7 +429,18 @@ result.log();
 result: -------2---3X</pre><div></div><p>See also <a href="#filter-by">filterBy</a>.
 
 
-</p><p id="take"><a href="#take" class="header">take</a><code>obs.take(n)</code><br/>Emits the first <b>n</b> values from the original observable, then ends.
+
+</p><p id="filter-errors"><a href="#filter-errors" class="header">filterErrors</a><code>obs.filterErrors([predicate])</code><br/>Same as <a href="#filter">filter</a> but for <a href="#about-errors">errors</a>.
+</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, 1, 2, 3]).flatMap(Kefir.constantError);
+var result = source.filterErrors(x =&gt; (x % 2) === 0);
+result.log();
+</pre><pre title="console output">&gt; [sequentially.flatMap.filterErrors] &lt;error&gt; 0
+&gt; [sequentially.flatMap.filterErrors] &lt;error&gt; 2
+&gt; [sequentially.flatMap.filterErrors] &lt;end&gt;
+</pre><pre title="events in time">source:  ---e---e---e---eX
+            0   1   2   3
+result:  ---e-------e----X
+            0       2</pre><div></div><p id="take"><a href="#take" class="header">take</a><code>obs.take(n)</code><br/>Emits the first <b>n</b> values from the original observable, then ends.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.take(2);
 result.log();
@@ -431,7 +448,18 @@ result.log();
 &gt; [sequentially.take] &lt;value&gt; 2
 &gt; [sequentially.take] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---3X
-result: ---1---2X</pre><div></div><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>obs.takeWhile([predicate])</code><br/>Emits values from the original observable until the given <b>predicate</b>
+result: ---1---2X</pre><div></div><p id="take-errors"><a href="#take-errors" class="header">takeErrors</a><code>obs.takeErrors(n)</code><br/>Same as <a href="#take">take</a> but for <a href="#about-errors">errors</a>.
+</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3])
+  .flatMap(x =&gt; Kefir.constantError(x));
+var result = source.takeErrors(2);
+result.log();
+</pre><pre title="console output">&gt; [sequentially.flatMap.takeErrors] &lt;error&gt; 1
+&gt; [sequentially.flatMap.takeErrors] &lt;error&gt; 2
+&gt; [sequentially.flatMap.takeErrors] &lt;end&gt;
+</pre><pre title="events in time">source: ---e---e---eX
+           1   2   3
+result: ---e---eX
+           1   2</pre><div></div><p id="take-while"><a href="#take-while" class="header">takeWhile</a><code>obs.takeWhile([predicate])</code><br/>Emits values from the original observable until the given <b>predicate</b>
 function applied to a value returns false.
 Ends when the <b>predicate</b> returns false.
 </p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
@@ -531,7 +559,8 @@ result.log();
 &gt; [sequentially.scan] &lt;end&gt;
 </pre><pre title="events in time">source:  ---1---2---2---3X
 result: 0---1---3---5---8X</pre><div></div><p id="flatten"><a href="#flatten" class="header">flatten</a><code>obs.flatten([transformer])</code><br/>For this method it's expected that the source observable emits arrays.
-The result observable will then emit each element of these arrays.
+The result stream will then emit each element of these arrays.
+</p><p>Always returns a stream.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [[1], [], [2,3]]);
 var result = source.flatten();
 result.log();
@@ -543,7 +572,7 @@ result.log();
                [1]       []     [2,3]
 result:  --------1-----------------23X</pre><div></div><p>You can also provide the <b>transformer</b> function
 which will be applied to each value from <b>obs</b> observable,
-and which is supposed to return an array. This makes <b>flatten</b> to be a
+and which is supposed to return an array. This makes <b>flatten</b> a
 pretty powerful transformation method.
 It allows you to do three kinds
 of transformations on each value: change value (like map), skip value (like filter),
@@ -612,116 +641,35 @@ result.log();
 </pre><pre title="console output">&gt; [sequentially.filter.debounce] &lt;value&gt; 3
 &gt; [sequentially.filter.debounce] &lt;value&gt; 6
 &gt; [sequentially.filter.debounce] &lt;end&gt;</pre><div></div><pre title="events in time">source:  ---1---2---3---------------4---5---6X
-result:  ----------------------3---------------------6X</pre><div></div><p id="values-to-errors"><a href="#values-to-errors" class="header">valuesToErrors</a><code>obs.valuesToErrors([handler])</code><br/>Converts values to errors. By default it converts all values to errors,
-but you can specify a custom <b>handler</b> function to change that.
-The <b>handler</b> function is called with one argument — a value,
-and must return an object with two properties <tt>{convert: Boolean, error: AnyType}</tt>,
-if <b>convert</b> is set to <tt>true</tt>, the specified <b>error</b> will be emitted,
-otherwise the original value will be emitted, and the <b>error</b> property will be ignored.
-</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3]);
-var result = source.valuesToErrors(x =&gt; {
-  return {
-    convert: x &lt; 0,
-    error: x * 2
-  };
-});
-result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors] &lt;value&gt; 0
-&gt; [sequentially.valuesToErrors] &lt;error&gt; -2
-&gt; [sequentially.valuesToErrors] &lt;value&gt; 2
-&gt; [sequentially.valuesToErrors] &lt;error&gt; -6
-&gt; [sequentially.valuesToErrors] &lt;end&gt;
-</pre><pre title="events in time">source:  ---•---•---•---•X
-            0  -1   2  -3
-result:  ---•---e---•---eX
-            0  -2   2  -6</pre><div></div><p id="errors-to-values"><a href="#errors-to-values" class="header">errorsToValues</a><code>obs.errorsToValues([handler])</code><br/>Same as <a href="#values-to-errors">valuesToErrors</a> but vice versa.
-</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3]).valuesToErrors();
-var result = source.errorsToValues(x =&gt; {
-  return {
-    convert: x &gt;= 0,
-    value: x * 2
-  };
-});
-result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.errorsToValues] &lt;value&gt; 0
-&gt; [sequentially.valuesToErrors.errorsToValues] &lt;error&gt; -1
-&gt; [sequentially.valuesToErrors.errorsToValues] &lt;value&gt; 4
-&gt; [sequentially.valuesToErrors.errorsToValues] &lt;error&gt; -3
-&gt; [sequentially.valuesToErrors.errorsToValues] &lt;end&gt;
-</pre><pre title="events in time">source:  ---e---e---e---eX
-            0  -1   2  -3
-result:  ---•---e---•---eX
-            0  -1   4  -3</pre><div></div><p id="map-errors"><a href="#map-errors" class="header">mapErrors</a><code>obs.mapErrors(fn)</code><br/>Applies the given <b>fn</b> function to each error from the original observable
-and emits the error returned by <b>fn</b>.
-</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
-var result = source.mapErrors(x =&gt; x * 2);
-result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.mapErrors] &lt;error&gt; 0
-&gt; [sequentially.valuesToErrors.mapErrors] &lt;error&gt; 2
-&gt; [sequentially.valuesToErrors.mapErrors] &lt;error&gt; 4
-&gt; [sequentially.valuesToErrors.mapErrors] &lt;error&gt; 6
-&gt; [sequentially.valuesToErrors.mapErrors] &lt;end&gt;
-</pre><pre title="events in time">source:  ---e---e---e---eX
-            0   1   2   3
-result:  ---e---e---e---eX
-            0   2   4   6</pre><div></div><p id="filter-errors"><a href="#filter-errors" class="header">filterErrors</a><code>obs.filterErrors([predicate])</code><br/>Filters errors from the original observable
-using the given <b>predicate</b> function.
-</p><p>If no <b>predicate</b> is provided, the function <tt>x =&gt; x</tt> will be used.
-</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, 1, 2, 3]).valuesToErrors();
-var result = source.filterErrors(x =&gt; (x % 2) === 0);
-result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.filterErrors] &lt;error&gt; 0
-&gt; [sequentially.valuesToErrors.filterErrors] &lt;error&gt; 2
-&gt; [sequentially.valuesToErrors.filterErrors] &lt;end&gt;
-</pre><pre title="events in time">source:  ---e---e---e---eX
-            0   1   2   3
-result:  ---e-------e----X
-            0       2</pre><div></div><p id="end-on-error"><a href="#end-on-error" class="header">endOnError</a><code>obs.endOnError()</code><br/>Makes an observable to end on first error.
+result:  ----------------------3---------------------6X</pre><div></div><p id="ignore-values"><a href="#ignore-values" class="header">ignoreValues</a><code>obs.ignoreValues()</code><br/>Ignores all values from the original observable, emitting only errors and end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3])
-  .valuesToErrors(x =&gt; {
-    return {convert: x &lt; 0, error: x};
-  });
-var result = source.endOnError()
+  .flatMap(x =&gt; x &lt; 0 ? Kefir.constantError(x) : Kefir.constant(x));
+var result = source.ignoreValues()
 result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.endOnError] &lt;value&gt; 0
-&gt; [sequentially.valuesToErrors.endOnError] &lt;error&gt; -1
-&gt; [sequentially.valuesToErrors.endOnError] &lt;end&gt;
-</pre><pre title="events in time">source:  ---•---e---•---eX
-            0  -1   2  -3
-result:  ---•---eX
-            0  -1</pre><div></div><p id="skip-values"><a href="#skip-values" class="header">skipValues</a><code>obs.skipValues()</code><br/>Ignores all values from the original observable, emitting only errors and end.
-</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3])
-  .valuesToErrors(x =&gt; {
-    return {convert: x &lt; 0, error: x};
-  });
-var result = source.skipValues()
-result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.skipValues] &lt;error&gt; -1
-&gt; [sequentially.valuesToErrors.skipValues] &lt;error&gt; -3
-&gt; [sequentially.valuesToErrors.skipValues] &lt;end&gt;
+</pre><pre title="console output">&gt; [sequentially.flatMap.ignoreValues] &lt;error&gt; -1
+&gt; [sequentially.flatMap.ignoreValues] &lt;error&gt; -3
+&gt; [sequentially.flatMap.ignoreValues] &lt;end&gt;
 </pre><pre title="events in time">source:  ---•---e---•---eX
             0  -1   2  -3
 result:  -------e-------eX
-               -1      -3</pre><div></div><p id="skip-errors"><a href="#skip-errors" class="header">skipErrors</a><code>obs.skipErrors()</code><br/>Ignores all errors from the original observable, emitting only values and end.
+               -1      -3</pre><div></div><p id="ignore-errors"><a href="#ignore-errors" class="header">ignoreErrors</a><code>obs.ignoreErrors()</code><br/>Ignores all errors from the original observable, emitting only values and end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [0, -1, 2, -3])
-  .valuesToErrors(x =&gt; {
-    return {convert: x &lt; 0, error: x};
-  });
-var result = source.skipErrors()
+  .flatMap(x =&gt; x &lt; 0 ? Kefir.constantError(x) : Kefir.constant(x));
+var result = source.ignoreErrors()
 result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.skipErrors] &lt;value&gt; 0
-&gt; [sequentially.valuesToErrors.skipErrors] &lt;value&gt; 2
-&gt; [sequentially.valuesToErrors.skipErrors] &lt;end&gt;
+</pre><pre title="console output">&gt; [sequentially.flatMap.ignoreErrors] &lt;value&gt; 0
+&gt; [sequentially.flatMap.ignoreErrors] &lt;value&gt; 2
+&gt; [sequentially.flatMap.ignoreErrors] &lt;end&gt;
 </pre><pre title="events in time">source:  ---•---e---•---eX
             0  -1   2  -3
 result:  ---•-------•----X
-            0       2</pre><div></div><p id="skip-end"><a href="#skip-end" class="header">skipEnd</a><code>obs.skipEnd()</code><br/>Ignores end of source observable.
+            0       2</pre><div></div><p id="ignore-end"><a href="#ignore-end" class="header">ignoreEnd</a><code>obs.ignoreEnd()</code><br/>Ignores end of source observable.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
-var result = source.skipEnd();
+var result = source.ignoreEnd();
 result.log();
-</pre><pre title="console output">&gt; [sequentially.skipEnd] &lt;value&gt; 1
-&gt; [sequentially.skipEnd] &lt;value&gt; 2
-&gt; [sequentially.skipEnd] &lt;value&gt; 3
+</pre><pre title="console output">&gt; [sequentially.ignoreEnd] &lt;value&gt; 1
+&gt; [sequentially.ignoreEnd] &lt;value&gt; 2
+&gt; [sequentially.ignoreEnd] &lt;value&gt; 3
 </pre><pre title="events in time">source:  ---1---2---3X
 result:  ---1---2---3---</pre><div></div><p id="before-end"><a href="#before-end" class="header">beforeEnd</a><code>obs.beforeEnd(fn)</code><br/>Allows you to insert an additional value just before the observable ends.
 <b>fn</b> will be called on <b>obs</b>' end with no arguments,
@@ -1149,14 +1097,14 @@ spawned 3:                                     ---3---3---3---3---3---3X
 
 result:      -------------1---1---1-2-1-2-1-2-1-2-3-2-3-2-3---3---3---3X</pre><div></div><p id="flat-map-errors"><a href="#flat-map-errors" class="header">flatMapErrors</a><code>obs.flatMapErrors([transform])</code><br/>Same as <a href="#flat-map">flatMap</a>,
 but operates on <a href="#about-errors">errors</a> while <b>values</b> just flow through.
-</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2]).valuesToErrors();
+</p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2]).flatMap(Kefir.constantError);
 var result = source.flatMapErrors(x =&gt; Kefir.interval(40, x).take(2));
 result.log();
-</pre><pre title="console output">&gt; [sequentially.valuesToErrors.flatMapErrors] &lt;value&gt; 1
-&gt; [sequentially.valuesToErrors.flatMapErrors] &lt;value&gt; 1
-&gt; [sequentially.valuesToErrors.flatMapErrors] &lt;value&gt; 2
-&gt; [sequentially.valuesToErrors.flatMapErrors] &lt;value&gt; 2
-&gt; [sequentially.valuesToErrors.flatMapErrors] &lt;end&gt;
+</pre><pre title="console output">&gt; [sequentially.flatMap.flatMapErrors] &lt;value&gt; 1
+&gt; [sequentially.flatMap.flatMapErrors] &lt;value&gt; 1
+&gt; [sequentially.flatMap.flatMapErrors] &lt;value&gt; 2
+&gt; [sequentially.flatMap.flatMapErrors] &lt;value&gt; 2
+&gt; [sequentially.flatMap.flatMapErrors] &lt;end&gt;
 </pre><pre title="events in time">source:      ----------e---------eX
                        1         2
 
@@ -1225,10 +1173,13 @@ result.log();
 </pre><pre title="events in time">foo:     ----1----2----3----4X
 bar:     -----------0X
 
-result:  ----1----2-X</pre><div></div><p id="buffer-by"><a href="#buffer-by" class="header">bufferBy</a><code>obs.bufferBy(otherObs, [options])</code><br/>Buffers all values from <b>obs</b> observable,
-and flushes the buffer on each value from <b>otherObs</b>.
-Also flushes the buffer before end, but you can disable that
-by passing <tt>{flushOnEnd: false}</tt> as <b>options</b>.
+result:  ----1----2-X</pre><div></div><p id="buffer-by"><a href="#buffer-by" class="header">bufferBy</a><code>obs.bufferBy(otherObs, [options])</code><br/>Buffers all values from <b>obs</b> observable, and flushes the buffer
+on each value from <b>otherObs</b>. Also flushes the buffer before end.
+</p><p>If <tt>options.flushOnEnd</tt> is <tt>false</tt>, the buffer
+won't be flushed when the main observable ends.
+</p><p>The result observable will emit <tt>[]</tt> in cases, when the buffer supposed to be flushed,
+but it's empty.
+
 </p><pre title="example" class="javascript">var foo = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]).delay(40);
 var bar = Kefir.sequentially(300, [1, 2])
 var result = foo.bufferBy(bar);
@@ -1250,8 +1201,7 @@ otherwise flushes the buffer (with the new value included).
 won't be flushed when the main observable ends.
 </p><p>If <tt>options.flushOnChange</tt> is <tt>true</tt>, the buffer will be also flushed
 each time the controlling observable emits <tt>false</tt>.
-</p><p>If <tt>options.emitEmpty</tt> is <tt>true</tt>, the result observable
-will emit <tt>[]</tt> in cases, when the buffer supposed to be flushed,
+</p><p>The result observable will emit <tt>[]</tt> in cases, when the buffer supposed to be flushed,
 but it's empty.
 </p><p>The default options are <tt>{flushOnEnd: true, flushOnChange: false, emitEmpty: false}</tt>.
 
@@ -1268,25 +1218,7 @@ result.log();
 bar:     -----------f---------t---------fX
 
 result:  --------------•----•--------------•----•X
-               [1, 2, 3]  [4]      [5, 6, 7]  [8]</pre><div></div><p id="awaiting"><a href="#awaiting" class="header">awaiting</a><code>obs.awaiting(otherObs)</code><br/>Returns a property that represents the awaiting status of two observables,
-i.e. answers the question «Has <b>obs</b> observable emitted a value
-since the last value from <b>otherObs</b> observable has been emitted?».
-</p><pre title="example" class="javascript">var foo = Kefir.sequentially(100, [1, 2, 3]);
-var bar = Kefir.sequentially(100, [1, 2, 3]).delay(40);
-var result = foo.awaiting(bar);
-result.log();
-</pre><pre title="console output">&gt; [sequentially.awaiting] &lt;value:current&gt; false
-&gt; [sequentially.awaiting] &lt;value&gt; true
-&gt; [sequentially.awaiting] &lt;value&gt; false
-&gt; [sequentially.awaiting] &lt;value&gt; true
-&gt; [sequentially.awaiting] &lt;value&gt; false
-&gt; [sequentially.awaiting] &lt;value&gt; true
-&gt; [sequentially.awaiting] &lt;value&gt; false
-&gt; [sequentially.awaiting] &lt;end&gt;
-</pre><pre title="events in time">foo:     ----1----2----3X
-bar:     ------1----2----3X
-
-result:  f---t-f--t-f--t-fX</pre><div></div><h2 id="active-state">Activation and deactivation of observables</h2><p>At the moment one create an observable it's not yet subscribed to its source.
+               [1, 2, 3]  [4]      [5, 6, 7]  [8]</pre><div></div><h2 id="active-state">Activation and deactivation of observables</h2><p>At the moment one create an observable it's not yet subscribed to its source.
 Observables subscribe to their sources only when they themself get a first subscriber.
 In this docs this process is called <b>activation</b> of an observable.
 Also when the last subscriber is removed from an observable,
