@@ -163,13 +163,14 @@ extend(Observable.prototype, {
     }
 
     return this;
-  }
+  },
 
+  toESObservable() {
+    return new ESObservable(this);
+  }
 });
 
-Observable.prototype[require('./utils/symbol')('observable')] = function() {
-  return new ESObservable(this);
-}
+Observable.prototype[require('./utils/symbol')('observable')] = Observable.prototype.toESObservable;
 
 // extend() can't handle `toString` in IE8
 Observable.prototype.toString = function() {
