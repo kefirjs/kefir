@@ -50,20 +50,20 @@ extend(Observable.prototype, {
 
   _emitValue(value) {
     if (this._alive) {
-      this._dispatcher.dispatch({type: VALUE, value, current: this._activating});
+      this._dispatcher.dispatch({type: VALUE, value});
     }
   },
 
   _emitError(value) {
     if (this._alive) {
-      this._dispatcher.dispatch({type: ERROR, value, current: this._activating});
+      this._dispatcher.dispatch({type: ERROR, value});
     }
   },
 
   _emitEnd() {
     if (this._alive) {
       this._alive = false
-      this._dispatcher.dispatch({type: END, current: this._activating});
+      this._dispatcher.dispatch({type: END});
       this._clear();
     }
   },
@@ -73,7 +73,7 @@ extend(Observable.prototype, {
       this._dispatcher.add(type, fn);
       this._setActive(true);
     } else {
-      callSubscriber(type, fn, {type: END, current: true});
+      callSubscriber(type, fn, {type: END});
     }
     return this;
   },
@@ -127,8 +127,9 @@ extend(Observable.prototype, {
 
   log(name = this.toString()) {
 
+    let isCurrent
     let handler = function(event) {
-      let type = `<${event.type}${event.current ? ':current' : ''}>`;
+      let type = `<${event.type}${isCurrent ? ':current' : ''}>`;
       if (event.type === END) {
         console.log(name, type);
       } else {
@@ -143,7 +144,9 @@ extend(Observable.prototype, {
       this._logHandlers.push({name: name, handler: handler});
     }
 
+    isCurrent = true;
     this.onAny(handler);
+    isCurrent = false;
 
     return this;
   },

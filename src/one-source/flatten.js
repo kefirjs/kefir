@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+const {createStream} = require('../patterns/one-source');
 
 const mixin = {
 
@@ -21,11 +21,10 @@ const mixin = {
 };
 
 const S = createStream('flatten', mixin);
-const P = createProperty('flatten', mixin);
 
 
 const id = x => x;
 
 module.exports = function flatten(obs, fn = id) {
-  return new (obs._ofSameType(S, P))(obs, {fn});
+  return new S(obs, {fn});
 };

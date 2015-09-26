@@ -20,23 +20,17 @@ describe 'bufferWhileBy', ->
       b = prop()
       expect(a.bufferWhileBy(b)).toActivate(a, b)
 
-    it 'should end when primary ends (w/o {emitEmpty: true})', ->
-      expect(send(stream(), ['<end>']).bufferWhileBy(stream())).toEmit ['<end:current>']
+    it 'should flush empty buffer and then end when primary ends', ->
+      expect(send(stream(), ['<end>']).bufferWhileBy(stream())).toEmit [{current: []}, '<end:current>']
       a = stream()
       b = stream()
-      expect(a.bufferWhileBy(b)).toEmit ['<end>'], -> send(a, ['<end>'])
+      expect(a.bufferWhileBy(b)).toEmit [[], '<end>'], -> send(a, ['<end>'])
 
-    it 'should flush empty buffer and then end when primary ends (w/ {emitEmpty: true})', ->
-      expect(send(stream(), ['<end>']).bufferWhileBy(stream(), {emitEmpty: true})).toEmit [{current: []}, '<end:current>']
+    it 'should flush empty buffer when secondary emits false (w/ {flushOnChange: true})', ->
+      expect(stream().bufferWhileBy(send(prop(), [false]), {flushOnChange: true})).toEmit [{current: []}]
       a = stream()
       b = stream()
-      expect(a.bufferWhileBy(b, {emitEmpty: true})).toEmit [[], '<end>'], -> send(a, ['<end>'])
-
-    it 'should flush empty buffer when secondary emits false (w/ {flushOnChange: true, emitEmpty: true})', ->
-      expect(stream().bufferWhileBy(send(prop(), [false]), {flushOnChange: true, emitEmpty: true})).toEmit [{current: []}]
-      a = stream()
-      b = stream()
-      expect(a.bufferWhileBy(b, {flushOnChange: true, emitEmpty: true})).toEmit [[]], -> send(b, [true, false])
+      expect(a.bufferWhileBy(b, {flushOnChange: true})).toEmit [[]], -> send(b, [true, false])
 
     it 'should flush buffer on end', ->
       expect(send(prop(), [1, '<end>']).bufferWhileBy(stream())).toEmit [{current: [1]}, '<end:current>']

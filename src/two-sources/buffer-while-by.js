@@ -4,9 +4,8 @@ const {NOTHING} = require('../constants');
 
 const mixin = {
 
-  _init({flushOnEnd = true, flushOnChange = false, emitEmpty = false} = {}) {
+  _init({flushOnEnd = true, flushOnChange = false} = {}) {
     this._buff = [];
-    this._emitEmpty = emitEmpty;
     this._flushOnEnd = flushOnEnd;
     this._flushOnChange = flushOnChange;
   },
@@ -16,7 +15,7 @@ const mixin = {
   },
 
   _flush() {
-    if ((this._buff !== null) && (this._emitEmpty || (this._buff.length > 0))) {
+    if (this._buff !== null) {
       this._emitValue(this._buff);
       this._buff = [];
     }

@@ -9,9 +9,9 @@ const mixin = {
     }
   },
 
-  _handleValue(x) {
+  _handleError(x) {
     this._n--;
-    this._emitValue(x);
+    this._emitError(x);
     if (this._n === 0) {
       this._emitEnd();
     }
@@ -19,10 +19,10 @@ const mixin = {
 
 };
 
-const S = createStream('take', mixin);
-const P = createProperty('take', mixin);
+const S = createStream('takeErrors', mixin);
+const P = createProperty('takeErrors', mixin);
 
 
-module.exports = function take(obs, n) {
+module.exports = function takeErrors(obs, n) {
   return new (obs._ofSameType(S, P))(obs, {n});
 };

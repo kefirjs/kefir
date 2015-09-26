@@ -47,8 +47,11 @@ ul.toc-section
 a.toc-title(href='#modify') Modify an observable
 ul.toc-section
   +method('#map', 'map')
+  +method('#map-errors', 'mapErrors')
   +method('#filter', 'filter')
+  +method('#filter-errors', 'filterErrors')
   +method('#take', 'take')
+  +method('#take-errors', 'takeErrors')
   +method('#take-while', 'takeWhile')
   +method('#last', 'last')
   +method('#skip', 'skip')
@@ -60,14 +63,9 @@ ul.toc-section
   +method('#delay', 'delay')
   +method('#throttle', 'throttle')
   +method('#debounce', 'debounce')
-  +method('#values-to-errors', 'valuesToErrors')
-  +method('#errors-to-values', 'errorsToValues')
-  +method('#map-errors', 'mapErrors')
-  +method('#filter-errors', 'filterErrors')
-  +method('#end-on-error', 'endOnError')
-  +method('#skip-values', 'skipValues')
-  +method('#skip-errors', 'skipErrors')
-  +method('#skip-end', 'skipEnd')
+  +method('#ignore-values', 'ignoreValues')
+  +method('#ignore-errors', 'ignoreErrors')
+  +method('#ignore-end', 'ignoreEnd')
   +method('#before-end', 'beforeEnd')
   +method('#sliding-window', 'slidingWindow')
   +method('#buffer-while', 'bufferWhile')
@@ -97,7 +95,6 @@ ul.toc-section
   +method('#take-until-by', 'takeUntilBy')
   +method('#buffer-by', 'bufferBy')
   +method('#buffer-while-by', 'bufferWhileBy')
-  +method('#awaiting', 'awaiting')
 
 a.toc-title(href='#active-state') Activation and deactivation of observables
 a.toc-title(href='#emitter-object') Emitter
