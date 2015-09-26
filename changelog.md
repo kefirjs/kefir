@@ -1,4 +1,4 @@
-## 3.0.0
+## 3.0.0 (26/09/2015)
 
  - All previously deprecated methods removed. Full list can be found in [deprecated API docs of v2.x](https://github.com/rpominov/kefir/blob/v2/deprecated-api-docs.md).
  - New deprecations: [errorsToValues & valuesToErrors](https://github.com/rpominov/kefir/issues/149), [endOnError](https://github.com/rpominov/kefir/issues/150), [awaiting](https://github.com/rpominov/kefir/issues/145).
@@ -13,7 +13,7 @@
 See also [Umbrella 3.0](https://github.com/rpominov/kefir/issues/138)
 
 
-## 2.8.2 (13/10/2015)
+## 2.8.2 (13/09/2015)
 
  - A bug in `.scan` fixed [#148](https://github.com/rpominov/kefir/issues/148)
 
