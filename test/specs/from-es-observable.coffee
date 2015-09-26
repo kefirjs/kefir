@@ -2,12 +2,12 @@ Observable = require('zen-observable')
 Rx = require('@reactivex/rxjs')
 {activate, deactivate, Kefir} = require('../test-helpers.coffee')
 
-describe 'from', ->
+describe 'fromESObservable', ->
   it 'turns an ES7 observable into a stream', ->
-    expect(Kefir.from(Observable.of(1, 2))).toBeStream()
+    expect(Kefir.fromESObservable(Observable.of(1, 2))).toBeStream()
 
   it 'emits events from observable to stream', (done) ->
-    stream = Kefir.from(Observable.of(1, 2))
+    stream = Kefir.fromESObservable(Observable.of(1, 2))
     values = []
     stream.onValue (value) -> values.push(value)
     stream.onEnd ->
@@ -19,10 +19,10 @@ describe 'from', ->
       observer.next(1)
       observer.error()
     )
-    Kefir.from(observable).onEnd -> done()
+    Kefir.fromESObservable(observable).onEnd -> done()
 
   it 'turns an RxJS observable into a Kefir stream', (done) ->
-    stream = Kefir.from(Rx.Observable.of('hello world'))
+    stream = Kefir.fromESObservable(Rx.Observable.of('hello world'))
     values = []
     stream.onValue (value) -> values.push(value)
     stream.onEnd ->

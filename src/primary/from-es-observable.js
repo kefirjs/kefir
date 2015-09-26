@@ -1,7 +1,7 @@
 const stream = require('./stream');
 const symbol = require('../utils/symbol')('observable');
 
-module.exports = function fromObservable(_observable) {
+module.exports = function fromESObservable(_observable) {
   const observable = _observable[symbol] ? _observable[symbol]() : _observable;
   return stream(function(emitter) {
     const unsub = observable.subscribe({
@@ -22,5 +22,5 @@ module.exports = function fromObservable(_observable) {
     } else {
       return unsub;
     }
-  }).setName('from');
+  }).setName('fromESObservable');
 }

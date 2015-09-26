@@ -43,7 +43,7 @@ Kefir.fromEvents = require('./primary/from-events');
 Kefir.stream = require('./primary/stream');
 
 // (ES Observable) -> Stream
-Kefir.from = require('./primary/from');
+Kefir.fromESObservable = require('./primary/from-es-observable');
 
 // Create a property
 // -----------------------------------------------------------------------------
