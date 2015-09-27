@@ -75,6 +75,11 @@ Observable.prototype.changes = function() {
   return changes(this);
 };
 
+// (Stream|Property) -> ES7 Observable
+const ESObservable = require('./es-observable');
+const toESObservable = function() { return new ESObservable(this); }
+Observable.prototype.toESObservable = toESObservable;
+Observable.prototype[require('./utils/symbol')('observable')] = toESObservable;
 
 
 

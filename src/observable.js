@@ -2,7 +2,6 @@ const {extend} = require('./utils/objects');
 const {VALUE, ERROR, ANY, END} = require('./constants');
 const {Dispatcher, callSubscriber} = require('./dispatcher');
 const {findByPred} = require('./utils/collections');
-const ESObservable = require('./es-observable');
 
 
 
@@ -163,14 +162,8 @@ extend(Observable.prototype, {
     }
 
     return this;
-  },
-
-  toESObservable() {
-    return new ESObservable(this);
   }
 });
-
-Observable.prototype[require('./utils/symbol')('observable')] = Observable.prototype.toESObservable;
 
 // extend() can't handle `toString` in IE8
 Observable.prototype.toString = function() {
