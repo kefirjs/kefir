@@ -1,3 +1,4 @@
+Observable = require('zen-observable') # Activate Symbol polyfill
 Kefir = require("../dist/kefir")
 sinon = require('sinon')
 
@@ -255,4 +256,3 @@ beforeEach ->
       return !@isNot
 
   }
-
