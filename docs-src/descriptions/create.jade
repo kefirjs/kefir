@@ -316,26 +316,3 @@ pre(title='console output')
 pre(title='events in time').
   property: eX
 div
-
-
-
-+descr-method('from-promise', 'fromPromise', 'Kefir.fromPromise(promise)').
-  Converts a promise to a property. Uses #[tt promise.then(onFulfilled, onRejected)]
-  interface to subscribe to the promise. Also calls #[tt promise.done()]
-  (if there is such methods) to prevent libraries like
-  #[a(href='https://github.com/kriskowal/q') Q] or
-  #[a(href='https://github.com/cujojs/when') when] from swallowing exceptions.
-
-pre.javascript(title='example')
-  :escapehtml
-    var result = Kefir.fromPromise(new Promise(fulfill => fulfill(1)));
-    result.log();
-
-pre(title='console output')
-  :escapehtml
-    > [fromPromise] <value> 1
-    > [fromPromise] <end>
-
-pre(title='events in time').
-  result:  ----1X
-div
