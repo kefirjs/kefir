@@ -1,4 +1,4 @@
-const stream = require('./stream');
+const stream = require('../primary/stream');
 const symbol = require('../utils/symbol')('observable');
 
 module.exports = function fromESObservable(_observable) {

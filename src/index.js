@@ -78,25 +78,21 @@ Observable.prototype.changes = function() {
 // -----------------------------------------------------------------------------
 
 // (Promise) -> Property
-Kefir.fromPromise = require('./primary/from-promise');
+Kefir.fromPromise = require('./interop/from-promise');
 
 // (Stream|Property, Function|undefined) -> Promise
-const toPromise = require('./to-promise');
+const toPromise = require('./interop/to-promise');
 Observable.prototype.toPromise = function(Promise) {
   return toPromise(this, Promise);
 };
 
 // (ESObservable) -> Stream
-Kefir.fromESObservable = require('./primary/from-es-observable');
+Kefir.fromESObservable = require('./interop/from-es-observable');
 
 // (Stream|Property) -> ES7 Observable
-const symbol = require('./utils/symbol');
-const ESObservable = require('./es-observable');
-const toESObservable = function() {
-  return new ESObservable(this);
-};
+const toESObservable = require('./interop/to-es-observable');
 Observable.prototype.toESObservable = toESObservable;
-Observable.prototype[symbol('observable')] = toESObservable;
+Observable.prototype[require('./utils/symbol')('observable')] = toESObservable;
 
 
 

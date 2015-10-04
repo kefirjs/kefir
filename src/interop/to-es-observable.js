@@ -1,4 +1,4 @@
-const {extend} = require('./utils/objects');
+const {extend} = require('../utils/objects');
 
 function ESObservable(observable) {
   this._observable = observable.takeErrors(1);
@@ -22,4 +22,6 @@ extend(ESObservable.prototype, {
 });
 
 
-module.exports = ESObservable;
+module.exports = function toESObservable() {
+  return new ESObservable(this);
+};
