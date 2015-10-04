@@ -74,7 +74,7 @@ Observable.prototype.changes = function() {
 
 
 
-// Interoperability with other implimentations
+// Interoperation with other implimentations
 // -----------------------------------------------------------------------------
 
 // (Promise) -> Property

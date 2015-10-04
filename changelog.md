@@ -1,6 +1,6 @@
 ## 3.1.0
 
- - Interoperability with [ECMAScript Observables](https://github.com/zenparsing/es-observable) added with two new methods: `.fromESObservable` and `.toESObservable`/`[Symbol.observable]` [#154](https://github.com/rpominov/kefir/pull/154)
+ - Interoperation with [ECMAScript Observables](https://github.com/zenparsing/es-observable) added with two new methods: `.fromESObservable` and `.toESObservable`/`[Symbol.observable]` [#154](https://github.com/rpominov/kefir/pull/154)
 
 ## 3.0.0 (26/09/2015)
 
