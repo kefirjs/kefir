@@ -44,7 +44,6 @@ Kefir.stream = require('./primary/stream');
 
 
 
-
 // Create a property
 // -----------------------------------------------------------------------------
 
@@ -54,8 +53,6 @@ Kefir.constant = require('./primary/constant');
 // (any) -> Property
 Kefir.constantError = require('./primary/constant-error');
 
-// (Promise) -> Property
-Kefir.fromPromise = require('./primary/from-promise');
 
 
 
@@ -77,15 +74,27 @@ Observable.prototype.changes = function() {
 
 
 
-
-// Subscribe / add side effects
+// Interoperation with other implimentations
 // -----------------------------------------------------------------------------
 
+// (Promise) -> Property
+Kefir.fromPromise = require('./interop/from-promise');
+
 // (Stream|Property, Function|undefined) -> Promise
-const toPromise = require('./to-promise');
+const toPromise = require('./interop/to-promise');
 Observable.prototype.toPromise = function(Promise) {
   return toPromise(this, Promise);
 };
+
+// (ESObservable) -> Stream
+Kefir.fromESObservable = require('./interop/from-es-observable');
+
+// (Stream|Property) -> ES7 Observable
+const toESObservable = require('./interop/to-es-observable');
+Observable.prototype.toESObservable = toESObservable;
+Observable.prototype[require('./utils/symbol')('observable')] = toESObservable;
+
+
 
 
 

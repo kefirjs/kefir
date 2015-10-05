@@ -1,0 +1,99 @@
+h2#interop Interoperation with other async implimentations
+
+
++descr-method('from-promise', 'fromPromise', 'Kefir.fromPromise(promise)').
+  Converts a Promise to a Kefir Property. Uses #[tt promise.then(onFulfilled, onRejected)]
+  interface to subscribe to the promise. Also calls #[tt promise.done()]
+  (if there is such methods) to prevent libraries like
+  #[a(href='https://github.com/kriskowal/q') Q] or
+  #[a(href='https://github.com/cujojs/when') when] from swallowing exceptions.
+
+pre.javascript(title='example')
+  :escapehtml
+    var result = Kefir.fromPromise(new Promise(fulfill => fulfill(1)));
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromPromise] <value> 1
+    > [fromPromise] <end>
+
+pre(title='events in time').
+  result:  ----1X
+div
+
+
+
++descr-method('to-promise', 'toPromise', 'obs.toPromise([PromiseConstructor])').
+  Converts an Kefir Observable to a Propmise.
+  If called without arguments the default #[tt gloabal.Promise] constructor is used,
+  alternatively you can pass a promise constructor
+  that supports following interface: #[tt new Promise((resolve, reject) =&gt; { ... })].
+  The promise will be fulfilled or rejected at the moment source observable ends,
+  with the latest value or error. If observable ends without any value or error
+  the promise will never be fulfilled/rejected.
+
+pre.javascript(title='example')
+  :escapehtml
+    var promise = Kefir.sequentially(1000, [1, 2]).toPromise();
+    promise.then(x => {
+      console.log('fulfilled with:', x);
+    });
+
+pre(title='console output')
+  :escapehtml
+    > fulfilled with: 2
+
+
+
++descr-method('from-es-observable', 'fromESObservable', 'Kefir.fromESObservable(observable)').
+  Converts an #[a(href='https://github.com/zenparsing/es-observable') ECMAScript Observable]
+  to a Kefir Stream.
+
+pre.javascript(title='example')
+  :escapehtml
+    var result = Kefir.fromESObservable(new Observable(observer => {
+      observer.next(1);
+      observer.next(2);
+      observer.complete();
+    }));
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [fromESObservable] <value> 1
+    > [fromESObservable] <value> 2
+    > [fromESObservable] <end>
+
+pre(title='events in time').
+  result:  12X
+div
+
+
+
+
++descr-method('to-es-observable', 'toESObservable', 'obs.toESObservable()', 'obs[Symbol.observable]()').
+  Converts an Kefir Observable to an
+  #[a(href='https://github.com/zenparsing/es-observable') ECMAScript Observable].
+
+p.
+  Aslo avaliable as #[tt obs[Symbol.observable]], so you can use ES Observable's
+  #[tt from] method with Kefir Observables e.g., #[tt Observable.from(Kefir.sequentially(1000, [1, 2]))].
+
+pre.javascript(title='example')
+  :escapehtml
+    var observable = Kefir.sequentially(1000, [1, 2]).toESObservable();
+    observable.subscribe({
+      next(x) {
+        console.log('value:', x);
+      },
+      complete() {
+        console.log('completed');
+      }
+    });
+
+pre(title='console output')
+  :escapehtml
+    > value: 1
+    > value: 2
+    > completed

@@ -1,4 +1,4 @@
-const stream = require('./stream');
+const stream = require('../primary/stream');
 const toProperty = require('../one-source/to-property');
 
 

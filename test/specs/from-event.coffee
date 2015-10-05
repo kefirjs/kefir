@@ -89,3 +89,25 @@ describe 'fromEvents', ->
       target.fooListener.call({a:1})
       target.fooListener.call({b:1}, 1)
       target.fooListener.call({c:1}, 1, 2)
+
+  it 'the callback passed to the target should always retrun undefined (no transformer)', ->
+    cb = null
+    target =
+      on: (e, x) -> cb = x
+      off: (e, x) -> cb = null
+    a = Kefir.fromEvents(target, 'foo')
+    a.take(2).onValue(->)
+    expect(cb(1)).toEqual(undefined)
+    expect(cb(2)).toEqual(undefined)
+    expect(cb).toEqual(null)
+
+  it 'the callback passed to the target should always retrun undefined (with transformer)', ->
+    cb = null
+    target =
+      on: (e, x) -> cb = x
+      off: (e, x) -> cb = null
+    a = Kefir.fromEvents(target, 'foo', (x) -> x)
+    a.take(2).onValue(->)
+    expect(cb(1)).toEqual(undefined)
+    expect(cb(2)).toEqual(undefined)
+    expect(cb).toEqual(null)
