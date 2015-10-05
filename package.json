@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
@@ -30,7 +30,6 @@
   "license": "MIT",
   "devDependencies": {
     "@reactivex/rxjs": "5.0.0-alpha.1",
-    "babel-core": "5.8.25",
     "babel-core": "5.8.23",
     "babel-loader": "5.3.2",
     "baconjs": "0.7.74",
