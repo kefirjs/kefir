@@ -954,6 +954,7 @@ it's a little dangerous but it is still a great method.
 but instead of arrays, it handles observables. Like in <b>flatten</b> you can
 either provide a <b>transform</b> function which will return observables,
 or you can use the source <b>obs</b> observable that already emits observables.
+</p><p>Always returns a stream.
 </p><p><b>flatMap</b> ends when <b>obs</b> and all spawned observables end.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3]);
 var result = source.flatMap(x =&gt; Kefir.interval(40, x).take(4));
