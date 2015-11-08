@@ -147,7 +147,8 @@ div
 
 
 +descr-method('take-errors', 'takeErrors', 'obs.takeErrors(n)').
-  Same as #[a(href='#take') take] but for #[a(href='#about-errors') errors].
+  Emits the first #[b n] #[a(href='#about-errors') errors] from the
+  original observable, then ends. Values just flow through.
 
 pre.javascript(title='example')
   :escapehtml
