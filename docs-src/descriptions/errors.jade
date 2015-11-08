@@ -39,4 +39,33 @@ p.
   As you can see values are being mapped and filtered,
   but errors just flow unchanged.
   Also notice that observable doesn't end on an error by default,
-  but you can use the #[a(href='#end-on-error') endOnError] method to make it happen.
+  but you can use the #[a(href='#take-errors') takeErrors] method to make it happen.
+  Consider a slight change to the above example:
+
+pre.javascript(title='example')
+  :escapehtml
+    var foo = Kefir.stream(emitter => {
+      emitter.emit(0);
+      emitter.emit(2);
+      emitter.error(-1);
+      emitter.emit(3);
+      emitter.end();
+    });
+
+    var bar = foo.map(x => x + 2).filter(x => x > 3);
+    bar.takeErrors(1).log();
+
+pre(title='console output')
+  :escapehtml
+    > [stream.map.filter.takeErrors] <value:current> 4
+    > [stream.map.filter.takeErrors] <error:current> -1
+    > [stream.map.filter.takeErrors] <end:current>
+
+pre(title='events in time')
+  :escapehtml
+    foo: ---0---2---e---3---X
+                    -1
+
+    bar: -------4---eX
+                    -1
+div
