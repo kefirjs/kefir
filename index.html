@@ -426,7 +426,8 @@ result.log();
 &gt; [sequentially.take] &lt;value&gt; 2
 &gt; [sequentially.take] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---2---3X
-result: ---1---2X</pre><div></div><p id="take-errors"><a href="#take-errors" class="header">takeErrors</a><code>obs.takeErrors(n)</code><br/>Same as <a href="#take">take</a> but for <a href="#about-errors">errors</a>.
+result: ---1---2X</pre><div></div><p id="take-errors"><a href="#take-errors" class="header">takeErrors</a><code>obs.takeErrors(n)</code><br/>Emits the first <b>n</b> <a href="#about-errors">errors</a> from the
+original observable, then ends. Values just flow through.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3])
   .flatMap(x =&gt; Kefir.constantError(x));
 var result = source.takeErrors(2);
@@ -1206,7 +1207,7 @@ interface to subscribe to the promise. Also calls <tt>promise.done()</tt>
 result.log();
 </pre><pre title="console output">&gt; [fromPromise] &lt;value&gt; 1
 &gt; [fromPromise] &lt;end&gt;
-</pre><pre title="events in time">result:  ----1X</pre><div></div><p id="to-promise"><a href="#to-promise" class="header">toPromise</a><code>obs.toPromise([PromiseConstructor])</code><br/>Converts an Kefir Observable to a Propmise.
+</pre><pre title="events in time">result:  ----1X</pre><div></div><p id="to-promise"><a href="#to-promise" class="header">toPromise</a><code>obs.toPromise([PromiseConstructor])</code><br/>Converts an Kefir Observable to a Promise.
 If called without arguments the default <tt>gloabal.Promise</tt> constructor is used,
 alternatively you can pass a promise constructor
 that supports following interface: <tt>new Promise((resolve, reject) =&gt; { ... })</tt>.
@@ -1305,7 +1306,26 @@ bar: -------4---e---5---X
                 -1</pre><div></div><p>As you can see values are being mapped and filtered,
 but errors just flow unchanged.
 Also notice that observable doesn't end on an error by default,
-but you can use the <a href="#end-on-error">endOnError</a> method to make it happen.</p><h2 id="current-in-streams">Current values/errors in streams</h2><p>Normally only properties have current values,
+but you can use the <a href="#take-errors">takeErrors</a> method to make it happen.
+Consider a slight change to the above example:
+</p><pre title="example" class="javascript">var foo = Kefir.stream(emitter =&gt; {
+  emitter.emit(0);
+  emitter.emit(2);
+  emitter.error(-1);
+  emitter.emit(3);
+  emitter.end();
+});
+
+var bar = foo.map(x =&gt; x + 2).filter(x =&gt; x &gt; 3);
+bar.takeErrors(1).log();
+</pre><pre title="console output">&gt; [stream.map.filter.takeErrors] &lt;value:current&gt; 4
+&gt; [stream.map.filter.takeErrors] &lt;error:current&gt; -1
+&gt; [stream.map.filter.takeErrors] &lt;end:current&gt;
+</pre><pre title="events in time">foo: ---0---2---e---3---X
+                -1
+
+bar: -------4---eX
+                -1</pre><div></div><h2 id="current-in-streams">Current values/errors in streams</h2><p>Normally only properties have current values,
 but sometimes streams may also emit them.
 I.e. sometimes a stream can emit a value (or error) in response to
 a first subscription (i.e. on <a href="#active-state">activation</a>),
