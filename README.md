@@ -48,20 +48,9 @@ Also available on [jsDelivr](http://www.jsdelivr.com/#!kefir).
 To build all the things: `/dist`, docs, tests for browser, etc. run:
 
     grunt
-    grunt bower # to also install bower packages which needed for docs and demos
+    grunt bower # to also install bower packages which needed for docs
 
-To run unit tests:
+To run tests:
 
     npm test
 
-To run memory tests:
-
-    coffee --nodejs '--expose-gc' test/perf/memory-specs/[some spec].coffee
-
-To run all memory tests (see [results](https://github.com/rpominov/kefir/blob/master/test/perf/memory-results.txt)):
-
-    coffee --nodejs '--expose-gc' test/perf/memory-all.coffee
-
-To run performance tests:
-
-    coffee test/perf/perf-specs/[some spec].coffee

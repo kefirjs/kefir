@@ -24,14 +24,6 @@ module.exports = (grunt) ->
         dest: 'test/in-browser/spec/KefirSpecs.js'
         options:
           transform: ['coffeeify']
-      perf:
-        expand: true
-        cwd: "test/perf/perf-specs"
-        src: "*.coffee"
-        dest: "tmp/perf-bundles"
-        ext: ".js"
-        options:
-          transform: ['coffeeify']
 
     webpack:
       dev:
