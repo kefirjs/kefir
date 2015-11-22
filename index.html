@@ -1273,7 +1273,7 @@ the whole chain will be <b>inactive</b> until first subscriber is added,
 and then it will <b>activate</b> up to <tt>.fromEvents</tt>. Same for <b>deactivation</b>.</p><h2 id="emitter-object">Emitter</h2><p>Emitter is an object that has four methods for emitting events.
 It is used in several places in Kefir as a proxy to emit events from some observable.
 </p><p>The methods names describe themselves pretty clearly:
-</p><ul><li><tt>emitter.emit(value)</tt> accepts one argument (any value)</li><li><tt>emitter.error(error)</tt> accepts one argument (any value)</li><li><tt>emitter.end()</tt> accepts no arguments</li><li><tt>emitter.emitEvent(event)</tt> accepts one agrument (event object with same format as in <a href="#on-any">onAny</a> method). Note that the <tt>current</tt> property of <b>event object</b> is ignored and is automatically set to an appropriate value for result event.</li></ul><pre title="example" class="javascript">emitter.emit(123);
+</p><ul><li><tt>emitter.emit(value)</tt> accepts one argument (any value)</li><li><tt>emitter.error(error)</tt> accepts one argument (any value)</li><li><tt>emitter.end()</tt> accepts no arguments</li><li><tt>emitter.emitEvent(event)</tt> accepts one agrument (event object with same format as in <a href="#on-any">onAny</a> method).</li></ul><pre title="example" class="javascript">emitter.emit(123);
 emitter.error(&#x27;Oh, snap!&#x27;);
 emitter.end();</pre><div></div><p>All <b>emitter</b> methods are bound to their context,
 and can be passed as callbacks safely without binding:
