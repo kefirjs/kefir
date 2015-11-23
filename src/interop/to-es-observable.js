@@ -10,7 +10,7 @@ extend(ESObservable.prototype, {
     let fn = function(event) {
       if (event.type === VALUE && observer.next) {
         observer.next(event.value);
-      } else if (event.type == ERROR && observer.error) {
+      } else if (event.type === ERROR && observer.error) {
         observer.error(event.value);
       } else if (event.type === END && observer.complete) {
         observer.complete(event.value);
