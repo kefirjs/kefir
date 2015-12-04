@@ -1,79 +1,93 @@
 h2#current-in-streams Current values/errors in streams
 
 p.
-  Normally only properties have current values,
-  but sometimes streams may also emit them.
-  I.e. sometimes a stream can emit a value (or error) in response to
-  a first subscription (i.e. on #[a(href='#active-state') activation]),
-  and only the first subscriber will get the value.
+  Normally in Kefir only Properties have current values, but depending on how we
+  define "current value" we might say that Streams also may have them.
 
 p.
-  In Bacon.js there are even methods that create such streams (#[tt .once], #[tt .fromArray]),
-  but in Kefir we are trying to avoid them as they may cause some confusion
-  for beginners (which actually happens quite a lot for Bacon).
-  So in Kefir it is less easier to create streams emitting current values,
-  but there are still situations when they can be created.
+  Let's see how we get current values from Properties first. There is no
+  direct access to the current value of a property, we can't do something like
+  #[tt prop.getCurrent()]. Instead we subscribe to the property using
+  #[tt onValue(callback)] for example, and our callback gets called immediately
+  with the current value.
+
+p.
+  If we define "current value" through that technical detail of getting it:
+  current value is the value that we get in the callback immediately after subscribing.
+  Then we can say that sometimes Streams also may have current values.
 
 p.
   Let see some examples.
-  Each of these streams will emit a value at the moment the first subscriber is added:
 
 pre.javascript(title='example')
   :escapehtml
-    var s1 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
-
-    var s2 = Kefir.stream(emitter => {
+    // This is the most straightforward way for creating such a stream
+    var s1 = Kefir.stream(emitter => {
       emitter.emit(1);
     });
 
+    // But it can be created accidentally or intentionally in some other cases, such as
+    var s2 = Kefir.merge([Kefir.constant(1), Kefir.never()]);
     var s3 = Kefir.combine([Kefir.constant(1), Kefir.constant(1)]);
 
 p.
-  When a stream emits a value like this, it is internally considered as a #[b current] value.
-  The #[a(href='#log') log] method will mark it as current,
-  and in #[a(href='#on-any') onAny] subscriber, #[tt event.current] will be equal to #[b true].
+  This feature of Streams has its cons and pros.
+
+h3 Cons
 
 p.
-  There are some issues with all this, but also some benefits.
-  Issue number one is that only the first subscriber gets this value (or error).
-  Even if it was an #[b onEnd] subscriber, it'll still eat all current values,
-  and further subscribers won't get them.
-  Second issue is that it may be considered as a not semantically correct behaviour,
-  i.e., because the moment when the stream emits values depends on when it gets subscribers...
-
-p.
-  First benefit — it allows you to define the current value in
-  #[a(href='#stream') Kefir.stream()]. It is easier to show with an example:
+  Only first subscriber gets that value. Even if it was an #[tt onEnd]
+  or #[tt onError] subscriber, it'll still "consume" the "current value".
+  Let's see it in an example:
 
 pre.javascript(title='example')
   :escapehtml
-    var scrollTop = Kefir.stream(emitter => {
+    var stream = Kefir.stream(emitter => {
+      emitter.emit(1);
+    });
+    stream.onValue(x => console.log('first', x)); // logs "first 1"
+    stream.onValue(x => console.log('second', x)); // won't log
 
-      function emitScrollY() {
-        emitter.emit(window.scrollY);
-      }
 
-      emitScrollY(); // here we are emitting the current value
-
-      window.addEventListener('scroll', emitScrollY);
-
-      return () => {
-        window.removeEventListener('scroll', emitScrollY);
-      };
-
-    }).toProperty();
-
-    scrollTop.log();
-
-pre(title='console output')
-  :escapehtml
-    > [stream.toProperty] <value:current> 0
-    > [stream.toProperty] <value> 4
-    > [stream.toProperty] <value> 9
-    > [stream.toProperty] <value> 23
+    // Even with onError it will be consumed
+    var stream2 = ...
+    stream.onError(fn);
+    stream.onValue(x => console.log('second', x)); // won't log
 
 p.
-  The second benefit is that it makes possible to not lose
+  This is fixed in Properties as they remember the last value, and call
+  any new subscriber with it.
+
+p.
+  Another issue is that it's not very good from semantics point of view.
+  Moment when an event happens in the stream depends on moment when stream
+  gets the first subscriber. That makes subscribing not pure operation, and whole
+  system gets less declarative and functional.
+
+
+h3 Pros
+
+p.
+  This feature allows you to define current value in a stream. Well it sounds
+  just like the definition of the feature, but let's just look at an example,
+  hopefully it'll help to understand what I mean:
+
+pre.javascript(title='example')
+  :escapehtml
+    var scrollTopStream = Kefir.stream(emitter => {
+      emitter.emit(window.scrollY); // here we are emitting the current value!
+      window.addEventListener('scroll', () => {
+        emitter.emit(window.scrollY);
+      });
+    });
+
+    // Let's now convert it to a property like good citizens
+    var scrollTopProperty = scrollTopStream.toProperty();
+
+    scrollTopProperty.log();
+
+p.
+  Another benefit is that it makes possible to not lose
   current values when converting properties to streams and then back to properties.
   For example, #[a(href='#combine') combine] always returns a stream
   (#[a(href='https://github.com/rpominov/kefir/issues/44#issuecomment-72875317') why?])
@@ -81,11 +95,14 @@ p.
   So one can do #[tt Kefir.combine([p1, p2], fn).toProperty()],
   and get a property combined from two other properties with the correct current value.
 
+
+h3 P.S.
+
+p.
+  Note that all this applies to #[a(href='#about-errors') errors] as well.
+
 p.
   Also it's a good practice to convert all streams that might
   emit current values to properties by using the #[b toProperty] method.
   That should make your code more reliable as all subscribers will get current values.
   And it's just better semantically as current values should live in the properties.
-
-
-
