@@ -726,28 +726,29 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
-    var result = source.bufferWithTimeOrCount(310, 10);
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+    var result = source.bufferWithTimeOrCount(330, 10);
     result.log();
 
 pre(title='console output')
   :escapehtml
     > [sequentially.bufferWithTimeOrCount] <value> [1, 2, 3]
     > [sequentially.bufferWithTimeOrCount] <value> [4, 5, 6]
+    > [sequentially.bufferWithTimeOrCount] <value> [7, 8]
     > [sequentially.bufferWithTimeOrCount] <end>
 
 pre(title='events in time').
-  source:  ---1---2---3---4---5---6X
-  result:  -----------•-----------•X
-                [1,2,3]     [4,5,6]
+  source:  ---1---2---3---4---5---6---7---8 X
+  result:  ------------•------------•------•X
+                [1,2,3]       [4,5,6]  [7,8]
 
 p.
   Limited by count:
 
 pre.javascript(title='example')
   :escapehtml
-    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
-    var result = source.bufferWithTimeOrCount(310, 2);
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+    var result = source.bufferWithTimeOrCount(330, 2);
     result.log();
 
 pre(title='console output')
@@ -755,12 +756,13 @@ pre(title='console output')
     > [sequentially.bufferWithTimeOrCount] <value> [1, 2]
     > [sequentially.bufferWithTimeOrCount] <value> [3, 4]
     > [sequentially.bufferWithTimeOrCount] <value> [5, 6]
+    > [sequentially.bufferWithTimeOrCount] <value> [7, 8]
     > [sequentially.bufferWithTimeOrCount] <end>
 
 pre(title='events in time').
-  source:  ---1---2---3---4---5---6X
-  result:  -------•-------•-------•X
-              [1,2]   [3,4]   [5,6]
+  source:  ---1---2---3---4---5---6---7---8X
+  result:  -------•-------•-------•-------•X
+              [1,2]   [3,4]   [5,6]   [7,8]
 div
 
 

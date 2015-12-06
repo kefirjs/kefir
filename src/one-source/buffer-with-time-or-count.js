@@ -17,7 +17,7 @@ const mixin = {
   },
 
   _flush() {
-    if (this._buff !== null && this._buff.length !== 0) {
+    if (this._buff !== null) {
       this._emitValue(this._buff);
       this._buff = [];
     }
@@ -33,7 +33,7 @@ const mixin = {
   },
 
   _handleEnd() {
-    if (this._flushOnEnd) {
+    if (this._flushOnEnd && this._buff.length !== 0) {
       this._flush();
     }
     this._emitEnd();
