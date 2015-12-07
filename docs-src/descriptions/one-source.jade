@@ -713,13 +713,11 @@ div
 
 
 
-+descr-method('buffer-with-count', 'bufferWithCount', 'obs.bufferWithCount(count)').
++descr-method('buffer-with-count', 'bufferWithCount', 'obs.bufferWithCount(count, [options])').
   Buffers all values from #[b obs] observable, and flushes the buffer
-  every time #[b n] values have been passed through. Also flushes the buffer before end, if the buffer is not empty.
-
-p.
-  If #[tt options.flushOnEnd] is #[tt false], the buffer
-  won't be flushed when the main observable ends.
+  every time #[b n] values have been passed through.
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
 
 pre.javascript(title='example')
   :escapehtml
