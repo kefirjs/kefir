@@ -654,7 +654,6 @@ div
 
 
 
-
 +descr-method('sliding-window', 'slidingWindow', 'obs.slidingWindow(max, [min])').
   Will emit arrays containing the last #[b n] values from the #[b obs] observable,
   where #[b n] is between #[b max] and #[b min] arguments.
@@ -679,6 +678,7 @@ pre(title='events in time').
   result:  -----------------•--------•--------•--------•X
                         [1,2]  [1,2,3]  [2,3,4]  [3,4,5]
 div
+
 
 
 
@@ -709,6 +709,35 @@ pre(title='events in time').
   source:  ---1---2---3---4---5 X
   result:  -----------•--------•X
                 [1,2,3]    [4,5]
+div
+
+
+
++descr-method('buffer-with-count', 'bufferWithCount', 'obs.bufferWithCount(count)').
+  Buffers all values from #[b obs] observable, and flushes the buffer
+  every time #[b n] values have been passed through. Also flushes the buffer before end, if the buffer is not empty.
+
+p.
+  If #[tt options.flushOnEnd] is #[tt false], the buffer
+  won't be flushed when the main observable ends.
+
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
+    var result = source.bufferWithCount(2)
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWithCount] <value> [1, 2]
+    > [sequentially.bufferWithCount] <value> [3, 4]
+    > [sequentially.bufferWithCount] <value> [5]
+    > [sequentially.bufferWithCount] <end>
+
+pre(title='events in time').
+  source:  --------1--------2--------3--------4--------5 X
+  result:  -----------------•-----------------•---------•X
+                        [1,2]             [3,4]       [5]X
 div
 
 

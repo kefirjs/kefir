@@ -264,6 +264,13 @@ Observable.prototype.bufferWhile = function(fn, options) {
   return bufferWhile(this, fn, options);
 };
 
+// (Stream, number) -> Stream
+// (Property, number) -> Property
+const bufferWithCount = require('./one-source/buffer-with-count');
+Observable.prototype.bufferWithCount = function(count, options) {
+  return bufferWithCount(this, count, options);
+};
+
 // (Stream, Function) -> Stream
 // (Property, Function) -> Property
 const transduce = require('./one-source/transduce');
