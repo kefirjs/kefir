@@ -741,6 +741,60 @@ div
 
 
 
++descr-method('buffer-with-time-or-count', 'bufferWithTimeOrCount', 'obs.bufferWithTimeOrCount(interval, count, [options])').
+  Continuously buffers values from the source observable, flushing
+  every #[b interval] milliseconds, or immediately once #[b count]
+  values have been stored.
+  Also flushes the buffer before end, but you can disable that
+  by passing #[tt {flushOnEnd: false}] as #[b options].
+  
+p.
+  Limited by time:
+
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+    var result = source.bufferWithTimeOrCount(330, 10);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWithTimeOrCount] <value> [1, 2, 3]
+    > [sequentially.bufferWithTimeOrCount] <value> [4, 5, 6]
+    > [sequentially.bufferWithTimeOrCount] <value> [7, 8]
+    > [sequentially.bufferWithTimeOrCount] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3---4---5---6---7---8 X
+  result:  ------------•------------•------•X
+                [1,2,3]       [4,5,6]  [7,8]
+
+p.
+  Limited by count:
+
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6, 7, 8]);
+    var result = source.bufferWithTimeOrCount(330, 2);
+    result.log();
+
+pre(title='console output')
+  :escapehtml
+    > [sequentially.bufferWithTimeOrCount] <value> [1, 2]
+    > [sequentially.bufferWithTimeOrCount] <value> [3, 4]
+    > [sequentially.bufferWithTimeOrCount] <value> [5, 6]
+    > [sequentially.bufferWithTimeOrCount] <value> [7, 8]
+    > [sequentially.bufferWithTimeOrCount] <end>
+
+pre(title='events in time').
+  source:  ---1---2---3---4---5---6---7---8X
+  result:  -------•-------•-------•-------•X
+              [1,2]   [3,4]   [5,6]   [7,8]
+div
+
+
+
+
 +descr-method('transduce', 'transduce', 'obs.transduce(transducer)').
   This method allows you to use transducers in Kefir.
   It supports any transducers implementation that follows
