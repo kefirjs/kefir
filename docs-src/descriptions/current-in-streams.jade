@@ -60,8 +60,8 @@ p.
 
 p.
   Another issue is that it's not very good from semantics point of view.
-  Moment when an event happens in the stream depends on moment when stream
-  gets the first subscriber. That makes subscribing not pure operation, and whole
+  The moment when an event happens in a stream depends on the moment when the stream
+  gets the first subscriber. That makes subscribing not a pure operation, and whole
   system gets less declarative and functional.
 
 
@@ -84,8 +84,6 @@ pre.javascript(title='example')
     // Let's now convert it to a property like good citizens
     var scrollTopProperty = scrollTopStream.toProperty();
 
-    scrollTopProperty.log();
-
 p.
   Another benefit is that it makes possible to not lose
   current values when converting properties to streams and then back to properties.
@@ -105,4 +103,4 @@ p.
   Also it's a good practice to convert all streams that might
   emit current values to properties by using the #[b toProperty] method.
   That should make your code more reliable as all subscribers will get current values.
-  And it's just better semantically as current values should live in the properties.
+  And it's just better semantically as current values should live in properties.
