@@ -1,7 +1,12 @@
-## 3.1.0
+## 3.2.0 (12/12/2015)
+
+ - New method `.bufferWithTimeOrCount` [#172](https://github.com/rpominov/kefir/pull/172) [@mcmathja](https://github.com/mcmathja)
+ - New method `.bufferWithCount` [#170](https://github.com/rpominov/kefir/pull/170) [@elsehow](https://github.com/elsehow)
+
+## 3.1.0 (5/10/2015)
 
  - Interoperation with [ECMAScript Observables](https://github.com/zenparsing/es-observable) added with two new methods: `.fromESObservable` and `.toESObservable`/`[Symbol.observable]` [#154](https://github.com/rpominov/kefir/pull/154)
- - A bug in `.fromEvents` fixed [#159](https://github.com/rpominov/kefir/issues/159)
+ - A bug in `.fromEvents` fixed [#159](https://github.com/rpominov/kefir/issues/159) [@lautis](https://github.com/lautis)
 
 ## 3.0.0 (26/09/2015)
 
@@ -10,7 +15,7 @@
  - New method `.takeErrors` replacing deprecated `.endOnError` [#150](https://github.com/rpominov/kefir/issues/150)
  - Methods `.skipValues`, `.skipErrors`, and `.skipEnd` are renamed to `.ignoreValues`, `.ignoreErrors`, and `.ignoreEnd` [#152](https://github.com/rpominov/kefir/issues/152)
  - The `emitEmpty` option from `.bufferWhileBy` removed, it now always emits `[]` if necessary [#131](https://github.com/rpominov/kefir/issues/131)
- - Property now sets its current value **before** dispatching [#127](https://github.com/rpominov/kefir/issues/127)
+ - Property now sets its current value **before** dispatching [#127](https://github.com/rpominov/kefir/issues/127) [@olivierguerriat](https://github.com/olivierguerriat)
  - Event objects now don't contain `.current` property [#100](https://github.com/rpominov/kefir/issues/100)
  - The `.flatten` method now always returns a stream [#144](https://github.com/rpominov/kefir/issues/144)
 
@@ -24,11 +29,11 @@ See also [Umbrella 3.0](https://github.com/rpominov/kefir/issues/138)
 
 ## 2.8.1 (30/08/2015)
 
- - A bug in `.delay` fixed [#134](https://github.com/rpominov/kefir/issues/134)
+ - A bug in `.delay` fixed [#134](https://github.com/rpominov/kefir/issues/134) [@AgentME](https://github.com/AgentME)
 
 ## 2.8.0 (21/08/2015)
 
- - The `emitEmpty` option added to `.bufferWhileBy` [#129](https://github.com/rpominov/kefir/pull/129)
+ - The `emitEmpty` option added to `.bufferWhileBy` [#129](https://github.com/rpominov/kefir/pull/129) [@shamansir](https://github.com/shamansir)
 
 ## 2.7.2 (16/07/2015)
 

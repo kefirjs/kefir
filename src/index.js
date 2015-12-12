@@ -264,6 +264,21 @@ Observable.prototype.bufferWhile = function(fn, options) {
   return bufferWhile(this, fn, options);
 };
 
+// (Stream, number) -> Stream
+// (Property, number) -> Property
+const bufferWithCount = require('./one-source/buffer-with-count');
+Observable.prototype.bufferWithCount = function(count, options) {
+  return bufferWithCount(this, count, options);
+};
+
+// Options = {flushOnEnd: boolean|undefined}
+// (Stream, number, number, Options|undefined) -> Stream
+// (Property, number, number, Options|undefined) -> Property
+const bufferWithTimeOrCount = require('./one-source/buffer-with-time-or-count');
+Observable.prototype.bufferWithTimeOrCount = function(wait, count, options) {
+  return bufferWithTimeOrCount(this, wait, count, options);
+};
+
 // (Stream, Function) -> Stream
 // (Property, Function) -> Property
 const transduce = require('./one-source/transduce');
