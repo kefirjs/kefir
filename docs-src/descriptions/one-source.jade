@@ -715,7 +715,7 @@ div
 
 +descr-method('buffer-with-count', 'bufferWithCount', 'obs.bufferWithCount(count, [options])').
   Buffers all values from #[b obs] observable, and flushes the buffer
-  every time #[b n] values have been passed through.
+  every time #[b count] values have been passed through.
   Also flushes the buffer before end, but you can disable that
   by passing #[tt {flushOnEnd: false}] as #[b options].
 
@@ -747,7 +747,7 @@ div
   values have been stored.
   Also flushes the buffer before end, but you can disable that
   by passing #[tt {flushOnEnd: false}] as #[b options].
-  
+
 p.
   Limited by time:
 
