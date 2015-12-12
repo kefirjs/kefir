@@ -1402,8 +1402,8 @@ stream.onValue(x =&gt; console.log(&#x27;second&#x27;, x)); // won&#x27;t log
 </pre><p>This is fixed in Properties as they remember the last value, and call
 any new subscriber with it.
 </p><p>Another issue is that it's not very good from semantics point of view.
-Moment when an event happens in the stream depends on moment when stream
-gets the first subscriber. That makes subscribing not pure operation, and whole
+The moment when an event happens in a stream depends on the moment when the stream
+gets the first subscriber. That makes subscribing not a pure operation, and whole
 system gets less declarative and functional.
 
 </p><h3>Pros</h3><p>This feature allows you to define current value in a stream. Well it sounds
@@ -1418,8 +1418,6 @@ hopefully it'll help you understand what I mean:
 
 // Let&#x27;s now convert it to a property like good citizens
 var scrollTopProperty = scrollTopStream.toProperty();
-
-scrollTopProperty.log();
 </pre><p>Another benefit is that it makes possible to not lose
 current values when converting properties to streams and then back to properties.
 For example, <a href="#combine">combine</a> always returns a stream
@@ -1432,7 +1430,7 @@ and get a property combined from two other properties with the correct current v
 </p><p>Also it's a good practice to convert all streams that might
 emit current values to properties by using the <b>toProperty</b> method.
 That should make your code more reliable as all subscribers will get current values.
-And it's just better semantically as current values should live in the properties.</p></div><script>$.getJSON('https://api.github.com/emojis', function(emojis){
+And it's just better semantically as current values should live in properties.</p></div><script>$.getJSON('https://api.github.com/emojis', function(emojis){
   $('[data-emoji]').each(function(){
     var name = $(this).data('emoji');
     $(this).attr({
