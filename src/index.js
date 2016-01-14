@@ -94,6 +94,9 @@ const toESObservable = require('./interop/to-es-observable');
 Observable.prototype.toESObservable = toESObservable;
 Observable.prototype[require('./utils/symbol')('observable')] = toESObservable;
 
+// (Node ReadableStream) -> Stream
+Kefir.fromReadableStream = require('./interop/from-readable-stream');
+
 
 
 
