@@ -67,7 +67,7 @@ button click events:
 </pre><p>Also let's create a stream of a text input value changes:
 </p><pre title="example" class="javascript">var inputValue = Kefir.fromEvents(document.querySelector(&#x27;#ex-2-input&#x27;), &#x27;keyup&#x27;)
   .map(event =&gt; event.target.value);
-</pre><p>That a good begining, we have streams representing user actions,
+</pre><p>That's a good begining, we have streams representing user actions,
 now we can transform and combine them to create our desired result stream.
 First we want to have a <a href="#about-observables">property</a>
 representing how many times user clicked the button,
@@ -477,10 +477,7 @@ result.log();
 &gt; [sequentially.skipWhile] &lt;value&gt; 2
 &gt; [sequentially.skipWhile] &lt;end&gt;
 </pre><pre title="events in time">source: ---1---3---2X
-result: -------3---2X</pre><div></div><p>See also <a href="#skip-while-by">skipWhileBy</a>.
-
-
-</p><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>obs.skipDuplicates([comparator])</code><br/>Skips duplicate values using <tt>===</tt> for comparison.
+result: -------3---2X</pre><div></div><p id="skip-duplicates"><a href="#skip-duplicates" class="header">skipDuplicates</a><code>obs.skipDuplicates([comparator])</code><br/>Skips duplicate values using <tt>===</tt> for comparison.
 Accepts an optional <b>comparator</b> function which is then used instead of <tt>===</tt>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 2, 3, 1]);
 var result = source.skipDuplicates();
@@ -695,7 +692,7 @@ every time <b>count</b> values have been passed through.
 Also flushes the buffer before end, but you can disable that
 by passing <tt>{flushOnEnd: false}</tt> as <b>options</b>.
 </p><pre title="example" class="javascript">var source = Kefir.sequentially(100, [1, 2, 3, 4, 5]);
-var result = source.bufferWithCount(2)
+var result = source.bufferWithCount(2);
 result.log();
 </pre><pre title="console output">&gt; [sequentially.bufferWithCount] &lt;value&gt; [1, 2]
 &gt; [sequentially.bufferWithCount] &lt;value&gt; [3, 4]
@@ -838,8 +835,7 @@ The result stream will emit the next value only when it has at least one value
 from each source.
 </p><p>You can also provide a <b>combinator</b> function. In this case, instead
 of emitting an array of values, they will be passed to <b>combinator</b> as arguments,
-and the returned value will be emitted (same as in <a href="#combine">combine</a>,
-<a href="#sampled-by">sampledBy</a>, etc.)
+and the returned value will be emitted (same as in <a href="#combine">combine</a>)
 </p><p>Also in <b>zip</b> you can pass ordinary arrays along with observables
 in the <b>sources</b>, e.g. <tt>Kefir.zip([obs,&nbsp;[1,&nbsp;2,&nbsp;3]],&nbsp;fn)</tt>.
 In other words, <b>sources</b> is an array of observables and arrays,
@@ -1153,7 +1149,7 @@ bar:    t-----------f---------t---------fX
 result:  ----1----2--------------5----6----------X</pre><div></div><p id="obs-sampled-by"><a href="#obs-sampled-by" class="header">sampledBy</a><code>obs.sampledBy(otherObs, [combinator])</code><br/>Returns a stream that emits the latest value from <b>obs</b> observable
 on each value from <b>otherObs</b>. Ends when <b>otherObs</b> ends.
 </p><p>You can also provide a
-<b>combinator</b> function which will be used to form the value emitted
+<b>combinator</b> function which will be used to from the value emitted
 by the result stream. It is called with the latest values
 from <b>obs</b> and <b>otherObs</b> as arguments. The default <b>combinator</b>
 function is <tt>(a,&nbsp;b)&nbsp;=&gt;&nbsp;a</tt>.
@@ -1170,7 +1166,7 @@ result.log();
 </pre><pre title="events in time">a:      1---------2---------3X
 b:       ------0----0----0----0----0X
 
-result:  ------1----2----2----3----3X</pre><div></div><p id="skip-until-by"><a href="#skip-until-by" class="header">skipUntilBy</a><code>obs.skipUntilBy(otherObs)</code><br/>Skips values form <b>obs</b> until the first value from <b>otherObs</b>.
+result:  ------1----2----2----3----3X</pre><div></div><p id="skip-until-by"><a href="#skip-until-by" class="header">skipUntilBy</a><code>obs.skipUntilBy(otherObs)</code><br/>Skips values from <b>obs</b> until the first value from <b>otherObs</b>.
 </p><pre title="example" class="javascript">var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
 var bar = Kefir.later(250, 0);
 var result = foo.skipUntilBy(bar);
@@ -1181,7 +1177,7 @@ result.log();
 </pre><pre title="events in time">foo:     ----1----2----3----4X
 bar:     -----------0X
 
-result:  --------------3----4X</pre><div></div><p id="take-until-by"><a href="#take-until-by" class="header">takeUntilBy</a><code>obs.takeUntilBy(otherObs)</code><br/>Takes values form <b>obs</b> until the first value form <b>otherObs</b> i.e.,
+result:  --------------3----4X</pre><div></div><p id="take-until-by"><a href="#take-until-by" class="header">takeUntilBy</a><code>obs.takeUntilBy(otherObs)</code><br/>Takes values from <b>obs</b> until the first value from <b>otherObs</b> i.e.,
 ends on the first value from <b>otherObs</b>.
 </p><pre title="example" class="javascript">var foo = Kefir.sequentially(100, [1, 2, 3, 4]);
 var bar = Kefir.later(250, 0);
