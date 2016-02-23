@@ -1,8 +1,7 @@
-const stream = require('../primary/stream');
-const toProperty = require('../one-source/to-property');
+import stream from '../primary/stream';
+import toProperty from '../one-source/to-property';
 
-
-module.exports = function fromPromise(promise) {
+export default function fromPromise(promise) {
 
   let called = false;
 
@@ -29,4 +28,4 @@ module.exports = function fromPromise(promise) {
 
   return toProperty(result, null).setName('fromPromise');
 
-};
+}

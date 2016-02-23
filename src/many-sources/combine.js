@@ -1,9 +1,9 @@
-const Stream = require('../stream');
-const {VALUE, ERROR, NOTHING} = require('../constants');
-const {inherit} = require('../utils/objects');
-const {concat, fillArray} = require('../utils/collections');
-const {spread} = require('../utils/functions');
-const never = require('../primary/never');
+import Stream from '../stream';
+import {VALUE, ERROR, NOTHING} from '../constants';
+import {inherit} from '../utils/objects';
+import {concat, fillArray} from '../utils/collections';
+import {spread} from '../utils/functions';
+import never from '../primary/never';
 
 
 
@@ -154,7 +154,7 @@ inherit(Combine, Stream, {
 });
 
 
-module.exports = function combine(active, passive = [], combinator) {
+export default function combine(active, passive = [], combinator) {
   if (typeof passive === 'function') {
     combinator = passive;
     passive = [];

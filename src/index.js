@@ -1,10 +1,19 @@
-const Kefir = module.exports = {};
+const Kefir = {};
 Kefir.Kefir = Kefir;
+export { Kefir };
+export default Kefir;
 
-const Observable = Kefir.Observable = require('./observable');
-Kefir.Stream = require('./stream');
-Kefir.Property = require('./property');
+import Observable from './observable';
+Kefir.Observable = Observable;
+export { Observable };
 
+import Stream from './stream';
+Kefir.Stream = Stream;
+export { Stream };
+
+import Property from './property';
+Kefir.Property = Property;
+export { Property };
 
 
 
@@ -12,35 +21,55 @@ Kefir.Property = require('./property');
 // -----------------------------------------------------------------------------
 
 // () -> Stream
-Kefir.never = require('./primary/never');
+import never from './primary/never';
+Kefir.never = never;
+export { never };
 
 // (number, any) -> Stream
-Kefir.later = require('./time-based/later');
+import later from './time-based/later';
+Kefir.later = later;
+export { later };
 
 // (number, any) -> Stream
-Kefir.interval = require('./time-based/interval');
+import interval from './time-based/interval';
+Kefir.interval = interval;
+export { interval };
 
 // (number, Array<any>) -> Stream
-Kefir.sequentially = require('./time-based/sequentially')
+import sequentially from './time-based/sequentially';
+Kefir.sequentially = sequentially;
+export { sequentially };
 
 // (number, Function) -> Stream
-Kefir.fromPoll = require('./time-based/from-poll');
+import fromPoll from './time-based/from-poll';
+Kefir.fromPoll = fromPoll;
+export { fromPoll };
 
 // (number, Function) -> Stream
-Kefir.withInterval = require('./time-based/with-interval');
+import withInterval from './time-based/with-interval';
+Kefir.withInterval = withInterval;
+export { withInterval };
 
 // (Function) -> Stream
-Kefir.fromCallback = require('./primary/from-callback');
+import fromCallback from './primary/from-callback';
+Kefir.fromCallback = fromCallback;
+export { fromCallback };
 
 // (Function) -> Stream
-Kefir.fromNodeCallback = require('./primary/from-node-callback');
+import fromNodeCallback from './primary/from-node-callback';
+Kefir.fromNodeCallback = fromNodeCallback;
+export { fromNodeCallback };
 
 // Target = {addEventListener, removeEventListener}|{addListener, removeListener}|{on, off}
 // (Target, string, Function|undefined) -> Stream
-Kefir.fromEvents = require('./primary/from-events');
+import fromEvents from './primary/from-events';
+Kefir.fromEvents = fromEvents;
+export { fromEvents };
 
 // (Function) -> Stream
-Kefir.stream = require('./primary/stream');
+import stream from './primary/stream';
+Kefir.stream = stream;
+export { stream };
 
 
 
@@ -48,26 +77,25 @@ Kefir.stream = require('./primary/stream');
 // -----------------------------------------------------------------------------
 
 // (any) -> Property
-Kefir.constant = require('./primary/constant');
+import constant from './primary/constant';
+Kefir.constant = constant;
+export { constant };
 
 // (any) -> Property
-Kefir.constantError = require('./primary/constant-error');
+import constantError from './primary/constant-error';
+Kefir.constantError = constantError;
+export { constantError };
 
 
 
 
 
-// Convert observables
-// -----------------------------------------------------------------------------
-
-// (Stream|Property, Function|undefined) -> Property
-const toProperty = require('./one-source/to-property');
+import toProperty from './one-source/to-property';
 Observable.prototype.toProperty = function(fn) {
   return toProperty(this, fn);
 };
 
-// (Stream|Property) -> Stream
-const changes = require('./one-source/changes');
+import changes from './one-source/changes';
 Observable.prototype.changes = function() {
   return changes(this);
 };
@@ -78,217 +106,160 @@ Observable.prototype.changes = function() {
 // -----------------------------------------------------------------------------
 
 // (Promise) -> Property
-Kefir.fromPromise = require('./interop/from-promise');
+import fromPromise from './interop/from-promise';
+Kefir.fromPromise = fromPromise;
+export { fromPromise };
 
-// (Stream|Property, Function|undefined) -> Promise
-const toPromise = require('./interop/to-promise');
+import toPromise from './interop/to-promise';
 Observable.prototype.toPromise = function(Promise) {
   return toPromise(this, Promise);
 };
 
 // (ESObservable) -> Stream
-Kefir.fromESObservable = require('./interop/from-es-observable');
+import fromESObservable from './interop/from-es-observable';
+Kefir.fromESObservable = fromESObservable;
+export { fromESObservable };
 
-// (Stream|Property) -> ES7 Observable
-const toESObservable = require('./interop/to-es-observable');
+import toESObservable from './interop/to-es-observable';
 Observable.prototype.toESObservable = toESObservable;
-Observable.prototype[require('./utils/symbol')('observable')] = toESObservable;
+import symbol from './utils/symbol'
+Observable.prototype[symbol('observable')] = toESObservable;
 
 
 
 
 
-// Modify an observable
-// -----------------------------------------------------------------------------
-
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const map = require('./one-source/map');
+import map from './one-source/map';
 Observable.prototype.map = function(fn) {
   return map(this, fn);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const filter = require('./one-source/filter');
+import filter from './one-source/filter';
 Observable.prototype.filter = function(fn) {
   return filter(this, fn);
 };
 
-// (Stream, number) -> Stream
-// (Property, number) -> Property
-const take = require('./one-source/take');
+import take from './one-source/take';
 Observable.prototype.take = function(n) {
   return take(this, n);
 };
 
-// (Stream, number) -> Stream
-// (Property, number) -> Property
-const takeErrors = require('./one-source/take-errors');
+import takeErrors from './one-source/take-errors';
 Observable.prototype.takeErrors = function(n) {
   return takeErrors(this, n);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const takeWhile = require('./one-source/take-while');
+import takeWhile from './one-source/take-while';
 Observable.prototype.takeWhile = function(fn) {
   return takeWhile(this, fn);
 };
 
-// (Stream) -> Stream
-// (Property) -> Property
-const last = require('./one-source/last');
+import last from './one-source/last';
 Observable.prototype.last = function() {
   return last(this);
 };
 
-// (Stream, number) -> Stream
-// (Property, number) -> Property
-const skip = require('./one-source/skip');
+import skip from './one-source/skip';
 Observable.prototype.skip = function(n) {
   return skip(this, n);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const skipWhile = require('./one-source/skip-while');
+import skipWhile from './one-source/skip-while';
 Observable.prototype.skipWhile = function(fn) {
   return skipWhile(this, fn);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const skipDuplicates = require('./one-source/skip-duplicates');
+import skipDuplicates from './one-source/skip-duplicates';
 Observable.prototype.skipDuplicates = function(fn) {
   return skipDuplicates(this, fn);
 };
 
-// (Stream, Function|falsey, any|undefined) -> Stream
-// (Property, Function|falsey, any|undefined) -> Property
-const diff = require('./one-source/diff');
+import diff from './one-source/diff';
 Observable.prototype.diff = function(fn, seed) {
   return diff(this, fn, seed);
 };
 
-// (Stream|Property, Function, any|undefined) -> Property
-const scan = require('./one-source/scan');
+import scan from './one-source/scan';
 Observable.prototype.scan = function(fn, seed) {
   return scan(this, fn, seed);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const flatten = require('./one-source/flatten');
+import flatten from './one-source/flatten';
 Observable.prototype.flatten = function(fn) {
   return flatten(this, fn);
 };
 
-// (Stream, number) -> Stream
-// (Property, number) -> Property
-const delay = require('./one-source/delay');
+import delay from './one-source/delay';
 Observable.prototype.delay = function(wait) {
   return delay(this, wait);
 };
 
-// Options = {leading: boolean|undefined, trailing: boolean|undefined}
-// (Stream, number, Options|undefined) -> Stream
-// (Property, number, Options|undefined) -> Property
-const throttle = require('./one-source/throttle');
+import throttle from './one-source/throttle';
 Observable.prototype.throttle = function(wait, options) {
   return throttle(this, wait, options);
 };
 
-// Options = {immediate: boolean|undefined}
-// (Stream, number, Options|undefined) -> Stream
-// (Property, number, Options|undefined) -> Property
-const debounce = require('./one-source/debounce');
+import debounce from './one-source/debounce';
 Observable.prototype.debounce = function(wait, options) {
   return debounce(this, wait, options);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const mapErrors = require('./one-source/map-errors');
+import mapErrors from './one-source/map-errors';
 Observable.prototype.mapErrors = function(fn) {
   return mapErrors(this, fn);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const filterErrors = require('./one-source/filter-errors');
+import filterErrors from './one-source/filter-errors';
 Observable.prototype.filterErrors = function(fn) {
   return filterErrors(this, fn);
 };
 
-// (Stream) -> Stream
-// (Property) -> Property
-const ignoreValues = require('./one-source/ignore-values');
+import ignoreValues from './one-source/ignore-values';
 Observable.prototype.ignoreValues = function() {
   return ignoreValues(this);
 };
 
-// (Stream) -> Stream
-// (Property) -> Property
-const ignoreErrors = require('./one-source/ignore-errors');
+import ignoreErrors from './one-source/ignore-errors';
 Observable.prototype.ignoreErrors = function() {
   return ignoreErrors(this);
 };
 
-// (Stream) -> Stream
-// (Property) -> Property
-const ignoreEnd = require('./one-source/ignore-end');
+import ignoreEnd from './one-source/ignore-end';
 Observable.prototype.ignoreEnd = function() {
   return ignoreEnd(this);
 };
 
-// (Stream, Function) -> Stream
-// (Property, Function) -> Property
-const beforeEnd = require('./one-source/before-end');
+import beforeEnd from './one-source/before-end';
 Observable.prototype.beforeEnd = function(fn) {
   return beforeEnd(this, fn);
 };
 
-// (Stream, number, number|undefined) -> Stream
-// (Property, number, number|undefined) -> Property
-const slidingWindow = require('./one-source/sliding-window');
+import slidingWindow from './one-source/sliding-window';
 Observable.prototype.slidingWindow = function(max, min) {
   return slidingWindow(this, max, min);
 };
 
-// Options = {flushOnEnd: boolean|undefined}
-// (Stream, Function|falsey, Options|undefined) -> Stream
-// (Property, Function|falsey, Options|undefined) -> Property
-const bufferWhile = require('./one-source/buffer-while');
+import bufferWhile from './one-source/buffer-while';
 Observable.prototype.bufferWhile = function(fn, options) {
   return bufferWhile(this, fn, options);
 };
 
-// (Stream, number) -> Stream
-// (Property, number) -> Property
-const bufferWithCount = require('./one-source/buffer-with-count');
+import bufferWithCount from './one-source/buffer-with-count';
 Observable.prototype.bufferWithCount = function(count, options) {
   return bufferWithCount(this, count, options);
 };
 
-// Options = {flushOnEnd: boolean|undefined}
-// (Stream, number, number, Options|undefined) -> Stream
-// (Property, number, number, Options|undefined) -> Property
-const bufferWithTimeOrCount = require('./one-source/buffer-with-time-or-count');
+import bufferWithTimeOrCount from './one-source/buffer-with-time-or-count';
 Observable.prototype.bufferWithTimeOrCount = function(wait, count, options) {
   return bufferWithTimeOrCount(this, wait, count, options);
 };
 
-// (Stream, Function) -> Stream
-// (Property, Function) -> Property
-const transduce = require('./one-source/transduce');
+import transduce from './one-source/transduce';
 Observable.prototype.transduce = function(transducer) {
   return transduce(this, transducer);
 };
 
-// (Stream, Function) -> Stream
-// (Property, Function) -> Property
-const withHandler = require('./one-source/with-handler');
+import withHandler from './one-source/with-handler';
 Observable.prototype.withHandler = function(fn) {
   return withHandler(this, fn);
 };
@@ -302,41 +273,52 @@ Observable.prototype.withHandler = function(fn) {
 
 // (Array<Stream|Property>, Function|undefiend) -> Stream
 // (Array<Stream|Property>, Array<Stream|Property>, Function|undefiend) -> Stream
-const combine = Kefir.combine = require('./many-sources/combine');
+import combine from './many-sources/combine';
+Kefir.combine = combine;
+export { combine };
 Observable.prototype.combine = function(other, combinator) {
   return combine([this, other], combinator);
 };
 
 // (Array<Stream|Property>, Function|undefiend) -> Stream
-const zip = Kefir.zip = require('./many-sources/zip');
+import zip from './many-sources/zip';
+Kefir.zip = zip;
+export { zip };
 Observable.prototype.zip = function(other, combinator) {
   return zip([this, other], combinator);
 };
 
 // (Array<Stream|Property>) -> Stream
-const merge = Kefir.merge = require('./many-sources/merge');
+import merge from './many-sources/merge';
+Kefir.merge = merge;
+export { merge };
 Observable.prototype.merge = function(other) {
   return merge([this, other]);
 };
 
 // (Array<Stream|Property>) -> Stream
-const concat = Kefir.concat = require('./many-sources/concat');
+import concat from './many-sources/concat';
+Kefir.concat = concat;
+export { concat };
 Observable.prototype.concat = function(other) {
   return concat([this, other]);
 };
 
 // () -> Pool
-const Pool = Kefir.Pool = require('./many-sources/pool');
-Kefir.pool = function() {
+import Pool from './many-sources/pool';
+Kefir.Pool = Pool;
+const pool = function() {
   return new Pool();
 };
+Kefir.pool = pool;
+export { Pool, pool };
 
 // (Function) -> Stream
-Kefir.repeat = require('./many-sources/repeat');
+import repeat from './many-sources/repeat';
+Kefir.repeat = repeat;
+export { repeat };
 
-// Options = {concurLim: number|undefined, queueLim: number|undefined, drop: 'old'|'new'|undefiend}
-// (Stream|Property, Function|falsey, Options|undefined) -> Stream
-const FlatMap = require('./many-sources/flat-map');
+import FlatMap from './many-sources/flat-map';
 Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn).setName(this, 'flatMap');
 };
@@ -353,8 +335,7 @@ Observable.prototype.flatMapConcurLimit = function(fn, limit) {
   return new FlatMap(this, fn, {queueLim: -1, concurLim: limit}).setName(this, 'flatMapConcurLimit');
 };
 
-// (Stream|Property, Function|falsey) -> Stream
-const FlatMapErrors = require('./many-sources/flat-map-errors');
+import FlatMapErrors from './many-sources/flat-map-errors';
 Observable.prototype.flatMapErrors = function(fn) {
   return new FlatMapErrors(this, fn).setName(this, 'flatMapErrors');
 };
@@ -364,49 +345,32 @@ Observable.prototype.flatMapErrors = function(fn) {
 
 
 
-// Combine two observables
-// -----------------------------------------------------------------------------
-
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
-const filterBy = require('./two-sources/filter-by');
+import filterBy from './two-sources/filter-by';
 Observable.prototype.filterBy = function(other) {
   return filterBy(this, other);
 };
 
-// (Stream, Stream|Property, Function|undefiend) -> Stream
-// (Property, Stream|Property, Function|undefiend) -> Property
-const sampledBy2items = require('./two-sources/sampled-by');
+import sampledBy2items from './two-sources/sampled-by';
 Observable.prototype.sampledBy = function(other, combinator) {
   return sampledBy2items(this, other, combinator);
 };
 
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
-const skipUntilBy = require('./two-sources/skip-until-by');
+import skipUntilBy from './two-sources/skip-until-by';
 Observable.prototype.skipUntilBy = function(other) {
   return skipUntilBy(this, other);
 };
 
-// (Stream, Stream|Property) -> Stream
-// (Property, Stream|Property) -> Property
-const takeUntilBy = require('./two-sources/take-until-by');
+import takeUntilBy from './two-sources/take-until-by';
 Observable.prototype.takeUntilBy = function(other) {
   return takeUntilBy(this, other);
 };
 
-// Options = {flushOnEnd: boolean|undefined}
-// (Stream, Stream|Property, Options|undefined) -> Stream
-// (Property, Stream|Property, Options|undefined) -> Property
-const bufferBy = require('./two-sources/buffer-by');
+import bufferBy from './two-sources/buffer-by';
 Observable.prototype.bufferBy = function(other, options) {
   return bufferBy(this, other, options);
 };
 
-// Options = {flushOnEnd: boolean|undefined}
-// (Stream, Stream|Property, Options|undefined) -> Stream
-// (Property, Stream|Property, Options|undefined) -> Property
-const bufferWhileBy = require('./two-sources/buffer-while-by');
+import bufferWhileBy from './two-sources/buffer-while-by';
 Observable.prototype.bufferWhileBy = function(other, options) {
   return bufferWhileBy(this, other, options);
 };
@@ -425,32 +389,25 @@ function warn(msg) {
   }
 }
 
-// (Stream|Property, Stream|Property) -> Property
-const awaiting = require('./two-sources/awaiting');
+import awaiting from './two-sources/awaiting';
 Observable.prototype.awaiting = function(other) {
   warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145')
   return awaiting(this, other);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const valuesToErrors = require('./one-source/values-to-errors');
+import valuesToErrors from './one-source/values-to-errors';
 Observable.prototype.valuesToErrors = function(fn) {
   warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149')
   return valuesToErrors(this, fn);
 };
 
-// (Stream, Function|undefined) -> Stream
-// (Property, Function|undefined) -> Property
-const errorsToValues = require('./one-source/errors-to-values');
+import errorsToValues from './one-source/errors-to-values';
 Observable.prototype.errorsToValues = function(fn) {
   warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149')
   return errorsToValues(this, fn);
 };
 
-// (Stream) -> Stream
-// (Property) -> Property
-const endOnError = require('./one-source/end-on-error');
+import endOnError from './one-source/end-on-error';
 Observable.prototype.endOnError = function() {
   warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150')
   return endOnError(this);

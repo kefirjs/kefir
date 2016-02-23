@@ -1,6 +1,6 @@
-const {extend} = require('./utils/objects');
-const {VALUE, ERROR, ANY} = require('./constants');
-const {concat, findByPred, remove, contains} = require('./utils/collections');
+import {extend} from './utils/objects';
+import {VALUE, ERROR, ANY} from './constants';
+import {concat, findByPred, remove, contains} from './utils/collections';
 
 function callSubscriber(type, fn, event) {
   if (type === ANY) {
@@ -72,4 +72,4 @@ extend(Dispatcher.prototype, {
 });
 
 
-module.exports = {callSubscriber, Dispatcher};
+export {callSubscriber, Dispatcher};

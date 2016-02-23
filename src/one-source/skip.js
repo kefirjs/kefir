@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -20,6 +20,6 @@ const S = createStream('skip', mixin);
 const P = createProperty('skip', mixin);
 
 
-module.exports = function skip(obs, n) {
+export default function skip(obs, n) {
   return new (obs._ofSameType(S, P))(obs, {n});
-};
+}

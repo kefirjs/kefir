@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const {NOTHING} = require('../constants');
+import {createStream, createProperty} from '../patterns/one-source';
+import {NOTHING} from '../constants';
 
 const mixin = {
 
@@ -29,6 +29,6 @@ const P = createProperty('skipDuplicates', mixin);
 
 const eq = (a, b) => a === b;
 
-module.exports = function skipDuplicates(obs, fn = eq) {
+export default function skipDuplicates(obs, fn = eq) {
   return new (obs._ofSameType(S, P))(obs, {fn});
-};
+}

@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 function xformForObs(obs) {
   return {
@@ -42,6 +42,6 @@ const S = createStream('transduce', mixin);
 const P = createProperty('transduce', mixin);
 
 
-module.exports = function transduce(obs, transducer) {
+export default function transduce(obs, transducer) {
   return new (obs._ofSameType(S, P))(obs, {transducer});
-};
+}

@@ -1,5 +1,5 @@
-const timeBased = require('../patterns/time-based');
-const emitter = require('../emitter');
+import timeBased from '../patterns/time-based';
+import emitter from '../emitter';
 
 
 const S = timeBased({
@@ -24,6 +24,6 @@ const S = timeBased({
 });
 
 
-module.exports = function withInterval(wait, fn) {
+export default function withInterval(wait, fn) {
   return new S(wait, {fn});
 }

@@ -1,6 +1,6 @@
-const {inherit} = require('../utils/objects');
-const Stream = require('../stream');
-const {END} = require('../constants');
+import {inherit} from '../utils/objects';
+import Stream from '../stream';
+import {END} from '../constants';
 
 
 
@@ -66,6 +66,6 @@ inherit(S, Stream, {
 });
 
 
-module.exports = function(generator) {
+export default function(generator) {
   return new S(generator);
 }

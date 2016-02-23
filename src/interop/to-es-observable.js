@@ -1,5 +1,5 @@
-const {extend} = require('../utils/objects');
-const {VALUE, ERROR, END} = require('../constants');
+import {extend} from '../utils/objects';
+import {VALUE, ERROR, END} from '../constants';
 
 function ESObservable(observable) {
   this._observable = observable.takeErrors(1);
@@ -23,6 +23,6 @@ extend(ESObservable.prototype, {
 });
 
 
-module.exports = function toESObservable() {
+export default function toESObservable() {
   return new ESObservable(this);
-};
+}

@@ -1,10 +1,10 @@
-const Stream = require('../stream');
+import Stream from '../stream';
 
 
 const neverS = new Stream();
 neverS._emitEnd();
 neverS._name = 'never';
 
-module.exports = function never() {
+export default function never() {
   return neverS;
 }

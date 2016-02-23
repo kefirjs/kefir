@@ -1,6 +1,6 @@
-const stream = require('./stream');
+import stream from './stream';
 
-module.exports = function fromCallback(callbackConsumer) {
+export default function fromCallback(callbackConsumer) {
 
   let called = false;
 
@@ -15,4 +15,4 @@ module.exports = function fromCallback(callbackConsumer) {
     }
 
   }).setName('fromCallback');
-};
+}

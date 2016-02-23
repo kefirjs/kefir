@@ -1,4 +1,4 @@
-const {createProperty} = require('../patterns/one-source');
+import {createProperty} from '../patterns/one-source';
 
 
 const P = createProperty('toProperty', {
@@ -19,9 +19,9 @@ const P = createProperty('toProperty', {
 
 
 
-module.exports = function toProperty(obs, fn = null) {
+export default function toProperty(obs, fn = null) {
   if (fn !== null && typeof fn !== 'function') {
     throw new Error('You should call toProperty() with a function or no arguments.');
   }
   return new P(obs, {fn});
-};
+}

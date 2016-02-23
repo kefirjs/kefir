@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const {NOTHING} = require('../constants');
+import {createStream, createProperty} from '../patterns/one-source';
+import {NOTHING} from '../constants';
 
 const mixin = {
 
@@ -28,6 +28,6 @@ const S = createStream('last', mixin);
 const P = createProperty('last', mixin);
 
 
-module.exports = function last(obs) {
+export default function last(obs) {
   return new (obs._ofSameType(S, P))(obs);
-};
+}

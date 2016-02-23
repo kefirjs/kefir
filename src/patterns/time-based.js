@@ -1,8 +1,7 @@
-const {inherit} = require('../utils/objects');
-const Stream = require('../stream');
+import {inherit} from '../utils/objects';
+import Stream from '../stream';
 
-
-module.exports = function timeBased(mixin) {
+export default function timeBased(mixin) {
 
   function AnonymousStream(wait, options) {
     Stream.call(this);

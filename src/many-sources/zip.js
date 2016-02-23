@@ -1,9 +1,9 @@
-const Stream = require('../stream');
-const {VALUE, ERROR, END} = require('../constants');
-const {inherit} = require('../utils/objects');
-const {map, cloneArray} = require('../utils/collections');
-const {spread} = require('../utils/functions');
-const never = require('../primary/never');
+import Stream from '../stream';
+import {VALUE, ERROR, END} from '../constants';
+import {inherit} from '../utils/objects';
+import {map, cloneArray} from '../utils/collections';
+import {spread} from '../utils/functions';
+import never from '../primary/never';
 
 
 const isArray = Array.isArray || function(xs) {
@@ -99,6 +99,6 @@ inherit(Zip, Stream, {
 
 
 
-module.exports = function zip(observables, combinator /* Function | falsey */) {
+export default function zip(observables, combinator /* Function | falsey */) {
   return observables.length === 0 ? never() : new Zip(observables, combinator);
-};
+}

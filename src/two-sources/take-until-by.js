@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/two-sources');
+import {createStream, createProperty} from '../patterns/two-sources';
 
 const mixin = {
 
@@ -12,7 +12,7 @@ const S = createStream('takeUntilBy', mixin);
 const P = createProperty('takeUntilBy', mixin);
 
 
-module.exports = function takeUntilBy(primary, secondary) {
+export default function takeUntilBy(primary, secondary) {
   return new (primary._ofSameType(S, P))(primary, secondary);
-};
+}
 

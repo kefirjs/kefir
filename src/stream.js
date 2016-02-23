@@ -1,5 +1,5 @@
-const {inherit} = require('./utils/objects');
-const Observable = require('./observable');
+import {inherit} from './utils/objects';
+import Observable from './observable';
 
 
 function Stream() {
@@ -16,4 +16,4 @@ inherit(Stream, Observable, {
 
 });
 
-module.exports = Stream;
+export default Stream;

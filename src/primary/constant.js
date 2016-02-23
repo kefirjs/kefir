@@ -1,5 +1,5 @@
-const {inherit} = require('../utils/objects');
-const Property = require('../property');
+import {inherit} from '../utils/objects';
+import Property from '../property';
 
 // HACK:
 //   We don't call parent Class constructor, but instead putting all necessary
@@ -19,6 +19,6 @@ inherit(P, Property, {
   _logHandlers: null
 });
 
-module.exports = function constant(x) {
+export default function constant(x) {
   return new P(x);
-};
+}

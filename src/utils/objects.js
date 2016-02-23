@@ -26,4 +26,4 @@ function inherit(Child, Parent /*, mixin1, mixin2...*/) {
   return Child;
 }
 
-module.exports = {extend, inherit};
+export {extend, inherit};

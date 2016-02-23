@@ -1,6 +1,6 @@
-const {inherit} = require('../utils/objects');
-const Stream = require('../stream');
-const emitter = require('../emitter');
+import {inherit} from '../utils/objects';
+import Stream from '../stream';
+import emitter from '../emitter';
 
 function S(fn) {
   Stream.call(this);
@@ -41,6 +41,6 @@ inherit(S, Stream, {
 
 });
 
-module.exports = function stream(fn) {
+export default function stream(fn) {
   return new S(fn);
-};
+}

@@ -1,5 +1,5 @@
-const {inherit} = require('../utils/objects');
-const Property = require('../property');
+import {inherit} from '../utils/objects';
+import Property from '../property';
 
 
 // HACK:
@@ -20,6 +20,6 @@ inherit(P, Property, {
   _logHandlers: null
 });
 
-module.exports = function constantError(x) {
+export default function constantError(x) {
   return new P(x);
-};
+}

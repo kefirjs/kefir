@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const now = require('../utils/now');
+import {createStream, createProperty} from '../patterns/one-source';
+import now from '../utils/now';
 
 
 const mixin = {
@@ -76,6 +76,6 @@ const S = createStream('throttle', mixin);
 const P = createProperty('throttle', mixin);
 
 
-module.exports = function throttle(obs, wait, {leading = true, trailing = true} = {}) {
+export default function throttle(obs, wait, {leading = true, trailing = true} = {}) {
   return new (obs._ofSameType(S, P))(obs, {wait, leading, trailing});
-};
+}

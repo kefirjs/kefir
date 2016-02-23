@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -21,6 +21,6 @@ const mixin = {
 const S = createStream('beforeEnd', mixin);
 const P = createProperty('beforeEnd', mixin);
 
-module.exports = function beforeEnd(obs, fn) {
+export default function beforeEnd(obs, fn) {
   return new (obs._ofSameType(S, P))(obs, {fn});
-};
+}

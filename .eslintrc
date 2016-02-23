@@ -1,16 +1,15 @@
 {
   extends: ["eslint:recommended"],
-  ecmaFeatures: {
-    arrowFunctions: true,
-    blockBindings: true,
-    defaultParams: true,
-    destructuring: true,
-    objectLiteralShorthandMethods: true,
-    templateStrings: true,
-    restParams: true
+  parserOptions: {
+    ecmaVersion: 6,
+    sourceType: "module"
   },
   rules: {
     "no-console": 0
+  },
+  globals: {
+    Promise: false,
+    Symbol: false
   },
   env: {
     node: true

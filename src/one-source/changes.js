@@ -1,4 +1,4 @@
-const {createStream} = require('../patterns/one-source');
+import {createStream} from '../patterns/one-source';
 
 
 
@@ -19,6 +19,6 @@ const S = createStream('changes', {
 });
 
 
-module.exports = function changes(obs) {
+export default function changes(obs) {
   return new S(obs);
-};
+}

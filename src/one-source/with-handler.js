@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const emitter = require('../emitter');
+import {createStream, createProperty} from '../patterns/one-source';
+import emitter from '../emitter';
 
 const mixin = {
 
@@ -24,6 +24,6 @@ const P = createProperty('withHandler', mixin);
 
 
 
-module.exports = function withHandler(obs, fn) {
+export default function withHandler(obs, fn) {
   return new (obs._ofSameType(S, P))(obs, {fn});
-};
+}

@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -25,6 +25,6 @@ const P = createProperty('filter', mixin);
 
 const id = x => x;
 
-module.exports = function filter(obs, fn = id) {
+export default function filter(obs, fn = id) {
   return new (obs._ofSameType(S, P))(obs, {fn});
-};
+}
