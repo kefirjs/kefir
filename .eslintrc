@@ -8,8 +8,8 @@
     "no-console": 0
   },
   globals: {
-    Promise: false,
-    Symbol: false
+    Promise: true,
+    Symbol: true
   },
   env: {
     node: true
