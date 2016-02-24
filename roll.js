@@ -7,7 +7,7 @@ var commonjs = require('rollup-plugin-commonjs')
 function roll(plugins, bundlerOptions) {
   rollup({
     entry: 'src/index.js',
-    plugins: plugins,
+    plugins: plugins
   })
   .then(function (bundle) {
     return bundle.write(bundlerOptions).then(
