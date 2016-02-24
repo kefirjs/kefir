@@ -1,7 +1,10 @@
-webpack = require('webpack')
 timeGrunt = require('time-grunt')
 loadGruntTasks = require('load-grunt-tasks')
 
+babel = require('rollup-plugin-babel')
+uglify = require('rollup-plugin-uglify')
+nodeResolve = require('rollup-plugin-node-resolve')
+commonjs = require('rollup-plugin-commonjs')
 
 module.exports = (grunt) ->
 
@@ -14,6 +17,8 @@ module.exports = (grunt) ->
 
   """
 
+  rollupPlugins = [ babel(), nodeResolve({jsnext: true, main: true}), commonjs() ]
+
   timeGrunt(grunt)
 
   grunt.initConfig(
@@ -25,37 +30,22 @@ module.exports = (grunt) ->
         options:
           transform: ['coffeeify']
 
-    webpack:
+    rollup:
+      options:
+        moduleName: 'Kefir'
+        format: 'umd'
+        banner: banner
       dev:
-        entry: './src/index'
-        output:
-          path: 'dist'
-          filename: 'kefir.js'
-          library: 'Kefir'
-          libraryTarget: 'umd'
-        module:
-          loaders: [
-            {test: /\.js$/, loader: 'babel-loader'}
-          ]
-        plugins: [
-          new webpack.BannerPlugin(banner, {raw: true, entryOnly: true})
-        ]
+        options:
+          plugins: rollupPlugins
+        files:
+          'dist/kefir.js': ['src/index.js']
       prod:
-        entry: './src/index'
-        output:
-          path: 'dist'
-          filename: 'kefir.min.js'
-          library: 'Kefir'
-          libraryTarget: 'umd'
-        module:
-          loaders: [
-            {test: /\.js$/, loader: 'babel-loader'}
-          ]
-        plugins: [
-          new webpack.BannerPlugin(banner, {raw: true, entryOnly: true}),
-          new webpack.optimize.UglifyJsPlugin()
-        ]
-
+        options:
+          sourceMap: true
+          plugins: rollupPlugins.concat uglify(output: { comments: /\!\s\w/ })
+        files:
+          'dist/kefir.min.js': ['src/index.js']
 
     jade:
       docs:
@@ -88,7 +78,7 @@ module.exports = (grunt) ->
   loadGruntTasks(grunt)
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
-  grunt.registerTask 'build-kefir', ['webpack:dev', 'webpack:prod']
+  grunt.registerTask 'build-kefir', ['rollup:dev', 'rollup:prod']
   grunt.registerTask 'build-docs', ['jade:docs']
 
   grunt.registerTask 'default', ['clean', 'build-docs', 'build-kefir', 'build-browser-tests']

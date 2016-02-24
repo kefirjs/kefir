@@ -4,8 +4,7 @@
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
-    "test": "eslint . && grunt webpack:dev && jasmine-node --coffee --matchall test/specs",
-    "roll": "rm -rf dist && node roll.js"
+    "test": "eslint . && grunt rollup:dev && jasmine-node --coffee --matchall test/specs"
   },
   "keywords": [
     "frp",
@@ -45,6 +44,7 @@
     "grunt-cli": "0.1.13",
     "grunt-contrib-clean": "0.6.0",
     "grunt-contrib-jade": "0.15.0",
+    "grunt-rollup": "^0.6.2",
     "grunt-webpack": "1.0.11",
     "inquirer": "0.10.1",
     "jasmine-node": "1.14.5",
