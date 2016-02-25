@@ -8,7 +8,7 @@ Bundle file size dropped from **108K / 49K / 9.8K** to **80K / 42K / 9.5K**
 for **dev / min / min+gzip** respectively. And the users' app bundle size can
 be reduced even further if they use Rollup and `jsnext:main`.
 
-Big thanks to [@rvikmanis](https://github.com/rvikmanis) for doing this.
+Big thanks to [@rvikmanis](https://github.com/rvikmanis) for doing this. [#184](https://github.com/rpominov/kefir/pull/184)
 
 ## 3.2.0 (12/12/2015)
 
