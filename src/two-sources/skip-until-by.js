@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/two-sources');
-const {NOTHING} = require('../constants');
+import {createStream, createProperty} from '../patterns/two-sources';
+import {NOTHING} from '../constants';
 
 
 const mixin = {
@@ -22,7 +22,7 @@ const S = createStream('skipUntilBy', mixin);
 const P = createProperty('skipUntilBy', mixin);
 
 
-module.exports = function skipUntilBy(primary, secondary) {
+export default function skipUntilBy(primary, secondary) {
   return new (primary._ofSameType(S, P))(primary, secondary);
-};
+}
 

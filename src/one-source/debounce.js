@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const now = require('../utils/now');
+import {createStream, createProperty} from '../patterns/one-source';
+import now from '../utils/now';
 
 
 const mixin = {
@@ -69,7 +69,7 @@ const mixin = {
 const S = createStream('debounce', mixin);
 const P = createProperty('debounce', mixin);
 
-module.exports = function debounce(obs, wait, {immediate = false} = {}) {
+export default function debounce(obs, wait, {immediate = false} = {}) {
   return new (obs._ofSameType(S, P))(obs, {wait, immediate});
-};
+}
 

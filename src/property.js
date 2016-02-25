@@ -1,7 +1,7 @@
-const {inherit} = require('./utils/objects');
-const {VALUE, ERROR, END} = require('./constants');
-const {callSubscriber} = require('./dispatcher');
-const Observable = require('./observable');
+import {inherit} from './utils/objects';
+import {VALUE, ERROR, END} from './constants';
+import {callSubscriber} from './dispatcher';
+import Observable from './observable';
 
 
 
@@ -63,7 +63,7 @@ inherit(Property, Observable, {
 
 });
 
-module.exports = Property;
+export default Property;
 
 
 

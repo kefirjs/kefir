@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -23,6 +23,6 @@ const S = createStream('takeErrors', mixin);
 const P = createProperty('takeErrors', mixin);
 
 
-module.exports = function takeErrors(obs, n) {
+export default function takeErrors(obs, n) {
   return new (obs._ofSameType(S, P))(obs, {n});
-};
+}

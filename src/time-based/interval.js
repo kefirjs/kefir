@@ -1,4 +1,4 @@
-const timeBased = require('../patterns/time-based');
+import timeBased from '../patterns/time-based';
 
 const S = timeBased({
 
@@ -19,6 +19,6 @@ const S = timeBased({
 });
 
 
-module.exports = function interval(wait, x) {
+export default function interval(wait, x) {
   return new S(wait, {x});
 }

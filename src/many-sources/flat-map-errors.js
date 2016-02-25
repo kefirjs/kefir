@@ -1,6 +1,6 @@
-const {VALUE, ERROR, END} = require('../constants');
-const {inherit} = require('../utils/objects');
-const FlatMap = require('./flat-map');
+import {VALUE, ERROR, END} from '../constants';
+import {inherit} from '../utils/objects';
+import FlatMap from './flat-map';
 
 function FlatMapErrors(source, fn) {
   FlatMap.call(this, source, fn);
@@ -38,4 +38,4 @@ inherit(FlatMapErrors, FlatMap, {
 
 });
 
-module.exports = FlatMapErrors;
+export default FlatMapErrors;

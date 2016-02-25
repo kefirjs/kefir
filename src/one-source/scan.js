@@ -1,5 +1,5 @@
-const {createProperty} = require('../patterns/one-source');
-const {ERROR, NOTHING} = require('../constants');
+import {createProperty} from '../patterns/one-source';
+import {ERROR, NOTHING} from '../constants';
 
 
 const P = createProperty('scan', {
@@ -29,6 +29,6 @@ const P = createProperty('scan', {
 });
 
 
-module.exports = function scan(obs, fn, seed = NOTHING) {
+export default function scan(obs, fn, seed = NOTHING) {
   return new P(obs, {fn, seed});
-};
+}

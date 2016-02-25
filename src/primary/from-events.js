@@ -1,4 +1,4 @@
-const fromSubUnsub = require('./from-sub-unsub');
+import fromSubUnsub from './from-sub-unsub';
 
 const pairs = [
   ['addEventListener', 'removeEventListener'],
@@ -6,7 +6,7 @@ const pairs = [
   ['on', 'off']
 ];
 
-module.exports = function fromEvents(target, eventName, transformer) {
+export default function fromEvents(target, eventName, transformer) {
   let sub, unsub;
 
   for (let i = 0; i < pairs.length; i++) {
@@ -27,4 +27,4 @@ module.exports = function fromEvents(target, eventName, transformer) {
     (handler) => target[unsub](eventName, handler),
     transformer
   ).setName('fromEvents');
-};
+}

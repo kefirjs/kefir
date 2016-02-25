@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const {slide} = require('../utils/collections');
+import {createStream, createProperty} from '../patterns/one-source';
+import {slide} from '../utils/collections';
 
 const mixin = {
 
@@ -26,6 +26,6 @@ const S = createStream('slidingWindow', mixin);
 const P = createProperty('slidingWindow', mixin);
 
 
-module.exports = function slidingWindow(obs, max, min = 0) {
+export default function slidingWindow(obs, max, min = 0) {
   return new (obs._ofSameType(S, P))(obs, {min, max});
-};
+}

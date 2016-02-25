@@ -1,6 +1,6 @@
-const {inherit} = require('../utils/objects');
-const AbstractPool = require('./abstract-pool');
-const never = require('../primary/never');
+import {inherit} from '../utils/objects';
+import AbstractPool from './abstract-pool';
+import never from '../primary/never';
 
 
 function Merge(sources) {
@@ -21,6 +21,6 @@ inherit(Merge, AbstractPool, {
 
 });
 
-module.exports = function merge(observables) {
+export default function merge(observables) {
   return observables.length === 0 ? never() : new Merge(observables);
-};
+}

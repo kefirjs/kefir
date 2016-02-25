@@ -1,4 +1,4 @@
-module.exports = function(key) {
+export default function(key) {
   if (typeof Symbol !== 'undefined' && Symbol[key]) {
     return Symbol[key];
   } else if (typeof Symbol !== 'undefined' && typeof Symbol.for === 'function') {

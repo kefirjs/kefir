@@ -1,6 +1,6 @@
-const {VALUE, ERROR, END} = require('../constants');
-const {inherit} = require('../utils/objects');
-const AbstractPool = require('./abstract-pool');
+import {VALUE, ERROR, END} from '../constants';
+import {inherit} from '../utils/objects';
+import AbstractPool from './abstract-pool';
 
 
 
@@ -76,4 +76,4 @@ inherit(FlatMap, AbstractPool, {
 
 
 
-module.exports = FlatMap;
+export default FlatMap;

@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -28,6 +28,6 @@ const P = createProperty('valuesToErrors', mixin);
 
 const defFn = x => ({convert: true, error: x});
 
-module.exports = function valuesToErrors(obs, fn = defFn) {
+export default function valuesToErrors(obs, fn = defFn) {
   return new (obs._ofSameType(S, P))(obs, {fn});
-};
+}

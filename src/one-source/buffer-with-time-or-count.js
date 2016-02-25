@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -58,6 +58,6 @@ const mixin = {
 const S = createStream('bufferWithTimeOrCount', mixin);
 const P = createProperty('bufferWithTimeOrCount', mixin);
 
-module.exports = function bufferWithTimeOrCount(obs, wait, count, {flushOnEnd = true} = {}) {
+export default function bufferWithTimeOrCount(obs, wait, count, {flushOnEnd = true} = {}) {
   return new (obs._ofSameType(S, P))(obs, {wait, count, flushOnEnd});
-};
+}

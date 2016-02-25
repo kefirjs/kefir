@@ -1,3 +1,15 @@
+## 3.2.1 (25/02/2015)
+
+ - Switched from `require` to `import/export` internally.
+ - Switched from Webpack to Rollup for building /dist bundle.
+ - Added `jsnext:main` to `pakcage.json` for Rollup users.
+
+Bundle file size dropped from **108K / 49K / 9.8K** to **80K / 42K / 9.5K**
+for **dev / min / min+gzip** respectively. And the users' app bundle size can
+be reduced even further if they use Rollup and `jsnext:main`.
+
+Big thanks to [@rvikmanis](https://github.com/rvikmanis) for doing this.
+
 ## 3.2.0 (12/12/2015)
 
  - New method `.bufferWithTimeOrCount` [#172](https://github.com/rpominov/kefir/pull/172) [@mcmathja](https://github.com/mcmathja)
@@ -6,7 +18,7 @@
 ## 3.1.0 (5/10/2015)
 
  - Interoperation with [ECMAScript Observables](https://github.com/zenparsing/es-observable) added with two new methods: `.fromESObservable` and `.toESObservable`/`[Symbol.observable]` [#154](https://github.com/rpominov/kefir/pull/154)  [@lautis](https://github.com/lautis)
- - A bug in `.fromEvents` fixed [#159](https://github.com/rpominov/kefir/issues/159) 
+ - A bug in `.fromEvents` fixed [#159](https://github.com/rpominov/kefir/issues/159)
 
 ## 3.0.0 (26/09/2015)
 

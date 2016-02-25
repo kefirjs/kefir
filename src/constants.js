@@ -1,5 +1,5 @@
-exports.NOTHING = ['<nothing>'];
-exports.END = 'end';
-exports.VALUE = 'value';
-exports.ERROR = 'error';
-exports.ANY = 'any';
+export const NOTHING = ['<nothing>'];
+export const END = 'end';
+export const VALUE = 'value';
+export const ERROR = 'error';
+export const ANY = 'any';

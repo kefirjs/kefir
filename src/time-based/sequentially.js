@@ -1,6 +1,6 @@
-const timeBased = require('../patterns/time-based');
-const {cloneArray} = require('../utils/collections');
-const never = require('../primary/never');
+import timeBased from '../patterns/time-based';
+import {cloneArray} from '../utils/collections';
+import never from '../primary/never';
 
 const S = timeBased({
 
@@ -26,6 +26,6 @@ const S = timeBased({
 });
 
 
-module.exports = function sequentially(wait, xs) {
+export default function sequentially(wait, xs) {
   return xs.length === 0 ? never() : new S(wait, {xs});
 }

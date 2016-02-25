@@ -1,4 +1,4 @@
-const {VALUE, END} = require('../constants');
+import {VALUE, END} from '../constants';
 
 function getGlodalPromise() {
   if (typeof Promise === 'function') {
@@ -8,7 +8,7 @@ function getGlodalPromise() {
   }
 }
 
-module.exports = function(obs, Promise = getGlodalPromise()) {
+export default function(obs, Promise = getGlodalPromise()) {
   let last = null;
   return new Promise((resolve, reject) => {
     obs.onAny(event => {

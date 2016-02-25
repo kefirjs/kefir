@@ -131,7 +131,7 @@ function slide(cur, next, max) {
 
 
 
-module.exports = {
+export {
   concat,
   circleShift,
   find,
