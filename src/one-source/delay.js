@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const END_MARKER = {};
 
@@ -45,6 +45,6 @@ const mixin = {
 const S = createStream('delay', mixin);
 const P = createProperty('delay', mixin);
 
-module.exports = function delay(obs, wait) {
+export default function delay(obs, wait) {
   return new (obs._ofSameType(S, P))(obs, {wait});
-};
+}

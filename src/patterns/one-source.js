@@ -1,7 +1,7 @@
-const Stream = require('../stream');
-const Property = require('../property');
-const {inherit} = require('../utils/objects');
-const {VALUE, ERROR, END} = require('../constants');
+import Stream from '../stream';
+import Property from '../property';
+import {inherit} from '../utils/objects';
+import {VALUE, ERROR, END} from '../constants';
 
 
 function createConstructor(BaseClass, name) {
@@ -71,4 +71,4 @@ function createProperty(name, mixin) {
 }
 
 
-module.exports = {createStream, createProperty};
+export {createStream, createProperty};

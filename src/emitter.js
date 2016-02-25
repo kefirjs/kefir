@@ -1,4 +1,4 @@
-module.exports = function emitter(obs) {
+export default function emitter(obs) {
 
   function value(x) {
     obs._emitValue(x);
@@ -21,4 +21,4 @@ module.exports = function emitter(obs) {
   }
 
   return {value, error, end, event, emit: value, emitEvent: event};
-};
+}

@@ -1,7 +1,8 @@
-const stream = require('../primary/stream');
-const symbol = require('../utils/symbol')('observable');
+import stream from '../primary/stream';
+import symbol_ from '../utils/symbol';
+const symbol = symbol_('observable');
 
-module.exports = function fromESObservable(_observable) {
+export default function fromESObservable(_observable) {
   const observable = _observable[symbol] ? _observable[symbol]() : _observable;
   return stream(function(emitter) {
     const unsub = observable.subscribe({

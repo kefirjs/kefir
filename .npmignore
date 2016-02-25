@@ -7,7 +7,6 @@ demos
 docs-src
 grunt-tasks
 index.html
-src
 test
 .npmignore
 .travis.yml

@@ -1,7 +1,7 @@
-const Stream = require('../stream');
-const {VALUE, ERROR} = require('../constants');
-const {inherit} = require('../utils/objects');
-const {concat, forEach, findByPred, find, remove, cloneArray} = require('../utils/collections');
+import Stream from '../stream';
+import {VALUE, ERROR} from '../constants';
+import {inherit} from '../utils/objects';
+import {concat, forEach, findByPred, find, remove, cloneArray} from '../utils/collections';
 
 const id = (x => x);
 
@@ -195,4 +195,4 @@ inherit(AbstractPool, Stream, {
 
 });
 
-module.exports = AbstractPool;
+export default AbstractPool;

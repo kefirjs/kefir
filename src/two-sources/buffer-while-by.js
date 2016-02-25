@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/two-sources');
-const {NOTHING} = require('../constants');
+import {createStream, createProperty} from '../patterns/two-sources';
+import {NOTHING} from '../constants';
 
 
 const mixin = {
@@ -57,6 +57,6 @@ const S = createStream('bufferWhileBy', mixin);
 const P = createProperty('bufferWhileBy', mixin);
 
 
-module.exports = function bufferWhileBy(primary, secondary, options /* optional */) {
+export default function bufferWhileBy(primary, secondary, options /* optional */) {
   return new (primary._ofSameType(S, P))(primary, secondary, options);
-};
+}

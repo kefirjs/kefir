@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/one-source');
+import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
 
@@ -27,6 +27,6 @@ const P = createProperty('takeWhile', mixin);
 
 const id = x => x;
 
-module.exports = function takeWhile(obs, fn = id) {
+export default function takeWhile(obs, fn = id) {
   return new (obs._ofSameType(S, P))(obs, {fn});
-};
+}

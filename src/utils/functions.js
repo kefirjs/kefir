@@ -28,4 +28,4 @@ function apply(fn, c, a) {
   }
 }
 
-module.exports = {spread, apply};
+export {spread, apply};

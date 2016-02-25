@@ -1,5 +1,5 @@
-const {inherit} = require('../utils/objects');
-const AbstractPool = require('./abstract-pool');
+import {inherit} from '../utils/objects';
+import AbstractPool from './abstract-pool';
 
 
 
@@ -23,4 +23,4 @@ inherit(Pool, AbstractPool, {
 
 });
 
-module.exports = Pool;
+export default Pool;

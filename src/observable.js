@@ -1,7 +1,7 @@
-const {extend} = require('./utils/objects');
-const {VALUE, ERROR, ANY, END} = require('./constants');
-const {Dispatcher, callSubscriber} = require('./dispatcher');
-const {findByPred} = require('./utils/collections');
+import {extend} from './utils/objects';
+import {VALUE, ERROR, ANY, END} from './constants';
+import {Dispatcher, callSubscriber} from './dispatcher';
+import {findByPred} from './utils/collections';
 
 
 
@@ -171,4 +171,4 @@ Observable.prototype.toString = function() {
 };
 
 
-module.exports = Observable;
+export default Observable;

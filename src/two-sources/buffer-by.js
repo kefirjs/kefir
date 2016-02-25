@@ -1,4 +1,4 @@
-const {createStream, createProperty} = require('../patterns/two-sources');
+import {createStream, createProperty} from '../patterns/two-sources';
 
 
 const mixin = {
@@ -54,6 +54,6 @@ const S = createStream('bufferBy', mixin);
 const P = createProperty('bufferBy', mixin);
 
 
-module.exports = function bufferBy(primary, secondary, options /* optional */) {
+export default function bufferBy(primary, secondary, options /* optional */) {
   return new (primary._ofSameType(S, P))(primary, secondary, options);
-};
+}

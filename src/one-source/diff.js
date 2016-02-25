@@ -1,5 +1,5 @@
-const {createStream, createProperty} = require('../patterns/one-source');
-const {NOTHING} = require('../constants');
+import {createStream, createProperty} from '../patterns/one-source';
+import {NOTHING} from '../constants';
 
 const mixin = {
 
@@ -31,6 +31,6 @@ function defaultFn(a, b) {
   return [a, b];
 }
 
-module.exports = function diff(obs, fn, seed = NOTHING) {
+export default function diff(obs, fn, seed = NOTHING) {
   return new (obs._ofSameType(S, P))(obs, {fn: fn || defaultFn, seed});
-};
+}
