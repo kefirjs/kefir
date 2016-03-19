@@ -17,8 +17,8 @@ describe 'bufferWithTimeOrCount', ->
       a = stream()
       expect(a.bufferWithTimeOrCount(intv, cnt)).toActivate(a)
 
-    it 'should be ended if source was ended', ->
-      expect(send(stream(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit ['<end:current>']
+    # it 'should be ended if source was ended', ->
+    #   expect(send(stream(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit ['<end:current>']
 
     it 'should flush buffer when either interval or count is reached', ->
       a = stream()
@@ -67,10 +67,10 @@ describe 'bufferWithTimeOrCount', ->
       a = prop()
       expect(a.bufferWithTimeOrCount(intv, cnt)).toActivate(a)
 
-    it 'should be ended if source was ended', ->
-      expect(send(prop(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit ['<end:current>']
-      expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit [{current: [1]}, '<end:current>']
-      expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).toEmit ['<end:current>']
+    # it 'should be ended if source was ended', ->
+    #   expect(send(prop(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit ['<end:current>']
+    #   expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit [{current: [1]}, '<end:current>']
+    #   expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).toEmit ['<end:current>']
 
     it 'should flush buffer when either interval or count is reached', ->
       a = send(prop(), [0])
