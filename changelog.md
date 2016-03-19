@@ -1,3 +1,8 @@
+## Next
+
+ - Deprecation warnings disabling API fixed [#185](https://github.com/rpominov/kefir/issues/185)
+ - A bug in `.bufferWithTimeOrCount` is fixed [#194](https://github.com/rpominov/kefir/issues/194)
+
 ## 3.2.1 (25/02/2015)
 
  - Switched from `require` to `import/export` internally.
