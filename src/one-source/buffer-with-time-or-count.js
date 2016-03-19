@@ -40,8 +40,8 @@ const mixin = {
   },
 
   _onActivation() {
-    this._source.onAny(this._$handleAny); // copied from patterns/one-source
     this._intervalId = setInterval(this._$onTick, this._wait);
+    this._source.onAny(this._$handleAny); // copied from patterns/one-source
   },
 
   _onDeactivation() {
