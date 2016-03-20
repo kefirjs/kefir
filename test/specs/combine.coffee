@@ -80,6 +80,12 @@ describe 'combine', ->
     deactivate(cb)
     expect(cb).toEmit [{current: [0, 1]}]
 
+  it 'when combining two properties should emit first value once', ->
+    a = send(prop(), [0])
+    b = send(prop(), [1])
+    cb = Kefir.combine([a, b])
+    expect(cb).toEmit [{current: [0, 1]}]
+
   it 'errors should flow', ->
     a = stream()
     b = prop()
@@ -227,5 +233,5 @@ describe 'combine', ->
     it 'should always use up to date value from direct connection in triangle shape case', ->
       a = stream()
       b = a.map (x) -> x
-      expect(Kefir.combine([b, a])).toEmit [[1, 1], [2, 2], [2, 2]], ->
+      expect(Kefir.combine([b, a])).toEmit [[1, 1], [1, 1], [2, 2], [2, 2]], ->
         send(a, [1, 2])
