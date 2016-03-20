@@ -25,9 +25,9 @@ function Combine(active, passive, combinator) {
   this._sources = concat(active, passive);
   this._combinator = combinator ? spread(combinator, this._sources.length) : (x => x);
   this._aliveCount = 0;
-  this._latestValues = new Array(this._sources.length);
+  this._latestEvents = new Array(this._sources.length);
   this._latestErrors = new Array(this._sources.length);
-  fillArray(this._latestValues, NOTHING);
+  fillArray(this._latestEvents, NOTHING);
   this._emitAfterActivation = false;
   this._endAfterActivation = false;
   this._latestErrorIndex = 0;
@@ -76,12 +76,12 @@ inherit(Combine, Stream, {
   _emitIfFull() {
     let hasAllValues = true;
     let hasErrors = false;
-    let length = this._latestValues.length;
+    let length = this._latestEvents.length;
     let valuesCopy = new Array(length);
     let errorsCopy = new Array(length);
 
     for (let i = 0; i < length; i++) {
-      valuesCopy[i] = this._latestValues[i];
+      valuesCopy[i] = this._latestEvents[i];
       errorsCopy[i] = this._latestErrors[i];
 
       if (valuesCopy[i] === NOTHING) {
@@ -107,11 +107,11 @@ inherit(Combine, Stream, {
     if (event.type === VALUE || event.type === ERROR) {
 
       if (event.type === VALUE) {
-        this._latestValues[i] = event.value;
+        this._latestEvents[i] = event.value;
         this._latestErrors[i] = undefined;
       }
       if (event.type === ERROR) {
-        this._latestValues[i] = NOTHING;
+        this._latestEvents[i] = NOTHING;
         this._latestErrors[i] = {
           index: this._latestErrorIndex++,
           error: event.value
@@ -145,7 +145,7 @@ inherit(Combine, Stream, {
   _clear() {
     Stream.prototype._clear.call(this);
     this._sources = null;
-    this._latestValues = null;
+    this._latestEvents = null;
     this._latestErrors = null;
     this._combinator = null;
     this._$handlers = null;

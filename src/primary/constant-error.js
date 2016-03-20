@@ -8,7 +8,7 @@ import Property from '../property';
 //   (see Propperty and Observable classes).
 
 function P(value) {
-  this._currentEvent = {type: 'error', value, current: true};
+  this._latestEvent = {type: 'error', value, current: true};
 }
 
 inherit(P, Property, {

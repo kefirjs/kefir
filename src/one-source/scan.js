@@ -19,10 +19,10 @@ const P = createProperty('scan', {
 
   _handleValue(x) {
     const fn = this._fn;
-    if (this._currentEvent === null || this._currentEvent.type === ERROR) {
+    if (this._latestEvent === null || this._latestEvent.type === ERROR) {
       this._emitValue(this._seed === NOTHING ? x : fn(this._seed, x));
     } else {
-      this._emitValue(fn(this._currentEvent.value, x));
+      this._emitValue(fn(this._latestEvent.value, x));
     }
   }
 

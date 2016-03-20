@@ -11,6 +11,7 @@ function Observable() {
   this._alive = true;
   this._activating = false;
   this._logHandlers = null;
+  this._latestEvent = null;
 }
 
 extend(Observable.prototype, {
@@ -50,13 +51,15 @@ extend(Observable.prototype, {
 
   _emitValue(value) {
     if (this._alive) {
-      this._dispatcher.dispatch({type: VALUE, value});
+      this._latestEvent = {type: VALUE, value};
+      this._dispatcher.dispatch(this._latestEvent);
     }
   },
 
   _emitError(value) {
     if (this._alive) {
-      this._dispatcher.dispatch({type: ERROR, value});
+      this._latestEvent = {type: ERROR, value};
+      this._dispatcher.dispatch(this._latestEvent);
     }
   },
 

@@ -74,8 +74,8 @@ inherit(AbstractPool, Stream, {
       // This one for cases when `obs` already ended
       // e.g., Kefir.constant() or Kefir.never()
       if (!obs._alive) {
-        if (obs._currentEvent) {
-          this._emit(obs._currentEvent.type, obs._currentEvent.value);
+        if (obs._latestEvent) {
+          this._emit(obs._latestEvent.type, obs._latestEvent.value);
         }
         return;
       }
