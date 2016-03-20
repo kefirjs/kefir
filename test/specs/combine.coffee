@@ -217,3 +217,15 @@ describe 'combine', ->
       c = a.map (x) -> x * 2
       expect(Kefir.combine([b], [c])).toEmit [[3, 2], [4, 4], [5, 6]], ->
         send(a, [1, 2, 3])
+
+    #   A
+    #  /|
+    # B |
+    #  \|
+    #  B+A
+    # https://github.com/rpominov/kefir/issues/193#issuecomment-198766012
+    it 'should always use up to date value from direct connection in triangle shape case', ->
+      a = stream()
+      b = a.map (x) -> x
+      expect(Kefir.combine([b, a])).toEmit [[1, 1], [2, 2], [2, 2]], ->
+        send(a, [1, 2])
