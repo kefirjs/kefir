@@ -45,7 +45,9 @@ extend(Dispatcher.prototype, {
 
   dispatch(event) {
     this._inLoop++;
-    for (let i = 0, items = this._items; i < items.length; i++) {
+    var items = this._items;
+    var len = items === null ? 0 : items.length;
+    for (let i = 0; i < len; i++) {
 
       // cleanup was called
       if (this._items === null) {
