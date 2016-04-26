@@ -1,4 +1,10 @@
-## 3.2.1 (25/02/2015)
+## 3.2.2 (26/04/2016)
+
+ - Deprecation warnings disabling API fixed [#185](https://github.com/rpominov/kefir/issues/185)
+ - A bug in `.bufferWithTimeOrCount` is fixed [#194](https://github.com/rpominov/kefir/issues/194)
+ - Switched to `symbol-observable` [#200](https://github.com/rpominov/kefir/pull/200) [@blesh](https://github.com/blesh)
+
+## 3.2.1 (25/02/2016)
 
  - Switched from `require` to `import/export` internally.
  - Switched from Webpack to Rollup for building /dist bundle.
@@ -8,7 +14,7 @@ Bundle file size dropped from **108K / 49K / 9.8K** to **80K / 42K / 9.5K**
 for **dev / min / min+gzip** respectively. And the users' app bundle size can
 be reduced even further if they use Rollup and `jsnext:main`.
 
-Big thanks to [@rvikmanis](https://github.com/rvikmanis) for doing this.
+Big thanks to [@rvikmanis](https://github.com/rvikmanis) for doing this. [#184](https://github.com/rpominov/kefir/pull/184)
 
 ## 3.2.0 (12/12/2015)
 

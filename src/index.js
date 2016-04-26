@@ -86,8 +86,8 @@ import fromESObservable from './interop/from-es-observable';
 // (Stream|Property) -> ES7 Observable
 import toESObservable from './interop/to-es-observable';
 Observable.prototype.toESObservable = toESObservable;
-import symbol from './utils/symbol'
-Observable.prototype[symbol('observable')] = toESObservable;
+import $$observable from 'symbol-observable';
+Observable.prototype[$$observable] = toESObservable;
 
 
 
@@ -404,8 +404,13 @@ Observable.prototype.bufferWhileBy = function(other, options) {
 // Deprecated
 // -----------------------------------------------------------------------------
 
+let DEPRECATION_WARNINGS = true
+export function dissableDeprecationWarnings() {
+  DEPRECATION_WARNINGS = false
+}
+
 function warn(msg) {
-  if (Kefir.DEPRECATION_WARNINGS !== false && console && typeof console.warn === 'function') {
+  if (DEPRECATION_WARNINGS && console && typeof console.warn === 'function') {
     const msg2 = '\nHere is an Error object for you containing the call stack:';
     console.warn(msg, msg2, new Error());
   }
