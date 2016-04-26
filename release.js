@@ -51,8 +51,8 @@ inquirer.prompt(questions, function(answers) {
   run('npm test', dryRun) &&
   bumpVersion('package.json', pkg, dryRun) &&
   bumpVersion('bower.json', bower, dryRun) &&
-  run('grunt', dryRun) &&
-  run('grunt bower', dryRun) &&
+  run('`npm bin`/grunt', dryRun) &&
+  run('`npm bin`/grunt bower', dryRun) &&
   run('git add .', dryRun) &&
   run('git add -f dist', dryRun) &&
   run('git add -f index.html', dryRun) &&
