@@ -1,9 +1,10 @@
-## Next
+## 3.2.2 (26/04/2016)
 
  - Deprecation warnings disabling API fixed [#185](https://github.com/rpominov/kefir/issues/185)
  - A bug in `.bufferWithTimeOrCount` is fixed [#194](https://github.com/rpominov/kefir/issues/194)
+ - Switched to `symbol-observable` [#200](https://github.com/rpominov/kefir/pull/200) [@blesh](https://github.com/blesh)
 
-## 3.2.1 (25/02/2015)
+## 3.2.1 (25/02/2016)
 
  - Switched from `require` to `import/export` internally.
  - Switched from Webpack to Rollup for building /dist bundle.
