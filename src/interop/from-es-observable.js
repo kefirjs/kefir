@@ -1,9 +1,8 @@
 import stream from '../primary/stream';
-import symbol_ from '../utils/symbol';
-const symbol = symbol_('observable');
+import $$observable from 'symbol-observable';
 
 export default function fromESObservable(_observable) {
-  const observable = _observable[symbol] ? _observable[symbol]() : _observable;
+  const observable = _observable[$$observable] ? _observable[$$observable]() : _observable;
   return stream(function(emitter) {
     const unsub = observable.subscribe({
       error(error) {

@@ -86,8 +86,8 @@ import fromESObservable from './interop/from-es-observable';
 // (Stream|Property) -> ES7 Observable
 import toESObservable from './interop/to-es-observable';
 Observable.prototype.toESObservable = toESObservable;
-import symbol from './utils/symbol'
-Observable.prototype[symbol('observable')] = toESObservable;
+import $$observable from 'symbol-observable';
+Observable.prototype[$$observable] = toESObservable;
 
 
 
