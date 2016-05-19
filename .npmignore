@@ -13,3 +13,4 @@ test
 .jshintrc
 changelog.md
 tmp
+.babelrc
