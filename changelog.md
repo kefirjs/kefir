@@ -1,3 +1,7 @@
+## 3.2.3 (20/05/2016)
+
+ - .babelrc added to .npmignore [#203](https://github.com/rpominov/kefir/pull/203) [@aksonov](https://github.com/aksonov)
+
 ## 3.2.2 (26/04/2016)
 
  - Deprecation warnings disabling API fixed [#185](https://github.com/rpominov/kefir/issues/185)
