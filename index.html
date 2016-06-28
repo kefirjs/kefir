@@ -67,7 +67,7 @@ button click events:
 </pre><p>Also let's create a stream of a text input value changes:
 </p><pre title="example" class="javascript">var inputValue = Kefir.fromEvents(document.querySelector(&#x27;#ex-2-input&#x27;), &#x27;keyup&#x27;)
   .map(event =&gt; event.target.value);
-</pre><p>That's a good begining, we have streams representing user actions,
+</pre><p>That's a good beginning, we have streams representing user actions,
 now we can transform and combine them to create our desired result stream.
 First we want to have a <a href="#about-observables">property</a>
 representing how many times user clicked the button,
@@ -1267,7 +1267,7 @@ result.log();
 &gt; [fromESObservable] &lt;end&gt;
 </pre><pre title="events in time">result:  12X</pre><div></div><p id="to-es-observable"><a href="#to-es-observable" class="header">toESObservable</a><code>obs.toESObservable()</code><code class="alias">obs[Symbol.observable]()</code>Converts an Kefir Observable to an
 <a href="https://github.com/zenparsing/es-observable">ECMAScript Observable</a>.
-</p><p>Aslo avaliable as <tt>obs[Symbol.observable]</tt>, so you can use ES Observable's
+</p><p>Also available as <tt>obs[Symbol.observable]</tt>, so you can use ES Observable's
 <tt>from</tt> method with Kefir Observables e.g., <tt>Observable.from(Kefir.sequentially(1000, [1, 2]))</tt>.
 </p><pre title="example" class="javascript">var observable = Kefir.sequentially(1000, [1, 2]).toESObservable();
 observable.subscribe({
@@ -1281,7 +1281,7 @@ observable.subscribe({
 </pre><pre title="console output">&gt; value: 1
 &gt; value: 2
 &gt; completed</pre><div></div><h2 id="active-state">Activation and deactivation of observables</h2><p>At the moment one create an observable it's not yet subscribed to its source.
-Observables subscribe to their sources only when they themself get a first subscriber.
+Observables subscribe to their sources only when they themselves get a first subscriber.
 In this docs this process is called <b>activation</b> of an observable.
 Also when the last subscriber is removed from an observable,
 the observable <b>deactivates</b> and unsubscribes from its source.
