@@ -17,7 +17,7 @@ module.exports = (grunt) ->
 
   """
 
-  rollupPlugins = [ babel(), nodeResolve({jsnext: true, main: true}), commonjs() ]
+  rollupPlugins = [ babel(), nodeResolve({main: true}), commonjs() ]
 
   timeGrunt(grunt)
 
