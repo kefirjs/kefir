@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
-/*! Kefir.js v3.2.3
+/*! Kefir.js v3.2.4
  *  https://github.com/rpominov/kefir
  */
 
@@ -9,9 +9,6 @@
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.Kefir = global.Kefir || {})));
 }(this, function (exports) { 'use strict';
-
-	var __commonjs_global = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : this;
-	function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports, __commonjs_global), module.exports; }
 
 	function createObj(proto) {
 	  var F = function () {};
@@ -1019,19 +1016,29 @@
 	  });
 	}
 
-	var ponyfill = __commonjs(function (module) {
+	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {}
+
+	function createCommonjsModule(fn, module) {
+		return module = { exports: {} }, fn(module, module.exports), module.exports;
+	}
+
+	var ponyfill = createCommonjsModule(function (module, exports) {
 	'use strict';
 
-	module.exports = function symbolObservablePonyfill(root) {
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.default = symbolObservablePonyfill;
+	function symbolObservablePonyfill(root) {
 		var result;
-		var Symbol = root.Symbol;
+		var _Symbol = root.Symbol;
 
-		if (typeof Symbol === 'function') {
-			if (Symbol.observable) {
-				result = Symbol.observable;
+		if (typeof _Symbol === 'function') {
+			if (_Symbol.observable) {
+				result = _Symbol.observable;
 			} else {
-				result = Symbol('observable');
-				Symbol.observable = result;
+				result = _Symbol('observable');
+				_Symbol.observable = result;
 			}
 		} else {
 			result = '@@observable';
@@ -1041,13 +1048,39 @@
 	};
 	});
 
-	var require$$0 = (ponyfill && typeof ponyfill === 'object' && 'default' in ponyfill ? ponyfill['default'] : ponyfill);
+	var require$$0$1 = (ponyfill && typeof ponyfill === 'object' && 'default' in ponyfill ? ponyfill['default'] : ponyfill);
 
-	var index = __commonjs(function (module, exports, global) {
-	/* global window */
+	var index$1 = createCommonjsModule(function (module, exports) {
 	'use strict';
 
-	module.exports = require$$0(global || window || __commonjs_global);
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _ponyfill = require$$0$1;
+
+	var _ponyfill2 = _interopRequireDefault(_ponyfill);
+
+	function _interopRequireDefault(obj) {
+		return obj && obj.__esModule ? obj : { default: obj };
+	}
+
+	var root = undefined; /* global window */
+
+	if (typeof commonjsGlobal !== 'undefined') {
+		root = commonjsGlobal;
+	} else if (typeof window !== 'undefined') {
+		root = window;
+	}
+
+	var result = (0, _ponyfill2.default)(root);
+	exports.default = result;
+	});
+
+	var require$$0 = (index$1 && typeof index$1 === 'object' && 'default' in index$1 ? index$1['default'] : index$1);
+
+	var index = createCommonjsModule(function (module) {
+	module.exports = require$$0;
 	});
 
 	var $$observable = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
@@ -1078,11 +1111,13 @@
 	  }).setName('fromESObservable');
 	}
 
+	var _extend;
+
 	function ESObservable(observable) {
 	  this._observable = observable.takeErrors(1);
 	}
 
-	extend(ESObservable.prototype, {
+	extend(ESObservable.prototype, (_extend = {
 	  subscribe: function (observer) {
 	    var _this = this;
 
@@ -1101,7 +1136,9 @@
 	      return _this._observable.offAny(fn);
 	    };
 	  }
-	});
+	}, _extend[$$observable] = function () {
+	  return this;
+	}, _extend));
 
 	function toESObservable() {
 	  return new ESObservable(this);
@@ -2089,8 +2126,8 @@
 	    for (var i = this._activeCount; i < this._sources.length; i++) {
 	      this._sources[i].onAny(this._$handlers[i]);
 	    }
-	    for (var i = 0; i < this._activeCount; i++) {
-	      this._sources[i].onAny(this._$handlers[i]);
+	    for (var _i = 0; _i < this._activeCount; _i++) {
+	      this._sources[_i].onAny(this._$handlers[_i]);
 	    }
 
 	    if (this._emitAfterActivation) {
@@ -3331,6 +3368,8 @@
 	exports.pool = pool;
 	exports.repeat = repeat;
 	exports['default'] = Kefir;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
@@ -13779,12 +13818,40 @@ if (typeof Object.create === 'function') {
 // shim for using process in browser
 
 var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+(function () {
+  try {
+    cachedSetTimeout = setTimeout;
+  } catch (e) {
+    cachedSetTimeout = function () {
+      throw new Error('setTimeout is not defined');
+    }
+  }
+  try {
+    cachedClearTimeout = clearTimeout;
+  } catch (e) {
+    cachedClearTimeout = function () {
+      throw new Error('clearTimeout is not defined');
+    }
+  }
+} ())
 var queue = [];
 var draining = false;
 var currentQueue;
 var queueIndex = -1;
 
 function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
     draining = false;
     if (currentQueue.length) {
         queue = currentQueue.concat(queue);
@@ -13800,7 +13867,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
+    var timeout = cachedSetTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -13817,7 +13884,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
+    cachedClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -13829,7 +13896,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
+        cachedSetTimeout(drainQueue, 0);
     }
 };
 

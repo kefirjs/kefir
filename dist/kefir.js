@@ -1,4 +1,4 @@
-/*! Kefir.js v3.2.3
+/*! Kefir.js v3.2.4
  *  https://github.com/rpominov/kefir
  */
 
@@ -7,9 +7,6 @@
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.Kefir = global.Kefir || {})));
 }(this, function (exports) { 'use strict';
-
-	var __commonjs_global = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : this;
-	function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports, __commonjs_global), module.exports; }
 
 	function createObj(proto) {
 	  var F = function () {};
@@ -1017,19 +1014,29 @@
 	  });
 	}
 
-	var ponyfill = __commonjs(function (module) {
+	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {}
+
+	function createCommonjsModule(fn, module) {
+		return module = { exports: {} }, fn(module, module.exports), module.exports;
+	}
+
+	var ponyfill = createCommonjsModule(function (module, exports) {
 	'use strict';
 
-	module.exports = function symbolObservablePonyfill(root) {
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.default = symbolObservablePonyfill;
+	function symbolObservablePonyfill(root) {
 		var result;
-		var Symbol = root.Symbol;
+		var _Symbol = root.Symbol;
 
-		if (typeof Symbol === 'function') {
-			if (Symbol.observable) {
-				result = Symbol.observable;
+		if (typeof _Symbol === 'function') {
+			if (_Symbol.observable) {
+				result = _Symbol.observable;
 			} else {
-				result = Symbol('observable');
-				Symbol.observable = result;
+				result = _Symbol('observable');
+				_Symbol.observable = result;
 			}
 		} else {
 			result = '@@observable';
@@ -1039,13 +1046,39 @@
 	};
 	});
 
-	var require$$0 = (ponyfill && typeof ponyfill === 'object' && 'default' in ponyfill ? ponyfill['default'] : ponyfill);
+	var require$$0$1 = (ponyfill && typeof ponyfill === 'object' && 'default' in ponyfill ? ponyfill['default'] : ponyfill);
 
-	var index = __commonjs(function (module, exports, global) {
-	/* global window */
+	var index$1 = createCommonjsModule(function (module, exports) {
 	'use strict';
 
-	module.exports = require$$0(global || window || __commonjs_global);
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _ponyfill = require$$0$1;
+
+	var _ponyfill2 = _interopRequireDefault(_ponyfill);
+
+	function _interopRequireDefault(obj) {
+		return obj && obj.__esModule ? obj : { default: obj };
+	}
+
+	var root = undefined; /* global window */
+
+	if (typeof commonjsGlobal !== 'undefined') {
+		root = commonjsGlobal;
+	} else if (typeof window !== 'undefined') {
+		root = window;
+	}
+
+	var result = (0, _ponyfill2.default)(root);
+	exports.default = result;
+	});
+
+	var require$$0 = (index$1 && typeof index$1 === 'object' && 'default' in index$1 ? index$1['default'] : index$1);
+
+	var index = createCommonjsModule(function (module) {
+	module.exports = require$$0;
 	});
 
 	var $$observable = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
@@ -1076,11 +1109,13 @@
 	  }).setName('fromESObservable');
 	}
 
+	var _extend;
+
 	function ESObservable(observable) {
 	  this._observable = observable.takeErrors(1);
 	}
 
-	extend(ESObservable.prototype, {
+	extend(ESObservable.prototype, (_extend = {
 	  subscribe: function (observer) {
 	    var _this = this;
 
@@ -1099,7 +1134,9 @@
 	      return _this._observable.offAny(fn);
 	    };
 	  }
-	});
+	}, _extend[$$observable] = function () {
+	  return this;
+	}, _extend));
 
 	function toESObservable() {
 	  return new ESObservable(this);
@@ -2087,8 +2124,8 @@
 	    for (var i = this._activeCount; i < this._sources.length; i++) {
 	      this._sources[i].onAny(this._$handlers[i]);
 	    }
-	    for (var i = 0; i < this._activeCount; i++) {
-	      this._sources[i].onAny(this._$handlers[i]);
+	    for (var _i = 0; _i < this._activeCount; _i++) {
+	      this._sources[_i].onAny(this._$handlers[_i]);
 	    }
 
 	    if (this._emitAfterActivation) {
@@ -3329,5 +3366,7 @@
 	exports.pool = pool;
 	exports.repeat = repeat;
 	exports['default'] = Kefir;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
