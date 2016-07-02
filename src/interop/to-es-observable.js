@@ -1,3 +1,4 @@
+import $$observable from 'symbol-observable';
 import {extend} from '../utils/objects';
 import {VALUE, ERROR, END} from '../constants';
 
@@ -19,6 +20,9 @@ extend(ESObservable.prototype, {
 
     this._observable.onAny(fn);
     return () => this._observable.offAny(fn);
+  },
+  [$$observable]() {
+    return this;
   }
 });
 
