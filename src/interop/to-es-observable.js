@@ -20,12 +20,13 @@ extend(ESObservable.prototype, {
 
     this._observable.onAny(fn);
     return () => this._observable.offAny(fn);
-  },
-  [$$observable]() {
-    return this;
   }
 });
 
+// Need to assign directly b/c Symbols aren't enumerable.
+ESObservable.prototype[$$observable] = function() {
+  return this;
+};
 
 export default function toESObservable() {
   return new ESObservable(this);
