@@ -1,6 +1,6 @@
-## 3.2.4 (2/07/2016)
+## 3.2.5 (4/07/2016)
 
- - `stream[Symbol.observable]` now equals to `stream[Symbol.observable][Symbol.observable]` [#209](https://github.com/rpominov/kefir/pull/209) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+ - `stream[Symbol.observable]` now equals to `stream[Symbol.observable][Symbol.observable]` [#209](https://github.com/rpominov/kefir/pull/209) [#210](https://github.com/rpominov/kefir/pull/210) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
 
 ## 3.2.3 (20/05/2016)
 
