@@ -7,8 +7,13 @@ function ESObservable(observable) {
 }
 
 extend(ESObservable.prototype, {
-  subscribe(observer) {
-    let fn = function(event) {
+  subscribe(observerOrOnNext, onError, onComplete) {
+
+    const observer = typeof observerOrOnNext === 'function'
+      ? {next: observerOrOnNext, error: onError, complete: onComplete}
+      : observerOrOnNext
+
+    const fn = event => {
       if (event.type === VALUE && observer.next) {
         observer.next(event.value);
       } else if (event.type === ERROR && observer.error) {
@@ -19,7 +24,15 @@ extend(ESObservable.prototype, {
     }
 
     this._observable.onAny(fn);
-    return () => this._observable.offAny(fn);
+    const subscription = {
+      unsubscribe: () => {
+        subscription.closed = true;
+        this._observable.offAny(fn);
+      },
+      closed: false
+    };
+    return subscription;
+
   }
 });
 

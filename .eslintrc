@@ -9,7 +9,6 @@
   },
   globals: {
     Promise: true,
-    Symbol: true
   },
   env: {
     node: true
