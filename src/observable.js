@@ -114,6 +114,52 @@ extend(Observable.prototype, {
     return this._off(ANY, fn);
   },
 
+  subscribe(observer) {
+    const _this = this;
+    let closed = false;
+
+    if (typeof observer === 'function') {
+      observer = {
+        next: observer,
+        error: arguments[1],
+        complete: arguments[2]
+      };
+    }
+
+    if (observer.next) {
+      this.onValue(observer.next);
+    }
+
+    if (observer.error) {
+      this.onError(observer.error);
+    }
+
+    if (observer.end) {
+      this.onEnd(observer.complete);
+    }
+
+    return {
+      unsubscribe() {
+        if (observer.next) {
+          _this.offValue(observer.next);
+        }
+
+        if (observer.error) {
+          _this.offError(observer.error);
+        }
+
+        if (observer.end) {
+          _this.offEnd(observer.complete);
+        }
+
+        closed = true;
+      },
+      closed() {
+        return closed;
+      }
+    };
+  },
+
   // A and B must be subclasses of Stream and Property (order doesn't matter)
   _ofSameType(A, B) {
     return A.prototype.getType() === this.getType() ? A : B;
