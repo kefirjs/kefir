@@ -1,4 +1,4 @@
-/*! Kefir.js v3.2.5
+/*! Kefir.js v3.2.6
  *  https://github.com/rpominov/kefir
  */
 
@@ -1114,8 +1114,10 @@
 	}
 
 	extend(ESObservable.prototype, {
-	  subscribe: function (observer) {
+	  subscribe: function (observerOrOnNext, onError, onComplete) {
 	    var _this = this;
+
+	    var observer = typeof observerOrOnNext === 'function' ? { next: observerOrOnNext, error: onError, complete: onComplete } : observerOrOnNext;
 
 	    var fn = function (event) {
 	      if (event.type === VALUE && observer.next) {
@@ -1128,9 +1130,14 @@
 	    };
 
 	    this._observable.onAny(fn);
-	    return function () {
-	      return _this._observable.offAny(fn);
+	    var subscription = {
+	      unsubscribe: function () {
+	        subscription.closed = true;
+	        _this._observable.offAny(fn);
+	      },
+	      closed: false
 	    };
+	    return subscription;
 	  }
 	});
 

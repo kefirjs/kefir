@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
-/*! Kefir.js v3.2.5
+/*! Kefir.js v3.2.6
  *  https://github.com/rpominov/kefir
  */
 
@@ -1116,8 +1116,10 @@
 	}
 
 	extend(ESObservable.prototype, {
-	  subscribe: function (observer) {
+	  subscribe: function (observerOrOnNext, onError, onComplete) {
 	    var _this = this;
+
+	    var observer = typeof observerOrOnNext === 'function' ? { next: observerOrOnNext, error: onError, complete: onComplete } : observerOrOnNext;
 
 	    var fn = function (event) {
 	      if (event.type === VALUE && observer.next) {
@@ -1130,9 +1132,14 @@
 	    };
 
 	    this._observable.onAny(fn);
-	    return function () {
-	      return _this._observable.offAny(fn);
+	    var subscription = {
+	      unsubscribe: function () {
+	        subscription.closed = true;
+	        _this._observable.offAny(fn);
+	      },
+	      closed: false
 	    };
+	    return subscription;
 	  }
 	});
 
@@ -15612,7 +15619,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161,"formatio":139,"util":172}],151:[function(require,module,exports){
+},{"./util/core":161,"formatio":139,"util":175}],151:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -19578,6 +19585,58 @@ if (typeof sinon === "undefined") {
 ));
 
 },{"./util/core":161}],169:[function(require,module,exports){
+module.exports = require('./lib/index');
+
+},{"./lib/index":170}],170:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _ponyfill = require('./ponyfill');
+
+var _ponyfill2 = _interopRequireDefault(_ponyfill);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var root = undefined; /* global window */
+
+if (typeof global !== 'undefined') {
+	root = global;
+} else if (typeof window !== 'undefined') {
+	root = window;
+}
+
+var result = (0, _ponyfill2.default)(root);
+exports.default = result;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./ponyfill":171}],171:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.default = symbolObservablePonyfill;
+function symbolObservablePonyfill(root) {
+	var result;
+	var _Symbol = root.Symbol;
+
+	if (typeof _Symbol === 'function') {
+		if (_Symbol.observable) {
+			result = _Symbol.observable;
+		} else {
+			result = _Symbol('observable');
+			_Symbol.observable = result;
+		}
+	} else {
+		result = '@@observable';
+	}
+
+	return result;
+};
+},{}],172:[function(require,module,exports){
 // transducers-js 0.4.175
 // http://github.com/cognitect-labs/transducers-js
 // 
@@ -20711,7 +20770,7 @@ dropWhile:com.cognitect.transducers.dropWhile, DropWhile:com.cognitect.transduce
 mapcat:com.cognitect.transducers.mapcat, transduce:com.cognitect.transducers.transduce, reduce:com.cognitect.transducers.reduce, into:com.cognitect.transducers.into, toFn:com.cognitect.transducers.toFn, first:com.cognitect.transducers.first, ensureReduced:com.cognitect.transducers.ensureReduced, unreduced:com.cognitect.transducers.unreduced, deref:com.cognitect.transducers.deref});
 
 
-},{}],170:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 
 // basic protocol helpers
 
@@ -21679,14 +21738,14 @@ module.exports = {
   LazyTransformer: LazyTransformer
 };
 
-},{}],171:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],172:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22276,83 +22335,21 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":171,"_process":142,"inherits":140}],173:[function(require,module,exports){
+},{"./support/isBuffer":174,"_process":142,"inherits":140}],176:[function(require,module,exports){
 module.exports = require("./zen-observable.js").Observable;
 
-},{"./zen-observable.js":174}],174:[function(require,module,exports){
-(function (process,global){
-/*=esdown=*/(function(fn, deps, name) { function obj() { return {} } if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof define === 'function' && define.amd) define(['require', 'exports', 'module'].concat(deps), fn); else if (typeof self !== 'undefined' && name) fn(obj, name === '*' ? self : (self[name] = {}), {}); else fn(obj, {}, {}); })(function(require, exports, module) { 'use strict'; function __load(p, l) { module.__es6 = !l; var e = require(p); if (e && e.constructor !== Object) e.default = e; return e; } // === Non-Promise Job Queueing ===
-
-var enqueueJob = (function() {
-
-    // Node
-    if (typeof global !== "undefined" &&
-        typeof process !== "undefined" &&
-        process.nextTick) {
-
-        return global.setImmediate ?
-            function(fn) { global.setImmediate(fn) } :
-            function(fn) { process.nextTick(fn) };
-    }
-
-    // Newish Browsers
-    var Observer = self.MutationObserver || self.WebKitMutationObserver;
-
-    if (Observer) {
-
-        var div$0 = document.createElement("div"),
-            twiddle$0 = function(_) { return div$0.classList.toggle("x"); },
-            queue$0 = [];
-
-        var observer$0 = new Observer(function(_) {
-
-            if (queue$0.length > 1)
-                twiddle$0();
-
-            while (queue$0.length > 0)
-                queue$0.shift()();
-        });
-
-        observer$0.observe(div$0, { attributes: true });
-
-        return function(fn) {
-
-            queue$0.push(fn);
-
-            if (queue$0.length === 1)
-                twiddle$0();
-        };
-    }
-
-    // Fallback
-    return function(fn) { setTimeout(fn, 0) };
-
-})();
-
-// === Symbol Polyfills ===
-
-function polyfillSymbol(name) {
-
-    if (symbolsSupported() && !Symbol[name])
-        Object.defineProperty(Symbol, name, { value: Symbol(name) });
-}
-
-function symbolsSupported() {
-
-    return typeof Symbol === "function";
-}
+},{"./zen-observable.js":177}],177:[function(require,module,exports){
+'use strict'; (function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { // === Symbol Support ===
 
 function hasSymbol(name) {
 
-    return symbolsSupported() && Boolean(Symbol[name]);
+    return typeof Symbol === "function" && Boolean(Symbol[name]);
 }
 
 function getSymbol(name) {
 
     return hasSymbol(name) ? Symbol[name] : "@@" + name;
 }
-
-polyfillSymbol("observable");
 
 // === Abstract Operations ===
 
@@ -22385,29 +22382,42 @@ function addMethods(target, methods) {
     });
 }
 
-function cleanupSubscription(observer) {
+function cleanupSubscription(subscription) {
 
     // Assert:  observer._observer is undefined
 
-    var cleanup = observer._cleanup;
+    var cleanup = subscription._cleanup;
 
     if (!cleanup)
         return;
 
     // Drop the reference to the cleanup function so that we won't call it
     // more than once
-    observer._cleanup = undefined;
+    subscription._cleanup = undefined;
 
     // Call the cleanup function
     cleanup();
 }
 
-function subscriptionClosed(observer) {
+function subscriptionClosed(subscription) {
 
-    return observer._observer === undefined;
+    return subscription._observer === undefined;
 }
 
-function SubscriptionObserver(observer, subscriber) {
+function closeSubscription(subscription) {
+
+    if (subscriptionClosed(subscription))
+        return;
+
+    subscription._observer = undefined;
+    cleanupSubscription(subscription);
+}
+
+function cleanupFromSubscription(subscription) {
+    return function(_) { subscription.unsubscribe() };
+}
+
+function Subscription(observer, subscriber) {
 
     // Assert: subscriber is callable
 
@@ -22415,25 +22425,40 @@ function SubscriptionObserver(observer, subscriber) {
     if (Object(observer) !== observer)
         throw new TypeError("Observer must be an object");
 
-    this._observer = observer;
     this._cleanup = undefined;
+    this._observer = observer;
+
+    var start = getMethod(observer, "start");
+
+    if (start)
+        start.call(observer, this);
+
+    if (subscriptionClosed(this))
+        return;
+
+    observer = new SubscriptionObserver(this);
 
     try {
 
         // Call the subscriber function
-        var cleanup$0 = subscriber.call(undefined, this);
+        var cleanup$0 = subscriber.call(undefined, observer);
 
-        // The return value must be undefined, null, or a function
-        if (cleanup$0 != null && typeof cleanup$0 !== "function")
-            throw new TypeError(cleanup$0 + " is not a function");
+        // The return value must be undefined, null, a subscription object, or a function
+        if (cleanup$0 != null) {
 
-        this._cleanup = cleanup$0;
+            if (typeof cleanup$0.unsubscribe === "function")
+                cleanup$0 = cleanupFromSubscription(cleanup$0);
+            else if (typeof cleanup$0 !== "function")
+                throw new TypeError(cleanup$0 + " is not a function");
+
+            this._cleanup = cleanup$0;
+        }
 
     } catch (e) {
 
         // If an error occurs during startup, then attempt to send the error
         // to the observer
-        this.error(e);
+        observer.error(e);
         return;
     }
 
@@ -22442,26 +22467,28 @@ function SubscriptionObserver(observer, subscriber) {
         cleanupSubscription(this);
 }
 
+addMethods(Subscription.prototype = {}, {
+    get closed() { return subscriptionClosed(this) },
+    unsubscribe: function() { closeSubscription(this) },
+});
+
+function SubscriptionObserver(subscription) {
+    this._subscription = subscription;
+}
+
 addMethods(SubscriptionObserver.prototype = {}, {
 
-    cancel: function() {
-
-        if (subscriptionClosed(this))
-            return;
-
-        this._observer = undefined;
-        cleanupSubscription(this);
-    },
-
-    get closed() { return subscriptionClosed(this) },
+    get closed() { return subscriptionClosed(this._subscription) },
 
     next: function(value) {
 
+        var subscription = this._subscription;
+
         // If the stream if closed, then return undefined
-        if (subscriptionClosed(this))
+        if (subscriptionClosed(subscription))
             return undefined;
 
-        var observer = this._observer;
+        var observer = subscription._observer;
 
         try {
 
@@ -22477,19 +22504,21 @@ addMethods(SubscriptionObserver.prototype = {}, {
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            try { this.cancel() }
+            try { closeSubscription(subscription) }
             finally { throw e }
         }
     },
 
     error: function(value) {
 
+        var subscription = this._subscription;
+
         // If the stream is closed, throw the error to the caller
-        if (subscriptionClosed(this))
+        if (subscriptionClosed(subscription))
             throw value;
 
-        var observer = this._observer;
-        this._observer = undefined;
+        var observer = subscription._observer;
+        subscription._observer = undefined;
 
         try {
 
@@ -22503,23 +22532,24 @@ addMethods(SubscriptionObserver.prototype = {}, {
 
         } catch (e) {
 
-            try { cleanupSubscription(this) }
+            try { cleanupSubscription(subscription) }
             finally { throw e }
         }
 
-        cleanupSubscription(this);
-
+        cleanupSubscription(subscription);
         return value;
     },
 
     complete: function(value) {
 
+        var subscription = this._subscription;
+
         // If the stream is closed, then return undefined
-        if (subscriptionClosed(this))
+        if (subscriptionClosed(subscription))
             return undefined;
 
-        var observer = this._observer;
-        this._observer = undefined;
+        var observer = subscription._observer;
+        subscription._observer = undefined;
 
         try {
 
@@ -22530,12 +22560,11 @@ addMethods(SubscriptionObserver.prototype = {}, {
 
         } catch (e) {
 
-            try { cleanupSubscription(this) }
+            try { cleanupSubscription(subscription) }
             finally { throw e }
         }
 
-        cleanupSubscription(this);
-
+        cleanupSubscription(subscription);
         return value;
     },
 
@@ -22552,11 +22581,18 @@ function Observable(subscriber) {
 
 addMethods(Observable.prototype, {
 
-    subscribe: function(observer) {
+    subscribe: function(observer) { for (var args = [], __$0 = 1; __$0 < arguments.length; ++__$0) args.push(arguments[__$0]); 
 
-        // Wrap the observer in order to maintain observation invariants
-        observer = new SubscriptionObserver(observer, this._subscriber);
-        return function(_) { observer.cancel() };
+        if (typeof observer === 'function') {
+
+            observer = {
+                next: observer,
+                error: args[0],
+                complete: args[1],
+            };
+        }
+
+        return new Subscription(observer, this._subscriber);
     },
 
     forEach: function(fn) { var __this = this; 
@@ -22564,19 +22600,42 @@ addMethods(Observable.prototype, {
         return new Promise(function(resolve, reject) {
 
             if (typeof fn !== "function")
-                throw new TypeError(fn + " is not a function");
+                return Promise.reject(new TypeError(fn + " is not a function"));
 
             __this.subscribe({
 
+                _subscription: null,
+
+                start: function(subscription) {
+
+                    if (Object(subscription) !== subscription)
+                        throw new TypeError(subscription + " is not an object");
+
+                    this._subscription = subscription;
+                },
+
                 next: function(value) {
 
-                    try { return fn(value) }
-                    catch (e) { reject(e) }
+                    var subscription = this._subscription;
+
+                    if (subscription.closed)
+                        return;
+
+                    try {
+
+                        return fn(value);
+
+                    } catch (err) {
+
+                        reject(err);
+                        subscription.unsubscribe();
+                    }
                 },
 
                 error: reject,
                 complete: resolve,
             });
+
         });
     },
 
@@ -22591,14 +22650,17 @@ addMethods(Observable.prototype, {
 
             next: function(value) {
 
+                if (observer.closed)
+                    return;
+
                 try { value = fn(value) }
                 catch (e) { return observer.error(e) }
 
                 return observer.next(value);
             },
 
-            error: function(value) { return observer.error(value) },
-            complete: function(value) { return observer.complete(value) },
+            error: function(e) { return observer.error(e) },
+            complete: function(x) { return observer.complete(x) },
         }); });
     },
 
@@ -22613,16 +22675,144 @@ addMethods(Observable.prototype, {
 
             next: function(value) {
 
-                try { if (!fn(value)) return undefined; }
+                if (observer.closed)
+                    return;
+
+                try { if (!fn(value)) return undefined }
                 catch (e) { return observer.error(e) }
 
                 return observer.next(value);
             },
 
-            error: function(value) { return observer.error(value) },
-            complete: function(value) { return observer.complete(value) },
+            error: function(e) { return observer.error(e) },
+            complete: function() { return observer.complete() },
         }); });
     },
+
+    reduce: function(fn) { var __this = this; 
+
+        if (typeof fn !== "function")
+            throw new TypeError(fn + " is not a function");
+
+        var C = getSpecies(this.constructor),
+            hasSeed = arguments.length > 1,
+            hasValue = false,
+            seed = arguments[1],
+            acc = seed;
+
+        return new C(function(observer) { return __this.subscribe({
+
+            next: function(value) {
+
+                if (observer.closed)
+                    return;
+
+                var first = !hasValue;
+                hasValue = true;
+
+                if (!first || hasSeed) {
+
+                    try { acc = fn(acc, value) }
+                    catch (e) { return observer.error(e) }
+
+                } else {
+
+                    acc = value;
+                }
+            },
+
+            error: function(e) { return observer.error(e) },
+
+            complete: function() {
+
+                if (!hasValue && !hasSeed) {
+                    observer.error(new TypeError("Cannot reduce an empty sequence"));
+                    return;
+                }
+
+                observer.next(acc);
+                observer.complete();
+            },
+
+        }); });
+    },
+
+    flatMap: function(fn) { var __this = this; 
+
+        if (typeof fn !== "function")
+            throw new TypeError(fn + " is not a function");
+
+        var C = getSpecies(this.constructor);
+
+        return new C(function(observer) {
+
+            var completed = false,
+                subscriptions = [];
+
+            // Subscribe to the outer Observable
+            var outer = __this.subscribe({
+
+                next: function(value) {
+
+                    if (fn) {
+
+                        try {
+
+                            value = fn(value);
+
+                        } catch (x) {
+
+                            observer.error(x);
+                            return;
+                        }
+                    }
+
+                    // Subscribe to the inner Observable
+                    Observable.from(value).subscribe({
+
+                        _subscription: null,
+
+                        start: function(s) { subscriptions.push(this._subscription = s) },
+                        next: function(value) { observer.next(value) },
+                        error: function(e) { observer.error(e) },
+
+                        complete: function() {
+
+                            var i = subscriptions.indexOf(this._subscription);
+
+                            if (i >= 0)
+                                subscriptions.splice(i, 1);
+
+                            closeIfDone();
+                        }
+                    });
+                },
+
+                error: function(e) {
+
+                    return observer.error(e);
+                },
+
+                complete: function() {
+
+                    completed = true;
+                    closeIfDone();
+                }
+            });
+
+            function closeIfDone() {
+
+                if (completed && subscriptions.length === 0)
+                    observer.complete();
+            }
+
+            return function(_) {
+
+                subscriptions.forEach(function(s) { return s.unsubscribe(); });
+                outer.unsubscribe();
+            };
+        });
+    }
 
 });
 
@@ -22656,52 +22846,39 @@ addMethods(Observable, {
             return new C(function(observer) { return observable$0.subscribe(observer); });
         }
 
-        return new C(function(observer) {
+        if (hasSymbol("iterator") && (method = getMethod(x, getSymbol("iterator")))) {
 
-            enqueueJob(function(_) {
+            return new C(function(observer) {
 
-                if (observer.closed)
-                    return;
+                for (var __$0 = (method.call(x))[Symbol.iterator](), __$1; __$1 = __$0.next(), !__$1.done;) { var item$0 = __$1.value; 
 
-                // Assume that the object is iterable.  If not, then the observer
-                // will receive an error.
-                try {
+                    observer.next(item$0);
 
-                    if (hasSymbol("iterator")) {
-
-                        for (var __$0 = (x)[Symbol.iterator](), __$1; __$1 = __$0.next(), !__$1.done;) { var item$0 = __$1.value; 
-
-                            observer.next(item$0);
-
-                            if (observer.closed)
-                                return;
-                        }
-
-                    } else {
-
-                        if (!Array.isArray(x))
-                            throw new Error(x + " is not an Array");
-
-                        for (var i$0 = 0; i$0 < x.length; ++i$0) {
-
-                            observer.next(x[i$0]);
-
-                            if (observer.closed)
-                                return;
-                        }
-                    }
-
-                } catch (e) {
-
-                    // If observer.next throws an error, then the subscription will
-                    // be closed and the error method will simply rethrow
-                    observer.error(e);
-                    return;
+                    if (observer.closed)
+                        return;
                 }
 
                 observer.complete();
             });
-        });
+        }
+
+        if (Array.isArray(x)) {
+
+            return new C(function(observer) {
+
+                for (var i$0 = 0; i$0 < x.length; ++i$0) {
+
+                    observer.next(x[i$0]);
+
+                    if (observer.closed)
+                        return;
+                }
+
+                observer.complete();
+            });
+        }
+
+        throw new TypeError(x + " is not observable");
     },
 
     of: function() { for (var items = [], __$0 = 0; __$0 < arguments.length; ++__$0) items.push(arguments[__$0]); 
@@ -22710,21 +22887,15 @@ addMethods(Observable, {
 
         return new C(function(observer) {
 
-            enqueueJob(function(_) {
+            for (var i$1 = 0; i$1 < items.length; ++i$1) {
+
+                observer.next(items[i$1]);
 
                 if (observer.closed)
                     return;
+            }
 
-                for (var i$1 = 0; i$1 < items.length; ++i$1) {
-
-                    observer.next(items[i$1]);
-
-                    if (observer.closed)
-                        return;
-                }
-
-                observer.complete();
-            });
+            observer.complete();
         });
     },
 
@@ -22738,9 +22909,8 @@ Object.defineProperty(Observable, getSymbol("species"), {
 exports.Observable = Observable;
 
 
-}, [], "*");
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":142}],175:[function(require,module,exports){
+}, "*");
+},{}],178:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -22826,7 +22996,7 @@ describe('beforeEnd', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],176:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],179:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -22992,7 +23162,7 @@ describe('bufferBy', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],177:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],180:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, deactivate = ref.deactivate, activate = ref.activate;
@@ -23233,7 +23403,7 @@ describe('bufferWhileBy', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],178:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],181:[function(require,module,exports){
 var Kefir, not3, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23333,7 +23503,7 @@ describe('bufferWhile', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],179:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],182:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23442,7 +23612,7 @@ describe('bufferWithCount', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],180:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],183:[function(require,module,exports){
 var Kefir, cnt, intv, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23595,7 +23765,7 @@ describe('bufferWithTimeOrCount', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],181:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],184:[function(require,module,exports){
 var Kefir, prop, ref, send, stream, streamWithCurrent;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -23706,7 +23876,7 @@ describe('changes', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],182:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],185:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -23991,7 +24161,7 @@ describe('combine', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],183:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],186:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -24117,7 +24287,7 @@ describe('concat', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],184:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],187:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -24136,7 +24306,7 @@ describe('constantError', function() {
 });
 
 
-},{"../../dist/kefir":1}],185:[function(require,module,exports){
+},{"../../dist/kefir":1}],188:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -24155,7 +24325,7 @@ describe('constant', function() {
 });
 
 
-},{"../../dist/kefir":1}],186:[function(require,module,exports){
+},{"../../dist/kefir":1}],189:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -24355,7 +24525,7 @@ describe('debounce', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],187:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],190:[function(require,module,exports){
 var Kefir, prop, ref, send, shakyTimeTest, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, shakyTimeTest = ref.shakyTimeTest, Kefir = ref.Kefir;
@@ -24440,7 +24610,7 @@ describe('delay', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],188:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],191:[function(require,module,exports){
 var Kefir, minus, noop, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -24549,7 +24719,7 @@ describe('diff', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],189:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],192:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -24663,7 +24833,7 @@ describe('endOnError', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],190:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],193:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -24789,8 +24959,10 @@ describe('errorsToValues', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],191:[function(require,module,exports){
-var Kefir, Observable, prop, ref, send, stream;
+},{"../test-helpers.coffee":247}],194:[function(require,module,exports){
+var $$observable, Kefir, Observable, prop, ref, send, stream;
+
+$$observable = require('symbol-observable')["default"];
 
 Observable = require('zen-observable');
 
@@ -24813,11 +24985,11 @@ describe('[Symbol.observable]', function() {
     });
     return send(a, [1, 2, 3, '<end>']);
   });
-  return it('unsubscribes stream after an error', function() {
+  it('unsubscribes stream after an error', function() {
     var a, observable, values;
     a = stream();
     values = [];
-    observable = a[Symbol.observable]();
+    observable = a[$$observable]();
     observable.subscribe({
       next: function(x) {
         return values.push(x);
@@ -24830,10 +25002,62 @@ describe('[Symbol.observable]', function() {
     ]);
     return expect(values).toEqual([1]);
   });
+  it('subscribe() returns an subscribtion object with unsubscribe method', function() {
+    var a, observable, subscribtion, values;
+    a = stream();
+    values = [];
+    observable = a[$$observable]();
+    subscribtion = observable.subscribe({
+      next: function(x) {
+        return values.push(x);
+      }
+    });
+    send(a, [1]);
+    subscribtion.unsubscribe();
+    send(a, [2]);
+    return expect(values).toEqual([1]);
+  });
+  it('subscribtion object has `closed` property', function() {
+    var a, observable, subscribtion;
+    a = stream();
+    observable = a[$$observable]();
+    subscribtion = observable.subscribe({
+      next: function() {}
+    });
+    expect(subscribtion.closed).toEqual(false);
+    subscribtion.unsubscribe();
+    return expect(subscribtion.closed).toEqual(true);
+  });
+  return it('supports subscribe(onNext, onError, onCompete) format', function() {
+    var a, completes, errors, observable, onComplete, onError, onValue, values;
+    a = stream();
+    values = [];
+    errors = [];
+    completes = [];
+    onValue = function(x) {
+      return values.push(x);
+    };
+    onError = function(x) {
+      return errors.push(x);
+    };
+    onComplete = function(x) {
+      return completes.push(x);
+    };
+    observable = a[$$observable]();
+    observable.subscribe(onValue, onError, onComplete);
+    send(a, [
+      1, {
+        error: 2
+      }
+    ]);
+    expect(values).toEqual([1]);
+    expect(errors).toEqual([2]);
+    return expect(completes).toEqual([void 0]);
+  });
 });
 
 
-},{"../test-helpers.coffee":244,"zen-observable":173}],192:[function(require,module,exports){
+},{"../test-helpers.coffee":247,"symbol-observable":169,"zen-observable":176}],195:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -25110,7 +25334,7 @@ describe('filterBy', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],193:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],196:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -25294,7 +25518,7 @@ describe('filterErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],194:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],197:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -25444,7 +25668,7 @@ describe('filter', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],195:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],198:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -25578,7 +25802,7 @@ describe('flatMapConcat', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],196:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],199:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -25810,7 +26034,7 @@ describe('flatMapErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],197:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],200:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -25964,7 +26188,7 @@ describe('flatMapFirst', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],198:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],201:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -26097,7 +26321,7 @@ describe('flatMapLatest', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],199:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],202:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -26268,7 +26492,7 @@ describe('flatMapConcurLimit', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],200:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],203:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -26516,7 +26740,7 @@ describe('flatMap', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],201:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],204:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -26644,7 +26868,7 @@ describe('flatten', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],202:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],205:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -26706,7 +26930,7 @@ describe('fromCallback', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],203:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],206:[function(require,module,exports){
 var Kefir, Observable, Rx, activate, deactivate, ref;
 
 Observable = require('zen-observable');
@@ -26756,7 +26980,7 @@ describe('fromESObservable', function() {
 });
 
 
-},{"../test-helpers.coffee":244,"@reactivex/rxjs":138,"zen-observable":173}],204:[function(require,module,exports){
+},{"../test-helpers.coffee":247,"@reactivex/rxjs":138,"zen-observable":176}],207:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -26924,7 +27148,7 @@ describe('fromEvents', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],205:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],208:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -27006,7 +27230,7 @@ describe('fromNodeCallback', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],206:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],209:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -27025,7 +27249,7 @@ describe('fromPoll', function() {
 });
 
 
-},{"../../dist/kefir":1}],207:[function(require,module,exports){
+},{"../../dist/kefir":1}],210:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -27149,7 +27373,7 @@ describe('fromPromise', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],208:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],211:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -27217,7 +27441,7 @@ describe('ignoreEnd', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],209:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],212:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -27296,7 +27520,7 @@ describe('ignoreErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],210:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],213:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -27375,7 +27599,7 @@ describe('ignoreValues', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],211:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],214:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -27390,7 +27614,7 @@ describe('interval', function() {
 });
 
 
-},{"../../dist/kefir":1}],212:[function(require,module,exports){
+},{"../../dist/kefir":1}],215:[function(require,module,exports){
 var Kefir, activate, deactivate, ref;
 
 ref = require('../test-helpers.coffee'), activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -27617,7 +27841,7 @@ describe('Kefir.stream', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],213:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],216:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -27709,7 +27933,7 @@ describe('last', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],214:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],217:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -27724,7 +27948,7 @@ describe('later', function() {
 });
 
 
-},{"../../dist/kefir":1}],215:[function(require,module,exports){
+},{"../../dist/kefir":1}],218:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -27827,7 +28051,7 @@ describe('mapErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],216:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],219:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -27933,7 +28157,7 @@ describe('map', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],217:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],220:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -28051,7 +28275,7 @@ describe('merge', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],218:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],221:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -28066,7 +28290,7 @@ describe('never', function() {
 });
 
 
-},{"../../dist/kefir":1}],219:[function(require,module,exports){
+},{"../../dist/kefir":1}],222:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -28188,7 +28412,7 @@ describe('pool', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],220:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],223:[function(require,module,exports){
 var Kefir, activate, prop, ref, send, sinon;
 
 ref = require('../test-helpers.coffee'), prop = ref.prop, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -28484,7 +28708,7 @@ describe('Property', function() {
 });
 
 
-},{"../test-helpers.coffee":244,"sinon":144}],221:[function(require,module,exports){
+},{"../test-helpers.coffee":247,"sinon":144}],224:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -28589,7 +28813,7 @@ describe('repeat', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],222:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],225:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -28683,7 +28907,7 @@ describe('sampledBy', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],223:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],226:[function(require,module,exports){
 var Kefir, activate, deactivate, minus, noop, prop, ref, send, sinon, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -28836,7 +29060,7 @@ describe('scan', function() {
 });
 
 
-},{"../test-helpers.coffee":244,"sinon":144}],224:[function(require,module,exports){
+},{"../test-helpers.coffee":247,"sinon":144}],227:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -28854,7 +29078,7 @@ describe('sequentially', function() {
 });
 
 
-},{"../../dist/kefir":1}],225:[function(require,module,exports){
+},{"../../dist/kefir":1}],228:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -28951,7 +29175,7 @@ describe('skipDuplicates', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],226:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],229:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -29243,7 +29467,7 @@ describe('skipUntilBy', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],227:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],230:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -29380,7 +29604,7 @@ describe('skipWhile', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],228:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],231:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -29489,7 +29713,7 @@ describe('skip', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],229:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],232:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -29594,7 +29818,7 @@ describe('slidingWindow', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],230:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],233:[function(require,module,exports){
 var Kefir, activate, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, send = ref.send, activate = ref.activate, Kefir = ref.Kefir;
@@ -29908,7 +30132,7 @@ describe('Stream', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],231:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],234:[function(require,module,exports){
 var prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send;
@@ -29983,7 +30207,7 @@ describe('awaiting', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],232:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],235:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -30145,7 +30369,7 @@ describe('takeErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],233:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],236:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -30417,7 +30641,7 @@ describe('takeUntilBy', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],234:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],237:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -30563,7 +30787,7 @@ describe('takeWhile', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],235:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],238:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -30657,7 +30881,7 @@ describe('take', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],236:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],239:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -30940,7 +31164,7 @@ describe('throttle', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],237:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],240:[function(require,module,exports){
 (function (global){
 var Promise1, Promise2, _global, originalGlobalPromise, prop, ref, send, stream;
 
@@ -31098,7 +31322,7 @@ describe('toPromise', function() {
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../test-helpers.coffee":244}],238:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],241:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir, activate = ref.activate, deactivate = ref.deactivate;
@@ -31286,7 +31510,7 @@ describe('toProperty', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],239:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],242:[function(require,module,exports){
 var Kefir, comp, noop, prop, ref, send, stream, testWithLib,
   slice = [].slice;
 
@@ -31567,7 +31791,7 @@ describe('transduce', function() {
 });
 
 
-},{"../test-helpers.coffee":244,"transducers-js":169,"transducers.js":170}],240:[function(require,module,exports){
+},{"../test-helpers.coffee":247,"transducers-js":172,"transducers.js":173}],243:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -31697,7 +31921,7 @@ describe('valuesToErrors', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],241:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],244:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -31938,7 +32162,7 @@ describe('withHandler', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],242:[function(require,module,exports){
+},{"../test-helpers.coffee":247}],245:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -32012,7 +32236,7 @@ describe('withInterval', function() {
 });
 
 
-},{"../../dist/kefir":1}],243:[function(require,module,exports){
+},{"../../dist/kefir":1}],246:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream,
   slice = [].slice;
 
@@ -32197,11 +32421,9 @@ describe('zip', function() {
 });
 
 
-},{"../test-helpers.coffee":244}],244:[function(require,module,exports){
-var Kefir, Observable, _activateHelper, logItem, shakeTimers, sinon,
+},{"../test-helpers.coffee":247}],247:[function(require,module,exports){
+var Kefir, _activateHelper, logItem, shakeTimers, sinon,
   slice = [].slice;
-
-Observable = require('zen-observable');
 
 Kefir = require("../dist/kefir");
 
@@ -32635,4 +32857,4 @@ beforeEach(function() {
 });
 
 
-},{"../dist/kefir":1,"sinon":144,"zen-observable":173}]},{},[175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243]);
+},{"../dist/kefir":1,"sinon":144}]},{},[178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246]);
