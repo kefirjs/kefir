@@ -43,3 +43,20 @@ describe '[Symbol.observable]', ->
     subscribtion.unsubscribe()
     expect(subscribtion.closed).toEqual(true)
 
+  it 'supports subscribe(onNext, onError, onCompete) format', ->
+    a = stream()
+    values = []
+    errors = []
+    completes = []
+    onValue = (x) -> values.push(x)
+    onError = (x) -> errors.push(x)
+    onComplete = (x) -> completes.push(x)
+    observable = a[$$observable]()
+    observable.subscribe(onValue, onError, onComplete)
+    send(a, [1, {error: 2}])
+    expect(values).toEqual([1])
+    expect(errors).toEqual([2])
+    expect(completes).toEqual([undefined])
+
+
+

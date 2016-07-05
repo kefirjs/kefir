@@ -7,7 +7,11 @@ function ESObservable(observable) {
 }
 
 extend(ESObservable.prototype, {
-  subscribe(observer) {
+  subscribe(observerOrOnNext, onError, onComplete) {
+
+    const observer = typeof observerOrOnNext === 'function'
+      ? {next: observerOrOnNext, error: onError, complete: onComplete}
+      : observerOrOnNext
 
     const fn = event => {
       if (event.type === VALUE && observer.next) {
