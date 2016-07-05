@@ -126,33 +126,25 @@ extend(Observable.prototype, {
       };
     }
 
-    if (observer.next) {
-      this.onValue(observer.next);
-    }
+    const fn = function(event) {
+      if (event.type === VALUE && observer.next) {
+        observer.next(event.value);
+      } else if (event.type === ERROR && observer.error) {
+        observer.error(event.value);
+      } else if (event.type === END && observer.complete) {
+        observer.complete(event.value);
+      }
+    };
 
-    if (observer.error) {
-      this.onError(observer.error);
-    }
-
-    if (observer.end) {
-      this.onEnd(observer.complete);
-    }
+    this.onAny(fn);
 
     return {
       unsubscribe() {
-        if (observer.next) {
-          _this.offValue(observer.next);
-        }
+        if (!closed) {
+          _this.offAny(fn);
 
-        if (observer.error) {
-          _this.offError(observer.error);
+          closed = true;
         }
-
-        if (observer.end) {
-          _this.offEnd(observer.complete);
-        }
-
-        closed = true;
       },
       closed() {
         return closed;
