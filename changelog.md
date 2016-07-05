@@ -1,3 +1,8 @@
+## 3.2.6 (5/07/2016)
+
+ - `stream[Symbol.observable]().subscribe()` now returns an object instead of `unsub` function [#212](https://github.com/rpominov/kefir/pull/212)
+ - `stream[Symbol.observable]().subscribe` now supports `subscribe(onValue, onError, onComplete)` format [27192e6](https://github.com/rpominov/kefir/commit/27192e6af06aa1e94eb0bd41a8ad633f2f88a09a)
+
 ## 3.2.5 (4/07/2016)
 
  - `stream[Symbol.observable]` now equals to `stream[Symbol.observable][Symbol.observable]` [#209](https://github.com/rpominov/kefir/pull/209) [#210](https://github.com/rpominov/kefir/pull/210) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
