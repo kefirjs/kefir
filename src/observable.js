@@ -114,15 +114,15 @@ extend(Observable.prototype, {
     return this._off(ANY, fn);
   },
 
-  subscribe(observer) {
+  subscribe(observer, onError, onComplete) {
     const _this = this;
     let closed = false;
 
     if (typeof observer === 'function') {
       observer = {
         next: observer,
-        error: arguments[1],
-        complete: arguments[2]
+        error: onError,
+        complete: onComplete
       };
     }
 
