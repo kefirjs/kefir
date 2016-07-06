@@ -133,6 +133,7 @@ extend(Observable.prototype, {
         observer.error(event.value);
       } else if (event.type === END && observer.complete) {
         observer.complete(event.value);
+        closed = true;
       }
     };
 
