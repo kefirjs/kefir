@@ -114,7 +114,7 @@ extend(Observable.prototype, {
     return this._off(ANY, fn);
   },
 
-  subscribe(observer, onError, onComplete) {
+  observe(observer, onError, onComplete) {
     const _this = this;
     let closed = false;
 
@@ -146,7 +146,7 @@ extend(Observable.prototype, {
           closed = true;
         }
       },
-      closed() {
+      get closed() {
         return closed;
       }
     };
