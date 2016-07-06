@@ -1,10 +1,10 @@
 let {Kefir} = require('../test-helpers.coffee');
 
-describe('Kefir.Observable', function () {
-  describe('observe', function () {
+describe('Kefir.Observable', () => {
+  describe('observe', () => {
     let em, count, obs, sub;
 
-    beforeEach(function () {
+    beforeEach(() => {
       em = null;
       count = 0;
       obs = Kefir.stream(_em => {
@@ -13,12 +13,12 @@ describe('Kefir.Observable', function () {
       sub = obs.observe({next: () => count++, error: () => count--, complete: () => count = 0});
     });
 
-    it('should return a Subscription', function () {
+    it('should return a Subscription', () => {
       expect(sub.closed).toBe(false);
       expect(typeof sub.unsubscribe).toBe('function');
     });
 
-    it('should call Observer methods', function () {
+    it('should call Observer methods', () => {
       expect(count).toBe(0);
 
       em.emit(1);
@@ -35,7 +35,7 @@ describe('Kefir.Observable', function () {
       expect(sub.closed).toBe(true);
     });
 
-    it('should unsubcribe early', function () {
+    it('should unsubcribe early', () => {
       expect(count).toBe(0);
 
       em.emit(1);
