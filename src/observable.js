@@ -127,13 +127,15 @@ extend(Observable.prototype, {
     }
 
     const fn = function(event) {
+      if (event.type === END) {
+        closed = true;
+      }
       if (event.type === VALUE && observer.next) {
         observer.next(event.value);
       } else if (event.type === ERROR && observer.error) {
         observer.error(event.value);
       } else if (event.type === END && observer.complete) {
         observer.complete(event.value);
-        closed = true;
       }
     };
 

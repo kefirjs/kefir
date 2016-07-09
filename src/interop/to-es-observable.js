@@ -14,6 +14,10 @@ extend(ESObservable.prototype, {
       : observerOrOnNext
 
     const fn = event => {
+      if (event.type === END) {
+        closed = true;
+      }
+
       if (event.type === VALUE && observer.next) {
         observer.next(event.value);
       } else if (event.type === ERROR && observer.error) {

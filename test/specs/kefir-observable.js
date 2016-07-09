@@ -47,5 +47,16 @@ describe('Kefir.Observable', () => {
       expect(count).toBe(1);
       expect(sub.closed).toBe(true);
     });
+
+    it('closed=true after end (w/o complete handler)', () => {
+      obs = Kefir.stream(_em => {
+        em = _em;
+      });
+      sub = obs.observe(() => {});
+      em.end();
+      expect(sub.closed).toBe(true);
+    });
+
+
   });
 });
