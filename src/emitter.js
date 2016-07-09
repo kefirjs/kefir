@@ -15,7 +15,7 @@ export default function emitter(obs) {
     return obs._active;
   }
 
-  function emitEvent(e) {
+  function event(e) {
     obs._emit(e.type, e.value);
     return obs._active;
   }
@@ -24,10 +24,11 @@ export default function emitter(obs) {
     next,
     error,
     complete,
-    emitEvent,
+    event,
 
     // legacy
     end: complete,
-    emit: next
+    emit: next,
+    emitEvent: event
   };
 }

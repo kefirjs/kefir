@@ -8,7 +8,7 @@ ul
   li #[tt emitter.next(value)] emits a value in the connected observable
   li #[tt emitter.error(error)] emits a error in the connected observable
   li #[tt emitter.complete()] completes the connected observable
-  li #[tt emitter.emitEvent(event)] emits an event (object with same format as in #[a(href='#on-any') onAny] method) in the connected observable
+  li #[tt emitter.event(event)] emits an event (object with same format as in #[a(href='#on-any') onAny] method) in the connected observable
 
 pre.javascript(title='example')
   :escapehtml
@@ -30,4 +30,10 @@ pre.javascript
     el.addEventListener('click', emitter.next);
 div
 
+There also exist legacy aliases to #[b emitter] methods:
+
+ul
+  li #[tt emitter.emit == emitter.next]
+  li #[tt emitter.end == emitter.complete]
+  li #[tt emitter.emitEvent == emitter.event]
 
