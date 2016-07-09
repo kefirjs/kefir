@@ -24,12 +24,16 @@ extend(ESObservable.prototype, {
     }
 
     this._observable.onAny(fn);
+    let closed = false
+
     const subscription = {
       unsubscribe: () => {
-        subscription.closed = true;
+        closed = true;
         this._observable.offAny(fn);
       },
-      closed: false
+      get closed() {
+        return closed
+      }
     };
     return subscription;
 
