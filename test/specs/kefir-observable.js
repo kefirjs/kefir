@@ -10,7 +10,7 @@ describe('Kefir.Observable', () => {
       obs = Kefir.stream(_em => {
         em = _em;
       });
-      sub = obs.observe({next: () => count++, error: () => count--, complete: () => count = 0});
+      sub = obs.observe({value: () => count++, error: () => count--, end: () => count = 0});
     });
 
     it('should return a Subscription', () => {
@@ -48,7 +48,7 @@ describe('Kefir.Observable', () => {
       expect(sub.closed).toBe(true);
     });
 
-    it('closed=true after end (w/o complete handler)', () => {
+    it('closed=true after end (w/o end handler)', () => {
       obs = Kefir.stream(_em => {
         em = _em;
       });

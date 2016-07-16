@@ -114,38 +114,33 @@ extend(Observable.prototype, {
     return this._off(ANY, fn);
   },
 
-  observe(observer, onError, onComplete) {
+  observe(observerOrOnValue, onError, onEnd) {
     const _this = this;
     let closed = false;
 
-    if (typeof observer === 'function') {
-      observer = {
-        next: observer,
-        error: onError,
-        complete: onComplete
-      };
-    }
+    const observer = !observerOrOnValue || typeof observerOrOnValue === 'function'
+      ? {value: observerOrOnValue, error: onError, end: onEnd}
+      : observerOrOnValue;
 
-    const fn = function(event) {
+    const handler = function(event) {
       if (event.type === END) {
         closed = true;
       }
-      if (event.type === VALUE && observer.next) {
-        observer.next(event.value);
+      if (event.type === VALUE && observer.value) {
+        observer.value(event.value);
       } else if (event.type === ERROR && observer.error) {
         observer.error(event.value);
-      } else if (event.type === END && observer.complete) {
-        observer.complete(event.value);
+      } else if (event.type === END && observer.end) {
+        observer.end(event.value);
       }
     };
 
-    this.onAny(fn);
+    this.onAny(handler);
 
     return {
       unsubscribe() {
         if (!closed) {
-          _this.offAny(fn);
-
+          _this.offAny(handler);
           closed = true;
         }
       },

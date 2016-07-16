@@ -15,11 +15,11 @@ describe 'Kefir.stream', ->
       emitter = em
       null
     expect(a).toEmit [1, 2, {error: -1}, 3, '<end>'], ->
-      emitter.next(1)
-      emitter.next(2)
+      emitter.value(1)
+      emitter.value(2)
       emitter.error(-1)
-      emitter.next(3)
-      emitter.complete()
+      emitter.value(3)
+      emitter.end()
 
   it 'should call `subscribe` / `unsubscribe` on activation / deactivation', ->
     subCount = 0
@@ -49,18 +49,18 @@ describe 'Kefir.stream', ->
 
     expect(
       Kefir.stream (emitter) ->
-        emitter.complete()
+        emitter.end()
         null
     ).toEmit ['<end:current>']
 
     expect(
       Kefir.stream  (emitter) ->
-        emitter.next(1)
+        emitter.value(1)
         emitter.error(-1)
-        emitter.next(2)
+        emitter.value(2)
         setTimeout ->
-          emitter.next(2)
-          emitter.complete()
+          emitter.value(2)
+          emitter.end()
         , 1000
         null
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
@@ -89,7 +89,7 @@ describe 'Kefir.stream', ->
     a = Kefir.stream (emitter) ->
       logRecord = {sub: 1, unsub: 0}
       log.push(logRecord)
-      emitter.next(1)
+      emitter.value(1)
       -> logRecord.unsub++
 
     a.take(1).onValue ->
@@ -108,14 +108,14 @@ describe 'Kefir.stream', ->
     a = Kefir.stream (em) ->
       emitter = em
     activate(a)
-    expect(emitter.next(1)).toBe(true)
+    expect(emitter.value(1)).toBe(true)
     deactivate(a)
-    expect(emitter.next(1)).toBe(false)
+    expect(emitter.value(1)).toBe(false)
 
     a = Kefir.stream (em) ->
-      expect(em.next(1)).toBe(true)
-      expect(em.next(2)).toBe(false)
-      expect(em.next(3)).toBe(false)
+      expect(em.value(1)).toBe(true)
+      expect(em.value(2)).toBe(false)
+      expect(em.value(3)).toBe(false)
     lastX = null
     f = (x) ->
       lastX = x
@@ -124,15 +124,15 @@ describe 'Kefir.stream', ->
     a.onValue(f)
     expect(lastX).toBe(2)
 
-  it 'calling emitter.complete() in undubscribe() should work fine', ->
+  it 'calling emitter.end() in undubscribe() should work fine', ->
     em = null
     s = Kefir.stream (_em) ->
       em = _em
       ->
-        em.complete()
+        em.end()
     s.onValue(->)
-    em.next(1)
-    em.complete()
+    em.value(1)
+    em.end()
 
 
 
