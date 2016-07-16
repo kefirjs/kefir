@@ -20,5 +20,14 @@ export default function emitter(obs) {
     return obs._active;
   }
 
-  return {value, error, end, event, emit: value, emitEvent: event};
+  return {
+    value,
+    error,
+    end,
+    event,
+
+    // legacy
+    emit: value,
+    emitEvent: event
+  };
 }

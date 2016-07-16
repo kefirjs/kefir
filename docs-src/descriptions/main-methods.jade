@@ -1,5 +1,67 @@
 h2#main-methods Subscribe / add side effects
 
++descr-method('observe', 'observe', 'obs.observe(observer) obs.observe([onValue], [onError], [onEnd])').
+  Subscribes the provided #[b observer] to #[b obs]. Observer is an object with 3 optional methods:
+
+ul
+  li #[b value] - called on values from the observable
+  li #[b error] - called on errors from the observable
+  li #[b end] - called on end of the observable
+
+p.
+  Returns a #[tt Subscription] object, which has
+  an #[tt unsubscribe] method and a read-only #[tt closed] property.
+  #[tt closed] indicates whether the #[tt unsubscribe] method has been called
+  or the observable have ended.
+
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]);
+    var subscription = stream.observer({
+      value(value) {
+        console.log('value:', value);
+      },
+      error(error) {
+        console.log('error:', error);
+      },
+      end() {
+        console.log('end');
+      },
+    });
+
+    ...
+
+    // later
+    subscription.unsubscribe()
+
+pre(title='console output')
+  :escapehtml
+    > value: 1
+    > value: 2
+    > end
+
+p.
+  In addition to passing in an Observer, #[tt observe] can takes callbacks individually:
+
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(1000, [1, 2]);
+    stream.observer(
+      function onValue(value) {
+        console.log('value', value);
+      },
+      function onError(error) {
+        console.log('error', error);
+      },
+      function onEnd() {
+        console.log('end');
+      }
+    );
+
+p.
+  #[img(data-emoji="point_up")] This methods is designed to replace all other methods for
+  subscribing (onValue, offValue, onError, etc). It's recomented to use #[b observe]
+  instead of other methods, they will be removed eventually.
 
 +descr-method('on-value', 'onValue', 'obs.onValue(callback)').
   Subscribes #[b callback] to values on an observable.

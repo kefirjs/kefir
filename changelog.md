@@ -1,3 +1,8 @@
+## 3.3.0 (16/07/2016)
+
+ - New method `.observe` [#151](https://github.com/rpominov/kefir/issues/151) [#221](https://github.com/rpominov/kefir/pull/211) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+ - Emitter methods renamed `emit → value`, `emitEvent → event` (old names will work as well for now)
+
 ## 3.2.6 (5/07/2016)
 
  - `stream[Symbol.observable]().subscribe()` now returns an object instead of `unsub` function [#212](https://github.com/rpominov/kefir/pull/212)

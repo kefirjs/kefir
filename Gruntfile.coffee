@@ -17,7 +17,11 @@ module.exports = (grunt) ->
 
   """
 
-  rollupPlugins = [ babel(), nodeResolve({main: true}), commonjs() ]
+  rollupPlugins = [
+    babel({presets: ['es2015-loose-rollup']}),
+    nodeResolve({main: true}),
+    commonjs(),
+  ]
 
   timeGrunt(grunt)
 
@@ -28,7 +32,10 @@ module.exports = (grunt) ->
         src: ['test/specs/*.js', 'test/specs/*.coffee']
         dest: 'test/in-browser/spec/KefirSpecs.js'
         options:
-          transform: ['coffeeify']
+          transform: [
+            'coffeeify',
+            ['babelify', {presets: ['es2015-loose'], only: /test\/specs\/.*\.js$/}],
+          ]
 
     rollup:
       options:

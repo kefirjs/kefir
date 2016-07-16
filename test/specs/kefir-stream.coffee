@@ -15,10 +15,10 @@ describe 'Kefir.stream', ->
       emitter = em
       null
     expect(a).toEmit [1, 2, {error: -1}, 3, '<end>'], ->
-      emitter.emit(1)
-      emitter.emit(2)
+      emitter.value(1)
+      emitter.value(2)
       emitter.error(-1)
-      emitter.emit(3)
+      emitter.value(3)
       emitter.end()
 
   it 'should call `subscribe` / `unsubscribe` on activation / deactivation', ->
@@ -55,27 +55,27 @@ describe 'Kefir.stream', ->
 
     expect(
       Kefir.stream  (emitter) ->
-        emitter.emit(1)
+        emitter.value(1)
         emitter.error(-1)
-        emitter.emit(2)
+        emitter.value(2)
         setTimeout ->
-          emitter.emit(2)
+          emitter.value(2)
           emitter.end()
         , 1000
         null
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']]
 
 
-  it 'should support emitter.emitEvent', ->
+  it 'should support emitter.event', ->
     expect(
       Kefir.stream  (emitter) ->
-        emitter.emitEvent({type: 'value', value: 1, current: true})
-        emitter.emitEvent({type: 'error', value: -1, current: false})
-        emitter.emitEvent({type: 'value', value: 2, current: false})
+        emitter.event({type: 'value', value: 1, current: true})
+        emitter.event({type: 'error', value: -1, current: false})
+        emitter.event({type: 'value', value: 2, current: false})
         setTimeout ->
-          emitter.emitEvent({type: 'value', value: 3, current: true})
-          emitter.emitEvent({type: 'value', value: 4, current: false})
-          emitter.emitEvent({type: 'end', value: undefined, current: false})
+          emitter.event({type: 'value', value: 3, current: true})
+          emitter.event({type: 'value', value: 4, current: false})
+          emitter.event({type: 'end', value: undefined, current: false})
         , 1000
         null
     ).toEmitInTime [[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 3], [1000, 4], [1000, '<end>']]
@@ -89,7 +89,7 @@ describe 'Kefir.stream', ->
     a = Kefir.stream (emitter) ->
       logRecord = {sub: 1, unsub: 0}
       log.push(logRecord)
-      emitter.emit(1)
+      emitter.value(1)
       -> logRecord.unsub++
 
     a.take(1).onValue ->
@@ -108,14 +108,14 @@ describe 'Kefir.stream', ->
     a = Kefir.stream (em) ->
       emitter = em
     activate(a)
-    expect(emitter.emit(1)).toBe(true)
+    expect(emitter.value(1)).toBe(true)
     deactivate(a)
-    expect(emitter.emit(1)).toBe(false)
+    expect(emitter.value(1)).toBe(false)
 
     a = Kefir.stream (em) ->
-      expect(em.emit(1)).toBe(true)
-      expect(em.emit(2)).toBe(false)
-      expect(em.emit(3)).toBe(false)
+      expect(em.value(1)).toBe(true)
+      expect(em.value(2)).toBe(false)
+      expect(em.value(3)).toBe(false)
     lastX = null
     f = (x) ->
       lastX = x
@@ -124,13 +124,6 @@ describe 'Kefir.stream', ->
     a.onValue(f)
     expect(lastX).toBe(2)
 
-  it 'emitter should have methods `value` and `event`', ->
-    expect(
-      Kefir.stream (em) ->
-        em.value(1)
-        em.event({type: 'value', value: 2})
-    ).toEmit [ { current : 1 }, { current : 2 } ]
-
   it 'calling emitter.end() in undubscribe() should work fine', ->
     em = null
     s = Kefir.stream (_em) ->
@@ -138,7 +131,7 @@ describe 'Kefir.stream', ->
       ->
         em.end()
     s.onValue(->)
-    em.emit(1)
+    em.value(1)
     em.end()
 
 

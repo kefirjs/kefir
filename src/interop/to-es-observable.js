@@ -14,6 +14,10 @@ extend(ESObservable.prototype, {
       : observerOrOnNext
 
     const fn = event => {
+      if (event.type === END) {
+        closed = true;
+      }
+
       if (event.type === VALUE && observer.next) {
         observer.next(event.value);
       } else if (event.type === ERROR && observer.error) {
@@ -24,12 +28,16 @@ extend(ESObservable.prototype, {
     }
 
     this._observable.onAny(fn);
+    let closed = false
+
     const subscription = {
       unsubscribe: () => {
-        subscription.closed = true;
+        closed = true;
         this._observable.offAny(fn);
       },
-      closed: false
+      get closed() {
+        return closed
+      }
     };
     return subscription;
 

@@ -58,5 +58,13 @@ describe '[Symbol.observable]', ->
     expect(errors).toEqual([2])
     expect(completes).toEqual([undefined])
 
+  it 'closed=true after end', ->
+    a = stream()
+    observable = a[$$observable]()
+    subscribtion = observable.subscribe(->)
+    expect(subscribtion.closed).toEqual(false)
+    send(a, ['<end>'])
+    expect(subscribtion.closed).toEqual(true)
+
 
 
