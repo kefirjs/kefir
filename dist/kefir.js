@@ -1,4 +1,4 @@
-/*! Kefir.js v3.2.6
+/*! Kefir.js v3.3.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -331,6 +331,40 @@
 	  offAny: function (fn) {
 	    return this._off(ANY, fn);
 	  },
+	  observe: function (observerOrOnValue, onError, onEnd) {
+	    var _this = this;
+	    var closed = false;
+
+	    var observer = !observerOrOnValue || typeof observerOrOnValue === 'function' ? { value: observerOrOnValue, error: onError, end: onEnd } : observerOrOnValue;
+
+	    var handler = function (event) {
+	      if (event.type === END) {
+	        closed = true;
+	      }
+	      if (event.type === VALUE && observer.value) {
+	        observer.value(event.value);
+	      } else if (event.type === ERROR && observer.error) {
+	        observer.error(event.value);
+	      } else if (event.type === END && observer.end) {
+	        observer.end(event.value);
+	      }
+	    };
+
+	    this.onAny(handler);
+
+	    return {
+	      unsubscribe: function () {
+	        if (!closed) {
+	          _this.offAny(handler);
+	          closed = true;
+	        }
+	      },
+
+	      get closed() {
+	        return closed;
+	      }
+	    };
+	  },
 
 
 	  // A and B must be subclasses of Stream and Property (order doesn't matter)
@@ -614,7 +648,16 @@
 	    return obs._active;
 	  }
 
-	  return { value: value, error: error, end: end, event: event, emit: value, emitEvent: event };
+	  return {
+	    value: value,
+	    error: error,
+	    end: end,
+	    event: event,
+
+	    // legacy
+	    emit: value,
+	    emitEvent: event
+	  };
 	}
 
 	var S$4 = timeBased({
@@ -1120,6 +1163,10 @@
 	    var observer = typeof observerOrOnNext === 'function' ? { next: observerOrOnNext, error: onError, complete: onComplete } : observerOrOnNext;
 
 	    var fn = function (event) {
+	      if (event.type === END) {
+	        closed = true;
+	      }
+
 	      if (event.type === VALUE && observer.next) {
 	        observer.next(event.value);
 	      } else if (event.type === ERROR && observer.error) {
@@ -1130,12 +1177,16 @@
 	    };
 
 	    this._observable.onAny(fn);
+	    var closed = false;
+
 	    var subscription = {
 	      unsubscribe: function () {
-	        subscription.closed = true;
+	        closed = true;
 	        _this._observable.offAny(fn);
 	      },
-	      closed: false
+	      get closed() {
+	        return closed;
+	      }
 	    };
 	    return subscription;
 	  }
