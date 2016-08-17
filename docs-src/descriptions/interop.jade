@@ -99,3 +99,24 @@ pre(title='console output')
     > value: 2
     > completed
 div
+
+
+
++descr-method('static-land', 'Static Land', 'Kefir.staticLand.Observable').
+  Provides #[a(href='https://github.com/rpominov/static-land') Static Land] compatibility.
+  The #[tt Observable] type object supports following algebras:
+  Semigroup, Monoid, Functor, Bifunctor, Apply, Applicative, Chain, Monad.
+
+pre.javascript(title='example')
+  :escapehtml
+    var Observable = Kefir.staticLand.Observable;
+    var obs = Observable.map(x => x * 3, Observable.of(2));
+    obs.log();
+
+pre(title='console output')
+  :escapehtml
+    > [constant.map] <value:current> 6
+    > [constant.map] <end:current>
+
+p.
+  #[a(href='https://github.com/rpominov/static-land') #[img(src='https://raw.githubusercontent.com/rpominov/static-land/master/logo/logo.png' width='80' height='50')]]
