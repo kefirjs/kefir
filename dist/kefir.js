@@ -1,4 +1,4 @@
-/*! Kefir.js v3.3.0
+/*! Kefir.js v3.4.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -1069,7 +1069,7 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.default = symbolObservablePonyfill;
+	exports['default'] = symbolObservablePonyfill;
 	function symbolObservablePonyfill(root) {
 		var result;
 		var _Symbol = root.Symbol;
@@ -1103,7 +1103,7 @@
 	var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
 	function _interopRequireDefault(obj) {
-		return obj && obj.__esModule ? obj : { default: obj };
+		return obj && obj.__esModule ? obj : { 'default': obj };
 	}
 
 	var root = undefined; /* global window */
@@ -1114,8 +1114,8 @@
 		root = window;
 	}
 
-	var result = (0, _ponyfill2.default)(root);
-	exports.default = result;
+	var result = (0, _ponyfill2['default'])(root);
+	exports['default'] = result;
 	});
 
 	var require$$0 = (index$1 && typeof index$1 === 'object' && 'default' in index$1 ? index$1['default'] : index$1);
@@ -1200,6 +1200,207 @@
 	function toESObservable() {
 	  return new ESObservable(this);
 	}
+
+	function defaultErrorsCombinator(errors) {
+	  var latestError = void 0;
+	  for (var i = 0; i < errors.length; i++) {
+	    if (errors[i] !== undefined) {
+	      if (latestError === undefined || latestError.index < errors[i].index) {
+	        latestError = errors[i];
+	      }
+	    }
+	  }
+	  return latestError.error;
+	}
+
+	function Combine(active, passive, combinator) {
+	  var _this = this;
+
+	  Stream.call(this);
+	  this._activeCount = active.length;
+	  this._sources = concat(active, passive);
+	  this._combinator = combinator ? spread(combinator, this._sources.length) : function (x) {
+	    return x;
+	  };
+	  this._aliveCount = 0;
+	  this._latestValues = new Array(this._sources.length);
+	  this._latestErrors = new Array(this._sources.length);
+	  fillArray(this._latestValues, NOTHING);
+	  this._emitAfterActivation = false;
+	  this._endAfterActivation = false;
+	  this._latestErrorIndex = 0;
+
+	  this._$handlers = [];
+
+	  var _loop = function (i) {
+	    _this._$handlers.push(function (event) {
+	      return _this._handleAny(i, event);
+	    });
+	  };
+
+	  for (var i = 0; i < this._sources.length; i++) {
+	    _loop(i);
+	  }
+	}
+
+	inherit(Combine, Stream, {
+
+	  _name: 'combine',
+
+	  _onActivation: function () {
+	    this._aliveCount = this._activeCount;
+
+	    // we need to suscribe to _passive_ sources before _active_
+	    // (see https://github.com/rpominov/kefir/issues/98)
+	    for (var i = this._activeCount; i < this._sources.length; i++) {
+	      this._sources[i].onAny(this._$handlers[i]);
+	    }
+	    for (var _i = 0; _i < this._activeCount; _i++) {
+	      this._sources[_i].onAny(this._$handlers[_i]);
+	    }
+
+	    if (this._emitAfterActivation) {
+	      this._emitAfterActivation = false;
+	      this._emitIfFull();
+	    }
+	    if (this._endAfterActivation) {
+	      this._emitEnd();
+	    }
+	  },
+	  _onDeactivation: function () {
+	    var length = this._sources.length,
+	        i = void 0;
+	    for (i = 0; i < length; i++) {
+	      this._sources[i].offAny(this._$handlers[i]);
+	    }
+	  },
+	  _emitIfFull: function () {
+	    var hasAllValues = true;
+	    var hasErrors = false;
+	    var length = this._latestValues.length;
+	    var valuesCopy = new Array(length);
+	    var errorsCopy = new Array(length);
+
+	    for (var i = 0; i < length; i++) {
+	      valuesCopy[i] = this._latestValues[i];
+	      errorsCopy[i] = this._latestErrors[i];
+
+	      if (valuesCopy[i] === NOTHING) {
+	        hasAllValues = false;
+	      }
+
+	      if (errorsCopy[i] !== undefined) {
+	        hasErrors = true;
+	      }
+	    }
+
+	    if (hasAllValues) {
+	      var combinator = this._combinator;
+	      this._emitValue(combinator(valuesCopy));
+	    }
+	    if (hasErrors) {
+	      this._emitError(defaultErrorsCombinator(errorsCopy));
+	    }
+	  },
+	  _handleAny: function (i, event) {
+
+	    if (event.type === VALUE || event.type === ERROR) {
+
+	      if (event.type === VALUE) {
+	        this._latestValues[i] = event.value;
+	        this._latestErrors[i] = undefined;
+	      }
+	      if (event.type === ERROR) {
+	        this._latestValues[i] = NOTHING;
+	        this._latestErrors[i] = {
+	          index: this._latestErrorIndex++,
+	          error: event.value
+	        };
+	      }
+
+	      if (i < this._activeCount) {
+	        if (this._activating) {
+	          this._emitAfterActivation = true;
+	        } else {
+	          this._emitIfFull();
+	        }
+	      }
+	    } else {
+	      // END
+
+	      if (i < this._activeCount) {
+	        this._aliveCount--;
+	        if (this._aliveCount === 0) {
+	          if (this._activating) {
+	            this._endAfterActivation = true;
+	          } else {
+	            this._emitEnd();
+	          }
+	        }
+	      }
+	    }
+	  },
+	  _clear: function () {
+	    Stream.prototype._clear.call(this);
+	    this._sources = null;
+	    this._latestValues = null;
+	    this._latestErrors = null;
+	    this._combinator = null;
+	    this._$handlers = null;
+	  }
+	});
+
+	function combine(active) {
+	  var passive = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+	  var combinator = arguments[2];
+
+	  if (typeof passive === 'function') {
+	    combinator = passive;
+	    passive = [];
+	  }
+	  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+	}
+
+	var Observable$1 = {
+	  empty: function () {
+	    return never();
+	  },
+
+
+	  // Monoid based on merge() seems more useful than one based on concat().
+	  concat: function (a, b) {
+	    return a.merge(b);
+	  },
+	  of: function (x) {
+	    return constant(x);
+	  },
+	  map: function (fn, obs) {
+	    return obs.map(fn);
+	  },
+	  bimap: function (fnErr, fnVal, obs) {
+	    return obs.mapErrors(fnErr).map(fnVal);
+	  },
+
+
+	  // This ap strictly speaking incompatible with chain. If we derive ap from chain we get
+	  // different (not very useful) behavior. But spec requires that if method can be derived
+	  // it must have the same behavior as hand-written method. We intentionally violate the spec
+	  // in hope that it won't cause many troubles in practice. And in return we have more useful type.
+	  ap: function (obsFn, obsVal) {
+	    return combine([obsFn, obsVal], function (fn, val) {
+	      return fn(val);
+	    });
+	  },
+	  chain: function (fn, obs) {
+	    return obs.flatMap(fn);
+	  }
+	};
+
+
+
+	var staticLand = Object.freeze({
+	  Observable: Observable$1
+	});
 
 	var mixin = {
 	  _init: function (_ref) {
@@ -2129,166 +2330,6 @@
 	  return new (obs._ofSameType(S$32, P$28))(obs, { fn: fn });
 	}
 
-	function defaultErrorsCombinator(errors) {
-	  var latestError = void 0;
-	  for (var i = 0; i < errors.length; i++) {
-	    if (errors[i] !== undefined) {
-	      if (latestError === undefined || latestError.index < errors[i].index) {
-	        latestError = errors[i];
-	      }
-	    }
-	  }
-	  return latestError.error;
-	}
-
-	function Combine(active, passive, combinator) {
-	  var _this = this;
-
-	  Stream.call(this);
-	  this._activeCount = active.length;
-	  this._sources = concat(active, passive);
-	  this._combinator = combinator ? spread(combinator, this._sources.length) : function (x) {
-	    return x;
-	  };
-	  this._aliveCount = 0;
-	  this._latestValues = new Array(this._sources.length);
-	  this._latestErrors = new Array(this._sources.length);
-	  fillArray(this._latestValues, NOTHING);
-	  this._emitAfterActivation = false;
-	  this._endAfterActivation = false;
-	  this._latestErrorIndex = 0;
-
-	  this._$handlers = [];
-
-	  var _loop = function (i) {
-	    _this._$handlers.push(function (event) {
-	      return _this._handleAny(i, event);
-	    });
-	  };
-
-	  for (var i = 0; i < this._sources.length; i++) {
-	    _loop(i);
-	  }
-	}
-
-	inherit(Combine, Stream, {
-
-	  _name: 'combine',
-
-	  _onActivation: function () {
-	    this._aliveCount = this._activeCount;
-
-	    // we need to suscribe to _passive_ sources before _active_
-	    // (see https://github.com/rpominov/kefir/issues/98)
-	    for (var i = this._activeCount; i < this._sources.length; i++) {
-	      this._sources[i].onAny(this._$handlers[i]);
-	    }
-	    for (var _i = 0; _i < this._activeCount; _i++) {
-	      this._sources[_i].onAny(this._$handlers[_i]);
-	    }
-
-	    if (this._emitAfterActivation) {
-	      this._emitAfterActivation = false;
-	      this._emitIfFull();
-	    }
-	    if (this._endAfterActivation) {
-	      this._emitEnd();
-	    }
-	  },
-	  _onDeactivation: function () {
-	    var length = this._sources.length,
-	        i = void 0;
-	    for (i = 0; i < length; i++) {
-	      this._sources[i].offAny(this._$handlers[i]);
-	    }
-	  },
-	  _emitIfFull: function () {
-	    var hasAllValues = true;
-	    var hasErrors = false;
-	    var length = this._latestValues.length;
-	    var valuesCopy = new Array(length);
-	    var errorsCopy = new Array(length);
-
-	    for (var i = 0; i < length; i++) {
-	      valuesCopy[i] = this._latestValues[i];
-	      errorsCopy[i] = this._latestErrors[i];
-
-	      if (valuesCopy[i] === NOTHING) {
-	        hasAllValues = false;
-	      }
-
-	      if (errorsCopy[i] !== undefined) {
-	        hasErrors = true;
-	      }
-	    }
-
-	    if (hasAllValues) {
-	      var combinator = this._combinator;
-	      this._emitValue(combinator(valuesCopy));
-	    }
-	    if (hasErrors) {
-	      this._emitError(defaultErrorsCombinator(errorsCopy));
-	    }
-	  },
-	  _handleAny: function (i, event) {
-
-	    if (event.type === VALUE || event.type === ERROR) {
-
-	      if (event.type === VALUE) {
-	        this._latestValues[i] = event.value;
-	        this._latestErrors[i] = undefined;
-	      }
-	      if (event.type === ERROR) {
-	        this._latestValues[i] = NOTHING;
-	        this._latestErrors[i] = {
-	          index: this._latestErrorIndex++,
-	          error: event.value
-	        };
-	      }
-
-	      if (i < this._activeCount) {
-	        if (this._activating) {
-	          this._emitAfterActivation = true;
-	        } else {
-	          this._emitIfFull();
-	        }
-	      }
-	    } else {
-	      // END
-
-	      if (i < this._activeCount) {
-	        this._aliveCount--;
-	        if (this._aliveCount === 0) {
-	          if (this._activating) {
-	            this._endAfterActivation = true;
-	          } else {
-	            this._emitEnd();
-	          }
-	        }
-	      }
-	    }
-	  },
-	  _clear: function () {
-	    Stream.prototype._clear.call(this);
-	    this._sources = null;
-	    this._latestValues = null;
-	    this._latestErrors = null;
-	    this._combinator = null;
-	    this._$handlers = null;
-	  }
-	});
-
-	function combine(active) {
-	  var passive = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-	  var combinator = arguments[2];
-
-	  if (typeof passive === 'function') {
-	    combinator = passive;
-	    passive = [];
-	  }
-	  return active.length === 0 ? never() : new Combine(active, passive, combinator);
-	}
-
 	var isArray = Array.isArray || function (xs) {
 	  return Object.prototype.toString.call(xs) === '[object Array]';
 	};
@@ -2770,7 +2811,6 @@
 	inherit(FlatMapErrors, FlatMap, {
 
 	  // Same as in FlatMap, only VALUE/ERROR flipped
-
 	  _handleMain: function (event) {
 
 	    if (event.type === ERROR) {
@@ -3394,7 +3434,7 @@
 	var Kefir = { Observable: Observable, Stream: Stream, Property: Property, never: never, later: later, interval: interval, sequentially: sequentially,
 	  fromPoll: fromPoll, withInterval: withInterval, fromCallback: fromCallback, fromNodeCallback: fromNodeCallback, fromEvents: fromEvents, stream: stream,
 	  constant: constant, constantError: constantError, fromPromise: fromPromise, fromESObservable: fromESObservable, combine: combine, zip: zip, merge: merge,
-	  concat: concat$1, Pool: Pool, pool: pool, repeat: repeat };
+	  concat: concat$1, Pool: Pool, pool: pool, repeat: repeat, staticLand: staticLand };
 
 	Kefir.Kefir = Kefir;
 
@@ -3424,6 +3464,7 @@
 	exports.Pool = Pool;
 	exports.pool = pool;
 	exports.repeat = repeat;
+	exports.staticLand = staticLand;
 	exports['default'] = Kefir;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
