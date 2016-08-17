@@ -1,3 +1,7 @@
+## 3.4.0 (17/08/2016)
+
+ - [Static Land](https://github.com/rpominov/static-land) support added.
+
 ## 3.3.0 (16/07/2016)
 
  - New method `.observe` [#151](https://github.com/rpominov/kefir/issues/151) [#221](https://github.com/rpominov/kefir/pull/211) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
@@ -337,4 +341,3 @@ Methods so far:
   - .flatMapWithConcurrencyLimit
   - .awating
   - .filterBy
-

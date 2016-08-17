@@ -89,6 +89,7 @@ Observable.prototype.toESObservable = toESObservable;
 import $$observable from 'symbol-observable';
 Observable.prototype[$$observable] = toESObservable;
 
+import * as staticLand from './interop/static-land'
 
 
 // Modify an observable
@@ -456,13 +457,13 @@ Observable.prototype.endOnError = function() {
 const Kefir = { Observable, Stream, Property, never, later, interval, sequentially,
 fromPoll, withInterval, fromCallback, fromNodeCallback, fromEvents, stream,
 constant, constantError, fromPromise, fromESObservable, combine, zip, merge,
-concat, Pool, pool, repeat };
+concat, Pool, pool, repeat, staticLand };
 
 Kefir.Kefir = Kefir;
 
 export { Kefir, Observable, Stream, Property, never, later, interval, sequentially,
 fromPoll, withInterval, fromCallback, fromNodeCallback, fromEvents, stream,
 constant, constantError, fromPromise, fromESObservable, combine, zip, merge,
-concat, Pool, pool, repeat };
+concat, Pool, pool, repeat, staticLand };
 
 export default Kefir
