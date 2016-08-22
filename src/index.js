@@ -332,6 +332,7 @@ import FlatMap from './many-sources/flat-map';
 Observable.prototype.flatMap = function(fn) {
   return new FlatMap(this, fn).setName(this, 'flatMap');
 };
+Observable.prototype.chain = Observable.prototype.flatMap;
 Observable.prototype.flatMapLatest = function(fn) {
   return new FlatMap(this, fn, {concurLim: 1, drop: 'old'}).setName(this, 'flatMapLatest');
 };
