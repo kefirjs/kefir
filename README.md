@@ -42,6 +42,9 @@ See [downloads](https://rpominov.github.io/kefir/#downloads) section in the docs
 
 Also available on [jsDelivr](http://www.jsdelivr.com/#!kefir).
 
+# Browsers support
+
+We don't support IE8 and below, aside from that Kefir should work in any browser.
 
 # Development
 
