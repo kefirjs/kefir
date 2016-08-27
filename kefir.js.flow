@@ -5,7 +5,7 @@ export type Event<T> =
   {type: 'error', value: any} |
   {type: 'end', value: void};
 
-declare class _Emitter<T> {
+export type Emitter<T> = {
   value(value: T): boolean;
   event(event: Event<T>): boolean;
   error(e: any): boolean;
@@ -14,9 +14,7 @@ declare class _Emitter<T> {
   // Deprecated methods
   emit(value: T): boolean;
   emitEvent(event: Event<T>): boolean;
-}
-
-export type Emitter<T> = _Emitter<T>;
+};
 
 export type Subscription = {
   closed: boolean;
@@ -75,7 +73,7 @@ declare class Observable<+T> {
   slidingWindow(max: number, min?: number): Observable<T[]>;
   bufferWhile(predicate?: (value: T) => boolean, options?: {flushOnEnd?: boolean}): Observable<T[]>;
   transduce(transducer: any): Observable<any>;
-  withHandler<U>(handler: (emitter: _Emitter<U>, event: Event<T>) => void): Observable<U>;
+  withHandler<U>(handler: (emitter: Emitter<U>, event: Event<T>) => void): Observable<U>;
 
   combine<U>(otherObs: Observable<U>): Observable<[T,U]>;
   combine<U,Z>(otherObs: Observable<U>, combinator: (t: T, u: U) => Z): Observable<Z>;
@@ -134,11 +132,11 @@ declare var Kefir: {
   interval<T>(interval: number, value: T): Observable<T>;
   sequentially<T>(interval: number, values: T[]): Observable<T>;
   fromPoll<T>(interval: number, f: () => T): Observable<T>;
-  withInterval<T>(interval: number, f: (emitter: _Emitter<T>) => void): Observable<T>;
+  withInterval<T>(interval: number, f: (emitter: Emitter<T>) => void): Observable<T>;
   fromCallback<T>(f: (cb: (value: T) => void) => void): Observable<T>;
   fromNodeCallback<T>(f: (cb: (err: any, value: ?T) => void) => void): Observable<T>;
   fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any>;
-  stream<T>(subscribe: (emitter: _Emitter<T>) => ?() => void): Observable<T>;
+  stream<T>(subscribe: (emitter: Emitter<T>) => ?() => void): Observable<T>;
 
   constant<T>(value: T): Observable<T>;
   constantError(err: any): Observable<any>;
