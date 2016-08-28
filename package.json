@@ -45,6 +45,7 @@
     "grunt-browserify": "4.0.1",
     "grunt-cli": "0.1.13",
     "grunt-contrib-clean": "0.6.0",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-jade": "0.15.0",
     "grunt-rollup": "0.7.1",
     "inquirer": "0.10.1",
