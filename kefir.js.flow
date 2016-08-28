@@ -1,19 +1,19 @@
 /* @flow */
 
-export type Event<T> =
-  {type: 'value', value: T} |
+export type Event<V> =
+  {type: 'value', value: V} |
   {type: 'error', value: any} |
   {type: 'end', value: void};
 
-export type Emitter<T> = {
-  value(value: T): boolean;
-  event(event: Event<T>): boolean;
+export type Emitter<V> = {
+  value(value: V): boolean;
+  event(event: Event<V>): boolean;
   error(e: any): boolean;
   end(): void;
 
   // Deprecated methods
-  emit(value: T): boolean;
-  emitEvent(event: Event<T>): boolean;
+  emit(value: V): boolean;
+  emitEvent(event: Event<V>): boolean;
 };
 
 export type Subscription = {
@@ -21,92 +21,92 @@ export type Subscription = {
   unsubscribe(): void;
 };
 
-export type Observer<T> = {
-  value(value: T): void;
+export type Observer<V> = {
+  value(value: V): void;
   error(err: any): void;
   end(): void;
 };
 
-declare class Observable<+T> {
-  toProperty(): Property<T>;
-  toProperty<U>(getCurrent: ?() => U): Property<T|U>;
-  changes(): Observable<T>;
+declare class Observable<+V> {
+  toProperty(): Property<V>;
+  toProperty<V2>(getCurrent: ?() => V2): Property<V|V2>;
+  changes(): Observable<V>;
 
-  observe(obs: Observer<T>): Subscription;
-  observe(onValue: ?(i: T) => void, onError: ?(err: any) => void, onEnd: ?() => void): Subscription;
-  onValue(cb: (i: T) => void): Observable<T>;
-  offValue(cb: (i: T) => void): Observable<T>;
-  onError(cb: (err: any) => void): Observable<T>;
-  offError(cb: (err: any) => void): Observable<T>;
-  onEnd(cb: () => void): Observable<T>;
-  offEnd(cb: () => void): Observable<T>;
-  onAny(cb: (event: Event<T>) => void): Observable<T>;
-  offAny(cb: (event: Event<T>) => void): Observable<T>;
-  log(name?: string): Observable<T>;
-  offLog(name?: string): Observable<T>;
-  toPromise(PromiseConstructor?: Function): Promise<T>;
+  observe(obs: Observer<V>): Subscription;
+  observe(onValue: ?(v: V) => void, onError: ?(err: any) => void, onEnd: ?() => void): Subscription;
+  onValue(cb: (v: V) => void): Observable<V>;
+  offValue(cb: (v: V) => void): Observable<V>;
+  onError(cb: (err: any) => void): Observable<V>;
+  offError(cb: (err: any) => void): Observable<V>;
+  onEnd(cb: () => void): Observable<V>;
+  offEnd(cb: () => void): Observable<V>;
+  onAny(cb: (event: Event<V>) => void): Observable<V>;
+  offAny(cb: (event: Event<V>) => void): Observable<V>;
+  log(name?: string): Observable<V>;
+  offLog(name?: string): Observable<V>;
+  toPromise(PromiseConstructor?: Function): Promise<V>;
 
-  map<U>(cb: (i: T) => U): Observable<U>;
-  filter(cb?: (i: T) => any): Observable<T>;
-  take(n: number): Observable<T>;
-  takeWhile(cb?: (i: T) => boolean): Observable<T>;
-  last(): Observable<T>;
-  skip(n: number): Observable<T>;
-  skipWhile(cb?: (i: T) => boolean): Observable<T>;
-  skipDuplicates(comparator?: (a: T, b: T) => boolean): Observable<T>;
-  diff(fn?: (prev: T, next: T) => T, seed?: T): Observable<T>;
-  diff<U>(fn: (prev: U, next: T) => T, seed: U): Observable<U>;
-  scan(cb: (prev: T, next: T) => T, seed?: T): Observable<T>;
-  scan<U>(cb: (prev: U, next: T) => U, seed: U): Observable<U>;
+  map<V2>(cb: (v: V) => V2): Observable<V2>;
+  filter(cb?: (v: V) => any): Observable<V>;
+  take(n: number): Observable<V>;
+  takeWhile(cb?: (v: V) => boolean): Observable<V>;
+  last(): Observable<V>;
+  skip(n: number): Observable<V>;
+  skipWhile(cb?: (v: V) => boolean): Observable<V>;
+  skipDuplicates(comparator?: (a: V, b: V) => boolean): Observable<V>;
+  diff(fn?: (prev: V, next: V) => V, seed?: V): Observable<V>;
+  diff<V2>(fn: (prev: V2, next: V) => V, seed: V2): Observable<V2>;
+  scan(cb: (prev: V, next: V) => V, seed?: V): Observable<V>;
+  scan<V2>(cb: (prev: V2, next: V) => V2, seed: V2): Observable<V2>;
   flatten(): Observable<any>;
-  flatten<U>(transformer: (value: T) => U[]): Observable<U>;
-  delay(n: number): Observable<T>;
-  throttle(n: number, options?: {leading?: boolean, trailing?: boolean}): Observable<T>;
-  debounce(n: number, options?: {immediate?: boolean}): Observable<T>;
-  mapErrors(fn: (error: any) => any): Observable<T>;
-  filterErrors(fn: (error: any) => any): Observable<T>;
-  takeErrors(n: number): Observable<T>;
+  flatten<V2>(transformer: (value: V) => V2[]): Observable<V2>;
+  delay(n: number): Observable<V>;
+  throttle(n: number, options?: {leading?: boolean, trailing?: boolean}): Observable<V>;
+  debounce(n: number, options?: {immediate?: boolean}): Observable<V>;
+  mapErrors(fn: (error: any) => any): Observable<V>;
+  filterErrors(fn: (error: any) => any): Observable<V>;
+  takeErrors(n: number): Observable<V>;
   ignoreValues(): Observable<any>;
-  ignoreErrors(): Observable<T>;
-  ignoreEnd(): Observable<T>;
-  beforeEnd<U>(fn: () => U): Observable<T|U>;
-  slidingWindow(max: number, min?: number): Observable<T[]>;
-  bufferWhile(predicate?: (value: T) => boolean, options?: {flushOnEnd?: boolean}): Observable<T[]>;
+  ignoreErrors(): Observable<V>;
+  ignoreEnd(): Observable<V>;
+  beforeEnd<V2>(fn: () => V2): Observable<V|V2>;
+  slidingWindow(max: number, min?: number): Observable<V[]>;
+  bufferWhile(predicate?: (value: V) => boolean, options?: {flushOnEnd?: boolean}): Observable<V[]>;
   transduce(transducer: any): Observable<any>;
-  withHandler<U>(handler: (emitter: Emitter<U>, event: Event<T>) => void): Observable<U>;
+  withHandler<V2>(handler: (emitter: Emitter<V2>, event: Event<V>) => void): Observable<V2>;
 
-  combine<U>(otherObs: Observable<U>): Observable<[T,U]>;
-  combine<U,Z>(otherObs: Observable<U>, combinator: (t: T, u: U) => Z): Observable<Z>;
-  zip<U>(otherObs: Observable<U>): Observable<[T,U]>;
-  zip<U,Z>(otherObs: Observable<U>, combinator: (t: T, u: U) => Z): Observable<Z>;
-  merge<U>(otherObs: Observable<U>): Observable<T|U>;
-  concat<U>(otherObs: Observable<U>): Observable<T|U>;
+  combine<V2>(otherObs: Observable<V2>): Observable<[V,V2]>;
+  combine<V2,V3>(otherObs: Observable<V2>, combinator: (v: V, v2: V2) => V3): Observable<V3>;
+  zip<V2>(otherObs: Observable<V2>): Observable<[V,V2]>;
+  zip<V2,V3>(otherObs: Observable<V2>, combinator: (v: V, v2: V2) => V3): Observable<V3>;
+  merge<V2>(otherObs: Observable<V2>): Observable<V|V2>;
+  concat<V2>(otherObs: Observable<V2>): Observable<V|V2>;
 
-  flatMap<U>(transform: (value: T) => Observable<U>): Observable<U>;
-  flatMapLatest<U>(transform: (value: T) => Observable<U>): Observable<U>;
-  flatMapFirst<U>(transform: (value: T) => Observable<U>): Observable<U>;
-  flatMapConcat<U>(transform: (value: T) => Observable<U>): Observable<U>;
-  flatMapLimit<U>(transform: (value: T) => Observable<U>, limit: number): Observable<U>;
-  flatMapErrors<U>(transform: (error: any) => Observable<U>): Observable<T|U>;
+  flatMap<V2>(transform: (value: V) => Observable<V2>): Observable<V2>;
+  flatMapLatest<V2>(transform: (value: V) => Observable<V2>): Observable<V2>;
+  flatMapFirst<V2>(transform: (value: V) => Observable<V2>): Observable<V2>;
+  flatMapConcat<V2>(transform: (value: V) => Observable<V2>): Observable<V2>;
+  flatMapLimit<V2>(transform: (value: V) => Observable<V2>, limit: number): Observable<V2>;
+  flatMapErrors<V2>(transform: (error: any) => Observable<V2>): Observable<V|V2>;
 
-  filterBy(otherObs: Observable<any>): Observable<T>;
-  skipUntilBy(otherObs: Observable<any>): Observable<T>;
-  takeUntilBy(otherObs: Observable<any>): Observable<T>;
-  bufferBy(otherObs: Observable<any>, options?: {flushOnEnd?: boolean}): Observable<T[]>;
-  bufferWhileBy(otherObs: Observable<any>, options?: {flushOnEnd?: boolean, flushOnChange?: boolean}): Observable<T[]>;
-  sampledBy<U>(otherObs: Observable<U>): Observable<T>;
-  sampledBy<U, Y>(otherObs: Observable<U>, combinator: (obsValue: T, otherObsValue: U) => Y): Observable<T | Y>;
-  bufferWithTimeOrCount(time: number, count: number, options?: {flushOnEnd: boolean}): Observable<T>;
+  filterBy(otherObs: Observable<any>): Observable<V>;
+  skipUntilBy(otherObs: Observable<any>): Observable<V>;
+  takeUntilBy(otherObs: Observable<any>): Observable<V>;
+  bufferBy(otherObs: Observable<any>, options?: {flushOnEnd?: boolean}): Observable<V[]>;
+  bufferWhileBy(otherObs: Observable<any>, options?: {flushOnEnd?: boolean, flushOnChange?: boolean}): Observable<V[]>;
+  sampledBy<V2>(otherObs: Observable<V2>): Observable<V>;
+  sampledBy<V2,V3>(otherObs: Observable<V2>, combinator: (obsValue: V, otherObsValue: V2) => V3): Observable<V3>;
+  bufferWithTimeOrCount(time: number, count: number, options?: {flushOnEnd: boolean}): Observable<V>;
 }
 
-declare class Pool<T> extends Observable<T> {
-  plug(s: Observable<T>): () => void;
+declare class Pool<V> extends Observable<V> {
+  plug(s: Observable<V>): () => void;
 }
 
-declare class Stream<T> extends Observable<T> {
+declare class Stream<V> extends Observable<V> {
 }
 
-declare class Property<T> extends Observable<T> {
+declare class Property<V> extends Observable<V> {
 }
 
 declare var Kefir: {
@@ -119,40 +119,40 @@ declare var Kefir: {
     Observable: {
       ap: Function; //TODO replace Function with more specific types
       bimap: Function;
-      chain<T,U>(cb: (value: T) => Observable<U>, s: Observable<T>): Observable<U>;
+      chain<V,V2>(cb: (value: V) => Observable<V2>, s: Observable<V>): Observable<V2>;
       concat: Function;
       empty(): Observable<any>;
-      map<T,U>(cb: (value: T) => U, s: Observable<T>): Observable<U>;
-      of<T>(value: T): Observable<T>;
+      map<V,V2>(cb: (value: V) => V2, s: Observable<V>): Observable<V2>;
+      of<V>(value: V): Observable<V>;
     };
   };
 
   never(): Observable<any>;
-  later<T>(delay: number, value: T): Observable<T>;
-  interval<T>(interval: number, value: T): Observable<T>;
-  sequentially<T>(interval: number, values: T[]): Observable<T>;
-  fromPoll<T>(interval: number, f: () => T): Observable<T>;
-  withInterval<T>(interval: number, f: (emitter: Emitter<T>) => void): Observable<T>;
-  fromCallback<T>(f: (cb: (value: T) => void) => void): Observable<T>;
-  fromNodeCallback<T>(f: (cb: (err: any, value: ?T) => void) => void): Observable<T>;
+  later<V>(delay: number, value: V): Observable<V>;
+  interval<V>(interval: number, value: V): Observable<V>;
+  sequentially<V>(interval: number, values: V[]): Observable<V>;
+  fromPoll<V>(interval: number, f: () => V): Observable<V>;
+  withInterval<V>(interval: number, f: (emitter: Emitter<V>) => void): Observable<V>;
+  fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V>;
+  fromNodeCallback<V>(f: (cb: (err: any, value: ?V) => void) => void): Observable<V>;
   fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any>;
-  stream<T>(subscribe: (emitter: Emitter<T>) => ?() => void): Observable<T>;
+  stream<V>(subscribe: (emitter: Emitter<V>) => ?() => void): Observable<V>;
 
-  constant<T>(value: T): Observable<T>;
+  constant<V>(value: V): Observable<V>;
   constantError(err: any): Observable<any>;
-  fromPromise<T>(promise: Promise<T>): Observable<T>;
+  fromPromise<V>(promise: Promise<V>): Observable<V>;
 
   fromESObservable(observable: Object): Observable<any>;
   toESObservable(): Object;
 
   combine(obss: Observable<any>[], passiveObss?: Observable<any>[], combinator?: Function): Observable<any>;
-  zip<T>(obss: Observable<T>[]): Observable<Array<T>>;
+  zip<V>(obss: Observable<V>[]): Observable<Array<V>>;
   zip(obss: Observable<any>[], combinator: Function): Observable<any>;
-  merge<T>(obss: Observable<T>[]): Observable<T>;
-  concat<T>(obss: Observable<T>[]): Observable<T>;
+  merge<V>(obss: Observable<V>[]): Observable<V>;
+  concat<V>(obss: Observable<V>[]): Observable<V>;
 
   pool(): Pool<*>;
-  repeat<T>(fn: (i: number) => ?Observable<T>): Observable<T>;
+  repeat<V>(fn: (i: number) => ?Observable<V>): Observable<V>;
 };
 
 module.exports = Kefir;
