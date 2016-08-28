@@ -103,10 +103,10 @@ declare class Pool<V,E=*> extends Observable<V,E> {
   plug(s: Observable<V,E>): () => void;
 }
 
-declare class Stream<V,E=*> extends Observable<V,E> {
+declare class Stream<+V,+E=*> extends Observable<V,E> {
 }
 
-declare class Property<V,E=*> extends Observable<V,E> {
+declare class Property<+V,+E=*> extends Observable<V,E> {
 }
 
 declare var Kefir: {
@@ -138,9 +138,9 @@ declare var Kefir: {
   fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any,*>;
   stream<V,E>(subscribe: (emitter: Emitter<V,E>) => ?() => void): Observable<V,E>;
 
-  constant<V>(value: V): Observable<V,*>;
-  constantError<E>(err: E): Observable<*,E>;
-  fromPromise<V>(promise: Promise<V>): Observable<V,*>;
+  constant<V>(value: V): Property<V,*>;
+  constantError<E>(err: E): Property<*,E>;
+  fromPromise<V>(promise: Promise<V>): Property<V,*>;
 
   fromESObservable(observable: Object): Observable<any,*>;
   toESObservable(): Object;
