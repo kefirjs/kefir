@@ -29,7 +29,7 @@ export type Observer<V,E> = {
 
 declare class Observable<+V,+E=*> {
   toProperty(): Property<V,E>;
-  toProperty<V2>(getCurrent: ?() => V2): Property<V|V2,E>;
+  toProperty<V2>(getCurrent: () => V2): Property<V|V2,E>;
   changes(): Observable<V,E>;
 
   observe(obs: Observer<V,E>): Subscription;
