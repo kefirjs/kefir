@@ -54,9 +54,9 @@ declare class Observable<+V,+E=*> {
   skip(n: number): Observable<V,E>;
   skipWhile(cb?: (v: V) => boolean): Observable<V,E>;
   skipDuplicates(comparator?: (a: V, b: V) => boolean): Observable<V,E>;
-  diff(fn?: (prev: V, next: V) => V, seed?: V): Observable<V,E>;
+  diff(fn?: (prev: V, next: V) => V): Observable<V,E>;
   diff<V2>(fn: (prev: V2, next: V) => V, seed: V2): Observable<V2,E>;
-  scan(cb: (prev: V, next: V) => V, seed?: V): Observable<V,E>;
+  scan(cb: (prev: V, next: V) => V): Observable<V,E>;
   scan<V2>(cb: (prev: V2, next: V) => V2, seed: V2): Observable<V2,E>;
   flatten(): Observable<any,E>;
   flatten<V2>(transformer: (value: V) => V2[]): Observable<V2,E>;
