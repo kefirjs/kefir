@@ -120,7 +120,7 @@ declare var Kefir: {
       ap<A,B,E1,E2>(obsF: Observable<(x: A) => B, E1>, obsV: Observable<A, E2>): Observable<B,E1|E2>;
       bimap<V1,E1,V2,E2>(fnE: (x: E1) => E2, fnV: (x: V1) => V2, obs: Observable<V1,E1>): Observable<V2,E2>;
       chain<V,V2,E,E2>(cb: (value: V) => Observable<V2,E2>, s: Observable<V,E>): Observable<V2,E|E2>;
-      concat<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
+      concat<V1,E1,V2,E2>(obs1: Observable<V1,E1>, obs2: Observable<V2,E2>): Observable<V1|V2,E1|E2>;
       empty(): Observable<*,*>;
       map<V,V2,E>(cb: (value: V) => V2, s: Observable<V,E>): Observable<V2,E>;
       of<V>(value: V): Observable<V,*>;
