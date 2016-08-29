@@ -1,3 +1,7 @@
+## 3.5.1 (29/08/2016)
+
+ - `.filter(Bolean)` support in Flow definitions [#218](https://github.com/rpominov/kefir/pull/218) [@AgentME](https://github.com/AgentME)
+
 ## 3.5.0 (29/08/2016)
 
  - Flow types are now included in NPM package [#217](https://github.com/rpominov/kefir/pull/217) [@AgentME](https://github.com/AgentME)
