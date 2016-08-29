@@ -140,7 +140,7 @@ declare var Kefir: {
 
   constant<V>(value: V): Property<V,*>;
   constantError<E>(err: E): Property<*,E>;
-  fromPromise<V>(promise: Promise<V>): Property<V,*>;
+  fromPromise<V>(promise: Promise<V>): Property<V,any>;
 
   fromESObservable(observable: Object): Observable<any,*>;
   toESObservable(): Object;
