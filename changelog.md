@@ -1,3 +1,7 @@
+## 3.5.0 (29/08/2016)
+
+ - Flow types are now included in NPM package [#217](https://github.com/rpominov/kefir/pull/217) [@AgentME](https://github.com/AgentME)
+
 ## 3.4.0 (17/08/2016)
 
  - [Static Land](https://github.com/rpominov/static-land) support added.

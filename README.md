@@ -42,6 +42,31 @@ See [downloads](https://rpominov.github.io/kefir/#downloads) section in the docs
 
 Also available on [jsDelivr](http://www.jsdelivr.com/#!kefir).
 
+# Browsers support
+
+We don't support IE8 and below, aside from that Kefir should work in any browser.
+
+
+## [Flow](https://flowtype.org/)
+
+The NPM package ships with Flow definitions. So you can do something like this if you use Flow:
+
+```js
+// @flow
+
+import Kefir from 'kefir'
+
+function foo(numberStream: Kefir.Observable<number>) {
+  numberStream.onValue(x => {
+    // Flow knows x is a number here
+  });
+}
+
+const s = Kefir.constant(5);
+// Flow can automatically infer the type of values in the stream and determine
+// that `s` is of type Kefir.Observable<number> here.
+foo(s);
+```
 
 # Development
 
@@ -53,4 +78,3 @@ To build all the things: `/dist`, docs, tests for browser, etc. run:
 To run tests:
 
     npm test
-

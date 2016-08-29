@@ -69,6 +69,12 @@ module.exports = (grunt) ->
         files:
           'index.html': 'docs-src/index.jade'
 
+    copy:
+      flow:
+        files: [
+          {src:'kefir.js.flow', dest:'dist/'},
+        ]
+
     clean:
       main:
         src: ['dist', 'index.html']
@@ -85,7 +91,7 @@ module.exports = (grunt) ->
   loadGruntTasks(grunt)
 
   grunt.registerTask 'build-browser-tests', ['browserify:tests']
-  grunt.registerTask 'build-kefir', ['rollup:dev', 'rollup:prod']
+  grunt.registerTask 'build-kefir', ['rollup:dev', 'rollup:prod', 'copy:flow']
   grunt.registerTask 'build-docs', ['jade:docs']
 
   grunt.registerTask 'default', ['clean', 'build-docs', 'build-kefir', 'build-browser-tests']

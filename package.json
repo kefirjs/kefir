@@ -1,10 +1,10 @@
 {
   "name": "kefir",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
-    "test": "eslint . && grunt rollup:dev && jasmine-node --coffee --matchall test/specs",
+    "test": "eslint . && grunt rollup:dev && jasmine-node --coffee --matchall test/specs && flow check",
     "test-only": "grunt rollup:dev && jasmine-node --coffee --matchall test/specs"
   },
   "keywords": [
@@ -39,11 +39,13 @@
     "coffee-script": "1.10.0",
     "coffeeify": "1.1.0",
     "eslint": "2.2.0",
+    "flow-bin": "^0.31.1",
     "grunt": "0.4.5",
     "grunt-bower-task": "0.4.0",
     "grunt-browserify": "4.0.1",
     "grunt-cli": "0.1.13",
     "grunt-contrib-clean": "0.6.0",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-jade": "0.15.0",
     "grunt-rollup": "0.7.1",
     "inquirer": "0.10.1",
