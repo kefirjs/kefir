@@ -47,7 +47,8 @@ declare class Observable<+V,+E=*> {
   toPromise(PromiseConstructor?: Function): Promise<V>;
 
   map<V2>(cb: (v: V) => V2): Observable<V2,E>;
-  filter(cb?: (v: V) => any): Observable<V,E>;
+  filter(cb?: typeof Boolean): Observable<$NonMaybeType<V>,E>;
+  filter(cb: (v: V) => any): Observable<V,E>;
   take(n: number): Observable<V,E>;
   takeWhile(cb?: (v: V) => boolean): Observable<V,E>;
   last(): Observable<V,E>;
@@ -64,6 +65,7 @@ declare class Observable<+V,+E=*> {
   throttle(n: number, options?: {leading?: boolean, trailing?: boolean}): Observable<V,E>;
   debounce(n: number, options?: {immediate?: boolean}): Observable<V,E>;
   mapErrors<E2>(fn: (error: E) => E2): Observable<V,E2>;
+  filterErrors(fn?: typeof Boolean): Observable<V,$NonMaybeType<E>>;
   filterErrors(fn: (error: E) => any): Observable<V,E>;
   takeErrors(n: number): Observable<V,E>;
   ignoreValues(): Observable<*,E>;

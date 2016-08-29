@@ -1,4 +1,4 @@
-/*! Kefir.js v3.5.0
+/*! Kefir.js v3.5.1
  *  https://github.com/rpominov/kefir
  */
 
