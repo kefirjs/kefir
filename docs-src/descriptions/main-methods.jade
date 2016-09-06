@@ -17,7 +17,7 @@ p.
 pre.javascript(title='example')
   :escapehtml
     var stream = Kefir.sequentially(1000, [1, 2]);
-    var subscription = stream.observer({
+    var subscription = stream.observe({
       value(value) {
         console.log('value:', value);
       },
@@ -46,7 +46,7 @@ p.
 pre.javascript(title='example')
   :escapehtml
     var stream = Kefir.sequentially(1000, [1, 2]);
-    stream.observer(
+    stream.observe(
       function onValue(value) {
         console.log('value', value);
       },
