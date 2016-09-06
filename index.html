@@ -320,7 +320,7 @@ an <tt>unsubscribe</tt> method and a read-only <tt>closed</tt> property.
 <tt>closed</tt> indicates whether the <tt>unsubscribe</tt> method has been called
 or the observable have ended.
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
-var subscription = stream.observer({
+var subscription = stream.observe({
   value(value) {
     console.log(&#x27;value:&#x27;, value);
   },
@@ -341,7 +341,7 @@ subscription.unsubscribe()
 &gt; end
 </pre><p>In addition to passing in an Observer, <tt>observe</tt> can takes callbacks individually:
 </p><pre title="example" class="javascript">var stream = Kefir.sequentially(1000, [1, 2]);
-stream.observer(
+stream.observe(
   function onValue(value) {
     console.log(&#x27;value&#x27;, value);
   },
