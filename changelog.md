@@ -1,3 +1,7 @@
+## 3.5.2 (07/10/2016)
+
+ - Flow definition for `flatMapConcurLimit` fixed [#221](https://github.com/rpominov/kefir/pull/221) [@32bitkid](https://github.com/32bitkid)
+
 ## 3.5.1 (29/08/2016)
 
  - `.filter(Bolean)` support in Flow definitions [#218](https://github.com/rpominov/kefir/pull/218) [@AgentME](https://github.com/AgentME)
