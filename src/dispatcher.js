@@ -16,6 +16,7 @@ function callSubscriber(type, fn, event) {
 
 function Dispatcher() {
   this._items = [];
+  this._spies = [];
   this._inLoop = 0;
   this._removedItems = null;
 }
@@ -43,8 +44,23 @@ extend(Dispatcher.prototype, {
     return this._items.length;
   },
 
+
+  addSpy(fn) {
+    this._spies = concat(this._spies, [fn]);
+    return this._spies.length;
+  },
+
+  removeSpy(fn) {
+    this._spies = remove(this._spies, this._spies.indexOf(fn));
+    return this._spies.length;
+  },
+
   dispatch(event) {
     this._inLoop++;
+    for (let i = 0, spies = this._spies; this._spies !== null && i < spies.length; i++) {
+      spies[i](event);
+    }
+
     for (let i = 0, items = this._items; i < items.length; i++) {
 
       // cleanup was called
@@ -67,6 +83,7 @@ extend(Dispatcher.prototype, {
 
   cleanup() {
     this._items = null;
+    this._spies = null;
   }
 
 });
