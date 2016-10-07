@@ -88,7 +88,7 @@ declare class Observable<+V,+E=*> {
   flatMapLatest<V2,E2>(transform: (value: V) => Observable<V2,E2>): Observable<V2,E|E2>;
   flatMapFirst<V2,E2>(transform: (value: V) => Observable<V2,E2>): Observable<V2,E|E2>;
   flatMapConcat<V2,E2>(transform: (value: V) => Observable<V2,E2>): Observable<V2,E|E2>;
-  flatMapLimit<V2,E2>(transform: (value: V) => Observable<V2,E2>, limit: number): Observable<V2,E|E2>;
+  flatMapConcurLimit<V2,E2>(transform: (value: V) => Observable<V2,E2>, limit: number): Observable<V2,E|E2>;
   flatMapErrors<V2,E2>(transform: (error: E) => Observable<V2,E2>): Observable<V|V2,E2>;
 
   filterBy(otherObs: Observable<any,any>): Observable<V,E>;
