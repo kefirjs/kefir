@@ -2,12 +2,23 @@
 
 describe 'log', ->
 
-  it 'should return the stream', ->
-    expect(stream().spy()).toBeStream()
+  describe 'adding', ->
 
-  it 'should activate the stream', ->
-     a = stream().log()
-     expect(a).toBeActive()
+    it 'should return the stream', ->
+      expect(stream().spy()).toBeStream()
+
+    it 'should activate the stream', ->
+       a = stream().log()
+       expect(a).toBeActive()
+
+  describe 'removing', ->
+
+    it 'should return the stream', ->
+      expect(stream().log().offLog()).toBeStream()
+
+    it 'should deactivate the stream', ->
+       a = stream().log().offLog()
+       expect(a).not.toBeActive()
 
   describe 'console', ->
     _log = undefined
@@ -34,17 +45,34 @@ describe 'log', ->
         expect(console.log).toHaveBeenCalledWith('logged', '<value>', 2)
         expect(console.log).toHaveBeenCalledWith('logged', '<value>', 3)
 
+    it 'should not log if the log has been removed', ->
+      a = stream()
+      a.log()
+      a.offLog()
+      expect(a).toEmit [1, 2, 3], ->
+        send(a, [1, 2, 3])
+        expect(console.log).not.toHaveBeenCalled()
+
     afterEach ->
       console.log = _log
 
 describe 'spy', ->
 
-  it 'should return the stream', ->
-    expect(stream().spy()).toBeStream()
+  describe 'adding', ->
+    it 'should return the stream', ->
+      expect(stream().spy()).toBeStream()
 
-  it 'should not activate the stream', ->
-     a = stream().spy()
-     expect(a).not.toBeActive()
+    it 'should not activate the stream', ->
+       a = stream().spy()
+       expect(a).not.toBeActive()
+
+  describe 'removing', ->
+    it 'should return the stream', ->
+      expect(stream().spy().offSpy()).toBeStream()
+
+    it 'should not activate the stream', ->
+       a = stream().spy().offSpy()
+       expect(a).not.toBeActive()
 
   describe 'console', ->
     _log = undefined
@@ -70,6 +98,14 @@ describe 'spy', ->
         expect(console.log).toHaveBeenCalledWith('spied', '<value>', 1)
         expect(console.log).toHaveBeenCalledWith('spied', '<value>', 2)
         expect(console.log).toHaveBeenCalledWith('spied', '<value>', 3)
+
+    it 'should not log if the spy has been removed', ->
+      a = stream()
+      a.spy()
+      a.offSpy()
+      expect(a).toEmit [1, 2, 3], ->
+        send(a, [1, 2, 3])
+        expect(console.log).not.toHaveBeenCalled()
 
     afterEach ->
       console.log = _log
