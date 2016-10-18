@@ -5,7 +5,7 @@ describe 'log', ->
   describe 'adding', ->
 
     it 'should return the stream', ->
-      expect(stream().spy()).toBeStream()
+      expect(stream().log()).toBeStream()
 
     it 'should activate the stream', ->
        a = stream().log()
