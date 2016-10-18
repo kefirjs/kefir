@@ -50,7 +50,7 @@ extend(Dispatcher.prototype, {
     return this._spies.length;
   },
 
-  // Because spies are only ever function that perform logging as
+  // Because spies are only ever a function that perform logging as
   // their only side effect, we don't need the same complicated
   // removal logic like in remove()
   removeSpy(fn) {
