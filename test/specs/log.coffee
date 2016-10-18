@@ -21,6 +21,7 @@ describe 'log', ->
        expect(a).not.toBeActive()
 
   describe 'console', ->
+
     _log = undefined
 
     beforeEach ->

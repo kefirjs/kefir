@@ -3,6 +3,7 @@
 describe 'spy', ->
 
   describe 'adding', ->
+
     it 'should return the stream', ->
       expect(stream().spy()).toBeStream()
 
@@ -11,6 +12,7 @@ describe 'spy', ->
        expect(a).not.toBeActive()
 
   describe 'removing', ->
+
     it 'should return the stream', ->
       expect(stream().spy().offSpy()).toBeStream()
 
@@ -19,6 +21,7 @@ describe 'spy', ->
        expect(a).not.toBeActive()
 
   describe 'console', ->
+
     _log = undefined
 
     beforeEach ->
