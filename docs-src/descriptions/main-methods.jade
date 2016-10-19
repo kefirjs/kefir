@@ -174,3 +174,25 @@ pre(title='console output')
   Turns off logging. If #[b .log] was called with a #[b name] argument,
   #[b offLog] must be called with the same #[b name] argument.
 
++descr-method('spy', 'spy', 'obs.spy([name])').
+  Turns on spying of any event to the browser console. Similar to
+  #[b .log], however #[b .spy] will not cause the stream to activate by itself.
+  Accepts an optional #[b name] argument that will be shown in the log if provided.
+
+pre.javascript(title='example')
+  :escapehtml
+    var stream = Kefir.sequentially(250, [1, 2, 3]);
+    stream.spy('spied');      // stream is *not* activated here.
+    stream.observe(() => {});
+
+pre(title='console output')
+  :escapehtml
+    > spied <value> 1
+    > spied <value> 2
+    > spied <value> 3
+    > spied <end>
+
++descr-method('off-spy', 'offSpy', 'obs.offSpy([name])').
+  Turns off spying. If #[b .spy] was called with a #[b name] argument,
+  #[b offSpy] must be called with the same #[b name] argument.
+

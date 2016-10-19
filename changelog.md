@@ -1,3 +1,7 @@
+## 3.6.0 (19/10/2016)
+
+ - New methods `.spy` and `.offSpy` [#222](https://github.com/rpominov/kefir/pull/222) [@32bitkid](https://github.com/32bitkid)
+
 ## 3.5.2 (07/10/2016)
 
  - Flow definition for `flatMapConcurLimit` fixed [#221](https://github.com/rpominov/kefir/pull/221) [@32bitkid](https://github.com/32bitkid)
