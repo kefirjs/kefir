@@ -11,6 +11,7 @@ function Observable() {
   this._alive = true;
   this._activating = false;
   this._logHandlers = null;
+  this._spyHandlers = null;
 }
 
 extend(Observable.prototype, {
@@ -197,6 +198,36 @@ extend(Observable.prototype, {
       }
     }
 
+    return this;
+  },
+
+  spy(name = this.toString()) {
+    let handler = function(event) {
+      let type = `<${event.type}>`;
+      if (event.type === END) {
+        console.log(name, type);
+      } else {
+        console.log(name, type, event.value);
+      }
+    };
+    if (this._alive) {
+      if (!this._spyHandlers) {
+        this._spyHandlers = [];
+      }
+      this._spyHandlers.push({name: name, handler: handler});
+      this._dispatcher.addSpy(handler);
+    }
+    return this;
+  },
+
+  offSpy(name = this.toString()) {
+    if (this._spyHandlers) {
+      let handlerIndex = findByPred(this._spyHandlers, obj => obj.name === name);
+      if (handlerIndex !== -1) {
+        this._dispatcher.removeSpy(this._spyHandlers[handlerIndex].handler);
+        this._spyHandlers.splice(handlerIndex, 1);
+      }
+    }
     return this;
   }
 });
