@@ -22,10 +22,7 @@ describe 'log', ->
 
   describe 'console', ->
 
-    _log = undefined
-
     beforeEach ->
-      _log = console.log
       spyOn(console, 'log')
 
     it 'should have a default name', ->
@@ -53,6 +50,3 @@ describe 'log', ->
       expect(a).toEmit [1, 2, 3], ->
         send(a, [1, 2, 3])
         expect(console.log).not.toHaveBeenCalled()
-
-    afterEach ->
-      console.log = _log
