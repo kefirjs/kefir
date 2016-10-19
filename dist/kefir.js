@@ -1,4 +1,4 @@
-/*! Kefir.js v3.5.2
+/*! Kefir.js v3.6.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -178,6 +178,7 @@
 
 	function Dispatcher() {
 	  this._items = [];
+	  this._spies = [];
 	  this._inLoop = 0;
 	  this._removedItems = null;
 	}
@@ -204,9 +205,26 @@
 	    this._items = remove(this._items, index);
 	    return this._items.length;
 	  },
+	  addSpy: function (fn) {
+	    this._spies = concat(this._spies, [fn]);
+	    return this._spies.length;
+	  },
+
+
+	  // Because spies are only ever a function that perform logging as
+	  // their only side effect, we don't need the same complicated
+	  // removal logic like in remove()
+	  removeSpy: function (fn) {
+	    this._spies = remove(this._spies, this._spies.indexOf(fn));
+	    return this._spies.length;
+	  },
 	  dispatch: function (event) {
 	    this._inLoop++;
-	    for (var i = 0, items = this._items; i < items.length; i++) {
+	    for (var i = 0, spies = this._spies; this._spies !== null && i < spies.length; i++) {
+	      spies[i](event);
+	    }
+
+	    for (var _i = 0, items = this._items; _i < items.length; _i++) {
 
 	      // cleanup was called
 	      if (this._items === null) {
@@ -214,11 +232,11 @@
 	      }
 
 	      // this subscriber was removed
-	      if (this._removedItems !== null && contains(this._removedItems, items[i])) {
+	      if (this._removedItems !== null && contains(this._removedItems, items[_i])) {
 	        continue;
 	      }
 
-	      callSubscriber(items[i].type, items[i].fn, event);
+	      callSubscriber(items[_i].type, items[_i].fn, event);
 	    }
 	    this._inLoop--;
 	    if (this._inLoop === 0) {
@@ -227,6 +245,7 @@
 	  },
 	  cleanup: function () {
 	    this._items = null;
+	    this._spies = null;
 	  }
 	});
 
@@ -236,6 +255,7 @@
 	  this._alive = true;
 	  this._activating = false;
 	  this._logHandlers = null;
+	  this._spyHandlers = null;
 	}
 
 	extend(Observable.prototype, {
@@ -416,6 +436,40 @@
 	      }
 	    }
 
+	    return this;
+	  },
+	  spy: function () {
+	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+
+	    var handler = function (event) {
+	      var type = '<' + event.type + '>';
+	      if (event.type === END) {
+	        console.log(name, type);
+	      } else {
+	        console.log(name, type, event.value);
+	      }
+	    };
+	    if (this._alive) {
+	      if (!this._spyHandlers) {
+	        this._spyHandlers = [];
+	      }
+	      this._spyHandlers.push({ name: name, handler: handler });
+	      this._dispatcher.addSpy(handler);
+	    }
+	    return this;
+	  },
+	  offSpy: function () {
+	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+
+	    if (this._spyHandlers) {
+	      var handlerIndex = findByPred(this._spyHandlers, function (obj) {
+	        return obj.name === name;
+	      });
+	      if (handlerIndex !== -1) {
+	        this._dispatcher.removeSpy(this._spyHandlers[handlerIndex].handler);
+	        this._spyHandlers.splice(handlerIndex, 1);
+	      }
+	    }
 	    return this;
 	  }
 	});

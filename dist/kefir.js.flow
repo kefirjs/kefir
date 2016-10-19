@@ -44,6 +44,8 @@ declare class Observable<+V,+E=*> {
   offAny(cb: (event: Event<V,E>) => void): this;
   log(name?: string): this;
   offLog(name?: string): this;
+  spy(name?: string): this;
+  offSpy(name?: string): this;
   toPromise(PromiseConstructor?: Function): Promise<V>;
 
   map<V2>(cb: (v: V) => V2): Observable<V2,E>;
