@@ -79,7 +79,7 @@ content, which actually a string, but let's fix that:
 </pre><p>Done, but now it can produce the <tt>NaN</tt> if user type "banana" or something
 instead of a number. Let's fix this too
 using <a href="#about-errors">errors handling</a> that Kefir provides:
-</p><pre title="example" class="javascript">var fixedInputNumber = inputValue.flatMap(
+</p><pre title="example" class="javascript">var fixedInputNumber = inputNumber.flatMap(
   x =&gt; isNaN(x)
     ? Kefir.constantError(&#x27;banana?&#x27;)
     : Kefir.constant(x)
