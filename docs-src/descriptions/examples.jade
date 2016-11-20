@@ -111,7 +111,7 @@ p.
 
 pre.javascript(title='example')
   :escapehtml
-    var fixedInputNumber = inputValue.flatMap(
+    var fixedInputNumber = inputNumber.flatMap(
       x => isNaN(x)
         ? Kefir.constantError('banana?')
         : Kefir.constant(x)
