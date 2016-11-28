@@ -136,7 +136,7 @@ declare var Kefir: {
   interval<V>(interval: number, value: V): Observable<V,*>;
   sequentially<V>(interval: number, values: V[]): Observable<V,*>;
   fromPoll<V>(interval: number, f: () => V): Observable<V,*>;
-  withInterval<V>(interval: number, f: (emitter: Emitter<V>) => void): Observable<V,*>;
+  withInterval<V,E>(interval: number, f: (emitter: Emitter<V,E>) => void): Observable<V,E>;
   fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V,*>;
   fromNodeCallback<V,E>(f: (cb: (err: E, value: ?V) => void) => void): Observable<V,E>;
   fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any,*>;
