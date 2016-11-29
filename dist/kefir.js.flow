@@ -22,9 +22,9 @@ export type Subscription = {
 };
 
 export type Observer<V,E> = {
-  value?: (value: V) => void;
-  error?: (err: E) => void;
-  end?: () => void;
+  +value?: (value: V) => void;
+  +error?: (err: E) => void;
+  +end?: () => void;
 };
 
 declare class Observable<+V,+E=*> {
@@ -32,7 +32,7 @@ declare class Observable<+V,+E=*> {
   toProperty<V2>(getCurrent: () => V2): Property<V|V2,E>;
   changes(): Observable<V,E>;
 
-  observe(obs: Observer<V,E>): Subscription;
+  observe(obs: Observer<V,E>, ...none: empty[]): Subscription;
   observe(onValue: ?(v: V) => void, onError: ?(err: E) => void, onEnd: ?() => void): Subscription;
   onValue(cb: (v: V) => void): this;
   offValue(cb: (v: V) => void): this;
@@ -136,7 +136,7 @@ declare var Kefir: {
   interval<V>(interval: number, value: V): Observable<V,*>;
   sequentially<V>(interval: number, values: V[]): Observable<V,*>;
   fromPoll<V>(interval: number, f: () => V): Observable<V,*>;
-  withInterval<V>(interval: number, f: (emitter: Emitter<V>) => void): Observable<V,*>;
+  withInterval<V,E>(interval: number, f: (emitter: Emitter<V,E>) => void): Observable<V,E>;
   fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V,*>;
   fromNodeCallback<V,E>(f: (cb: (err: E, value: ?V) => void) => void): Observable<V,E>;
   fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any,*>;
