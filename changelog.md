@@ -1,3 +1,7 @@
+## 3.6.1 (29/11/2016)
+
+ - Flow definitions fixed and updated to be compatible with Flow 0.36 [#229](https://github.com/rpominov/kefir/pull/229) [@AgentME](https://github.com/AgentME)
+
 ## 3.6.0 (19/10/2016)
 
  - New methods `.spy` and `.offSpy` [#222](https://github.com/rpominov/kefir/pull/222) [@32bitkid](https://github.com/32bitkid)
