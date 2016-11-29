@@ -9,7 +9,7 @@ const p1c: Observable<{a:number}> = p1;
 // $ExpectError
 const f1c: Observable<number> = p1;
 
-p1.observe(v => {
+p1.onValue(v => {
   const good: {a:number, b:string} = v;
   // $ExpectError
   const bad: number = v;
@@ -20,7 +20,7 @@ const p2: Kefir.Observable<{a:number, b:string}> = Kefir.constant({a:2, b:'b'});
 // $ExpectError
 const f2c: Observable<number> = p1;
 
-p2.observe(v => {
+p2.onValue(v => {
   const good: {a:number, b:string} = v;
   // $ExpectError
   const bad: number = v;
