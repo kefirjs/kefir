@@ -459,4 +459,4 @@ describe 'combine', ->
       arrayAndObject = -> Kefir.combine([a],{b})
       objectAndArray = -> Kefir.combine({a},[b])
       expect(arrayAndObject).toThrow()
-      expect(objectAndArray)
+      expect(objectAndArray).toThrow()
