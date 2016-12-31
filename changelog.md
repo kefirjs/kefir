@@ -1,3 +1,7 @@
+## 3.7.0 (31/12/2016)
+
+ - The `.combine` method now can also accept objects instead of arrays [#225](https://github.com/rpominov/kefir/pull/225) [@32bitkid](https://github.com/32bitkid)
+
 ## 3.6.1 (29/11/2016)
 
  - Flow definitions fixed and updated to be compatible with Flow 0.36 [#229](https://github.com/rpominov/kefir/pull/229) [@AgentME](https://github.com/AgentME)
