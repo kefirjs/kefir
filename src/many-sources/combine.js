@@ -5,7 +5,14 @@ import {concat, fillArray} from '../utils/collections';
 import {spread} from '../utils/functions';
 import never from '../primary/never';
 
-
+function collect(source, keys, values) {
+  for (var prop in source) {
+    if( source.hasOwnProperty( prop ) ) {
+      keys.push(prop);
+      values.push(source[prop]);
+    }
+  }
+}
 
 function defaultErrorsCombinator(errors) {
   let latestError;
@@ -23,7 +30,7 @@ function Combine(active, passive, combinator) {
   Stream.call(this);
   this._activeCount = active.length;
   this._sources = concat(active, passive);
-  this._combinator = combinator ? spread(combinator, this._sources.length) : (x => x);
+  this._combinator = combinator;
   this._aliveCount = 0;
   this._latestValues = new Array(this._sources.length);
   this._latestErrors = new Array(this._sources.length);
@@ -153,11 +160,43 @@ inherit(Combine, Stream, {
 
 });
 
+function combineAsArray(active, passive = [], combinator) {
+  if (!Array.isArray(passive)) {
+    throw new Error('Combine can only combine active and passive collections of the same type.');
+  }
 
-export default function combine(active, passive = [], combinator) {
+  combinator = combinator ? spread(combinator, active.length + passive.length) : (x => x);
+  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+}
+
+function combineAsObject(active, passive = {}, combinator) {
+  if (typeof passive !== 'object' || Array.isArray(passive)) {
+    throw new Error('Combine can only combine active and passive collections of the same type.');
+  }
+
+  let keys = [],
+    activeObservables = [],
+    passiveObservables = [];
+
+  collect(active, keys, activeObservables);
+  collect(passive, keys, passiveObservables);
+
+  const objectify = values => {
+    let event = {};
+    for(let i = values.length - 1; 0 <= i; i--) {
+      event[keys[i]] = values[i];
+    }
+    return combinator ? combinator(event) : event;
+  }
+
+  return activeObservables.length === 0 ? never() : new Combine(activeObservables, passiveObservables, objectify);
+}
+
+export default function combine(active, passive, combinator) {
   if (typeof passive === 'function') {
     combinator = passive;
-    passive = [];
+    passive = undefined;
   }
-  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+
+  return Array.isArray(active) ? combineAsArray(active, passive, combinator) : combineAsObject(active, passive, combinator);
 }

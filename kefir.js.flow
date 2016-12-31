@@ -151,6 +151,9 @@ declare var Kefir: {
 
   combine<E>(obss: Observable<any,E>[], combinator?: Function): Observable<any,E>;
   combine<E>(obss: Observable<any,E>[], passiveObss?: Observable<any,E>[], combinator?: Function): Observable<any,E>;
+  combine<E>(obss: {[key:string]:Observable<any,E>}, combinator?: Function): Observable<any,E>;
+  combine<E>(obss: {[key:string]:Observable<any,E>}, passiveObss?: {[key:string]:Observable<any,E>}, combinator?: Function): Observable<any,E>;
+
   zip<V,E>(obss: Observable<V,E>[]): Observable<Array<V>,E>;
   zip<E>(obss: Observable<any,E>[], combinator: Function): Observable<any,E>;
   merge<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
