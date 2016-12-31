@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
-/*! Kefir.js v3.6.1
+/*! Kefir.js v3.7.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -1257,6 +1257,15 @@
 	  return new ESObservable(this);
 	}
 
+	function collect(source, keys, values) {
+	  for (var prop in source) {
+	    if (source.hasOwnProperty(prop)) {
+	      keys.push(prop);
+	      values.push(source[prop]);
+	    }
+	  }
+	}
+
 	function defaultErrorsCombinator(errors) {
 	  var latestError = void 0;
 	  for (var i = 0; i < errors.length; i++) {
@@ -1275,9 +1284,7 @@
 	  Stream.call(this);
 	  this._activeCount = active.length;
 	  this._sources = concat(active, passive);
-	  this._combinator = combinator ? spread(combinator, this._sources.length) : function (x) {
-	    return x;
-	  };
+	  this._combinator = combinator;
 	  this._aliveCount = 0;
 	  this._latestValues = new Array(this._sources.length);
 	  this._latestErrors = new Array(this._sources.length);
@@ -1406,15 +1413,53 @@
 	  }
 	});
 
-	function combine(active) {
+	function combineAsArray(active) {
 	  var passive = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 	  var combinator = arguments[2];
 
+	  if (!Array.isArray(passive)) {
+	    throw new Error('Combine can only combine active and passive collections of the same type.');
+	  }
+
+	  combinator = combinator ? spread(combinator, active.length + passive.length) : function (x) {
+	    return x;
+	  };
+	  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+	}
+
+	function combineAsObject(active) {
+	  var passive = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  var combinator = arguments[2];
+
+	  if (typeof passive !== 'object' || Array.isArray(passive)) {
+	    throw new Error('Combine can only combine active and passive collections of the same type.');
+	  }
+
+	  var keys = [],
+	      activeObservables = [],
+	      passiveObservables = [];
+
+	  collect(active, keys, activeObservables);
+	  collect(passive, keys, passiveObservables);
+
+	  var objectify = function (values) {
+	    var event = {};
+	    for (var i = values.length - 1; 0 <= i; i--) {
+	      event[keys[i]] = values[i];
+	    }
+	    return combinator ? combinator(event) : event;
+	  };
+
+	  return activeObservables.length === 0 ? never() : new Combine(activeObservables, passiveObservables, objectify);
+	}
+
+	function combine(active, passive, combinator) {
 	  if (typeof passive === 'function') {
 	    combinator = passive;
-	    passive = [];
+	    passive = undefined;
 	  }
-	  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+
+	  return Array.isArray(active) ? combineAsArray(active, passive, combinator) : combineAsObject(active, passive, combinator);
 	}
 
 	var Observable$1 = {
@@ -24070,279 +24115,761 @@ var Kefir, activate, deactivate, prop, ref, send, stream,
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
 
 describe('combine', function() {
-  it('should return stream', function() {
-    expect(Kefir.combine([])).toBeStream();
-    expect(Kefir.combine([stream(), prop()])).toBeStream();
-    expect(stream().combine(stream())).toBeStream();
-    return expect(prop().combine(prop())).toBeStream();
-  });
-  it('should be ended if empty array provided', function() {
-    return expect(Kefir.combine([])).toEmit(['<end:current>']);
-  });
-  it('should be ended if array of ended observables provided', function() {
-    var a, b, c;
-    a = send(stream(), ['<end>']);
-    b = send(prop(), ['<end>']);
-    c = send(stream(), ['<end>']);
-    expect(Kefir.combine([a, b, c])).toEmit(['<end:current>']);
-    return expect(a.combine(b)).toEmit(['<end:current>']);
-  });
-  it('should be ended and has current if array of ended properties provided and each of them has current', function() {
-    var a, b, c;
-    a = send(prop(), [1, '<end>']);
-    b = send(prop(), [2, '<end>']);
-    c = send(prop(), [3, '<end>']);
-    expect(Kefir.combine([a, b, c])).toEmit([
-      {
-        current: [1, 2, 3]
-      }, '<end:current>'
-    ]);
-    return expect(a.combine(b)).toEmit([
-      {
-        current: [1, 2]
-      }, '<end:current>'
-    ]);
-  });
-  it('should activate sources', function() {
-    var a, b, c;
-    a = stream();
-    b = prop();
-    c = stream();
-    expect(Kefir.combine([a, b, c])).toActivate(a, b, c);
-    return expect(a.combine(b)).toActivate(a, b);
-  });
-  it('should handle events and current from observables', function() {
-    var a, b, c;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    expect(Kefir.combine([a, b, c])).toEmit([[1, 0, 2], [1, 3, 2], [1, 4, 2], [1, 4, 5], [1, 4, 6], '<end>'], function() {
-      send(a, [1]);
-      send(c, [2]);
-      send(b, [3]);
-      send(a, ['<end>']);
-      send(b, [4, '<end>']);
-      return send(c, [5, 6, '<end>']);
-    });
-    a = stream();
-    b = send(prop(), [0]);
-    return expect(a.combine(b)).toEmit([[1, 0], [1, 2], [1, 3], '<end>'], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(a, ['<end>']);
-      return send(b, [3, '<end>']);
-    });
-  });
-  it('should accept optional combinator function', function() {
-    var a, b, c, join;
-    a = stream();
-    b = send(prop(), [0]);
-    c = stream();
-    join = function() {
-      var args;
-      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      return args.join('+');
-    };
-    expect(Kefir.combine([a, b, c], join)).toEmit(['1+0+2', '1+3+2', '1+4+2', '1+4+5', '1+4+6', '<end>'], function() {
-      send(a, [1]);
-      send(c, [2]);
-      send(b, [3]);
-      send(a, ['<end>']);
-      send(b, [4, '<end>']);
-      return send(c, [5, 6, '<end>']);
-    });
-    a = stream();
-    b = send(prop(), [0]);
-    return expect(a.combine(b, join)).toEmit(['1+0', '1+2', '1+3', '<end>'], function() {
-      send(a, [1]);
-      send(b, [2]);
-      send(a, ['<end>']);
-      return send(b, [3, '<end>']);
-    });
-  });
-  it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
-    var a, b, cb;
-    a = send(prop(), [0]);
-    b = send(prop(), [1]);
-    cb = Kefir.combine([a, b]);
-    activate(cb);
-    deactivate(cb);
-    return expect(cb).toEmit([
-      {
-        current: [0, 1]
-      }
-    ]);
-  });
-  it('errors should flow', function() {
-    var a, b, c;
-    a = stream();
-    b = prop();
-    c = stream();
-    expect(Kefir.combine([a, b, c])).errorsToFlow(a);
-    a = stream();
-    b = prop();
-    c = stream();
-    expect(Kefir.combine([a, b, c])).errorsToFlow(b);
-    a = stream();
-    b = prop();
-    c = stream();
-    return expect(Kefir.combine([a, b, c])).errorsToFlow(c);
-  });
-  it('should handle errors correctly', function() {
-    var a, b, c;
-    a = stream();
-    b = stream();
-    c = stream();
-    return expect(Kefir.combine([a, b, c])).toEmit([
-      {
-        error: -1
-      }, {
-        error: -1
-      }, {
-        error: -1
-      }, [3, 1, 2], {
-        error: -2
-      }, {
-        error: -3
-      }, {
-        error: -3
-      }, {
-        error: -2
-      }, [4, 6, 5]
-    ], function() {
-      send(a, [
-        {
-          error: -1
-        }
-      ]);
-      send(b, [1]);
-      send(c, [2]);
-      send(a, [3]);
-      send(b, [
-        {
-          error: -2
-        }
-      ]);
-      send(c, [
-        {
-          error: -3
-        }
-      ]);
-      send(a, [4]);
-      send(c, [5]);
-      return send(b, [6]);
-    });
-  });
-  return describe('sampledBy functionality (3 arity combine)', function() {
+  describe('array', function() {
     it('should return stream', function() {
-      expect(Kefir.combine([], [])).toBeStream();
-      return expect(Kefir.combine([stream(), prop()], [stream(), prop()])).toBeStream();
+      expect(Kefir.combine([])).toBeStream();
+      expect(Kefir.combine([stream(), prop()])).toBeStream();
+      expect(stream().combine(stream())).toBeStream();
+      return expect(prop().combine(prop())).toBeStream();
     });
     it('should be ended if empty array provided', function() {
-      expect(Kefir.combine([stream(), prop()], [])).toEmit([]);
-      return expect(Kefir.combine([], [stream(), prop()])).toEmit(['<end:current>']);
+      return expect(Kefir.combine([])).toEmit(['<end:current>']);
     });
     it('should be ended if array of ended observables provided', function() {
       var a, b, c;
       a = send(stream(), ['<end>']);
       b = send(prop(), ['<end>']);
       c = send(stream(), ['<end>']);
-      return expect(Kefir.combine([a, b, c], [stream(), prop()])).toEmit(['<end:current>']);
+      expect(Kefir.combine([a, b, c])).toEmit(['<end:current>']);
+      return expect(a.combine(b)).toEmit(['<end:current>']);
     });
-    it('should be ended and emmit current (once) if array of ended properties provided and each of them has current', function() {
-      var a, b, c, s1;
+    it('should be ended and has current if array of ended properties provided and each of them has current', function() {
+      var a, b, c;
       a = send(prop(), [1, '<end>']);
       b = send(prop(), [2, '<end>']);
       c = send(prop(), [3, '<end>']);
-      s1 = Kefir.combine([a, b], [c]);
-      expect(s1).toEmit([
+      expect(Kefir.combine([a, b, c])).toEmit([
         {
           current: [1, 2, 3]
         }, '<end:current>'
       ]);
-      return expect(s1).toEmit(['<end:current>']);
+      return expect(a.combine(b)).toEmit([
+        {
+          current: [1, 2]
+        }, '<end:current>'
+      ]);
     });
     it('should activate sources', function() {
       var a, b, c;
       a = stream();
       b = prop();
       c = stream();
-      return expect(Kefir.combine([a, b], [c])).toActivate(a, b, c);
+      expect(Kefir.combine([a, b, c])).toActivate(a, b, c);
+      return expect(a.combine(b)).toActivate(a, b);
     });
     it('should handle events and current from observables', function() {
-      var a, b, c, d;
+      var a, b, c;
       a = stream();
       b = send(prop(), [0]);
       c = stream();
-      d = stream();
-      return expect(Kefir.combine([c, d], [a, b])).toEmit([[2, 3, 1, 0], [5, 3, 1, 4], [6, 3, 1, 4], [6, 7, 1, 4], '<end>'], function() {
+      expect(Kefir.combine([a, b, c])).toEmit([[1, 0, 2], [1, 3, 2], [1, 4, 2], [1, 4, 5], [1, 4, 6], '<end>'], function() {
         send(a, [1]);
         send(c, [2]);
-        send(d, [3]);
+        send(b, [3]);
+        send(a, ['<end>']);
         send(b, [4, '<end>']);
-        send(c, [5, 6, '<end>']);
-        return send(d, [7, '<end>']);
+        return send(c, [5, 6, '<end>']);
+      });
+      a = stream();
+      b = send(prop(), [0]);
+      return expect(a.combine(b)).toEmit([[1, 0], [1, 2], [1, 3], '<end>'], function() {
+        send(a, [1]);
+        send(b, [2]);
+        send(a, ['<end>']);
+        return send(b, [3, '<end>']);
       });
     });
     it('should accept optional combinator function', function() {
-      var a, b, c, d, join;
+      var a, b, c, join;
+      a = stream();
+      b = send(prop(), [0]);
+      c = stream();
       join = function() {
         var args;
         args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
         return args.join('+');
       };
-      a = stream();
-      b = send(prop(), [0]);
-      c = stream();
-      d = stream();
-      return expect(Kefir.combine([c, d], [a, b], join)).toEmit(['2+3+1+0', '5+3+1+4', '6+3+1+4', '6+7+1+4', '<end>'], function() {
+      expect(Kefir.combine([a, b, c], join)).toEmit(['1+0+2', '1+3+2', '1+4+2', '1+4+5', '1+4+6', '<end>'], function() {
         send(a, [1]);
         send(c, [2]);
-        send(d, [3]);
+        send(b, [3]);
+        send(a, ['<end>']);
         send(b, [4, '<end>']);
-        send(c, [5, 6, '<end>']);
-        return send(d, [7, '<end>']);
+        return send(c, [5, 6, '<end>']);
+      });
+      a = stream();
+      b = send(prop(), [0]);
+      return expect(a.combine(b, join)).toEmit(['1+0', '1+2', '1+3', '<end>'], function() {
+        send(a, [1]);
+        send(b, [2]);
+        send(a, ['<end>']);
+        return send(b, [3, '<end>']);
       });
     });
     it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
-      var a, b, c, sb;
+      var a, b, cb;
       a = send(prop(), [0]);
       b = send(prop(), [1]);
-      c = send(prop(), [2]);
-      sb = Kefir.combine([a, b], [c]);
-      activate(sb);
-      deactivate(sb);
-      return expect(sb).toEmit([
+      cb = Kefir.combine([a, b]);
+      activate(cb);
+      deactivate(cb);
+      return expect(cb).toEmit([
         {
-          current: [0, 1, 2]
+          current: [0, 1]
         }
       ]);
     });
     it('errors should flow', function() {
-      var a, b, c, d;
-      a = stream();
-      b = prop();
-      c = stream();
-      d = prop();
-      expect(Kefir.combine([a, b], [c, d])).errorsToFlow(a);
-      a = stream();
-      b = prop();
-      c = stream();
-      d = prop();
-      return expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b);
-    });
-    return it('should work nice for emitating atomic updates', function() {
       var a, b, c;
       a = stream();
-      b = a.map(function(x) {
-        return x + 2;
+      b = prop();
+      c = stream();
+      expect(Kefir.combine([a, b, c])).errorsToFlow(a);
+      a = stream();
+      b = prop();
+      c = stream();
+      expect(Kefir.combine([a, b, c])).errorsToFlow(b);
+      a = stream();
+      b = prop();
+      c = stream();
+      return expect(Kefir.combine([a, b, c])).errorsToFlow(c);
+    });
+    it('should handle errors correctly', function() {
+      var a, b, c;
+      a = stream();
+      b = stream();
+      c = stream();
+      return expect(Kefir.combine([a, b, c])).toEmit([
+        {
+          error: -1
+        }, {
+          error: -1
+        }, {
+          error: -1
+        }, [3, 1, 2], {
+          error: -2
+        }, {
+          error: -3
+        }, {
+          error: -3
+        }, {
+          error: -2
+        }, [4, 6, 5]
+      ], function() {
+        send(a, [
+          {
+            error: -1
+          }
+        ]);
+        send(b, [1]);
+        send(c, [2]);
+        send(a, [3]);
+        send(b, [
+          {
+            error: -2
+          }
+        ]);
+        send(c, [
+          {
+            error: -3
+          }
+        ]);
+        send(a, [4]);
+        send(c, [5]);
+        return send(b, [6]);
       });
-      c = a.map(function(x) {
-        return x * 2;
+    });
+    return describe('sampledBy functionality (3 arity combine)', function() {
+      it('should return stream', function() {
+        expect(Kefir.combine([], [])).toBeStream();
+        return expect(Kefir.combine([stream(), prop()], [stream(), prop()])).toBeStream();
       });
-      return expect(Kefir.combine([b], [c])).toEmit([[3, 2], [4, 4], [5, 6]], function() {
-        return send(a, [1, 2, 3]);
+      it('should be ended if empty array provided', function() {
+        expect(Kefir.combine([stream(), prop()], [])).toEmit([]);
+        return expect(Kefir.combine([], [stream(), prop()])).toEmit(['<end:current>']);
       });
+      it('should be ended if array of ended observables provided', function() {
+        var a, b, c;
+        a = send(stream(), ['<end>']);
+        b = send(prop(), ['<end>']);
+        c = send(stream(), ['<end>']);
+        return expect(Kefir.combine([a, b, c], [stream(), prop()])).toEmit(['<end:current>']);
+      });
+      it('should be ended and emmit current (once) if array of ended properties provided and each of them has current', function() {
+        var a, b, c, s1;
+        a = send(prop(), [1, '<end>']);
+        b = send(prop(), [2, '<end>']);
+        c = send(prop(), [3, '<end>']);
+        s1 = Kefir.combine([a, b], [c]);
+        expect(s1).toEmit([
+          {
+            current: [1, 2, 3]
+          }, '<end:current>'
+        ]);
+        return expect(s1).toEmit(['<end:current>']);
+      });
+      it('should activate sources', function() {
+        var a, b, c;
+        a = stream();
+        b = prop();
+        c = stream();
+        return expect(Kefir.combine([a, b], [c])).toActivate(a, b, c);
+      });
+      it('should handle events and current from observables', function() {
+        var a, b, c, d;
+        a = stream();
+        b = send(prop(), [0]);
+        c = stream();
+        d = stream();
+        return expect(Kefir.combine([c, d], [a, b])).toEmit([[2, 3, 1, 0], [5, 3, 1, 4], [6, 3, 1, 4], [6, 7, 1, 4], '<end>'], function() {
+          send(a, [1]);
+          send(c, [2]);
+          send(d, [3]);
+          send(b, [4, '<end>']);
+          send(c, [5, 6, '<end>']);
+          return send(d, [7, '<end>']);
+        });
+      });
+      it('should accept optional combinator function', function() {
+        var a, b, c, d, join;
+        join = function() {
+          var args;
+          args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+          return args.join('+');
+        };
+        a = stream();
+        b = send(prop(), [0]);
+        c = stream();
+        d = stream();
+        return expect(Kefir.combine([c, d], [a, b], join)).toEmit(['2+3+1+0', '5+3+1+4', '6+3+1+4', '6+7+1+4', '<end>'], function() {
+          send(a, [1]);
+          send(c, [2]);
+          send(d, [3]);
+          send(b, [4, '<end>']);
+          send(c, [5, 6, '<end>']);
+          return send(d, [7, '<end>']);
+        });
+      });
+      it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+        var a, b, c, sb;
+        a = send(prop(), [0]);
+        b = send(prop(), [1]);
+        c = send(prop(), [2]);
+        sb = Kefir.combine([a, b], [c]);
+        activate(sb);
+        deactivate(sb);
+        return expect(sb).toEmit([
+          {
+            current: [0, 1, 2]
+          }
+        ]);
+      });
+      it('errors should flow', function() {
+        var a, b, c, d;
+        a = stream();
+        b = prop();
+        c = stream();
+        d = prop();
+        expect(Kefir.combine([a, b], [c, d])).errorsToFlow(a);
+        a = stream();
+        b = prop();
+        c = stream();
+        d = prop();
+        return expect(Kefir.combine([a, b], [c, d])).errorsToFlow(b);
+      });
+      return it('should work nice for emitating atomic updates', function() {
+        var a, b, c;
+        a = stream();
+        b = a.map(function(x) {
+          return x + 2;
+        });
+        c = a.map(function(x) {
+          return x * 2;
+        });
+        return expect(Kefir.combine([b], [c])).toEmit([[3, 2], [4, 4], [5, 6]], function() {
+          return send(a, [1, 2, 3]);
+        });
+      });
+    });
+  });
+  describe('object', function() {
+    it('should return stream', function() {
+      expect(Kefir.combine({})).toBeStream();
+      return expect(Kefir.combine({
+        s: stream(),
+        p: prop()
+      })).toBeStream();
+    });
+    it('should be ended if empty array provided', function() {
+      return expect(Kefir.combine({})).toEmit(['<end:current>']);
+    });
+    it('should be ended if array of ended observables provided', function() {
+      var a, b, c;
+      a = send(stream(), ['<end>']);
+      b = send(prop(), ['<end>']);
+      c = send(stream(), ['<end>']);
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).toEmit(['<end:current>']);
+    });
+    it('should be ended and has current if array of ended properties provided and each of them has current', function() {
+      var a, b, c;
+      a = send(prop(), [1, '<end>']);
+      b = send(prop(), [2, '<end>']);
+      c = send(prop(), [3, '<end>']);
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).toEmit([
+        {
+          current: {
+            a: 1,
+            b: 2,
+            c: 3
+          }
+        }, '<end:current>'
+      ]);
+    });
+    it('should activate sources', function() {
+      var a, b, c;
+      a = stream();
+      b = prop();
+      c = stream();
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).toActivate(a, b, c);
+    });
+    it('should handle events and current from observables', function() {
+      var a, b, c;
+      a = stream();
+      b = send(prop(), [0]);
+      c = stream();
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).toEmit([
+        {
+          a: 1,
+          b: 0,
+          c: 2
+        }, {
+          a: 1,
+          b: 3,
+          c: 2
+        }, {
+          a: 1,
+          b: 4,
+          c: 2
+        }, {
+          a: 1,
+          b: 4,
+          c: 5
+        }, {
+          a: 1,
+          b: 4,
+          c: 6
+        }, '<end>'
+      ], function() {
+        send(a, [1]);
+        send(c, [2]);
+        send(b, [3]);
+        send(a, ['<end>']);
+        send(b, [4, '<end>']);
+        return send(c, [5, 6, '<end>']);
+      });
+    });
+    it('should accept optional combinator function', function() {
+      var a, b, c, join;
+      a = stream();
+      b = send(prop(), [0]);
+      c = stream();
+      join = function(ev) {
+        return ev.a + '+' + ev.b + '+' + ev.c;
+      };
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      }, join)).toEmit(['1+0+2', '1+3+2', '1+4+2', '1+4+5', '1+4+6', '<end>'], function() {
+        send(a, [1]);
+        send(c, [2]);
+        send(b, [3]);
+        send(a, ['<end>']);
+        send(b, [4, '<end>']);
+        return send(c, [5, 6, '<end>']);
+      });
+    });
+    it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+      var a, b, cb;
+      a = send(prop(), [0]);
+      b = send(prop(), [1]);
+      cb = Kefir.combine({
+        a: a,
+        b: b
+      });
+      activate(cb);
+      deactivate(cb);
+      return expect(cb).toEmit([
+        {
+          current: {
+            a: 0,
+            b: 1
+          }
+        }
+      ]);
+    });
+    it('errors should flow', function() {
+      var a, b, c;
+      a = stream();
+      b = prop();
+      c = stream();
+      expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).errorsToFlow(a);
+      a = stream();
+      b = prop();
+      c = stream();
+      expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).errorsToFlow(b);
+      a = stream();
+      b = prop();
+      c = stream();
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).errorsToFlow(c);
+    });
+    it('should handle errors correctly', function() {
+      var a, b, c;
+      a = stream();
+      b = stream();
+      c = stream();
+      return expect(Kefir.combine({
+        a: a,
+        b: b,
+        c: c
+      })).toEmit([
+        {
+          error: -1
+        }, {
+          error: -1
+        }, {
+          error: -1
+        }, {
+          a: 3,
+          b: 1,
+          c: 2
+        }, {
+          error: -2
+        }, {
+          error: -3
+        }, {
+          error: -3
+        }, {
+          error: -2
+        }, {
+          a: 4,
+          b: 6,
+          c: 5
+        }
+      ], function() {
+        send(a, [
+          {
+            error: -1
+          }
+        ]);
+        send(b, [1]);
+        send(c, [2]);
+        send(a, [3]);
+        send(b, [
+          {
+            error: -2
+          }
+        ]);
+        send(c, [
+          {
+            error: -3
+          }
+        ]);
+        send(a, [4]);
+        send(c, [5]);
+        return send(b, [6]);
+      });
+    });
+    return describe('sampledBy functionality (3 arity combine)', function() {
+      it('should return stream', function() {
+        expect(Kefir.combine({}, {})).toBeStream();
+        return expect(Kefir.combine({
+          s1: stream(),
+          p1: prop()
+        }, {
+          s2: stream(),
+          p2: prop()
+        })).toBeStream();
+      });
+      it('should be ended if empty array provided', function() {
+        expect(Kefir.combine({
+          s1: stream(),
+          p1: prop()
+        }, {})).toEmit([]);
+        return expect(Kefir.combine({}, {
+          s2: stream(),
+          p2: prop()
+        })).toEmit(['<end:current>']);
+      });
+      it('should be ended if array of ended observables provided', function() {
+        var a, b, c;
+        a = send(stream(), ['<end>']);
+        b = send(prop(), ['<end>']);
+        c = send(stream(), ['<end>']);
+        return expect(Kefir.combine({
+          a: a,
+          b: b,
+          c: c
+        }, {
+          d: stream(),
+          e: prop()
+        })).toEmit(['<end:current>']);
+      });
+      it('should be ended and emmit current (once) if array of ended properties provided and each of them has current', function() {
+        var a, b, c, s1;
+        a = send(prop(), [1, '<end>']);
+        b = send(prop(), [2, '<end>']);
+        c = send(prop(), [3, '<end>']);
+        s1 = Kefir.combine({
+          a: a,
+          b: b
+        }, {
+          c: c
+        });
+        expect(s1).toEmit([
+          {
+            current: {
+              a: 1,
+              b: 2,
+              c: 3
+            }
+          }, '<end:current>'
+        ]);
+        return expect(s1).toEmit(['<end:current>']);
+      });
+      it('should activate sources', function() {
+        var a, b, c;
+        a = stream();
+        b = prop();
+        c = stream();
+        return expect(Kefir.combine({
+          a: a,
+          b: b
+        }, {
+          c: c
+        })).toActivate(a, b, c);
+      });
+      it('should handle events and current from observables', function() {
+        var a, b, c, d;
+        a = stream();
+        b = send(prop(), [0]);
+        c = stream();
+        d = stream();
+        return expect(Kefir.combine({
+          c: c,
+          d: d
+        }, {
+          a: a,
+          b: b
+        })).toEmit([
+          {
+            a: 1,
+            b: 0,
+            c: 2,
+            d: 3
+          }, {
+            a: 1,
+            b: 4,
+            c: 5,
+            d: 3
+          }, {
+            a: 1,
+            b: 4,
+            c: 6,
+            d: 3
+          }, {
+            a: 1,
+            b: 4,
+            c: 6,
+            d: 7
+          }, '<end>'
+        ], function() {
+          send(a, [1]);
+          send(c, [2]);
+          send(d, [3]);
+          send(b, [4, '<end>']);
+          send(c, [5, 6, '<end>']);
+          return send(d, [7, '<end>']);
+        });
+      });
+      it('should accept optional combinator function', function() {
+        var a, b, c, d, join;
+        join = function(msg) {
+          return msg.c + "+" + msg.d + "+" + msg.a + "+" + msg.b;
+        };
+        a = stream();
+        b = send(prop(), [0]);
+        c = stream();
+        d = stream();
+        return expect(Kefir.combine({
+          c: c,
+          d: d
+        }, {
+          a: a,
+          b: b
+        }, join)).toEmit(['2+3+1+0', '5+3+1+4', '6+3+1+4', '6+7+1+4', '<end>'], function() {
+          send(a, [1]);
+          send(c, [2]);
+          send(d, [3]);
+          send(b, [4, '<end>']);
+          send(c, [5, 6, '<end>']);
+          return send(d, [7, '<end>']);
+        });
+      });
+      it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+        var a, b, c, sb;
+        a = send(prop(), [0]);
+        b = send(prop(), [1]);
+        c = send(prop(), [2]);
+        sb = Kefir.combine({
+          a: a,
+          b: b
+        }, {
+          c: c
+        });
+        activate(sb);
+        deactivate(sb);
+        return expect(sb).toEmit([
+          {
+            current: {
+              a: 0,
+              b: 1,
+              c: 2
+            }
+          }
+        ]);
+      });
+      it('errors should flow', function() {
+        var a, b, c, d;
+        a = stream();
+        b = prop();
+        c = stream();
+        d = prop();
+        expect(Kefir.combine({
+          a: a,
+          b: b
+        }, {
+          c: c,
+          d: d
+        })).errorsToFlow(a);
+        a = stream();
+        b = prop();
+        c = stream();
+        d = prop();
+        return expect(Kefir.combine({
+          a: a,
+          b: b
+        }, {
+          c: c,
+          d: d
+        })).errorsToFlow(b);
+      });
+      it('should work nice for emitating atomic updates', function() {
+        var a, b, c;
+        a = stream();
+        b = a.map(function(x) {
+          return x + 2;
+        });
+        c = a.map(function(x) {
+          return x * 2;
+        });
+        return expect(Kefir.combine({
+          b: b
+        }, {
+          c: c
+        })).toEmit([
+          {
+            b: 3,
+            c: 2
+          }, {
+            b: 4,
+            c: 4
+          }, {
+            b: 5,
+            c: 6
+          }
+        ], function() {
+          return send(a, [1, 2, 3]);
+        });
+      });
+      return it('should prefer active keys over passive keys', function() {
+        var _a, a, b;
+        a = stream();
+        b = stream();
+        _a = stream();
+        return expect(Kefir.combine({
+          a: a,
+          b: b
+        }, {
+          a: _a
+        })).toEmit([
+          {
+            a: 1,
+            b: 4
+          }, {
+            a: 2,
+            b: 4
+          }, {
+            a: 3,
+            b: 4
+          }
+        ], function() {
+          send(_a, [-1]);
+          send(a, [1]);
+          send(b, [4]);
+          send(_a, [-2]);
+          send(a, [2]);
+          send(_a, [-3]);
+          return send(a, [3]);
+        });
+      });
+    });
+  });
+  return describe('mismatches', function() {
+    return it('should not allow mismatched argument types', function() {
+      var a, arrayAndObject, b, objectAndArray;
+      a = stream();
+      b = stream();
+      arrayAndObject = function() {
+        return Kefir.combine([a], {
+          b: b
+        });
+      };
+      objectAndArray = function() {
+        return Kefir.combine({
+          a: a
+        }, [b]);
+      };
+      expect(arrayAndObject).toThrow();
+      return expect(objectAndArray).toThrow();
     });
   });
 });

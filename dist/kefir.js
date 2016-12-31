@@ -1,4 +1,4 @@
-/*! Kefir.js v3.6.1
+/*! Kefir.js v3.7.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -1255,6 +1255,15 @@
 	  return new ESObservable(this);
 	}
 
+	function collect(source, keys, values) {
+	  for (var prop in source) {
+	    if (source.hasOwnProperty(prop)) {
+	      keys.push(prop);
+	      values.push(source[prop]);
+	    }
+	  }
+	}
+
 	function defaultErrorsCombinator(errors) {
 	  var latestError = void 0;
 	  for (var i = 0; i < errors.length; i++) {
@@ -1273,9 +1282,7 @@
 	  Stream.call(this);
 	  this._activeCount = active.length;
 	  this._sources = concat(active, passive);
-	  this._combinator = combinator ? spread(combinator, this._sources.length) : function (x) {
-	    return x;
-	  };
+	  this._combinator = combinator;
 	  this._aliveCount = 0;
 	  this._latestValues = new Array(this._sources.length);
 	  this._latestErrors = new Array(this._sources.length);
@@ -1404,15 +1411,53 @@
 	  }
 	});
 
-	function combine(active) {
+	function combineAsArray(active) {
 	  var passive = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 	  var combinator = arguments[2];
 
+	  if (!Array.isArray(passive)) {
+	    throw new Error('Combine can only combine active and passive collections of the same type.');
+	  }
+
+	  combinator = combinator ? spread(combinator, active.length + passive.length) : function (x) {
+	    return x;
+	  };
+	  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+	}
+
+	function combineAsObject(active) {
+	  var passive = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  var combinator = arguments[2];
+
+	  if (typeof passive !== 'object' || Array.isArray(passive)) {
+	    throw new Error('Combine can only combine active and passive collections of the same type.');
+	  }
+
+	  var keys = [],
+	      activeObservables = [],
+	      passiveObservables = [];
+
+	  collect(active, keys, activeObservables);
+	  collect(passive, keys, passiveObservables);
+
+	  var objectify = function (values) {
+	    var event = {};
+	    for (var i = values.length - 1; 0 <= i; i--) {
+	      event[keys[i]] = values[i];
+	    }
+	    return combinator ? combinator(event) : event;
+	  };
+
+	  return activeObservables.length === 0 ? never() : new Combine(activeObservables, passiveObservables, objectify);
+	}
+
+	function combine(active, passive, combinator) {
 	  if (typeof passive === 'function') {
 	    combinator = passive;
-	    passive = [];
+	    passive = undefined;
 	  }
-	  return active.length === 0 ? never() : new Combine(active, passive, combinator);
+
+	  return Array.isArray(active) ? combineAsArray(active, passive, combinator) : combineAsObject(active, passive, combinator);
 	}
 
 	var Observable$1 = {
