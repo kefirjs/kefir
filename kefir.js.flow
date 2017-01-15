@@ -47,7 +47,7 @@ declare class Observable<+V,+E=*> {
   spy(name?: string): this;
   offSpy(name?: string): this;
   setName(name: string): this;
-  setName(Observable<V, E>, name: string): this;
+  setName(Observable<any, any>, name: string): this;
   toPromise(PromiseConstructor?: Function): Promise<V>;
 
   map<V2>(cb: (v: V) => V2): Observable<V2,E>;
