@@ -1,3 +1,7 @@
+## 3.7.1
+
+ - The `.setName` method has been added to Flow defenitions [#232](https://github.com/rpominov/kefir/pull/232) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+
 ## 3.7.0 (31/12/2016)
 
  - The `.combine` method now can also accept objects instead of arrays [#225](https://github.com/rpominov/kefir/pull/225) [@32bitkid](https://github.com/32bitkid)
