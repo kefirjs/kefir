@@ -1,4 +1,4 @@
-## 3.7.1
+## 3.7.1 (21/01/2017)
 
  - The `.setName` method has been added to Flow defenitions [#232](https://github.com/rpominov/kefir/pull/232) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
 
