@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
-/*! Kefir.js v3.7.0
+/*! Kefir.js v3.7.1
  *  https://github.com/rpominov/kefir
  */
 
@@ -398,7 +398,7 @@
 	    return this;
 	  },
 	  log: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 
 	    var isCurrent = void 0;
@@ -425,7 +425,7 @@
 	    return this;
 	  },
 	  offLog: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 
 	    if (this._logHandlers) {
@@ -441,7 +441,7 @@
 	    return this;
 	  },
 	  spy: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 	    var handler = function (event) {
 	      var type = '<' + event.type + '>';
@@ -461,7 +461,7 @@
 	    return this;
 	  },
 	  offSpy: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 	    if (this._spyHandlers) {
 	      var handlerIndex = findByPred(this._spyHandlers, function (obj) {
@@ -1036,7 +1036,7 @@
 	});
 
 	function toProperty(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
 	  if (fn !== null && typeof fn !== 'function') {
 	    throw new Error('You should call toProperty() with a function or no arguments.');
@@ -1098,7 +1098,7 @@
 	}
 
 	function toPromise (obs) {
-	  var Promise = arguments.length <= 1 || arguments[1] === undefined ? getGlodalPromise() : arguments[1];
+	  var Promise = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : getGlodalPromise();
 
 	  var last = null;
 	  return new Promise(function (resolve, reject) {
@@ -1151,7 +1151,7 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	  value: true
 	});
 
 	var _ponyfill = require$$0$1;
@@ -1159,15 +1159,21 @@
 	var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
 	function _interopRequireDefault(obj) {
-		return obj && obj.__esModule ? obj : { 'default': obj };
+	  return obj && obj.__esModule ? obj : { 'default': obj };
 	}
 
-	var root = undefined; /* global window */
+	var root; /* global window */
 
-	if (typeof commonjsGlobal !== 'undefined') {
-		root = commonjsGlobal;
+	if (typeof self !== 'undefined') {
+	  root = self;
 	} else if (typeof window !== 'undefined') {
-		root = window;
+	  root = window;
+	} else if (typeof commonjsGlobal !== 'undefined') {
+	  root = commonjsGlobal;
+	} else if (typeof module !== 'undefined') {
+	  root = module;
+	} else {
+	  root = Function('return this')();
 	}
 
 	var result = (0, _ponyfill2['default'])(root);
@@ -1414,7 +1420,7 @@
 	});
 
 	function combineAsArray(active) {
-	  var passive = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+	  var passive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 	  var combinator = arguments[2];
 
 	  if (!Array.isArray(passive)) {
@@ -1428,7 +1434,7 @@
 	}
 
 	function combineAsObject(active) {
-	  var passive = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  var passive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	  var combinator = arguments[2];
 
 	  if (typeof passive !== 'object' || Array.isArray(passive)) {
@@ -1526,7 +1532,7 @@
 	};
 
 	function map$1(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id;
 
 	  return new (obs._ofSameType(S$7, P$3))(obs, { fn: fn });
 	}
@@ -1556,7 +1562,7 @@
 	};
 
 	function filter(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$1 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$1;
 
 	  return new (obs._ofSameType(S$8, P$4))(obs, { fn: fn });
 	}
@@ -1638,7 +1644,7 @@
 	};
 
 	function takeWhile(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$2 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$2;
 
 	  return new (obs._ofSameType(S$11, P$7))(obs, { fn: fn });
 	}
@@ -1718,7 +1724,7 @@
 	};
 
 	function skipWhile(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$3 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$3;
 
 	  return new (obs._ofSameType(S$14, P$10))(obs, { fn: fn });
 	}
@@ -1751,15 +1757,15 @@
 	};
 
 	function skipDuplicates(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? eq : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : eq;
 
 	  return new (obs._ofSameType(S$15, P$11))(obs, { fn: fn });
 	}
 
 	var mixin$9 = {
 	  _init: function (_ref) {
-	    var fn = _ref.fn;
-	    var seed = _ref.seed;
+	    var fn = _ref.fn,
+	        seed = _ref.seed;
 
 	    this._fn = fn;
 	    this._prev = seed;
@@ -1785,15 +1791,15 @@
 	}
 
 	function diff(obs, fn) {
-	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : NOTHING;
 
 	  return new (obs._ofSameType(S$16, P$12))(obs, { fn: fn || defaultFn, seed: seed });
 	}
 
 	var P$13 = createProperty('scan', {
 	  _init: function (_ref) {
-	    var fn = _ref.fn;
-	    var seed = _ref.seed;
+	    var fn = _ref.fn,
+	        seed = _ref.seed;
 
 	    this._fn = fn;
 	    this._seed = seed;
@@ -1816,7 +1822,7 @@
 	});
 
 	function scan(obs, fn) {
-	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : NOTHING;
 
 	  return new P$13(obs, { fn: fn, seed: seed });
 	}
@@ -1846,7 +1852,7 @@
 	};
 
 	function flatten(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$4 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$4;
 
 	  return new S$17(obs, { fn: fn });
 	}
@@ -1909,9 +1915,9 @@
 	  _init: function (_ref) {
 	    var _this = this;
 
-	    var wait = _ref.wait;
-	    var leading = _ref.leading;
-	    var trailing = _ref.trailing;
+	    var wait = _ref.wait,
+	        leading = _ref.leading,
+	        trailing = _ref.trailing;
 
 	    this._wait = Math.max(0, wait);
 	    this._leading = leading;
@@ -1980,12 +1986,11 @@
 	var P$15 = createProperty('throttle', mixin$12);
 
 	function throttle(obs, wait) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$leading = _ref2.leading;
-	  var leading = _ref2$leading === undefined ? true : _ref2$leading;
-	  var _ref2$trailing = _ref2.trailing;
-	  var trailing = _ref2$trailing === undefined ? true : _ref2$trailing;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$leading = _ref2.leading,
+	      leading = _ref2$leading === undefined ? true : _ref2$leading,
+	      _ref2$trailing = _ref2.trailing,
+	      trailing = _ref2$trailing === undefined ? true : _ref2$trailing;
 
 	  return new (obs._ofSameType(S$19, P$15))(obs, { wait: wait, leading: leading, trailing: trailing });
 	}
@@ -1994,8 +1999,8 @@
 	  _init: function (_ref) {
 	    var _this = this;
 
-	    var wait = _ref.wait;
-	    var immediate = _ref.immediate;
+	    var wait = _ref.wait,
+	        immediate = _ref.immediate;
 
 	    this._wait = Math.max(0, wait);
 	    this._immediate = immediate;
@@ -2059,10 +2064,9 @@
 	var P$16 = createProperty('debounce', mixin$13);
 
 	function debounce(obs, wait) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$immediate = _ref2.immediate;
-	  var immediate = _ref2$immediate === undefined ? false : _ref2$immediate;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$immediate = _ref2.immediate,
+	      immediate = _ref2$immediate === undefined ? false : _ref2$immediate;
 
 	  return new (obs._ofSameType(S$20, P$16))(obs, { wait: wait, immediate: immediate });
 	}
@@ -2090,7 +2094,7 @@
 	};
 
 	function mapErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$5 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$5;
 
 	  return new (obs._ofSameType(S$21, P$17))(obs, { fn: fn });
 	}
@@ -2120,7 +2124,7 @@
 	};
 
 	function filterErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$6 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$6;
 
 	  return new (obs._ofSameType(S$22, P$18))(obs, { fn: fn });
 	}
@@ -2183,8 +2187,8 @@
 
 	var mixin$20 = {
 	  _init: function (_ref) {
-	    var min = _ref.min;
-	    var max = _ref.max;
+	    var min = _ref.min,
+	        max = _ref.max;
 
 	    this._max = max;
 	    this._min = min;
@@ -2205,15 +2209,15 @@
 	var P$23 = createProperty('slidingWindow', mixin$20);
 
 	function slidingWindow(obs, max) {
-	  var min = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
+	  var min = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 
 	  return new (obs._ofSameType(S$27, P$23))(obs, { min: min, max: max });
 	}
 
 	var mixin$21 = {
 	  _init: function (_ref) {
-	    var fn = _ref.fn;
-	    var flushOnEnd = _ref.flushOnEnd;
+	    var fn = _ref.fn,
+	        flushOnEnd = _ref.flushOnEnd;
 
 	    this._fn = fn;
 	    this._flushOnEnd = flushOnEnd;
@@ -2251,18 +2255,17 @@
 	};
 
 	function bufferWhile(obs, fn) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
-	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$flushOnEnd = _ref2.flushOnEnd,
+	      flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
 
 	  return new (obs._ofSameType(S$28, P$24))(obs, { fn: fn || id$7, flushOnEnd: flushOnEnd });
 	}
 
 	var mixin$22 = {
 	  _init: function (_ref) {
-	    var count = _ref.count;
-	    var flushOnEnd = _ref.flushOnEnd;
+	    var count = _ref.count,
+	        flushOnEnd = _ref.flushOnEnd;
 
 	    this._count = count;
 	    this._flushOnEnd = flushOnEnd;
@@ -2295,10 +2298,9 @@
 	var P$25 = createProperty('bufferWithCount', mixin$22);
 
 	function bufferWhile$1(obs, count) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
-	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$flushOnEnd = _ref2.flushOnEnd,
+	      flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
 
 	  return new (obs._ofSameType(S$29, P$25))(obs, { count: count, flushOnEnd: flushOnEnd });
 	}
@@ -2307,9 +2309,9 @@
 	  _init: function (_ref) {
 	    var _this = this;
 
-	    var wait = _ref.wait;
-	    var count = _ref.count;
-	    var flushOnEnd = _ref.flushOnEnd;
+	    var wait = _ref.wait,
+	        count = _ref.count,
+	        flushOnEnd = _ref.flushOnEnd;
 
 	    this._wait = wait;
 	    this._count = count;
@@ -2361,10 +2363,9 @@
 	var P$26 = createProperty('bufferWithTimeOrCount', mixin$23);
 
 	function bufferWithTimeOrCount(obs, wait, count) {
-	  var _ref2 = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
-
-	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
-	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
+	  var _ref2 = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
+	      _ref2$flushOnEnd = _ref2.flushOnEnd,
+	      flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
 
 	  return new (obs._ofSameType(S$30, P$26))(obs, { wait: wait, count: count, flushOnEnd: flushOnEnd });
 	}
@@ -2540,14 +2541,13 @@
 	function AbstractPool() {
 	  var _this = this;
 
-	  var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	  var _ref$queueLim = _ref.queueLim;
-	  var queueLim = _ref$queueLim === undefined ? 0 : _ref$queueLim;
-	  var _ref$concurLim = _ref.concurLim;
-	  var concurLim = _ref$concurLim === undefined ? -1 : _ref$concurLim;
-	  var _ref$drop = _ref.drop;
-	  var drop = _ref$drop === undefined ? 'new' : _ref$drop;
+	  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	      _ref$queueLim = _ref.queueLim,
+	      queueLim = _ref$queueLim === undefined ? 0 : _ref$queueLim,
+	      _ref$concurLim = _ref.concurLim,
+	      concurLim = _ref$concurLim === undefined ? -1 : _ref$concurLim,
+	      _ref$drop = _ref.drop,
+	      drop = _ref$drop === undefined ? 'new' : _ref$drop;
 
 	  Stream.call(this);
 
@@ -3108,10 +3108,9 @@
 
 	var mixin$29 = {
 	  _init: function () {
-	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	    var _ref$flushOnEnd = _ref.flushOnEnd;
-	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
+	    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	        _ref$flushOnEnd = _ref.flushOnEnd,
+	        flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
 
 	    this._buff = [];
 	    this._flushOnEnd = flushOnEnd;
@@ -3159,12 +3158,11 @@
 
 	var mixin$30 = {
 	  _init: function () {
-	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	    var _ref$flushOnEnd = _ref.flushOnEnd;
-	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
-	    var _ref$flushOnChange = _ref.flushOnChange;
-	    var flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
+	    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	        _ref$flushOnEnd = _ref.flushOnEnd,
+	        flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd,
+	        _ref$flushOnChange = _ref.flushOnChange,
+	        flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
 
 	    this._buff = [];
 	    this._flushOnEnd = flushOnEnd;
@@ -3255,7 +3253,7 @@
 	};
 
 	function valuesToErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defFn;
 
 	  return new (obs._ofSameType(S$39, P$34))(obs, { fn: fn });
 	}
@@ -3288,7 +3286,7 @@
 	};
 
 	function errorsToValues(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn$1 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defFn$1;
 
 	  return new (obs._ofSameType(S$40, P$35))(obs, { fn: fn });
 	}
@@ -13465,32 +13463,7 @@ module.exports = require('./dist/cjs/Rx');
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"samsam":143}],140:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],141:[function(require,module,exports){
+},{"samsam":142}],140:[function(require,module,exports){
 (function (global){
 /*global global, window*/
 /**
@@ -14013,7 +13986,7 @@ if (typeof Object.create === 'function') {
 }(global || this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],142:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -14025,25 +13998,40 @@ var process = module.exports = {};
 var cachedSetTimeout;
 var cachedClearTimeout;
 
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
 (function () {
     try {
-        cachedSetTimeout = setTimeout;
-    } catch (e) {
-        cachedSetTimeout = function () {
-            throw new Error('setTimeout is not defined');
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
         }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
     }
     try {
-        cachedClearTimeout = clearTimeout;
-    } catch (e) {
-        cachedClearTimeout = function () {
-            throw new Error('clearTimeout is not defined');
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
         }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
     }
 } ())
 function runTimeout(fun) {
     if (cachedSetTimeout === setTimeout) {
         //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
         return setTimeout(fun, 0);
     }
     try {
@@ -14064,6 +14052,11 @@ function runTimeout(fun) {
 function runClearTimeout(marker) {
     if (cachedClearTimeout === clearTimeout) {
         //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
         return clearTimeout(marker);
     }
     try {
@@ -14175,7 +14168,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],143:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -14576,7 +14569,7 @@ process.umask = function() { return 0; };
     };
 });
 
-},{}],144:[function(require,module,exports){
+},{}],143:[function(require,module,exports){
 /**
  * Sinon core utilities. For internal use only.
  *
@@ -14625,7 +14618,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     return sinonModule;
 }());
 
-},{"./sinon/assert":145,"./sinon/behavior":146,"./sinon/call":147,"./sinon/collection":148,"./sinon/extend":149,"./sinon/format":150,"./sinon/log_error":151,"./sinon/match":152,"./sinon/mock":153,"./sinon/sandbox":154,"./sinon/spy":155,"./sinon/stub":156,"./sinon/test":157,"./sinon/test_case":158,"./sinon/times_in_words":159,"./sinon/typeOf":160,"./sinon/util/core":161,"./sinon/walk":168}],145:[function(require,module,exports){
+},{"./sinon/assert":144,"./sinon/behavior":145,"./sinon/call":146,"./sinon/collection":147,"./sinon/extend":148,"./sinon/format":149,"./sinon/log_error":150,"./sinon/match":151,"./sinon/mock":152,"./sinon/sandbox":153,"./sinon/spy":154,"./sinon/stub":155,"./sinon/test":156,"./sinon/test_case":157,"./sinon/times_in_words":158,"./sinon/typeOf":159,"./sinon/util/core":160,"./sinon/walk":167}],144:[function(require,module,exports){
 (function (global){
 /**
  * @depend times_in_words.js
@@ -14855,7 +14848,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 ));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./format":150,"./match":152,"./util/core":161}],146:[function(require,module,exports){
+},{"./format":149,"./match":151,"./util/core":160}],145:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -15230,7 +15223,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 ));
 
 }).call(this,require('_process'))
-},{"./extend":149,"./util/core":161,"_process":142}],147:[function(require,module,exports){
+},{"./extend":148,"./util/core":160,"_process":141}],146:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -15467,7 +15460,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./format":150,"./match":152,"./util/core":161}],148:[function(require,module,exports){
+},{"./format":149,"./match":151,"./util/core":160}],147:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend spy.js
@@ -15642,7 +15635,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./mock":153,"./spy":155,"./stub":156,"./util/core":161}],149:[function(require,module,exports){
+},{"./mock":152,"./spy":154,"./stub":155,"./util/core":160}],148:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -15755,7 +15748,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161}],150:[function(require,module,exports){
+},{"./util/core":160}],149:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -15851,7 +15844,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161,"formatio":139,"util":175}],151:[function(require,module,exports){
+},{"./util/core":160,"formatio":139,"util":175}],150:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -15937,7 +15930,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161}],152:[function(require,module,exports){
+},{"./util/core":160}],151:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend typeOf.js
@@ -16200,7 +16193,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./typeOf":160,"./util/core":161}],153:[function(require,module,exports){
+},{"./typeOf":159,"./util/core":160}],152:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
@@ -16693,7 +16686,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":147,"./extend":149,"./format":150,"./match":152,"./spy":155,"./stub":156,"./times_in_words":159,"./util/core":161}],154:[function(require,module,exports){
+},{"./call":146,"./extend":148,"./format":149,"./match":151,"./spy":154,"./stub":155,"./times_in_words":158,"./util/core":160}],153:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -16865,7 +16858,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./collection":148,"./extend":149,"./util/core":161,"./util/fake_server_with_clock":164,"./util/fake_timers":165}],155:[function(require,module,exports){
+},{"./collection":147,"./extend":148,"./util/core":160,"./util/fake_server_with_clock":163,"./util/fake_timers":164}],154:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -17330,7 +17323,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":147,"./extend":149,"./format":150,"./times_in_words":159,"./util/core":161}],156:[function(require,module,exports){
+},{"./call":146,"./extend":148,"./format":149,"./times_in_words":158,"./util/core":160}],155:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -17532,7 +17525,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./behavior":146,"./extend":149,"./spy":155,"./util/core":161}],157:[function(require,module,exports){
+},{"./behavior":145,"./extend":148,"./spy":154,"./util/core":160}],156:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend sandbox.js
@@ -17634,7 +17627,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     }
 }(typeof sinon === "object" && sinon || null)); // eslint-disable-line no-undef
 
-},{"./sandbox":154,"./util/core":161}],158:[function(require,module,exports){
+},{"./sandbox":153,"./util/core":160}],157:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend test.js
@@ -17742,7 +17735,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./test":157,"./util/core":161}],159:[function(require,module,exports){
+},{"./test":156,"./util/core":160}],158:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -17793,7 +17786,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161}],160:[function(require,module,exports){
+},{"./util/core":160}],159:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -17848,7 +17841,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161}],161:[function(require,module,exports){
+},{"./util/core":160}],160:[function(require,module,exports){
 /**
  * @depend ../../sinon.js
  */
@@ -18251,7 +18244,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{}],162:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 /**
  * Minimal Event interface implementation
  *
@@ -18364,7 +18357,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":161}],163:[function(require,module,exports){
+},{"./core":160}],162:[function(require,module,exports){
 /**
  * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
@@ -18613,7 +18606,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"../format":150,"./core":161,"./fake_xdomain_request":166,"./fake_xml_http_request":167}],164:[function(require,module,exports){
+},{"../format":149,"./core":160,"./fake_xdomain_request":165,"./fake_xml_http_request":166}],163:[function(require,module,exports){
 /**
  * @depend fake_server.js
  * @depend fake_timers.js
@@ -18716,7 +18709,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":161,"./fake_server":163,"./fake_timers":165}],165:[function(require,module,exports){
+},{"./core":160,"./fake_server":162,"./fake_timers":164}],164:[function(require,module,exports){
 /**
  * Fake timer API
  * setTimeout
@@ -18791,7 +18784,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":161,"lolex":141}],166:[function(require,module,exports){
+},{"./core":160,"lolex":140}],165:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -19018,7 +19011,7 @@ if (typeof sinon === "undefined") {
 })(typeof global !== "undefined" ? global : self);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../extend":149,"../log_error":151,"./core":161,"./event":162}],167:[function(require,module,exports){
+},{"../extend":148,"../log_error":150,"./core":160,"./event":161}],166:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -19738,7 +19731,7 @@ if (typeof sinon === "undefined") {
 ));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../extend":149,"../log_error":151,"./core":161,"./event":162}],168:[function(require,module,exports){
+},{"../extend":148,"../log_error":150,"./core":160,"./event":161}],167:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -19816,15 +19809,15 @@ if (typeof sinon === "undefined") {
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":161}],169:[function(require,module,exports){
+},{"./util/core":160}],168:[function(require,module,exports){
 module.exports = require('./lib/index');
 
-},{"./lib/index":170}],170:[function(require,module,exports){
+},{"./lib/index":169}],169:[function(require,module,exports){
 (function (global){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-	value: true
+  value: true
 });
 
 var _ponyfill = require('./ponyfill');
@@ -19833,18 +19826,25 @@ var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var root = undefined; /* global window */
+var root; /* global window */
 
-if (typeof global !== 'undefined') {
-	root = global;
+
+if (typeof self !== 'undefined') {
+  root = self;
 } else if (typeof window !== 'undefined') {
-	root = window;
+  root = window;
+} else if (typeof global !== 'undefined') {
+  root = global;
+} else if (typeof module !== 'undefined') {
+  root = module;
+} else {
+  root = Function('return this')();
 }
 
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ponyfill":171}],171:[function(require,module,exports){
+},{"./ponyfill":170}],170:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -19868,7 +19868,7 @@ function symbolObservablePonyfill(root) {
 
 	return result;
 };
-},{}],172:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 // transducers-js 0.4.175
 // http://github.com/cognitect-labs/transducers-js
 // 
@@ -21002,7 +21002,7 @@ dropWhile:com.cognitect.transducers.dropWhile, DropWhile:com.cognitect.transduce
 mapcat:com.cognitect.transducers.mapcat, transduce:com.cognitect.transducers.transduce, reduce:com.cognitect.transducers.reduce, into:com.cognitect.transducers.into, toFn:com.cognitect.transducers.toFn, first:com.cognitect.transducers.first, ensureReduced:com.cognitect.transducers.ensureReduced, unreduced:com.cognitect.transducers.unreduced, deref:com.cognitect.transducers.deref});
 
 
-},{}],173:[function(require,module,exports){
+},{}],172:[function(require,module,exports){
 
 // basic protocol helpers
 
@@ -21970,6 +21970,31 @@ module.exports = {
   LazyTransformer: LazyTransformer
 };
 
+},{}],173:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
 },{}],174:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
@@ -22567,7 +22592,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":174,"_process":142,"inherits":140}],176:[function(require,module,exports){
+},{"./support/isBuffer":174,"_process":141,"inherits":173}],176:[function(require,module,exports){
 module.exports = require("./zen-observable.js").Observable;
 
 },{"./zen-observable.js":177}],177:[function(require,module,exports){
@@ -25780,7 +25805,7 @@ describe('[Symbol.observable]', function() {
 });
 
 
-},{"../test-helpers.coffee":251,"symbol-observable":169,"zen-observable":176}],195:[function(require,module,exports){
+},{"../test-helpers.coffee":251,"symbol-observable":168,"zen-observable":176}],195:[function(require,module,exports){
 var Kefir, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -28340,12 +28365,10 @@ describe('interval', function() {
 },{"../../dist/kefir":1}],215:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _require = require('../test-helpers.coffee');
-
-var Kefir = _require.Kefir;
-
+var _require = require('../test-helpers.coffee'),
+    Kefir = _require.Kefir;
 
 describe('Kefir.Observable', function () {
   describe('observe', function () {
@@ -29560,7 +29583,7 @@ describe('Property', function() {
 });
 
 
-},{"../test-helpers.coffee":251,"sinon":144}],226:[function(require,module,exports){
+},{"../test-helpers.coffee":251,"sinon":143}],226:[function(require,module,exports){
 var Kefir, activate, deactivate, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, activate = ref.activate, deactivate = ref.deactivate, Kefir = ref.Kefir;
@@ -29912,7 +29935,7 @@ describe('scan', function() {
 });
 
 
-},{"../test-helpers.coffee":251,"sinon":144}],229:[function(require,module,exports){
+},{"../test-helpers.coffee":251,"sinon":143}],229:[function(require,module,exports){
 var Kefir;
 
 Kefir = require('../../dist/kefir');
@@ -30739,9 +30762,9 @@ describe('spy', function() {
 },{"../test-helpers.coffee":251}],236:[function(require,module,exports){
 'use strict';
 
-var _require = require('../test-helpers.coffee');
+var _require = require('../test-helpers.coffee'),
+    Kefir = _require.Kefir;
 
-var Kefir = _require.Kefir;
 var Observable = Kefir.staticLand.Observable;
 
 
@@ -32764,7 +32787,7 @@ describe('transduce', function() {
 });
 
 
-},{"../test-helpers.coffee":251,"transducers-js":172,"transducers.js":173}],247:[function(require,module,exports){
+},{"../test-helpers.coffee":251,"transducers-js":171,"transducers.js":172}],247:[function(require,module,exports){
 var Kefir, handler, prop, ref, send, stream;
 
 ref = require('../test-helpers.coffee'), stream = ref.stream, prop = ref.prop, send = ref.send, Kefir = ref.Kefir;
@@ -33830,4 +33853,4 @@ beforeEach(function() {
 });
 
 
-},{"../dist/kefir":1,"sinon":144}]},{},[215,236,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,237,238,239,240,241,242,243,244,245,246,247,248,249,250]);
+},{"../dist/kefir":1,"sinon":143}]},{},[215,236,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,237,238,239,240,241,242,243,244,245,246,247,248,249,250]);

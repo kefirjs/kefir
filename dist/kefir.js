@@ -1,4 +1,4 @@
-/*! Kefir.js v3.7.0
+/*! Kefir.js v3.7.1
  *  https://github.com/rpominov/kefir
  */
 
@@ -396,7 +396,7 @@
 	    return this;
 	  },
 	  log: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 
 	    var isCurrent = void 0;
@@ -423,7 +423,7 @@
 	    return this;
 	  },
 	  offLog: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 
 	    if (this._logHandlers) {
@@ -439,7 +439,7 @@
 	    return this;
 	  },
 	  spy: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 	    var handler = function (event) {
 	      var type = '<' + event.type + '>';
@@ -459,7 +459,7 @@
 	    return this;
 	  },
 	  offSpy: function () {
-	    var name = arguments.length <= 0 || arguments[0] === undefined ? this.toString() : arguments[0];
+	    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.toString();
 
 	    if (this._spyHandlers) {
 	      var handlerIndex = findByPred(this._spyHandlers, function (obj) {
@@ -1034,7 +1034,7 @@
 	});
 
 	function toProperty(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
 	  if (fn !== null && typeof fn !== 'function') {
 	    throw new Error('You should call toProperty() with a function or no arguments.');
@@ -1096,7 +1096,7 @@
 	}
 
 	function toPromise (obs) {
-	  var Promise = arguments.length <= 1 || arguments[1] === undefined ? getGlodalPromise() : arguments[1];
+	  var Promise = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : getGlodalPromise();
 
 	  var last = null;
 	  return new Promise(function (resolve, reject) {
@@ -1149,7 +1149,7 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	  value: true
 	});
 
 	var _ponyfill = require$$0$1;
@@ -1157,15 +1157,21 @@
 	var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
 	function _interopRequireDefault(obj) {
-		return obj && obj.__esModule ? obj : { 'default': obj };
+	  return obj && obj.__esModule ? obj : { 'default': obj };
 	}
 
-	var root = undefined; /* global window */
+	var root; /* global window */
 
-	if (typeof commonjsGlobal !== 'undefined') {
-		root = commonjsGlobal;
+	if (typeof self !== 'undefined') {
+	  root = self;
 	} else if (typeof window !== 'undefined') {
-		root = window;
+	  root = window;
+	} else if (typeof commonjsGlobal !== 'undefined') {
+	  root = commonjsGlobal;
+	} else if (typeof module !== 'undefined') {
+	  root = module;
+	} else {
+	  root = Function('return this')();
 	}
 
 	var result = (0, _ponyfill2['default'])(root);
@@ -1412,7 +1418,7 @@
 	});
 
 	function combineAsArray(active) {
-	  var passive = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+	  var passive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 	  var combinator = arguments[2];
 
 	  if (!Array.isArray(passive)) {
@@ -1426,7 +1432,7 @@
 	}
 
 	function combineAsObject(active) {
-	  var passive = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  var passive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	  var combinator = arguments[2];
 
 	  if (typeof passive !== 'object' || Array.isArray(passive)) {
@@ -1524,7 +1530,7 @@
 	};
 
 	function map$1(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id;
 
 	  return new (obs._ofSameType(S$7, P$3))(obs, { fn: fn });
 	}
@@ -1554,7 +1560,7 @@
 	};
 
 	function filter(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$1 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$1;
 
 	  return new (obs._ofSameType(S$8, P$4))(obs, { fn: fn });
 	}
@@ -1636,7 +1642,7 @@
 	};
 
 	function takeWhile(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$2 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$2;
 
 	  return new (obs._ofSameType(S$11, P$7))(obs, { fn: fn });
 	}
@@ -1716,7 +1722,7 @@
 	};
 
 	function skipWhile(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$3 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$3;
 
 	  return new (obs._ofSameType(S$14, P$10))(obs, { fn: fn });
 	}
@@ -1749,15 +1755,15 @@
 	};
 
 	function skipDuplicates(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? eq : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : eq;
 
 	  return new (obs._ofSameType(S$15, P$11))(obs, { fn: fn });
 	}
 
 	var mixin$9 = {
 	  _init: function (_ref) {
-	    var fn = _ref.fn;
-	    var seed = _ref.seed;
+	    var fn = _ref.fn,
+	        seed = _ref.seed;
 
 	    this._fn = fn;
 	    this._prev = seed;
@@ -1783,15 +1789,15 @@
 	}
 
 	function diff(obs, fn) {
-	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : NOTHING;
 
 	  return new (obs._ofSameType(S$16, P$12))(obs, { fn: fn || defaultFn, seed: seed });
 	}
 
 	var P$13 = createProperty('scan', {
 	  _init: function (_ref) {
-	    var fn = _ref.fn;
-	    var seed = _ref.seed;
+	    var fn = _ref.fn,
+	        seed = _ref.seed;
 
 	    this._fn = fn;
 	    this._seed = seed;
@@ -1814,7 +1820,7 @@
 	});
 
 	function scan(obs, fn) {
-	  var seed = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
+	  var seed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : NOTHING;
 
 	  return new P$13(obs, { fn: fn, seed: seed });
 	}
@@ -1844,7 +1850,7 @@
 	};
 
 	function flatten(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$4 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$4;
 
 	  return new S$17(obs, { fn: fn });
 	}
@@ -1907,9 +1913,9 @@
 	  _init: function (_ref) {
 	    var _this = this;
 
-	    var wait = _ref.wait;
-	    var leading = _ref.leading;
-	    var trailing = _ref.trailing;
+	    var wait = _ref.wait,
+	        leading = _ref.leading,
+	        trailing = _ref.trailing;
 
 	    this._wait = Math.max(0, wait);
 	    this._leading = leading;
@@ -1978,12 +1984,11 @@
 	var P$15 = createProperty('throttle', mixin$12);
 
 	function throttle(obs, wait) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$leading = _ref2.leading;
-	  var leading = _ref2$leading === undefined ? true : _ref2$leading;
-	  var _ref2$trailing = _ref2.trailing;
-	  var trailing = _ref2$trailing === undefined ? true : _ref2$trailing;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$leading = _ref2.leading,
+	      leading = _ref2$leading === undefined ? true : _ref2$leading,
+	      _ref2$trailing = _ref2.trailing,
+	      trailing = _ref2$trailing === undefined ? true : _ref2$trailing;
 
 	  return new (obs._ofSameType(S$19, P$15))(obs, { wait: wait, leading: leading, trailing: trailing });
 	}
@@ -1992,8 +1997,8 @@
 	  _init: function (_ref) {
 	    var _this = this;
 
-	    var wait = _ref.wait;
-	    var immediate = _ref.immediate;
+	    var wait = _ref.wait,
+	        immediate = _ref.immediate;
 
 	    this._wait = Math.max(0, wait);
 	    this._immediate = immediate;
@@ -2057,10 +2062,9 @@
 	var P$16 = createProperty('debounce', mixin$13);
 
 	function debounce(obs, wait) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$immediate = _ref2.immediate;
-	  var immediate = _ref2$immediate === undefined ? false : _ref2$immediate;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$immediate = _ref2.immediate,
+	      immediate = _ref2$immediate === undefined ? false : _ref2$immediate;
 
 	  return new (obs._ofSameType(S$20, P$16))(obs, { wait: wait, immediate: immediate });
 	}
@@ -2088,7 +2092,7 @@
 	};
 
 	function mapErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$5 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$5;
 
 	  return new (obs._ofSameType(S$21, P$17))(obs, { fn: fn });
 	}
@@ -2118,7 +2122,7 @@
 	};
 
 	function filterErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? id$6 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : id$6;
 
 	  return new (obs._ofSameType(S$22, P$18))(obs, { fn: fn });
 	}
@@ -2181,8 +2185,8 @@
 
 	var mixin$20 = {
 	  _init: function (_ref) {
-	    var min = _ref.min;
-	    var max = _ref.max;
+	    var min = _ref.min,
+	        max = _ref.max;
 
 	    this._max = max;
 	    this._min = min;
@@ -2203,15 +2207,15 @@
 	var P$23 = createProperty('slidingWindow', mixin$20);
 
 	function slidingWindow(obs, max) {
-	  var min = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
+	  var min = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 
 	  return new (obs._ofSameType(S$27, P$23))(obs, { min: min, max: max });
 	}
 
 	var mixin$21 = {
 	  _init: function (_ref) {
-	    var fn = _ref.fn;
-	    var flushOnEnd = _ref.flushOnEnd;
+	    var fn = _ref.fn,
+	        flushOnEnd = _ref.flushOnEnd;
 
 	    this._fn = fn;
 	    this._flushOnEnd = flushOnEnd;
@@ -2249,18 +2253,17 @@
 	};
 
 	function bufferWhile(obs, fn) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
-	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$flushOnEnd = _ref2.flushOnEnd,
+	      flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
 
 	  return new (obs._ofSameType(S$28, P$24))(obs, { fn: fn || id$7, flushOnEnd: flushOnEnd });
 	}
 
 	var mixin$22 = {
 	  _init: function (_ref) {
-	    var count = _ref.count;
-	    var flushOnEnd = _ref.flushOnEnd;
+	    var count = _ref.count,
+	        flushOnEnd = _ref.flushOnEnd;
 
 	    this._count = count;
 	    this._flushOnEnd = flushOnEnd;
@@ -2293,10 +2296,9 @@
 	var P$25 = createProperty('bufferWithCount', mixin$22);
 
 	function bufferWhile$1(obs, count) {
-	  var _ref2 = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
-	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
+	  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+	      _ref2$flushOnEnd = _ref2.flushOnEnd,
+	      flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
 
 	  return new (obs._ofSameType(S$29, P$25))(obs, { count: count, flushOnEnd: flushOnEnd });
 	}
@@ -2305,9 +2307,9 @@
 	  _init: function (_ref) {
 	    var _this = this;
 
-	    var wait = _ref.wait;
-	    var count = _ref.count;
-	    var flushOnEnd = _ref.flushOnEnd;
+	    var wait = _ref.wait,
+	        count = _ref.count,
+	        flushOnEnd = _ref.flushOnEnd;
 
 	    this._wait = wait;
 	    this._count = count;
@@ -2359,10 +2361,9 @@
 	var P$26 = createProperty('bufferWithTimeOrCount', mixin$23);
 
 	function bufferWithTimeOrCount(obs, wait, count) {
-	  var _ref2 = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
-
-	  var _ref2$flushOnEnd = _ref2.flushOnEnd;
-	  var flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
+	  var _ref2 = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
+	      _ref2$flushOnEnd = _ref2.flushOnEnd,
+	      flushOnEnd = _ref2$flushOnEnd === undefined ? true : _ref2$flushOnEnd;
 
 	  return new (obs._ofSameType(S$30, P$26))(obs, { wait: wait, count: count, flushOnEnd: flushOnEnd });
 	}
@@ -2538,14 +2539,13 @@
 	function AbstractPool() {
 	  var _this = this;
 
-	  var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	  var _ref$queueLim = _ref.queueLim;
-	  var queueLim = _ref$queueLim === undefined ? 0 : _ref$queueLim;
-	  var _ref$concurLim = _ref.concurLim;
-	  var concurLim = _ref$concurLim === undefined ? -1 : _ref$concurLim;
-	  var _ref$drop = _ref.drop;
-	  var drop = _ref$drop === undefined ? 'new' : _ref$drop;
+	  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	      _ref$queueLim = _ref.queueLim,
+	      queueLim = _ref$queueLim === undefined ? 0 : _ref$queueLim,
+	      _ref$concurLim = _ref.concurLim,
+	      concurLim = _ref$concurLim === undefined ? -1 : _ref$concurLim,
+	      _ref$drop = _ref.drop,
+	      drop = _ref$drop === undefined ? 'new' : _ref$drop;
 
 	  Stream.call(this);
 
@@ -3106,10 +3106,9 @@
 
 	var mixin$29 = {
 	  _init: function () {
-	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	    var _ref$flushOnEnd = _ref.flushOnEnd;
-	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
+	    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	        _ref$flushOnEnd = _ref.flushOnEnd,
+	        flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
 
 	    this._buff = [];
 	    this._flushOnEnd = flushOnEnd;
@@ -3157,12 +3156,11 @@
 
 	var mixin$30 = {
 	  _init: function () {
-	    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	    var _ref$flushOnEnd = _ref.flushOnEnd;
-	    var flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd;
-	    var _ref$flushOnChange = _ref.flushOnChange;
-	    var flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
+	    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+	        _ref$flushOnEnd = _ref.flushOnEnd,
+	        flushOnEnd = _ref$flushOnEnd === undefined ? true : _ref$flushOnEnd,
+	        _ref$flushOnChange = _ref.flushOnChange,
+	        flushOnChange = _ref$flushOnChange === undefined ? false : _ref$flushOnChange;
 
 	    this._buff = [];
 	    this._flushOnEnd = flushOnEnd;
@@ -3253,7 +3251,7 @@
 	};
 
 	function valuesToErrors(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defFn;
 
 	  return new (obs._ofSameType(S$39, P$34))(obs, { fn: fn });
 	}
@@ -3286,7 +3284,7 @@
 	};
 
 	function errorsToValues(obs) {
-	  var fn = arguments.length <= 1 || arguments[1] === undefined ? defFn$1 : arguments[1];
+	  var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defFn$1;
 
 	  return new (obs._ofSameType(S$40, P$35))(obs, { fn: fn });
 	}
