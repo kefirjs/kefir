@@ -5,12 +5,13 @@ import {concat, forEach, findByPred, find, remove, cloneArray} from '../utils/co
 
 const id = (x => x);
 
-function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
+function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new', overlapping = false} = {}) {
   Stream.call(this);
 
   this._queueLim = queueLim < 0 ? -1 : queueLim;
   this._concurLim = concurLim < 0 ? -1 : concurLim;
   this._drop = drop;
+  this._overlapping = overlapping;
   this._queue = [];
   this._curSources = [];
   this._$handleSubAny = (event) => this._handleSubAny(event);
@@ -34,8 +35,15 @@ inherit(AbstractPool, Stream, {
       if (this._queueLim === -1 || this._queue.length < this._queueLim) {
         this._addToQueue(toObs(obj));
       } else if (this._drop === 'old') {
-        this._removeOldest();
-        this._add(obj, toObs);
+        if (this._overlapping) {
+          this._addToCur(toObs(obj));
+          while (this._curSources.length > this._concurLim) {
+            this._removeOldest();
+          }
+        } else {
+          this._removeOldest();
+          this._add(obj, toObs);
+        }
       }
     }
   },
