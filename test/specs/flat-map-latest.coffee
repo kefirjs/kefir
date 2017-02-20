@@ -140,3 +140,15 @@ describe 'flatMapLatest', ->
       send(b, [{ obs: a }])
       deactivate(map)
       expect(onDeactivate.callCount).toBe(1)
+
+    it 'should work nicely with Kefir.constant and Kefir.never', ->
+      a = stream()
+      handle = (x) ->
+        if x > 2
+          Kefir.constant(x)
+        else
+          Kefir.never()
+      expect(
+        a.flatMapLatest(handle, { overlapping: true })
+      ).toEmit [3, 4, 5], ->
+        send(a, [1, 2, 3, 4, 5])
