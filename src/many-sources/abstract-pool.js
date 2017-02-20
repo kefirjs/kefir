@@ -37,12 +37,10 @@ inherit(AbstractPool, Stream, {
       } else if (this._drop === 'old') {
         if (this._overlapping) {
           this._addToCur(toObs(obj));
-          while (this._curSources.length > this._concurLim) {
-            this._removeOldest();
-          }
+          this._removeOldest();
         } else {
           this._removeOldest();
-          this._add(obj, toObs);
+          this._addToCur(toObs(obj));
         }
       }
     }
