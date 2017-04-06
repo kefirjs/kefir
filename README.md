@@ -16,9 +16,6 @@ See also [Deprecated API docs](https://github.com/rpominov/kefir/blob/master/dep
 [![Dependency Status](https://david-dm.org/rpominov/kefir.svg)](https://david-dm.org/rpominov/kefir)
 [![devDependency Status](https://david-dm.org/rpominov/kefir/dev-status.svg)](https://david-dm.org/rpominov/kefir#info=devDependencies)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pozadi/kefir?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-<!-- [![Code Climate](http://img.shields.io/codeclimate/github/rpominov/kefir.svg)](https://codeclimate.com/github/rpominov/kefir) -->
-
-[Run tests in your browser](http://rpominov.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch, i.e. last stable version)
 
 
 

@@ -10,8 +10,13 @@ html(lang="en")
     style(type='text/css')
       include:uglify-css includes/stylesheet.css
 
-    script(src='bower-packages/jquery/jquery.js')
-    script(src='bower-packages/transducers-js/transducers.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js')
+    script.
+      window.module = {}
+    script(src='https://unpkg.com/transducers-js@0.4.174')
+    script.
+      window.transducers = window.module.exports
+      delete window.module
     script(src='dist/kefir.js')
 
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/tomorrow.min.css")

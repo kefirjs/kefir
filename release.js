@@ -51,22 +51,17 @@ inquirer.prompt(questions, function(answers) {
   run('npm test', dryRun) &&
   bumpVersion('package.json', pkg, dryRun) &&
   bumpVersion('bower.json', bower, dryRun) &&
-  run('`npm bin`/grunt', dryRun) &&
-  run('`npm bin`/grunt bower', dryRun) &&
+  run('npm run build', dryRun) &&
   run('git add .', dryRun) &&
   run('git add -f dist', dryRun) &&
   run('git add -f index.html', dryRun) &&
-  run('git add -f bower-packages', dryRun) &&
-  run('git add -f test/in-browser/spec/KefirSpecs.js', dryRun) &&
   run('git commit -m "' + newVerison + '"', dryRun) &&
   run('git push', dryRun) &&
   run('git tag -a ' + newVerison + ' -m "v' + newVerison + '"', dryRun) &&
   run('git push origin --tags', dryRun) &&
   run('npm publish', dryRun) &&
   run('git rm -r dist', dryRun) &&
-  run('git rm -r bower-packages', dryRun) &&
   run('git rm index.html', dryRun) &&
-  run('git rm test/in-browser/spec/KefirSpecs.js', dryRun) &&
   run('git commit -m "cleanup repository after release"', dryRun) &&
   run('git push', dryRun);
 
