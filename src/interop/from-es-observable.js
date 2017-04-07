@@ -1,5 +1,5 @@
 import stream from '../primary/stream';
-import $$observable from 'symbol-observable';
+import $$observable from './symbol';
 
 export default function fromESObservable(_observable) {
   const observable = _observable[$$observable] ? _observable[$$observable]() : _observable;

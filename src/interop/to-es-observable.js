@@ -1,6 +1,7 @@
-import $$observable from 'symbol-observable';
 import {extend} from '../utils/objects';
 import {VALUE, ERROR, END} from '../constants';
+import $$observable from './symbol';
+
 
 function ESObservable(observable) {
   this._observable = observable.takeErrors(1);
