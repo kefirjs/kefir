@@ -403,7 +403,7 @@ div
 
 
 
-+descr-method('flat-map-latest', 'flatMapLatest', 'obs.flatMapLatest([fn])').
++descr-method('flat-map-latest', 'flatMapLatest', 'obs.flatMapLatest([fn], [options])').
   Like #[b flatMap], but repeats events only from the latest added observable
   i.e., switching from one observable to another.
 
@@ -433,6 +433,14 @@ pre(title='events in time').
   spawned 3:                                 ---3---3---3---3X
 
   result:      -------------1---1-----2---2-----3---3---3---3X
+
+p.
+  By default, #[b flatMapLatest] will remove the previous observable #[i before]
+  adding the next. This may cause an obversable to deactivate briefly when switching
+  between observable, even if the observable is in the activation chain of both the
+  previous and next observable. If you want the next observable to be added #[i before]
+  removing the previous, you can pass #[tt {overlapping: true}] as #[b options].
+
 div
 
 

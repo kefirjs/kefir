@@ -1,4 +1,5 @@
 {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers.coffee')
+sinon = require('sinon')
 
 
 describe 'flatMapLatest', ->
@@ -102,3 +103,52 @@ describe 'flatMapLatest', ->
       a = send(prop(), [0])
       b = send(prop(), [a])
       expect(b.flatMapLatest()).toEmit [{current: 0}]
+
+
+  describe 'non-overlapping', ->
+    it 'should remove the previous stream before adding the next', ->
+      onDeactivate = sinon.spy()
+      a = Kefir.stream(-> onDeactivate)
+      b = stream()
+      map = b.flatMapLatest()
+      activate(map)
+      send(b, [a])
+      send(b, [a])
+      deactivate(map)
+      expect(onDeactivate.callCount).toBe(2)
+
+
+  describe 'overlapping', ->
+    it 'should add the next stream before removing the previous', ->
+      onDeactivate = sinon.spy()
+      a = Kefir.stream(-> onDeactivate)
+      b = stream()
+      map = b.flatMapLatest({ overlapping: true })
+      activate(map)
+      send(b, [a])
+      send(b, [a])
+      deactivate(map)
+      expect(onDeactivate.callCount).toBe(1)
+
+    it 'should accept optional map fn', ->
+      onDeactivate = sinon.spy()
+      a = Kefir.stream(-> onDeactivate)
+      b = stream()
+      map = b.flatMapLatest(((x) -> x.obs), { overlapping: true })
+      activate(map)
+      send(b, [{ obs: a }])
+      send(b, [{ obs: a }])
+      deactivate(map)
+      expect(onDeactivate.callCount).toBe(1)
+
+    it 'should work nicely with Kefir.constant and Kefir.never', ->
+      a = stream()
+      handle = (x) ->
+        if x > 2
+          Kefir.constant(x)
+        else
+          Kefir.never()
+      expect(
+        a.flatMapLatest(handle, { overlapping: true })
+      ).toEmit [3, 4, 5], ->
+        send(a, [1, 2, 3, 4, 5])
