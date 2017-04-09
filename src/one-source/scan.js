@@ -1,9 +1,7 @@
 import {createProperty} from '../patterns/one-source';
 import {ERROR, NOTHING} from '../constants';
 
-
 const P = createProperty('scan', {
-
   _init({fn, seed}) {
     this._fn = fn;
     this._seed = seed;
@@ -24,10 +22,8 @@ const P = createProperty('scan', {
     } else {
       this._emitValue(fn(this._currentEvent.value, x));
     }
-  }
-
+  },
 });
-
 
 export default function scan(obs, fn, seed = NOTHING) {
   return new P(obs, {fn, seed});

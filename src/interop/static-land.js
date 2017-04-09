@@ -3,7 +3,6 @@ import never from '../primary/never';
 import combine from '../many-sources/combine';
 
 const Observable = {
-
   empty() {
     return never();
   },
@@ -35,8 +34,7 @@ const Observable = {
 
   chain(fn, obs) {
     return obs.flatMap(fn);
-  }
+  },
+};
 
-}
-
-export {Observable}
+export {Observable};

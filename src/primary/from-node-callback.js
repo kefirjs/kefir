@@ -1,11 +1,9 @@
 import stream from './stream';
 
 export default function fromNodeCallback(callbackConsumer) {
-
   let called = false;
 
   return stream(function(emitter) {
-
     if (!called) {
       callbackConsumer(function(error, x) {
         if (error) {
@@ -17,7 +15,5 @@ export default function fromNodeCallback(callbackConsumer) {
       });
       called = true;
     }
-
   }).setName('fromNodeCallback');
-
 }

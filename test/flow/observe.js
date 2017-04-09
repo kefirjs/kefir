@@ -10,9 +10,7 @@ s1.observe({
     // $ExpectError
     const bad: string = x;
   },
-  error: (e) => {
-
-  }
+  error: e => {},
 });
 
 class MyObserver {
@@ -21,9 +19,7 @@ class MyObserver {
     // $ExpectError
     const bad: string = x;
   }
-  error(e) {
-
-  }
+  error(e) {}
 }
 
 s1.observe(new MyObserver());

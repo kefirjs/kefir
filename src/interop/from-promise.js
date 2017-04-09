@@ -2,7 +2,6 @@ import stream from '../primary/stream';
 import toProperty from '../one-source/to-property';
 
 export default function fromPromise(promise) {
-
   let called = false;
 
   let result = stream(function(emitter) {
@@ -24,8 +23,7 @@ export default function fromPromise(promise) {
 
       called = true;
     }
-  })
+  });
 
   return toProperty(result, null).setName('fromPromise');
-
 }

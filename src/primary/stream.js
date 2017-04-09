@@ -9,13 +9,12 @@ function S(fn) {
 }
 
 inherit(S, Stream, {
-
   _name: 'stream',
 
   _onActivation() {
     const fn = this._fn;
     const unsubscribe = fn(emitter(this));
-    this._unsubscribe = (typeof unsubscribe === 'function') ? unsubscribe : null;
+    this._unsubscribe = typeof unsubscribe === 'function' ? unsubscribe : null;
 
     // fix https://github.com/rpominov/kefir/issues/35
     if (!this._active) {
@@ -37,8 +36,7 @@ inherit(S, Stream, {
   _clear() {
     Stream.prototype._clear.call(this);
     this._fn = null;
-  }
-
+  },
 });
 
 export default function stream(fn) {

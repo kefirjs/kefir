@@ -22,14 +22,13 @@ function Dispatcher() {
 }
 
 extend(Dispatcher.prototype, {
-
   add(type, fn) {
     this._items = concat(this._items, [{type, fn}]);
     return this._items.length;
   },
 
   remove(type, fn) {
-    const index = findByPred(this._items, (x) => x.type === type && x.fn === fn);
+    const index = findByPred(this._items, x => x.type === type && x.fn === fn);
 
     // if we're currently in a notification loop,
     // remember this subscriber was removed
@@ -43,7 +42,6 @@ extend(Dispatcher.prototype, {
     this._items = remove(this._items, index);
     return this._items.length;
   },
-
 
   addSpy(fn) {
     this._spies = concat(this._spies, [fn]);
@@ -65,7 +63,6 @@ extend(Dispatcher.prototype, {
     }
 
     for (let i = 0, items = this._items; i < items.length; i++) {
-
       // cleanup was called
       if (this._items === null) {
         break;
@@ -87,9 +84,7 @@ extend(Dispatcher.prototype, {
   cleanup() {
     this._items = null;
     this._spies = null;
-  }
-
+  },
 });
-
 
 export {callSubscriber, Dispatcher};

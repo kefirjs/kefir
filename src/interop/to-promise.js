@@ -4,7 +4,7 @@ function getGlodalPromise() {
   if (typeof Promise === 'function') {
     return Promise;
   } else {
-    throw new Error('There isn\'t default Promise, use shim or parameter');
+    throw new Error("There isn't default Promise, use shim or parameter");
   }
 }
 

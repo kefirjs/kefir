@@ -1,7 +1,6 @@
 import timeBased from '../patterns/time-based';
 
 const S = timeBased({
-
   _name: 'interval',
 
   _init({x}) {
@@ -14,10 +13,8 @@ const S = timeBased({
 
   _onTick() {
     this._emitValue(this._x);
-  }
-
+  },
 });
-
 
 export default function interval(wait, x) {
   return new S(wait, {x});

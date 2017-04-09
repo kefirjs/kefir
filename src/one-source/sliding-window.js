@@ -2,7 +2,6 @@ import {createStream, createProperty} from '../patterns/one-source';
 import {slide} from '../utils/collections';
 
 const mixin = {
-
   _init({min, max}) {
     this._max = max;
     this._min = min;
@@ -18,14 +17,13 @@ const mixin = {
     if (this._buff.length >= this._min) {
       this._emitValue(this._buff);
     }
-  }
-
+  },
 };
 
 const S = createStream('slidingWindow', mixin);
 const P = createProperty('slidingWindow', mixin);
 
-
 export default function slidingWindow(obs, max, min = 0) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {min, max});
 }

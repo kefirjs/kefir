@@ -3,7 +3,6 @@ import {cloneArray} from '../utils/collections';
 import never from '../primary/never';
 
 const S = timeBased({
-
   _name: 'sequentially',
 
   _init({xs}) {
@@ -21,10 +20,8 @@ const S = timeBased({
     } else {
       this._emitValue(this._xs.shift());
     }
-  }
-
+  },
 });
-
 
 export default function sequentially(wait, xs) {
   return xs.length === 0 ? never() : new S(wait, {xs});

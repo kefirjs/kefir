@@ -7,10 +7,8 @@ function FlatMapErrors(source, fn) {
 }
 
 inherit(FlatMapErrors, FlatMap, {
-
   // Same as in FlatMap, only VALUE/ERROR flipped
   _handleMain(event) {
-
     if (event.type === ERROR) {
       let sameCurr = this._activating && this._hadNoEvSinceDeact && this._lastCurrent === event.value;
       if (!sameCurr) {
@@ -31,11 +29,7 @@ inherit(FlatMapErrors, FlatMap, {
         this._mainEnded = true;
       }
     }
-
-  }
-
-
-
+  },
 });
 
 export default FlatMapErrors;

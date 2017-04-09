@@ -1,9 +1,7 @@
 import {createStream, createProperty} from '../patterns/one-source';
 import now from '../utils/now';
 
-
 const mixin = {
-
   _init({wait, leading, trailing}) {
     this._wait = Math.max(0, wait);
     this._leading = leading;
@@ -68,14 +66,13 @@ const mixin = {
     if (this._endLater) {
       this._emitEnd();
     }
-  }
-
+  },
 };
 
 const S = createStream('throttle', mixin);
 const P = createProperty('throttle', mixin);
 
-
 export default function throttle(obs, wait, {leading = true, trailing = true} = {}) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait, leading, trailing});
 }

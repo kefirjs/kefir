@@ -3,7 +3,7 @@ import {VALUE, ERROR} from '../constants';
 import {inherit} from '../utils/objects';
 import {concat, forEach, findByPred, find, remove, cloneArray} from '../utils/collections';
 
-const id = (x => x);
+const id = x => x;
 
 function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
   Stream.call(this);
@@ -13,7 +13,7 @@ function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
   this._drop = drop;
   this._queue = [];
   this._curSources = [];
-  this._$handleSubAny = (event) => this._handleSubAny(event);
+  this._$handleSubAny = event => this._handleSubAny(event);
   this._$endHandlers = [];
   this._currentlyAdding = null;
 
@@ -23,7 +23,6 @@ function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
 }
 
 inherit(AbstractPool, Stream, {
-
   _name: 'abstractPool',
 
   _add(obj, toObs /* Function | falsey */) {
@@ -41,7 +40,7 @@ inherit(AbstractPool, Stream, {
   },
 
   _addAll(obss) {
-    forEach(obss, (obs) => this._add(obs));
+    forEach(obss, obs => this._add(obs));
   },
 
   _remove(obs) {
@@ -56,7 +55,6 @@ inherit(AbstractPool, Stream, {
 
   _addToCur(obs) {
     if (this._active) {
-
       // HACK:
       //
       // We have two optimizations for cases when `obs` is ended. We don't want
@@ -92,7 +90,6 @@ inherit(AbstractPool, Stream, {
           this._subToEnd(obs);
         }
       }
-
     } else {
       this._curSources = concat(this._curSources, [obs]);
     }
@@ -116,7 +113,7 @@ inherit(AbstractPool, Stream, {
   _unsubscribe(obs) {
     obs.offAny(this._$handleSubAny);
 
-    let onEndI = findByPred(this._$endHandlers, (obj) => obj.obs === obs);
+    let onEndI = findByPred(this._$endHandlers, obj => obj.obs === obs);
     if (onEndI !== -1) {
       obs.offEnd(this._$endHandlers[onEndI].handler);
       this._$endHandlers.splice(onEndI, 1);
@@ -191,8 +188,7 @@ inherit(AbstractPool, Stream, {
     this._curSources = null;
     this._$handleSubAny = null;
     this._$endHandlers = null;
-  }
-
+  },
 });
 
 export default AbstractPool;

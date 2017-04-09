@@ -1,7 +1,6 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-
   _init({wait, count, flushOnEnd}) {
     this._wait = wait;
     this._count = count;
@@ -50,14 +49,13 @@ const mixin = {
       this._intervalId = null;
     }
     this._source.offAny(this._$handleAny); // copied from patterns/one-source
-  }
-
+  },
 };
-
 
 const S = createStream('bufferWithTimeOrCount', mixin);
 const P = createProperty('bufferWithTimeOrCount', mixin);
 
 export default function bufferWithTimeOrCount(obs, wait, count, {flushOnEnd = true} = {}) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait, count, flushOnEnd});
 }

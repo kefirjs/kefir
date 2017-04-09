@@ -1,9 +1,7 @@
 import {createStream, createProperty} from '../patterns/one-source';
 import now from '../utils/now';
 
-
 const mixin = {
-
   _init({wait, immediate}) {
     this._wait = Math.max(0, wait);
     this._immediate = immediate;
@@ -62,14 +60,13 @@ const mixin = {
         this._emitEnd();
       }
     }
-  }
-
+  },
 };
 
 const S = createStream('debounce', mixin);
 const P = createProperty('debounce', mixin);
 
 export default function debounce(obs, wait, {immediate = false} = {}) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait, immediate});
 }
-

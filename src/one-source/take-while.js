@@ -1,7 +1,6 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-
   _init({fn}) {
     this._fn = fn;
   },
@@ -17,16 +16,15 @@ const mixin = {
     } else {
       this._emitEnd();
     }
-  }
-
+  },
 };
 
 const S = createStream('takeWhile', mixin);
 const P = createProperty('takeWhile', mixin);
 
-
 const id = x => x;
 
 export default function takeWhile(obs, fn = id) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

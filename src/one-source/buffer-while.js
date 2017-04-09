@@ -1,7 +1,6 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-
   _init({fn, flushOnEnd}) {
     this._fn = fn;
     this._flushOnEnd = flushOnEnd;
@@ -32,16 +31,15 @@ const mixin = {
       this._flush();
     }
     this._emitEnd();
-  }
-
+  },
 };
 
 const S = createStream('bufferWhile', mixin);
 const P = createProperty('bufferWhile', mixin);
 
-
 const id = x => x;
 
 export default function bufferWhile(obs, fn, {flushOnEnd = true} = {}) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn: fn || id, flushOnEnd});
 }

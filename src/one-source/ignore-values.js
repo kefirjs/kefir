@@ -1,13 +1,13 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-  _handleValue() {}
+  _handleValue() {},
 };
 
 const S = createStream('ignoreValues', mixin);
 const P = createProperty('ignoreValues', mixin);
 
-
 export default function ignoreValues(obs) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs);
 }

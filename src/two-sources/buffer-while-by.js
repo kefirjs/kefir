@@ -1,9 +1,7 @@
 import {createStream, createProperty} from '../patterns/two-sources';
 import {NOTHING} from '../constants';
 
-
 const mixin = {
-
   _init({flushOnEnd = true, flushOnChange = false} = {}) {
     this._buff = [];
     this._flushOnEnd = flushOnEnd;
@@ -48,15 +46,13 @@ const mixin = {
 
     // from default _handleSecondaryValue
     this._lastSecondary = x;
-  }
-
+  },
 };
-
 
 const S = createStream('bufferWhileBy', mixin);
 const P = createProperty('bufferWhileBy', mixin);
 
-
 export default function bufferWhileBy(primary, secondary, options /* optional */) {
+  // prettier-ignore
   return new (primary._ofSameType(S, P))(primary, secondary, options);
 }

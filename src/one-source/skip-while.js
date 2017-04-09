@@ -1,7 +1,6 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-
   _init({fn}) {
     this._fn = fn;
   },
@@ -18,16 +17,15 @@ const mixin = {
     if (this._fn === null) {
       this._emitValue(x);
     }
-  }
-
+  },
 };
 
 const S = createStream('skipWhile', mixin);
 const P = createProperty('skipWhile', mixin);
 
-
 const id = x => x;
 
 export default function skipWhile(obs, fn = id) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

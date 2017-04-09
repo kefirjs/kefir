@@ -5,34 +5,30 @@ import {map, cloneArray} from '../utils/collections';
 import {spread} from '../utils/functions';
 import never from '../primary/never';
 
-
-const isArray = Array.isArray || function(xs) {
-  return Object.prototype.toString.call(xs) === '[object Array]';
-};
-
+const isArray = Array.isArray ||
+  function(xs) {
+    return Object.prototype.toString.call(xs) === '[object Array]';
+  };
 
 function Zip(sources, combinator) {
   Stream.call(this);
 
-  this._buffers = map(sources, (source) => isArray(source) ? cloneArray(source) : []);
-  this._sources = map(sources, (source) => isArray(source) ? never() : source);
+  this._buffers = map(sources, source => isArray(source) ? cloneArray(source) : []);
+  this._sources = map(sources, source => isArray(source) ? never() : source);
 
-  this._combinator = combinator ? spread(combinator, this._sources.length) : (x => x);
+  this._combinator = combinator ? spread(combinator, this._sources.length) : x => x;
   this._aliveCount = 0;
 
   this._$handlers = [];
   for (let i = 0; i < this._sources.length; i++) {
-    this._$handlers.push((event) => this._handleAny(i, event));
+    this._$handlers.push(event => this._handleAny(i, event));
   }
 }
 
-
 inherit(Zip, Stream, {
-
   _name: 'zip',
 
   _onActivation() {
-
     // if all sources are arrays
     while (this._isFull()) {
       this._emit();
@@ -93,11 +89,8 @@ inherit(Zip, Stream, {
     this._buffers = null;
     this._combinator = null;
     this._$handlers = null;
-  }
-
+  },
 });
-
-
 
 export default function zip(observables, combinator /* Function | falsey */) {
   return observables.length === 0 ? never() : new Zip(observables, combinator);

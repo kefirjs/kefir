@@ -2,7 +2,6 @@ import {createStream, createProperty} from '../patterns/one-source';
 import {NOTHING} from '../constants';
 
 const mixin = {
-
   _init() {
     this._lastValue = NOTHING;
   },
@@ -20,14 +19,13 @@ const mixin = {
       this._emitValue(this._lastValue);
     }
     this._emitEnd();
-  }
-
+  },
 };
 
 const S = createStream('last', mixin);
 const P = createProperty('last', mixin);
 
-
 export default function last(obs) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs);
 }

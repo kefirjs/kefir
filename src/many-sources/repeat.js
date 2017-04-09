@@ -2,19 +2,16 @@ import {inherit} from '../utils/objects';
 import Stream from '../stream';
 import {END} from '../constants';
 
-
-
 function S(generator) {
   Stream.call(this);
   this._generator = generator;
   this._source = null;
   this._inLoop = false;
   this._iteration = 0;
-  this._$handleAny = (event) => this._handleAny(event);
+  this._$handleAny = event => this._handleAny(event);
 }
 
 inherit(S, Stream, {
-
   _name: 'repeat',
 
   _handleAny(event) {
@@ -61,10 +58,8 @@ inherit(S, Stream, {
     this._generator = null;
     this._source = null;
     this._$handleAny = null;
-  }
-
+  },
 });
-
 
 export default function(generator) {
   return new S(generator);

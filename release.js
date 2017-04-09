@@ -6,39 +6,36 @@ var fs = require('fs');
 var pkg = require('./package.json');
 var bower = require('./bower.json');
 
-console.log("");
-console.log("Wellcome to Kefir release utility!");
-console.log("----------------------------------------------------------------");
-console.log("");
+console.log('');
+console.log('Wellcome to Kefir release utility!');
+console.log('----------------------------------------------------------------');
+console.log('');
 
 var questions = [
   {
-    type: "list",
-    name: "version",
-    message: "Which version will it be? (current is " + pkg.version + ")",
+    type: 'list',
+    name: 'version',
+    message: 'Which version will it be? (current is ' + pkg.version + ')',
     choices: [
       semver.inc(pkg.version, 'patch'),
       semver.inc(pkg.version, 'minor'),
       semver.inc(pkg.version, 'major'),
-      semver.inc(pkg.version, 'premajor', 'rc')
-    ]
+      semver.inc(pkg.version, 'premajor', 'rc'),
+    ],
   },
   {
-    type: "list",
-    name: "dryRun",
-    message: "Do you want to release, or just see what would happen if you do?",
-    choices: [
-      'Just see',
-      'Release!'
-    ]
-  }
+    type: 'list',
+    name: 'dryRun',
+    message: 'Do you want to release, or just see what would happen if you do?',
+    choices: ['Just see', 'Release!'],
+  },
 ];
 
 inquirer.prompt(questions, function(answers) {
   var newVerison = answers.version;
-  var dryRun = (answers.dryRun === 'Just see');
+  var dryRun = answers.dryRun === 'Just see';
 
-  bower.version = pkg.version = newVerison;
+  bower.version = (pkg.version = newVerison);
 
   console.log('');
   if (dryRun) {
@@ -49,22 +46,21 @@ inquirer.prompt(questions, function(answers) {
   console.log('');
 
   run('npm test', dryRun) &&
-  bumpVersion('package.json', pkg, dryRun) &&
-  bumpVersion('bower.json', bower, dryRun) &&
-  run('npm run build', dryRun) &&
-  run('git add .', dryRun) &&
-  run('git add -f dist', dryRun) &&
-  run('git add -f index.html', dryRun) &&
-  run('git commit -m "' + newVerison + '"', dryRun) &&
-  run('git push', dryRun) &&
-  run('git tag -a ' + newVerison + ' -m "v' + newVerison + '"', dryRun) &&
-  run('git push origin --tags', dryRun) &&
-  run('npm publish', dryRun) &&
-  run('git rm -r dist', dryRun) &&
-  run('git rm index.html', dryRun) &&
-  run('git commit -m "cleanup repository after release"', dryRun) &&
-  run('git push', dryRun);
-
+    bumpVersion('package.json', pkg, dryRun) &&
+    bumpVersion('bower.json', bower, dryRun) &&
+    run('npm run build', dryRun) &&
+    run('git add .', dryRun) &&
+    run('git add -f dist', dryRun) &&
+    run('git add -f index.html', dryRun) &&
+    run('git commit -m "' + newVerison + '"', dryRun) &&
+    run('git push', dryRun) &&
+    run('git tag -a ' + newVerison + ' -m "v' + newVerison + '"', dryRun) &&
+    run('git push origin --tags', dryRun) &&
+    run('npm publish', dryRun) &&
+    run('git rm -r dist', dryRun) &&
+    run('git rm index.html', dryRun) &&
+    run('git commit -m "cleanup repository after release"', dryRun) &&
+    run('git push', dryRun);
 });
 
 function bumpVersion(fileName, obj, dry) {
@@ -73,7 +69,7 @@ function bumpVersion(fileName, obj, dry) {
     try {
       fs.writeFileSync(fileName, JSON.stringify(obj, null, '  ') + '\n');
       console.log('... ok');
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       return false;
     }
@@ -81,12 +77,12 @@ function bumpVersion(fileName, obj, dry) {
   return true;
 }
 
-function run(cmd, dry){
+function run(cmd, dry) {
   console.log('Running `' + cmd + '`');
   if (!dry) {
-    if (shell.exec(cmd, {silent:false}).code === 0){
+    if (shell.exec(cmd, {silent: false}).code === 0) {
       console.log('... ok');
-    } else{
+    } else {
       console.error('... fail!');
       return false;
     }

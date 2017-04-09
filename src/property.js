@@ -3,15 +3,12 @@ import {VALUE, ERROR, END} from './constants';
 import {callSubscriber} from './dispatcher';
 import Observable from './observable';
 
-
-
 function Property() {
   Observable.call(this);
   this._currentEvent = null;
 }
 
 inherit(Property, Observable, {
-
   _name: 'property',
 
   _emitValue(value) {
@@ -34,14 +31,13 @@ inherit(Property, Observable, {
 
   _emitEnd() {
     if (this._alive) {
-      this._alive = false
+      this._alive = false;
       if (!this._activating) {
         this._dispatcher.dispatch({type: END});
       }
       this._clear();
     }
   },
-
 
   _on(type, fn) {
     if (this._alive) {
@@ -59,14 +55,7 @@ inherit(Property, Observable, {
 
   getType() {
     return 'property';
-  }
-
+  },
 });
 
 export default Property;
-
-
-
-
-
-

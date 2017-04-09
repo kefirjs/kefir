@@ -3,10 +3,6 @@ import Property from '../property';
 import {inherit} from '../utils/objects';
 import {VALUE, ERROR, END, NOTHING} from '../constants';
 
-
-
-
-
 function createConstructor(BaseClass, name) {
   return function AnonymousObservable(primary, secondary, options) {
     BaseClass.call(this);
@@ -14,10 +10,10 @@ function createConstructor(BaseClass, name) {
     this._secondary = secondary;
     this._name = `${primary._name}.${name}`;
     this._lastSecondary = NOTHING;
-    this._$handleSecondaryAny = (event) => this._handleSecondaryAny(event);
-    this._$handlePrimaryAny = (event) => this._handlePrimaryAny(event);
+    this._$handleSecondaryAny = event => this._handleSecondaryAny(event);
+    this._$handlePrimaryAny = event => this._handlePrimaryAny(event);
     this._init(options);
-  }
+  };
 }
 
 function createClassMethods(BaseClass) {
@@ -45,15 +41,20 @@ function createClassMethods(BaseClass) {
 
     _handlePrimaryAny(event) {
       switch (event.type) {
-        case VALUE: return this._handlePrimaryValue(event.value);
-        case ERROR: return this._handlePrimaryError(event.value);
-        case END: return this._handlePrimaryEnd(event.value);
+        case VALUE:
+          return this._handlePrimaryValue(event.value);
+        case ERROR:
+          return this._handlePrimaryError(event.value);
+        case END:
+          return this._handlePrimaryEnd(event.value);
       }
     },
     _handleSecondaryAny(event) {
       switch (event.type) {
-        case VALUE: return this._handleSecondaryValue(event.value);
-        case ERROR: return this._handleSecondaryError(event.value);
+        case VALUE:
+          return this._handleSecondaryValue(event.value);
+        case ERROR:
+          return this._handleSecondaryError(event.value);
         case END:
           this._handleSecondaryEnd(event.value);
           this._removeSecondary();
@@ -91,12 +92,9 @@ function createClassMethods(BaseClass) {
       this._$handleSecondaryAny = null;
       this._$handlePrimaryAny = null;
       this._free();
-    }
-
+    },
   };
 }
-
-
 
 function createStream(name, mixin) {
   const S = createConstructor(Stream, name);
@@ -104,13 +102,10 @@ function createStream(name, mixin) {
   return S;
 }
 
-
 function createProperty(name, mixin) {
   const P = createConstructor(Property, name);
   inherit(P, Property, createClassMethods(Property), mixin);
   return P;
 }
 
-
 export {createStream, createProperty};
-

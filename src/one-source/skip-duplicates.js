@@ -2,7 +2,6 @@ import {createStream, createProperty} from '../patterns/one-source';
 import {NOTHING} from '../constants';
 
 const mixin = {
-
   _init({fn}) {
     this._fn = fn;
     this._prev = NOTHING;
@@ -19,16 +18,15 @@ const mixin = {
       this._prev = x;
       this._emitValue(x);
     }
-  }
-
+  },
 };
 
 const S = createStream('skipDuplicates', mixin);
 const P = createProperty('skipDuplicates', mixin);
 
-
 const eq = (a, b) => a === b;
 
 export default function skipDuplicates(obs, fn = eq) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

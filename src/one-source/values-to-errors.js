@@ -1,7 +1,6 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-
   _init({fn}) {
     this._fn = fn;
   },
@@ -18,16 +17,15 @@ const mixin = {
     } else {
       this._emitValue(x);
     }
-  }
-
+  },
 };
 
 const S = createStream('valuesToErrors', mixin);
 const P = createProperty('valuesToErrors', mixin);
 
-
 const defFn = x => ({convert: true, error: x});
 
 export default function valuesToErrors(obs, fn = defFn) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

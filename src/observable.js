@@ -3,8 +3,6 @@ import {VALUE, ERROR, ANY, END} from './constants';
 import {Dispatcher, callSubscriber} from './dispatcher';
 import {findByPred} from './utils/collections';
 
-
-
 function Observable() {
   this._dispatcher = new Dispatcher();
   this._active = false;
@@ -15,7 +13,6 @@ function Observable() {
 }
 
 extend(Observable.prototype, {
-
   _name: 'observable',
 
   _onActivation() {},
@@ -43,9 +40,12 @@ extend(Observable.prototype, {
 
   _emit(type, x) {
     switch (type) {
-      case VALUE: return this._emitValue(x);
-      case ERROR: return this._emitError(x);
-      case END: return this._emitEnd();
+      case VALUE:
+        return this._emitValue(x);
+      case ERROR:
+        return this._emitError(x);
+      case END:
+        return this._emitEnd();
     }
   },
 
@@ -63,7 +63,7 @@ extend(Observable.prototype, {
 
   _emitEnd() {
     if (this._alive) {
-      this._alive = false
+      this._alive = false;
       this._dispatcher.dispatch({type: END});
       this._clear();
     }
@@ -147,7 +147,7 @@ extend(Observable.prototype, {
       },
       get closed() {
         return closed;
-      }
+      },
     };
   },
 
@@ -161,10 +161,8 @@ extend(Observable.prototype, {
     return this;
   },
 
-
   log(name = this.toString()) {
-
-    let isCurrent
+    let isCurrent;
     let handler = function(event) {
       let type = `<${event.type}${isCurrent ? ':current' : ''}>`;
       if (event.type === END) {
@@ -189,7 +187,6 @@ extend(Observable.prototype, {
   },
 
   offLog(name = this.toString()) {
-
     if (this._logHandlers) {
       let handlerIndex = findByPred(this._logHandlers, obj => obj.name === name);
       if (handlerIndex !== -1) {
@@ -229,13 +226,12 @@ extend(Observable.prototype, {
       }
     }
     return this;
-  }
+  },
 });
 
 // extend() can't handle `toString` in IE8
 Observable.prototype.toString = function() {
   return `[${this._name}]`;
 };
-
 
 export default Observable;

@@ -1,7 +1,6 @@
 import timeBased from '../patterns/time-based';
 
 const S = timeBased({
-
   _name: 'fromPoll',
 
   _init({fn}) {
@@ -15,10 +14,8 @@ const S = timeBased({
   _onTick() {
     const fn = this._fn;
     this._emitValue(fn());
-  }
-
+  },
 });
-
 
 export default function fromPoll(wait, fn) {
   return new S(wait, {fn});

@@ -2,17 +2,15 @@ import {extend} from '../utils/objects';
 import {VALUE, ERROR, END} from '../constants';
 import $$observable from './symbol';
 
-
 function ESObservable(observable) {
   this._observable = observable.takeErrors(1);
 }
 
 extend(ESObservable.prototype, {
   subscribe(observerOrOnNext, onError, onComplete) {
-
     const observer = typeof observerOrOnNext === 'function'
       ? {next: observerOrOnNext, error: onError, complete: onComplete}
-      : observerOrOnNext
+      : observerOrOnNext;
 
     const fn = event => {
       if (event.type === END) {
@@ -26,10 +24,10 @@ extend(ESObservable.prototype, {
       } else if (event.type === END && observer.complete) {
         observer.complete(event.value);
       }
-    }
+    };
 
     this._observable.onAny(fn);
-    let closed = false
+    let closed = false;
 
     const subscription = {
       unsubscribe: () => {
@@ -37,12 +35,11 @@ extend(ESObservable.prototype, {
         this._observable.offAny(fn);
       },
       get closed() {
-        return closed
-      }
+        return closed;
+      },
     };
     return subscription;
-
-  }
+  },
 });
 
 // Need to assign directly b/c Symbols aren't enumerable.

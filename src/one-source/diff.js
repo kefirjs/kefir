@@ -2,7 +2,6 @@ import {createStream, createProperty} from '../patterns/one-source';
 import {NOTHING} from '../constants';
 
 const mixin = {
-
   _init({fn, seed}) {
     this._fn = fn;
     this._prev = seed;
@@ -19,18 +18,17 @@ const mixin = {
       this._emitValue(fn(this._prev, x));
     }
     this._prev = x;
-  }
-
+  },
 };
 
 const S = createStream('diff', mixin);
 const P = createProperty('diff', mixin);
-
 
 function defaultFn(a, b) {
   return [a, b];
 }
 
 export default function diff(obs, fn, seed = NOTHING) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn: fn || defaultFn, seed});
 }

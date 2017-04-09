@@ -14,11 +14,13 @@ export default function fromESObservable(_observable) {
       },
       complete() {
         emitter.end();
-      }
-    })
+      },
+    });
 
     if (unsub.unsubscribe) {
-      return function () { unsub.unsubscribe(); };
+      return function() {
+        unsub.unsubscribe();
+      };
     } else {
       return unsub;
     }

@@ -1,7 +1,6 @@
 import {createStream, createProperty} from '../patterns/one-source';
 
 const mixin = {
-
   _init({n}) {
     this._n = n;
     if (n <= 0) {
@@ -15,14 +14,13 @@ const mixin = {
     if (this._n === 0) {
       this._emitEnd();
     }
-  }
-
+  },
 };
 
 const S = createStream('take', mixin);
 const P = createProperty('take', mixin);
 
-
 export default function take(obs, n) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {n});
 }

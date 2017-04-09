@@ -56,7 +56,5 @@ describe('Kefir.Observable', () => {
       em.end();
       expect(sub.closed).toBe(true);
     });
-
-
   });
 });

@@ -1,7 +1,6 @@
 import {createStream} from '../patterns/one-source';
 
 const mixin = {
-
   _init({fn}) {
     this._fn = fn;
   },
@@ -16,12 +15,10 @@ const mixin = {
     for (let i = 0; i < xs.length; i++) {
       this._emitValue(xs[i]);
     }
-  }
-
+  },
 };
 
 const S = createStream('flatten', mixin);
-
 
 const id = x => x;
 

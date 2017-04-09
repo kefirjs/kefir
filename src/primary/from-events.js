@@ -1,10 +1,6 @@
 import fromSubUnsub from './from-sub-unsub';
 
-const pairs = [
-  ['addEventListener', 'removeEventListener'],
-  ['addListener', 'removeListener'],
-  ['on', 'off']
-];
+const pairs = [['addEventListener', 'removeEventListener'], ['addListener', 'removeListener'], ['on', 'off']];
 
 export default function fromEvents(target, eventName, transformer) {
   let sub, unsub;
@@ -18,13 +14,15 @@ export default function fromEvents(target, eventName, transformer) {
   }
 
   if (sub === undefined) {
-    throw new Error('target don\'t support any of ' +
-      'addEventListener/removeEventListener, addListener/removeListener, on/off method pair');
+    throw new Error(
+      "target don't support any of " +
+        'addEventListener/removeEventListener, addListener/removeListener, on/off method pair'
+    );
   }
 
   return fromSubUnsub(
-    (handler) => target[sub](eventName, handler),
-    (handler) => target[unsub](eventName, handler),
+    handler => target[sub](eventName, handler),
+    handler => target[unsub](eventName, handler),
     transformer
   ).setName('fromEvents');
 }

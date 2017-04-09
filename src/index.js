@@ -2,8 +2,6 @@ import Observable from './observable';
 import Stream from './stream';
 import Property from './property';
 
-
-
 // Create a stream
 // -----------------------------------------------------------------------------
 
@@ -38,8 +36,6 @@ import fromEvents from './primary/from-events';
 // (Function) -> Stream
 import stream from './primary/stream';
 
-
-
 // Create a property
 // -----------------------------------------------------------------------------
 
@@ -48,8 +44,6 @@ import constant from './primary/constant';
 
 // (any) -> Property
 import constantError from './primary/constant-error';
-
-
 
 // Convert observables
 // -----------------------------------------------------------------------------
@@ -65,8 +59,6 @@ import changes from './one-source/changes';
 Observable.prototype.changes = function() {
   return changes(this);
 };
-
-
 
 // Interoperation with other implimentations
 // -----------------------------------------------------------------------------
@@ -89,8 +81,7 @@ Observable.prototype.toESObservable = toESObservable;
 import $$observable from './interop/symbol';
 Observable.prototype[$$observable] = toESObservable;
 
-import * as staticLand from './interop/static-land'
-
+import * as staticLand from './interop/static-land';
 
 // Modify an observable
 // -----------------------------------------------------------------------------
@@ -287,8 +278,6 @@ Observable.prototype.withHandler = function(fn) {
   return withHandler(this, fn);
 };
 
-
-
 // Combine observables
 // -----------------------------------------------------------------------------
 
@@ -351,8 +340,6 @@ Observable.prototype.flatMapErrors = function(fn) {
   return new FlatMapErrors(this, fn).setName(this, 'flatMapErrors');
 };
 
-
-
 // Combine two observables
 // -----------------------------------------------------------------------------
 
@@ -400,14 +387,12 @@ Observable.prototype.bufferWhileBy = function(other, options) {
   return bufferWhileBy(this, other, options);
 };
 
-
-
 // Deprecated
 // -----------------------------------------------------------------------------
 
-let DEPRECATION_WARNINGS = true
+let DEPRECATION_WARNINGS = true;
 export function dissableDeprecationWarnings() {
-  DEPRECATION_WARNINGS = false
+  DEPRECATION_WARNINGS = false;
 }
 
 function warn(msg) {
@@ -420,7 +405,7 @@ function warn(msg) {
 // (Stream|Property, Stream|Property) -> Property
 import awaiting from './two-sources/awaiting';
 Observable.prototype.awaiting = function(other) {
-  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145')
+  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145');
   return awaiting(this, other);
 };
 
@@ -428,16 +413,15 @@ Observable.prototype.awaiting = function(other) {
 // (Property, Function|undefined) -> Property
 import valuesToErrors from './one-source/values-to-errors';
 Observable.prototype.valuesToErrors = function(fn) {
-  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149')
+  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149');
   return valuesToErrors(this, fn);
 };
-
 
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
 import errorsToValues from './one-source/errors-to-values';
 Observable.prototype.errorsToValues = function(fn) {
-  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149')
+  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149');
   return errorsToValues(this, fn);
 };
 
@@ -445,25 +429,70 @@ Observable.prototype.errorsToValues = function(fn) {
 // (Property) -> Property
 import endOnError from './one-source/end-on-error';
 Observable.prototype.endOnError = function() {
-  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150')
+  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150');
   return endOnError(this);
 };
-
-
 
 // Exports
 // --------------------------------------------------------------------------
 
-const Kefir = { Observable, Stream, Property, never, later, interval, sequentially,
-fromPoll, withInterval, fromCallback, fromNodeCallback, fromEvents, stream,
-constant, constantError, fromPromise, fromESObservable, combine, zip, merge,
-concat, Pool, pool, repeat, staticLand };
+const Kefir = {
+  Observable,
+  Stream,
+  Property,
+  never,
+  later,
+  interval,
+  sequentially,
+  fromPoll,
+  withInterval,
+  fromCallback,
+  fromNodeCallback,
+  fromEvents,
+  stream,
+  constant,
+  constantError,
+  fromPromise,
+  fromESObservable,
+  combine,
+  zip,
+  merge,
+  concat,
+  Pool,
+  pool,
+  repeat,
+  staticLand,
+};
 
 Kefir.Kefir = Kefir;
 
-export { Kefir, Observable, Stream, Property, never, later, interval, sequentially,
-fromPoll, withInterval, fromCallback, fromNodeCallback, fromEvents, stream,
-constant, constantError, fromPromise, fromESObservable, combine, zip, merge,
-concat, Pool, pool, repeat, staticLand };
+export {
+  Kefir,
+  Observable,
+  Stream,
+  Property,
+  never,
+  later,
+  interval,
+  sequentially,
+  fromPoll,
+  withInterval,
+  fromCallback,
+  fromNodeCallback,
+  fromEvents,
+  stream,
+  constant,
+  constantError,
+  fromPromise,
+  fromESObservable,
+  combine,
+  zip,
+  merge,
+  concat,
+  Pool,
+  pool,
+  repeat,
+  staticLand,
+};
 
-export default Kefir
+export default Kefir;

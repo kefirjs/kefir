@@ -2,20 +2,16 @@ import {VALUE, ERROR, END} from '../constants';
 import {inherit} from '../utils/objects';
 import AbstractPool from './abstract-pool';
 
-
-
-
 function FlatMap(source, fn, options) {
   AbstractPool.call(this, options);
   this._source = source;
   this._fn = fn;
   this._mainEnded = false;
   this._lastCurrent = null;
-  this._$handleMain = (event) => this._handleMain(event);
+  this._$handleMain = event => this._handleMain(event);
 }
 
 inherit(FlatMap, AbstractPool, {
-
   _onActivation() {
     AbstractPool.prototype._onActivation.call(this);
     if (this._active) {
@@ -30,7 +26,6 @@ inherit(FlatMap, AbstractPool, {
   },
 
   _handleMain(event) {
-
     if (event.type === VALUE) {
       // Is latest value before deactivation survived, and now is 'current' on this activation?
       // We don't want to handle such values, to prevent to constantly add
@@ -55,7 +50,6 @@ inherit(FlatMap, AbstractPool, {
         this._mainEnded = true;
       }
     }
-
   },
 
   _onEmpty() {
@@ -69,11 +63,7 @@ inherit(FlatMap, AbstractPool, {
     this._source = null;
     this._lastCurrent = null;
     this._$handleMain = null;
-  }
-
+  },
 });
-
-
-
 
 export default FlatMap;

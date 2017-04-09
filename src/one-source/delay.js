@@ -3,7 +3,6 @@ import {createStream, createProperty} from '../patterns/one-source';
 const END_MARKER = {};
 
 const mixin = {
-
   _init({wait}) {
     this._wait = Math.max(0, wait);
     this._buff = [];
@@ -38,13 +37,13 @@ const mixin = {
       this._buff.push(END_MARKER);
       setTimeout(this._$shiftBuff, this._wait);
     }
-  }
-
+  },
 };
 
 const S = createStream('delay', mixin);
 const P = createProperty('delay', mixin);
 
 export default function delay(obs, wait) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait});
 }

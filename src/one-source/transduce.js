@@ -2,7 +2,6 @@ import {createStream, createProperty} from '../patterns/one-source';
 
 function xformForObs(obs) {
   return {
-
     '@@transducer/step'(res, input) {
       obs._emitValue(input);
       return null;
@@ -11,13 +10,11 @@ function xformForObs(obs) {
     '@@transducer/result'() {
       obs._emitEnd();
       return null;
-    }
-
+    },
   };
 }
 
 const mixin = {
-
   _init({transducer}) {
     this._xform = transducer(xformForObs(this));
   },
@@ -34,14 +31,13 @@ const mixin = {
 
   _handleEnd() {
     this._xform['@@transducer/result'](null);
-  }
-
+  },
 };
 
 const S = createStream('transduce', mixin);
 const P = createProperty('transduce', mixin);
 
-
 export default function transduce(obs, transducer) {
+  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {transducer});
 }

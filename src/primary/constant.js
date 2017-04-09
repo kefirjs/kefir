@@ -16,7 +16,7 @@ inherit(P, Property, {
   _activating: false,
   _alive: false,
   _dispatcher: null,
-  _logHandlers: null
+  _logHandlers: null,
 });
 
 export default function constant(x) {

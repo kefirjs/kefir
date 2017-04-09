@@ -7,7 +7,7 @@ import never from '../primary/never';
 
 function collect(source, keys, values) {
   for (var prop in source) {
-    if( source.hasOwnProperty( prop ) ) {
+    if (source.hasOwnProperty(prop)) {
       keys.push(prop);
       values.push(source[prop]);
     }
@@ -41,14 +41,11 @@ function Combine(active, passive, combinator) {
 
   this._$handlers = [];
   for (let i = 0; i < this._sources.length; i++) {
-    this._$handlers.push((event) => this._handleAny(i, event));
+    this._$handlers.push(event => this._handleAny(i, event));
   }
-
 }
 
-
 inherit(Combine, Stream, {
-
   _name: 'combine',
 
   _onActivation() {
@@ -73,8 +70,7 @@ inherit(Combine, Stream, {
   },
 
   _onDeactivation() {
-    let length = this._sources.length,
-        i;
+    let length = this._sources.length, i;
     for (i = 0; i < length; i++) {
       this._sources[i].offAny(this._$handlers[i]);
     }
@@ -110,9 +106,7 @@ inherit(Combine, Stream, {
   },
 
   _handleAny(i, event) {
-
     if (event.type === VALUE || event.type === ERROR) {
-
       if (event.type === VALUE) {
         this._latestValues[i] = event.value;
         this._latestErrors[i] = undefined;
@@ -121,7 +115,7 @@ inherit(Combine, Stream, {
         this._latestValues[i] = NOTHING;
         this._latestErrors[i] = {
           index: this._latestErrorIndex++,
-          error: event.value
+          error: event.value,
         };
       }
 
@@ -132,8 +126,8 @@ inherit(Combine, Stream, {
           this._emitIfFull();
         }
       }
-
-    } else { // END
+    } else {
+      // END
 
       if (i < this._activeCount) {
         this._aliveCount--;
@@ -145,7 +139,6 @@ inherit(Combine, Stream, {
           }
         }
       }
-
     }
   },
 
@@ -156,8 +149,7 @@ inherit(Combine, Stream, {
     this._latestErrors = null;
     this._combinator = null;
     this._$handlers = null;
-  }
-
+  },
 });
 
 function combineAsArray(active, passive = [], combinator) {
@@ -165,7 +157,7 @@ function combineAsArray(active, passive = [], combinator) {
     throw new Error('Combine can only combine active and passive collections of the same type.');
   }
 
-  combinator = combinator ? spread(combinator, active.length + passive.length) : (x => x);
+  combinator = combinator ? spread(combinator, active.length + passive.length) : x => x;
   return active.length === 0 ? never() : new Combine(active, passive, combinator);
 }
 
@@ -174,20 +166,18 @@ function combineAsObject(active, passive = {}, combinator) {
     throw new Error('Combine can only combine active and passive collections of the same type.');
   }
 
-  let keys = [],
-    activeObservables = [],
-    passiveObservables = [];
+  let keys = [], activeObservables = [], passiveObservables = [];
 
   collect(active, keys, activeObservables);
   collect(passive, keys, passiveObservables);
 
   const objectify = values => {
     let event = {};
-    for(let i = values.length - 1; 0 <= i; i--) {
+    for (let i = values.length - 1; 0 <= i; i--) {
       event[keys[i]] = values[i];
     }
     return combinator ? combinator(event) : event;
-  }
+  };
 
   return activeObservables.length === 0 ? never() : new Combine(activeObservables, passiveObservables, objectify);
 }
@@ -198,5 +188,7 @@ export default function combine(active, passive, combinator) {
     passive = undefined;
   }
 
-  return Array.isArray(active) ? combineAsArray(active, passive, combinator) : combineAsObject(active, passive, combinator);
+  return Array.isArray(active)
+    ? combineAsArray(active, passive, combinator)
+    : combineAsObject(active, passive, combinator);
 }

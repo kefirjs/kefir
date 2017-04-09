@@ -2,7 +2,6 @@ import {inherit} from '../utils/objects';
 import AbstractPool from './abstract-pool';
 import never from '../primary/never';
 
-
 function Merge(sources) {
   AbstractPool.call(this);
   this._addAll(sources);
@@ -10,15 +9,13 @@ function Merge(sources) {
 }
 
 inherit(Merge, AbstractPool, {
-
   _name: 'merge',
 
   _onEmpty() {
     if (this._initialised) {
       this._emitEnd();
     }
-  }
-
+  },
 });
 
 export default function merge(observables) {

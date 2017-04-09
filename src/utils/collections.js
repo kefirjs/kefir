@@ -20,9 +20,7 @@ function concat(a, b) {
 }
 
 function circleShift(arr, distance) {
-  let length = arr.length
-    , result = new Array(length)
-    , i;
+  let length = arr.length, result = new Array(length), i;
   for (i = 0; i < length; i++) {
     result[(i + distance) % length] = arr[i];
   }
@@ -30,8 +28,7 @@ function circleShift(arr, distance) {
 }
 
 function find(arr, value) {
-  let length = arr.length
-    , i;
+  let length = arr.length, i;
   for (i = 0; i < length; i++) {
     if (arr[i] === value) {
       return i;
@@ -41,8 +38,7 @@ function find(arr, value) {
 }
 
 function findByPred(arr, pred) {
-  let length = arr.length
-    , i;
+  let length = arr.length, i;
   for (i = 0; i < length; i++) {
     if (pred(arr[i])) {
       return i;
@@ -52,9 +48,7 @@ function findByPred(arr, pred) {
 }
 
 function cloneArray(input) {
-  let length = input.length
-    , result = new Array(length)
-    , i;
+  let length = input.length, result = new Array(length), i;
   for (i = 0; i < length; i++) {
     result[i] = input[i];
   }
@@ -62,14 +56,13 @@ function cloneArray(input) {
 }
 
 function remove(input, index) {
-  let length = input.length
-    , result, i, j;
+  let length = input.length, result, i, j;
   if (index >= 0 && index < length) {
     if (length === 1) {
       return [];
     } else {
       result = new Array(length - 1);
-      for (i = 0, j = 0; i < length; i++) {
+      for ((i = 0), (j = 0); i < length; i++) {
         if (i !== index) {
           result[j] = input[i];
           j++;
@@ -87,9 +80,7 @@ function removeByPred(input, pred) {
 }
 
 function map(input, fn) {
-  let length = input.length
-    , result = new Array(length)
-    , i;
+  let length = input.length, result = new Array(length), i;
   for (i = 0; i < length; i++) {
     result[i] = fn(input[i]);
   }
@@ -97,16 +88,14 @@ function map(input, fn) {
 }
 
 function forEach(arr, fn) {
-  let length = arr.length
-    , i;
+  let length = arr.length, i;
   for (i = 0; i < length; i++) {
     fn(arr[i]);
   }
 }
 
 function fillArray(arr, value) {
-  let length = arr.length
-    , i;
+  let length = arr.length, i;
   for (i = 0; i < length; i++) {
     arr[i] = value;
   }
@@ -117,19 +106,13 @@ function contains(arr, value) {
 }
 
 function slide(cur, next, max) {
-  let length = Math.min(max, cur.length + 1),
-      offset = cur.length - length + 1,
-      result = new Array(length),
-      i;
+  let length = Math.min(max, cur.length + 1), offset = cur.length - length + 1, result = new Array(length), i;
   for (i = offset; i < length; i++) {
     result[i - offset] = cur[i];
   }
   result[length - 1] = next;
   return result;
 }
-
-
-
 
 export {
   concat,
@@ -143,5 +126,5 @@ export {
   forEach,
   fillArray,
   contains,
-  slide
+  slide,
 };
