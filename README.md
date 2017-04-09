@@ -67,11 +67,11 @@ foo(s);
 
 # Development
 
-To build all the things: `/dist`, docs, tests for browser, etc. run:
-
-    grunt
-    grunt bower # to also install bower packages which needed for docs
-
-To run tests:
-
-    npm test
+```sh
+npm run prettify    # makes source code pretty (you must run it before a PR could be merged)
+npm run build-js    # builds js bundlers
+npm run test        # runs all the checks
+npm run test-only   # runs only unit tests without other checks
+npm run test-debug  # runs tests with a chrome inspector connected to the node process
+npm run build-docs  # builds the documentation html file
+```
