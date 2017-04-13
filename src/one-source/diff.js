@@ -29,6 +29,5 @@ function defaultFn(a, b) {
 }
 
 export default function diff(obs, fn, seed = NOTHING) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn: fn || defaultFn, seed});
 }

@@ -21,6 +21,5 @@ const S = createStream('take', mixin);
 const P = createProperty('take', mixin);
 
 export default function take(obs, n) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {n});
 }

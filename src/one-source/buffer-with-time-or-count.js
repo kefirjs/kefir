@@ -56,6 +56,5 @@ const S = createStream('bufferWithTimeOrCount', mixin);
 const P = createProperty('bufferWithTimeOrCount', mixin);
 
 export default function bufferWithTimeOrCount(obs, wait, count, {flushOnEnd = true} = {}) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait, count, flushOnEnd});
 }

@@ -18,6 +18,5 @@ const S = createStream('skip', mixin);
 const P = createProperty('skip', mixin);
 
 export default function skip(obs, n) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {n});
 }

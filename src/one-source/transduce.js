@@ -38,6 +38,5 @@ const S = createStream('transduce', mixin);
 const P = createProperty('transduce', mixin);
 
 export default function transduce(obs, transducer) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {transducer});
 }

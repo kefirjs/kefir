@@ -10,6 +10,5 @@ const S = createStream('takeUntilBy', mixin);
 const P = createProperty('takeUntilBy', mixin);
 
 export default function takeUntilBy(primary, secondary) {
-  // prettier-ignore
   return new (primary._ofSameType(S, P))(primary, secondary);
 }

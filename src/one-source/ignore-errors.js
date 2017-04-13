@@ -8,6 +8,5 @@ const S = createStream('ignoreErrors', mixin);
 const P = createProperty('ignoreErrors', mixin);
 
 export default function ignoreErrors(obs) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs);
 }

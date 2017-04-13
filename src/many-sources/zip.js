@@ -5,7 +5,8 @@ import {map, cloneArray} from '../utils/collections';
 import {spread} from '../utils/functions';
 import never from '../primary/never';
 
-const isArray = Array.isArray ||
+const isArray =
+  Array.isArray ||
   function(xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
   };
@@ -13,8 +14,8 @@ const isArray = Array.isArray ||
 function Zip(sources, combinator) {
   Stream.call(this);
 
-  this._buffers = map(sources, source => isArray(source) ? cloneArray(source) : []);
-  this._sources = map(sources, source => isArray(source) ? never() : source);
+  this._buffers = map(sources, source => (isArray(source) ? cloneArray(source) : []));
+  this._sources = map(sources, source => (isArray(source) ? never() : source));
 
   this._combinator = combinator ? spread(combinator, this._sources.length) : x => x;
   this._aliveCount = 0;

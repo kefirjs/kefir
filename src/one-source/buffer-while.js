@@ -40,6 +40,5 @@ const P = createProperty('bufferWhile', mixin);
 const id = x => x;
 
 export default function bufferWhile(obs, fn, {flushOnEnd = true} = {}) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn: fn || id, flushOnEnd});
 }

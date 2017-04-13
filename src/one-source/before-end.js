@@ -20,6 +20,5 @@ const S = createStream('beforeEnd', mixin);
 const P = createProperty('beforeEnd', mixin);
 
 export default function beforeEnd(obs, fn) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

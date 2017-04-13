@@ -67,6 +67,5 @@ const S = createStream('debounce', mixin);
 const P = createProperty('debounce', mixin);
 
 export default function debounce(obs, wait, {immediate = false} = {}) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait, immediate});
 }

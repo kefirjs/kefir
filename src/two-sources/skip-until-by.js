@@ -19,6 +19,5 @@ const S = createStream('skipUntilBy', mixin);
 const P = createProperty('skipUntilBy', mixin);
 
 export default function skipUntilBy(primary, secondary) {
-  // prettier-ignore
   return new (primary._ofSameType(S, P))(primary, secondary);
 }

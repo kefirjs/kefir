@@ -21,6 +21,5 @@ const S = createStream('takeErrors', mixin);
 const P = createProperty('takeErrors', mixin);
 
 export default function takeErrors(obs, n) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {n});
 }

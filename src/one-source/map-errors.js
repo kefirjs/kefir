@@ -21,6 +21,5 @@ const P = createProperty('mapErrors', mixin);
 const id = x => x;
 
 export default function mapErrors(obs, fn = id) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

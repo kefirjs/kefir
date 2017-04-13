@@ -50,6 +50,5 @@ const S = createStream('bufferBy', mixin);
 const P = createProperty('bufferBy', mixin);
 
 export default function bufferBy(primary, secondary, options /* optional */) {
-  // prettier-ignore
   return new (primary._ofSameType(S, P))(primary, secondary, options);
 }

@@ -35,7 +35,7 @@ inquirer.prompt(questions, function(answers) {
   var newVerison = answers.version;
   var dryRun = answers.dryRun === 'Just see';
 
-  bower.version = (pkg.version = newVerison);
+  bower.version = pkg.version = newVerison;
 
   console.log('');
   if (dryRun) {

@@ -27,6 +27,5 @@ const P = createProperty('skipDuplicates', mixin);
 const eq = (a, b) => a === b;
 
 export default function skipDuplicates(obs, fn = eq) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

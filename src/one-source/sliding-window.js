@@ -24,6 +24,5 @@ const S = createStream('slidingWindow', mixin);
 const P = createProperty('slidingWindow', mixin);
 
 export default function slidingWindow(obs, max, min = 0) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {min, max});
 }

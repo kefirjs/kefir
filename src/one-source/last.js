@@ -26,6 +26,5 @@ const S = createStream('last', mixin);
 const P = createProperty('last', mixin);
 
 export default function last(obs) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs);
 }

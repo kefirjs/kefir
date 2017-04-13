@@ -44,6 +44,5 @@ const S = createStream('delay', mixin);
 const P = createProperty('delay', mixin);
 
 export default function delay(obs, wait) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait});
 }

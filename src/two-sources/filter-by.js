@@ -19,6 +19,5 @@ const S = createStream('filterBy', mixin);
 const P = createProperty('filterBy', mixin);
 
 export default function filterBy(primary, secondary) {
-  // prettier-ignore
   return new (primary._ofSameType(S, P))(primary, secondary);
 }

@@ -25,6 +25,5 @@ const P = createProperty('takeWhile', mixin);
 const id = x => x;
 
 export default function takeWhile(obs, fn = id) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

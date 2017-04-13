@@ -73,6 +73,5 @@ const S = createStream('throttle', mixin);
 const P = createProperty('throttle', mixin);
 
 export default function throttle(obs, wait, {leading = true, trailing = true} = {}) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {wait, leading, trailing});
 }

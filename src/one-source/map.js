@@ -21,6 +21,5 @@ const P = createProperty('map', mixin);
 const id = x => x;
 
 export default function map(obs, fn = id) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

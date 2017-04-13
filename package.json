@@ -42,7 +42,7 @@
     "flow-bin": "0.36.0",
     "inquirer": "0.10.1",
     "jasmine-node": "1.14.5",
-    "prettier": "0.22.0",
+    "prettier": "1.0.2",
     "pug": "2.0.0-beta11",
     "rollup": "0.41.6",
     "rollup-plugin-babel": "2.7.1",

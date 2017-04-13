@@ -23,6 +23,5 @@ const P = createProperty('filter', mixin);
 const id = x => x;
 
 export default function filter(obs, fn = id) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

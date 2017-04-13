@@ -21,6 +21,5 @@ const S = createStream('withHandler', mixin);
 const P = createProperty('withHandler', mixin);
 
 export default function withHandler(obs, fn) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }

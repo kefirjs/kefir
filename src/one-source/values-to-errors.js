@@ -26,6 +26,5 @@ const P = createProperty('valuesToErrors', mixin);
 const defFn = x => ({convert: true, error: x});
 
 export default function valuesToErrors(obs, fn = defFn) {
-  // prettier-ignore
   return new (obs._ofSameType(S, P))(obs, {fn});
 }
