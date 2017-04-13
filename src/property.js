@@ -1,11 +1,11 @@
-import {inherit} from './utils/objects';
-import {VALUE, ERROR, END} from './constants';
-import {callSubscriber} from './dispatcher';
-import Observable from './observable';
+import {inherit} from './utils/objects'
+import {VALUE, ERROR, END} from './constants'
+import {callSubscriber} from './dispatcher'
+import Observable from './observable'
 
 function Property() {
-  Observable.call(this);
-  this._currentEvent = null;
+  Observable.call(this)
+  this._currentEvent = null
 }
 
 inherit(Property, Observable, {
@@ -13,49 +13,49 @@ inherit(Property, Observable, {
 
   _emitValue(value) {
     if (this._alive) {
-      this._currentEvent = {type: VALUE, value};
+      this._currentEvent = {type: VALUE, value}
       if (!this._activating) {
-        this._dispatcher.dispatch({type: VALUE, value});
+        this._dispatcher.dispatch({type: VALUE, value})
       }
     }
   },
 
   _emitError(value) {
     if (this._alive) {
-      this._currentEvent = {type: ERROR, value};
+      this._currentEvent = {type: ERROR, value}
       if (!this._activating) {
-        this._dispatcher.dispatch({type: ERROR, value});
+        this._dispatcher.dispatch({type: ERROR, value})
       }
     }
   },
 
   _emitEnd() {
     if (this._alive) {
-      this._alive = false;
+      this._alive = false
       if (!this._activating) {
-        this._dispatcher.dispatch({type: END});
+        this._dispatcher.dispatch({type: END})
       }
-      this._clear();
+      this._clear()
     }
   },
 
   _on(type, fn) {
     if (this._alive) {
-      this._dispatcher.add(type, fn);
-      this._setActive(true);
+      this._dispatcher.add(type, fn)
+      this._setActive(true)
     }
     if (this._currentEvent !== null) {
-      callSubscriber(type, fn, this._currentEvent);
+      callSubscriber(type, fn, this._currentEvent)
     }
     if (!this._alive) {
-      callSubscriber(type, fn, {type: END});
+      callSubscriber(type, fn, {type: END})
     }
-    return this;
+    return this
   },
 
   getType() {
-    return 'property';
+    return 'property'
   },
-});
+})
 
-export default Property;
+export default Property

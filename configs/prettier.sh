@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PRETTIER="`npm bin`/prettier --no-bracket-spacing --print-width 120 --single-quote --trailing-comma es5"
+PRETTIER="`npm bin`/prettier --no-semi --no-bracket-spacing --print-width 120 --single-quote --trailing-comma es5"
 
 if [ "$1" == "check" ]; then
   echo "Running prettier check. Files that should be formatted (shouldn't be any):"

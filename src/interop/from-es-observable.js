@@ -1,28 +1,28 @@
-import stream from '../primary/stream';
-import $$observable from './symbol';
+import stream from '../primary/stream'
+import $$observable from './symbol'
 
 export default function fromESObservable(_observable) {
-  const observable = _observable[$$observable] ? _observable[$$observable]() : _observable;
+  const observable = _observable[$$observable] ? _observable[$$observable]() : _observable
   return stream(function(emitter) {
     const unsub = observable.subscribe({
       error(error) {
-        emitter.error(error);
-        emitter.end();
+        emitter.error(error)
+        emitter.end()
       },
       next(value) {
-        emitter.emit(value);
+        emitter.emit(value)
       },
       complete() {
-        emitter.end();
+        emitter.end()
       },
-    });
+    })
 
     if (unsub.unsubscribe) {
       return function() {
-        unsub.unsubscribe();
-      };
+        unsub.unsubscribe()
+      }
     } else {
-      return unsub;
+      return unsub
     }
-  }).setName('fromESObservable');
+  }).setName('fromESObservable')
 }

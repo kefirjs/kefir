@@ -1,30 +1,30 @@
-import {createStream, createProperty} from '../patterns/one-source';
-import {NOTHING} from '../constants';
+import {createStream, createProperty} from '../patterns/one-source'
+import {NOTHING} from '../constants'
 
 const mixin = {
   _init() {
-    this._lastValue = NOTHING;
+    this._lastValue = NOTHING
   },
 
   _free() {
-    this._lastValue = null;
+    this._lastValue = null
   },
 
   _handleValue(x) {
-    this._lastValue = x;
+    this._lastValue = x
   },
 
   _handleEnd() {
     if (this._lastValue !== NOTHING) {
-      this._emitValue(this._lastValue);
+      this._emitValue(this._lastValue)
     }
-    this._emitEnd();
+    this._emitEnd()
   },
-};
+}
 
-const S = createStream('last', mixin);
-const P = createProperty('last', mixin);
+const S = createStream('last', mixin)
+const P = createProperty('last', mixin)
 
 export default function last(obs) {
-  return new (obs._ofSameType(S, P))(obs);
+  return new (obs._ofSameType(S, P))(obs)
 }
