@@ -23,3 +23,5 @@ class MyObserver {
 }
 
 s1.observe(new MyObserver())
+
+s1.observe(value => {}, error => {}, () => {})

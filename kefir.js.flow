@@ -44,12 +44,12 @@ type ESObservable<+V,+E=*> = {
 };
 
 declare class Observable<+V,+E=*> {
-  toProperty(): Property<V,E>;
+  toProperty($?: empty): Property<V,E>;
   toProperty<V2>(getCurrent: () => V2): Property<V|V2,E>;
   changes(): Observable<V,E>;
 
-  observe(obs: Observer<V,E>, ...none: empty[]): Subscription;
-  observe(onValue: ?(v: V) => void, onError: ?(err: E) => void, onEnd: ?() => void): Subscription;
+  observe(obs: Observer<V,E>, $?: empty): Subscription;
+  observe(onValue?: (v: V) => void, onError?: (err: E) => void, onEnd?: () => void): Subscription;
   onValue(cb: (v: V) => void): this;
   offValue(cb: (v: V) => void): this;
   onError(cb: (err: E) => void): this;
@@ -76,12 +76,18 @@ declare class Observable<+V,+E=*> {
   skip(n: number): Observable<V,E>;
   skipWhile(cb?: (v: V) => boolean): Observable<V,E>;
   skipDuplicates(comparator?: (a: V, b: V) => boolean): Observable<V,E>;
-  diff(fn?: (prev: V, next: V) => V): Observable<V,E>;
-  diff<V2>(fn: (prev: V2, next: V) => V, seed: V2): Observable<V2,E>;
-  scan(cb: (prev: V, next: V) => V): Observable<V,E>;
+
+  diff($?: empty): Observable<[V, V],E>;
+  diff<V2>(fn: (prev: V, next: V) => V2, $?: empty): Observable<V2,E>;
+  diff<V2,V3>(fn: (prev: V | V3, next: V) => V2, seed: V3): Observable<V2,E>;
+  diff<V3>(fn: null | void, seed: V3): Observable<[V | V3, V],E>;
+
+  scan(cb: (prev: V, next: V) => V, $?: empty): Observable<V,E>;
   scan<V2>(cb: (prev: V2, next: V) => V2, seed: V2): Observable<V2,E>;
-  flatten(): Observable<any,E>;
+
+  flatten($?: empty): Observable<any,E>;
   flatten<V2>(transformer: (value: V) => V2[]): Observable<V2,E>;
+
   delay(n: number): Observable<V,E>;
   throttle(n: number, options?: {leading?: boolean, trailing?: boolean}): Observable<V,E>;
   debounce(n: number, options?: {immediate?: boolean}): Observable<V,E>;
@@ -98,10 +104,22 @@ declare class Observable<+V,+E=*> {
   transduce(transducer: any): Observable<any,E>;
   withHandler<V2,E2>(handler: (emitter: Emitter<V2,E2>, event: Event<V,E>) => void): Observable<V2,E2>;
 
-  combine<V2,E2>(otherObs: Observable<V2,E2>): Observable<[V,V2],E|E2>;
+  combine<V2,E2>(otherObs: Observable<V2,E2>, $?: empty): Observable<[V,V2],E|E2>;
   combine<V2,V3,E2>(otherObs: Observable<V2,E2>, combinator: (v: V, v2: V2) => V3): Observable<V3,E|E2>;
-  zip<V2,E2>(otherObs: Observable<V2,E2>): Observable<[V,V2],E|E2>;
+  combine<V2,V3,E2,E3>(
+    otherObs: Observable<V2,E2>,
+    passiveObss: Observable<V3,E3>[],
+    $?: empty
+  ): Observable<Array<V|V2|V3>,E|E2|E3>;
+  combine<V2,V3,V4,E2,E3>(
+    otherObs: Observable<V2,E2>,
+    passiveObss: Observable<V3,E3>[],
+    combinator: (v: V, v2: V2, ...v3: V3[]) => V4
+  ): Observable<V4,E|E2|E3>;
+
+  zip<V2,E2>(otherObs: Observable<V2,E2>, $?: empty): Observable<[V,V2],E|E2>;
   zip<V2,V3,E2>(otherObs: Observable<V2,E2>, combinator: (v: V, v2: V2) => V3): Observable<V3,E|E2>;
+
   merge<V2,E2>(otherObs: Observable<V2,E2>): Observable<V|V2,E|E2>;
   concat<V2,E2>(otherObs: Observable<V2,E2>): Observable<V|V2,E|E2>;
 
@@ -117,8 +135,10 @@ declare class Observable<+V,+E=*> {
   takeUntilBy(otherObs: Observable<any,any>): Observable<V,E>;
   bufferBy(otherObs: Observable<any,any>, options?: {flushOnEnd?: boolean}): Observable<V[],E>;
   bufferWhileBy(otherObs: Observable<any,any>, options?: {flushOnEnd?: boolean, flushOnChange?: boolean}): Observable<V[],E>;
-  sampledBy(otherObs: Observable<any,any>): Observable<V,E>;
+
+  sampledBy(otherObs: Observable<any,any>, $?: empty): Observable<V,E>;
   sampledBy<V2,V3>(otherObs: Observable<V2,any>, combinator: (obsValue: V, otherObsValue: V2) => V3): Observable<V3,E>;
+
   bufferWithTimeOrCount(time: number, count: number, options?: {flushOnEnd: boolean}): Observable<V,E>;
 }
 
@@ -171,13 +191,51 @@ declare var Kefir: {
   fromPromise<V,E>(promise: Promise<V>): Property<V,E>;
   fromESObservable<V,E>(observable: ESObservable<V,E>): Observable<V,E>;
 
-  combine<E>(obss: Observable<any,E>[], combinator?: Function): Observable<any,E>;
-  combine<E>(obss: Observable<any,E>[], passiveObss?: Observable<any,E>[], combinator?: Function): Observable<any,E>;
-  combine<E>(obss: {[key:string]:Observable<any,E>}, combinator?: Function): Observable<any,E>;
-  combine<E>(obss: {[key:string]:Observable<any,E>}, passiveObss?: {[key:string]:Observable<any,E>}, combinator?: Function): Observable<any,E>;
+  combine:
+    // array of observables
+    & (<V,E>(obss: Observable<V,E>[], $?: empty) => Observable<V[],E>)
 
-  zip<V,E>(obss: Observable<V,E>[]): Observable<Array<V>,E>;
-  zip<E>(obss: Observable<any,E>[], combinator: Function): Observable<any,E>;
+    // array of observables, combinator
+    & (<V,E>(obss: Observable<any,E>[], combinator: (...args: any[]) => V) => Observable<V,E>)
+
+    // array of observables, array of passive observables
+    & (<V,V2,E,E2>(obss: Observable<V,E>[], passiveObss: Observable<V2,E2>[], $?: empty) => Observable<(V|V2)[],E|E2>)
+
+    // array of observables, array of passive observables, combinator
+    & (<V,E,E2>(obss: Observable<any,E>[], passiveObss: Observable<any,E2>[], combinator: (...args: any[]) => V) => Observable<V,E|E2>)
+
+    // object of observables
+    & (<E, Obss: { [key: string]: Observable<any, E> }>(
+      obss: Obss,
+      $?: empty
+    ) => Observable<$ObjMap<Obss, <V,E2>(_: Observable<V,E2>) => V>,E>)
+
+    // object of observables, combinator
+    & (<V, E, Obss: { [key: string]: Observable<any,E> }>(
+      obss: Obss,
+      combinator: (vs: $ObjMap<Obss, <V2,E2>(_: Observable<V2,E2>) => V2>) => V
+    ) => Observable<V,E>)
+
+    // object of observables, object of passive observables
+    & (<E, E2, Obss: { [key: string]: Observable<any,E> }, PassiveObss: { [key: string]: Observable<any,E2> }>(
+      obss: Obss,
+      passiveObss: PassiveObss,
+      $?: empty
+    ) => Observable<
+      $ObjMap<Obss, <V,E3>(_: Observable<V,E3>) => V>
+      & $ObjMap<PassiveObss, <V,E3>(_: Observable<V,E3>) => V>,
+      E|E2>)
+
+    // object of observables, object of passive observables, combinator
+    & (<V, E, E2, Obss: { [key: string]: Observable<any,E> }, PassiveObss: { [key: string]: Observable<any,E2> }>(
+      obss: Obss,
+      passiveObss: PassiveObss,
+      combinator: (vs: $ObjMap<Obss, <V3,E3>(_: Observable<V3,E3>) => V3> & $ObjMap<PassiveObss, <V3,E3>(_: Observable<V3,E3>) => V3>) => V,
+    ) => Observable<V, E|E2>);
+
+  zip: (<V,E>(obss: Observable<V,E>[], $?: empty) => Observable<V[],E>)
+    & (<V,V2,E>(obss: Observable<any,E>[], combinator: (...args: any[]) => V2) => Observable<V2,E>);
+
   merge<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
   concat<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
 
