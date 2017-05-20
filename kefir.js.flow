@@ -1,5 +1,7 @@
 /* @flow */
 
+import type EventEmitter from "events";
+
 export type Event<V,E> =
   {type: 'value', value: V} |
   {type: 'error', value: E} |
@@ -27,6 +29,20 @@ export type Observer<V,E> = {
   +end?: () => void;
 };
 
+/*
+ * This is the interface described by https://github.com/tc39/proposal-observable
+ * It provides interoperability between stream implementations, including Kefir,
+ * RxJS, and zen-observable.
+ */
+type ESObservable<+V,+E=*> = {
+  subscribe(callbacks: {
+    start?: Function,
+    next?: (value: V) => any,
+    error?: (error: E) => any,
+    complete?: () => any,
+  }): { unsubscribe: () => void };
+};
+
 declare class Observable<+V,+E=*> {
   toProperty(): Property<V,E>;
   toProperty<V2>(getCurrent: () => V2): Property<V|V2,E>;
@@ -49,6 +65,7 @@ declare class Observable<+V,+E=*> {
   setName(name: string): this;
   setName(Observable<any, any>, name: string): this;
   toPromise(PromiseConstructor?: Function): Promise<V>;
+  toESObservable(): ESObservable<V,E>;
 
   map<V2>(cb: (v: V) => V2): Observable<V2,E>;
   filter(cb?: typeof Boolean): Observable<$NonMaybeType<V>,E>;
@@ -72,8 +89,8 @@ declare class Observable<+V,+E=*> {
   filterErrors(fn?: typeof Boolean): Observable<V,$NonMaybeType<E>>;
   filterErrors(fn: (error: E) => any): Observable<V,E>;
   takeErrors(n: number): Observable<V,E>;
-  ignoreValues(): Observable<*,E>;
-  ignoreErrors(): Observable<V,*>;
+  ignoreValues(): Observable<empty,E>;
+  ignoreErrors(): Observable<V,empty>;
   ignoreEnd(): Observable<V,E>;
   beforeEnd<V2>(fn: () => V2): Observable<V|V2,E>;
   slidingWindow(max: number, min?: number): Observable<V[],E>;
@@ -133,23 +150,26 @@ declare var Kefir: {
     };
   };
 
-  never(): Observable<*>;
-  later<V>(delay: number, value: V): Observable<V,*>;
-  interval<V>(interval: number, value: V): Observable<V,*>;
-  sequentially<V>(interval: number, values: V[]): Observable<V,*>;
-  fromPoll<V>(interval: number, f: () => V): Observable<V,*>;
+  never(): Observable<empty,empty>;
+  later<V>(delay: number, value: V): Observable<V,empty>;
+  interval<V>(interval: number, value: V): Observable<V,empty>;
+  sequentially<V>(interval: number, values: V[]): Observable<V,empty>;
+  fromPoll<V>(interval: number, f: () => V): Observable<V,empty>;
   withInterval<V,E>(interval: number, f: (emitter: Emitter<V,E>) => void): Observable<V,E>;
-  fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V,*>;
+  fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V,empty>;
   fromNodeCallback<V,E>(f: (cb: (err: E, value: ?V) => void) => void): Observable<V,E>;
-  fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any,*>;
+  fromEvents<V,E>(
+    target: EventTarget | EventEmitter, // `EventTarget` comes from Flow's built-in dom types
+    eventName: string,
+    transformer?: (...args: any[]) => V
+  ): Observable<V,E>;
   stream<V,E>(subscribe: (emitter: Emitter<V,E>) => ?() => void): Observable<V,E>;
 
-  constant<V>(value: V): Property<V,*>;
-  constantError<E>(err: E): Property<*,E>;
-  fromPromise<V>(promise: Promise<V>): Property<V,any>;
+  constant<V>(value: V): Property<V,empty>;
+  constantError<E>(err: E): Property<empty,E>;
 
-  fromESObservable(observable: Object): Observable<any,*>;
-  toESObservable(): Object;
+  fromPromise<V,E>(promise: Promise<V>): Property<V,E>;
+  fromESObservable<V,E>(observable: ESObservable<V,E>): Observable<V,E>;
 
   combine<E>(obss: Observable<any,E>[], combinator?: Function): Observable<any,E>;
   combine<E>(obss: Observable<any,E>[], passiveObss?: Observable<any,E>[], combinator?: Function): Observable<any,E>;
