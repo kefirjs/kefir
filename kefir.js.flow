@@ -49,7 +49,7 @@ declare class Observable<+V,+E=*> {
   changes(): Observable<V,E>;
 
   observe(obs: Observer<V,E>, $?: empty): Subscription;
-  observe(onValue?: (v: V) => void, onError?: (err: E) => void, onEnd?: () => void): Subscription;
+  observe(onValue?: ?(v: V) => void, onError?: ?(err: E) => void, onEnd?: ?() => void): Subscription;
   onValue(cb: (v: V) => void): this;
   offValue(cb: (v: V) => void): this;
   onError(cb: (err: E) => void): this;
