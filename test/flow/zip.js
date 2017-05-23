@@ -27,6 +27,11 @@ function test_zip_method_withCombinator() {
 function test_zip_noCombinator() {
   const xs = Kefir.zip([as, bs, cs])
 
+  xs.onValue((x: [number, string, boolean]) => {})
+
+  // $ExpectError
+  xs.onValue((x: [boolean, string, number]) => {})
+
   xs.onValue((x: Array<number | string | boolean>) => {})
 
   // $ExpectError

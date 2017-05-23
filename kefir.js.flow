@@ -152,6 +152,19 @@ declare class Stream<+V,+E=*> extends Observable<V,E> {
 declare class Property<+V,+E=*> extends Observable<V,E> {
 }
 
+// `$observedValuesTuple` is a helper type that describes a type for a tuple or
+// array of values in relation to a tuple or array of observables. This mapping
+// states that the type of each position in the new tuple type matches the type
+// of the value type parameter of the observable in the same position in the
+// input tuple.
+type $observedValuesTuple<Obss> = $TupleMap<Obss, <V,E>(obs: Observable<V,E>) => V>
+
+// `$observedValuesObject` is similar to `$observedValuesTuple` - except that
+// `$observedValuesObject` describes an object type where the type of each
+// property in the new object matches the value type parameter of the observable
+// type under the same key in the input object.
+type $observedValuesObject<Obss> = $ObjMap<Obss, <V,E>(obs: Observable<V,E>) => V>
+
 declare var Kefir: {
   Observable: typeof Observable;
   Pool: typeof Pool;
@@ -193,7 +206,10 @@ declare var Kefir: {
 
   combine:
     // array of observables
-    & (<V,E>(obss: Observable<V,E>[], $?: empty) => Observable<V[],E>)
+    & (<E, Obss: Observable<any,E>[]>(
+      obss: Obss,
+      $?: empty
+    ) => Observable<$observedValuesTuple<Obss>, E>)
 
     // array of observables, combinator
     & (<V,E>(obss: Observable<any,E>[], combinator: (...args: any[]) => V) => Observable<V,E>)
@@ -208,12 +224,12 @@ declare var Kefir: {
     & (<E, Obss: { [key: string]: Observable<any, E> }>(
       obss: Obss,
       $?: empty
-    ) => Observable<$ObjMap<Obss, <V,E2>(_: Observable<V,E2>) => V>,E>)
+    ) => Observable<$observedValuesObject<Obss>, E>)
 
     // object of observables, combinator
     & (<V, E, Obss: { [key: string]: Observable<any,E> }>(
       obss: Obss,
-      combinator: (vs: $ObjMap<Obss, <V2,E2>(_: Observable<V2,E2>) => V2>) => V
+      combinator: (vs: $observedValuesObject<Obss>) => V
     ) => Observable<V,E>)
 
     // object of observables, object of passive observables
@@ -222,18 +238,21 @@ declare var Kefir: {
       passiveObss: PassiveObss,
       $?: empty
     ) => Observable<
-      $ObjMap<Obss, <V,E3>(_: Observable<V,E3>) => V>
-      & $ObjMap<PassiveObss, <V,E3>(_: Observable<V,E3>) => V>,
+      $observedValuesObject<Obss> & $observedValuesObject<PassiveObss>,
       E|E2>)
 
     // object of observables, object of passive observables, combinator
     & (<V, E, E2, Obss: { [key: string]: Observable<any,E> }, PassiveObss: { [key: string]: Observable<any,E2> }>(
       obss: Obss,
       passiveObss: PassiveObss,
-      combinator: (vs: $ObjMap<Obss, <V3,E3>(_: Observable<V3,E3>) => V3> & $ObjMap<PassiveObss, <V3,E3>(_: Observable<V3,E3>) => V3>) => V,
+      combinator: (vs: $observedValuesObject<Obss> & $observedValuesObject<PassiveObss>) => V,
     ) => Observable<V, E|E2>);
 
-  zip: (<V,E>(obss: Observable<V,E>[], $?: empty) => Observable<V[],E>)
+  zip:
+    & (<E, Obss: Observable<any,E>[]>(
+      obss: Obss,
+      $?: empty
+    ) => Observable<$observedValuesTuple<Obss>, E>)
     & (<V,V2,E>(obss: Observable<any,E>[], combinator: (...args: any[]) => V2) => Observable<V2,E>);
 
   merge<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
