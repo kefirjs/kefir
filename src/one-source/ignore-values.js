@@ -1,13 +1,12 @@
-import {createStream, createProperty} from '../patterns/one-source';
+import {createStream, createProperty} from '../patterns/one-source'
 
 const mixin = {
-  _handleValue() {}
-};
+  _handleValue() {},
+}
 
-const S = createStream('ignoreValues', mixin);
-const P = createProperty('ignoreValues', mixin);
-
+const S = createStream('ignoreValues', mixin)
+const P = createProperty('ignoreValues', mixin)
 
 export default function ignoreValues(obs) {
-  return new (obs._ofSameType(S, P))(obs);
+  return new (obs._ofSameType(S, P))(obs)
 }

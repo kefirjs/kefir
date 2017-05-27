@@ -1,6 +1,5 @@
-import {inherit} from '../utils/objects';
-import Property from '../property';
-
+import {inherit} from '../utils/objects'
+import Property from '../property'
 
 // HACK:
 //   We don't call parent Class constructor, but instead putting all necessary
@@ -8,7 +7,7 @@ import Property from '../property';
 //   (see Propperty and Observable classes).
 
 function P(value) {
-  this._currentEvent = {type: 'error', value, current: true};
+  this._currentEvent = {type: 'error', value, current: true}
 }
 
 inherit(P, Property, {
@@ -17,9 +16,9 @@ inherit(P, Property, {
   _activating: false,
   _alive: false,
   _dispatcher: null,
-  _logHandlers: null
-});
+  _logHandlers: null,
+})
 
 export default function constantError(x) {
-  return new P(x);
+  return new P(x)
 }

@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "3.7.1",
+  "version": "3.7.2",
   "homepage": "https://github.com/rpominov/kefir",
   "authors": [
     "Roman Pominov <rpominov@gmail.com>"
@@ -32,14 +32,5 @@
     "**",
     "!dist/**",
     "!LICENSE.txt"
-  ],
-  "devDependencies": {
-    "jquery": "2.1.4",
-    "transducers-js": "0.4.174"
-  },
-  "exportsOverride": {
-    "transducers-js": {
-      ".": "transducers.js"
-    }
-  }
+  ]
 }

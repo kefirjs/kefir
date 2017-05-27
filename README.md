@@ -16,9 +16,6 @@ See also [Deprecated API docs](https://github.com/rpominov/kefir/blob/master/dep
 [![Dependency Status](https://david-dm.org/rpominov/kefir.svg)](https://david-dm.org/rpominov/kefir)
 [![devDependency Status](https://david-dm.org/rpominov/kefir/dev-status.svg)](https://david-dm.org/rpominov/kefir#info=devDependencies)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pozadi/kefir?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-<!-- [![Code Climate](http://img.shields.io/codeclimate/github/rpominov/kefir.svg)](https://codeclimate.com/github/rpominov/kefir) -->
-
-[Run tests in your browser](http://rpominov.github.io/kefir/test/in-browser/SpecRunner.html) (`gh-pages` branch, i.e. last stable version)
 
 
 
@@ -70,11 +67,11 @@ foo(s);
 
 # Development
 
-To build all the things: `/dist`, docs, tests for browser, etc. run:
-
-    grunt
-    grunt bower # to also install bower packages which needed for docs
-
-To run tests:
-
-    npm test
+```sh
+npm run prettify    # makes source code pretty (you must run it before a PR could be merged)
+npm run build-js    # builds js bundlers
+npm run test        # runs all the checks
+npm run test-only   # runs only unit tests without other checks
+npm run test-debug  # runs tests with a chrome inspector connected to the node process
+npm run build-docs  # builds the documentation html file
+```

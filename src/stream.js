@@ -1,19 +1,16 @@
-import {inherit} from './utils/objects';
-import Observable from './observable';
-
+import {inherit} from './utils/objects'
+import Observable from './observable'
 
 function Stream() {
-  Observable.call(this);
+  Observable.call(this)
 }
 
 inherit(Stream, Observable, {
-
   _name: 'stream',
 
   getType() {
-    return 'stream';
-  }
+    return 'stream'
+  },
+})
 
-});
-
-export default Stream;
+export default Stream

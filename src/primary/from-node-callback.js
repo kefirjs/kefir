@@ -1,23 +1,19 @@
-import stream from './stream';
+import stream from './stream'
 
 export default function fromNodeCallback(callbackConsumer) {
-
-  let called = false;
+  let called = false
 
   return stream(function(emitter) {
-
     if (!called) {
       callbackConsumer(function(error, x) {
         if (error) {
-          emitter.error(error);
+          emitter.error(error)
         } else {
-          emitter.emit(x);
+          emitter.emit(x)
         }
-        emitter.end();
-      });
-      called = true;
+        emitter.end()
+      })
+      called = true
     }
-
-  }).setName('fromNodeCallback');
-
+  }).setName('fromNodeCallback')
 }
