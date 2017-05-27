@@ -1,5 +1,7 @@
 /* @flow */
 
+import type EventEmitter from "events";
+
 export type Event<V,E> =
   {type: 'value', value: V} |
   {type: 'error', value: E} |
@@ -27,13 +29,27 @@ export type Observer<V,E> = {
   +end?: () => void;
 };
 
+/*
+ * This is the interface described by https://github.com/tc39/proposal-observable
+ * It provides interoperability between stream implementations, including Kefir,
+ * RxJS, and zen-observable.
+ */
+type ESObservable<+V,+E=*> = {
+  subscribe(callbacks: {
+    start?: Function,
+    next?: (value: V) => any,
+    error?: (error: E) => any,
+    complete?: () => any,
+  }): { unsubscribe: () => void };
+};
+
 declare class Observable<+V,+E=*> {
-  toProperty(): Property<V,E>;
+  toProperty($?: empty): Property<V,E>;
   toProperty<V2>(getCurrent: () => V2): Property<V|V2,E>;
   changes(): Observable<V,E>;
 
-  observe(obs: Observer<V,E>, ...none: empty[]): Subscription;
-  observe(onValue: ?(v: V) => void, onError: ?(err: E) => void, onEnd: ?() => void): Subscription;
+  observe(obs: Observer<V,E>, $?: empty): Subscription;
+  observe(onValue?: ?(v: V) => void, onError?: ?(err: E) => void, onEnd?: ?() => void): Subscription;
   onValue(cb: (v: V) => void): this;
   offValue(cb: (v: V) => void): this;
   onError(cb: (err: E) => void): this;
@@ -49,6 +65,7 @@ declare class Observable<+V,+E=*> {
   setName(name: string): this;
   setName(Observable<any, any>, name: string): this;
   toPromise(PromiseConstructor?: Function): Promise<V>;
+  toESObservable(): ESObservable<V,E>;
 
   map<V2>(cb: (v: V) => V2): Observable<V2,E>;
   filter(cb?: typeof Boolean): Observable<$NonMaybeType<V>,E>;
@@ -59,12 +76,18 @@ declare class Observable<+V,+E=*> {
   skip(n: number): Observable<V,E>;
   skipWhile(cb?: (v: V) => boolean): Observable<V,E>;
   skipDuplicates(comparator?: (a: V, b: V) => boolean): Observable<V,E>;
-  diff(fn?: (prev: V, next: V) => V): Observable<V,E>;
-  diff<V2>(fn: (prev: V2, next: V) => V, seed: V2): Observable<V2,E>;
-  scan(cb: (prev: V, next: V) => V): Observable<V,E>;
+
+  diff($?: empty): Observable<[V, V],E>;
+  diff<V2>(fn: (prev: V, next: V) => V2, $?: empty): Observable<V2,E>;
+  diff<V2,V3>(fn: (prev: V | V3, next: V) => V2, seed: V3): Observable<V2,E>;
+  diff<V3>(fn: null | void, seed: V3): Observable<[V | V3, V],E>;
+
+  scan(cb: (prev: V, next: V) => V, $?: empty): Observable<V,E>;
   scan<V2>(cb: (prev: V2, next: V) => V2, seed: V2): Observable<V2,E>;
-  flatten(): Observable<any,E>;
+
+  flatten($?: empty): Observable<any,E>;
   flatten<V2>(transformer: (value: V) => V2[]): Observable<V2,E>;
+
   delay(n: number): Observable<V,E>;
   throttle(n: number, options?: {leading?: boolean, trailing?: boolean}): Observable<V,E>;
   debounce(n: number, options?: {immediate?: boolean}): Observable<V,E>;
@@ -72,8 +95,8 @@ declare class Observable<+V,+E=*> {
   filterErrors(fn?: typeof Boolean): Observable<V,$NonMaybeType<E>>;
   filterErrors(fn: (error: E) => any): Observable<V,E>;
   takeErrors(n: number): Observable<V,E>;
-  ignoreValues(): Observable<*,E>;
-  ignoreErrors(): Observable<V,*>;
+  ignoreValues(): Observable<empty,E>;
+  ignoreErrors(): Observable<V,empty>;
   ignoreEnd(): Observable<V,E>;
   beforeEnd<V2>(fn: () => V2): Observable<V|V2,E>;
   slidingWindow(max: number, min?: number): Observable<V[],E>;
@@ -81,10 +104,22 @@ declare class Observable<+V,+E=*> {
   transduce(transducer: any): Observable<any,E>;
   withHandler<V2,E2>(handler: (emitter: Emitter<V2,E2>, event: Event<V,E>) => void): Observable<V2,E2>;
 
-  combine<V2,E2>(otherObs: Observable<V2,E2>): Observable<[V,V2],E|E2>;
+  combine<V2,E2>(otherObs: Observable<V2,E2>, $?: empty): Observable<[V,V2],E|E2>;
   combine<V2,V3,E2>(otherObs: Observable<V2,E2>, combinator: (v: V, v2: V2) => V3): Observable<V3,E|E2>;
-  zip<V2,E2>(otherObs: Observable<V2,E2>): Observable<[V,V2],E|E2>;
+  combine<V2,V3,E2,E3>(
+    otherObs: Observable<V2,E2>,
+    passiveObss: Observable<V3,E3>[],
+    $?: empty
+  ): Observable<Array<V|V2|V3>,E|E2|E3>;
+  combine<V2,V3,V4,E2,E3>(
+    otherObs: Observable<V2,E2>,
+    passiveObss: Observable<V3,E3>[],
+    combinator: (v: V, v2: V2, ...v3: V3[]) => V4
+  ): Observable<V4,E|E2|E3>;
+
+  zip<V2,E2>(otherObs: Observable<V2,E2>, $?: empty): Observable<[V,V2],E|E2>;
   zip<V2,V3,E2>(otherObs: Observable<V2,E2>, combinator: (v: V, v2: V2) => V3): Observable<V3,E|E2>;
+
   merge<V2,E2>(otherObs: Observable<V2,E2>): Observable<V|V2,E|E2>;
   concat<V2,E2>(otherObs: Observable<V2,E2>): Observable<V|V2,E|E2>;
 
@@ -100,8 +135,10 @@ declare class Observable<+V,+E=*> {
   takeUntilBy(otherObs: Observable<any,any>): Observable<V,E>;
   bufferBy(otherObs: Observable<any,any>, options?: {flushOnEnd?: boolean}): Observable<V[],E>;
   bufferWhileBy(otherObs: Observable<any,any>, options?: {flushOnEnd?: boolean, flushOnChange?: boolean}): Observable<V[],E>;
-  sampledBy(otherObs: Observable<any,any>): Observable<V,E>;
+
+  sampledBy(otherObs: Observable<any,any>, $?: empty): Observable<V,E>;
   sampledBy<V2,V3>(otherObs: Observable<V2,any>, combinator: (obsValue: V, otherObsValue: V2) => V3): Observable<V3,E>;
+
   bufferWithTimeOrCount(time: number, count: number, options?: {flushOnEnd: boolean}): Observable<V,E>;
 }
 
@@ -114,6 +151,19 @@ declare class Stream<+V,+E=*> extends Observable<V,E> {
 
 declare class Property<+V,+E=*> extends Observable<V,E> {
 }
+
+// `$observedValuesTuple` is a helper type that describes a type for a tuple or
+// array of values in relation to a tuple or array of observables. This mapping
+// states that the type of each position in the new tuple type matches the type
+// of the value type parameter of the observable in the same position in the
+// input tuple.
+type $observedValuesTuple<Obss> = $TupleMap<Obss, <V,E>(obs: Observable<V,E>) => V>
+
+// `$observedValuesObject` is similar to `$observedValuesTuple` - except that
+// `$observedValuesObject` describes an object type where the type of each
+// property in the new object matches the value type parameter of the observable
+// type under the same key in the input object.
+type $observedValuesObject<Obss> = $ObjMap<Obss, <V,E>(obs: Observable<V,E>) => V>
 
 declare var Kefir: {
   Observable: typeof Observable;
@@ -133,31 +183,78 @@ declare var Kefir: {
     };
   };
 
-  never(): Observable<*>;
-  later<V>(delay: number, value: V): Observable<V,*>;
-  interval<V>(interval: number, value: V): Observable<V,*>;
-  sequentially<V>(interval: number, values: V[]): Observable<V,*>;
-  fromPoll<V>(interval: number, f: () => V): Observable<V,*>;
+  never(): Observable<empty,empty>;
+  later<V>(delay: number, value: V): Observable<V,empty>;
+  interval<V>(interval: number, value: V): Observable<V,empty>;
+  sequentially<V>(interval: number, values: V[]): Observable<V,empty>;
+  fromPoll<V>(interval: number, f: () => V): Observable<V,empty>;
   withInterval<V,E>(interval: number, f: (emitter: Emitter<V,E>) => void): Observable<V,E>;
-  fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V,*>;
+  fromCallback<V>(f: (cb: (value: V) => void) => void): Observable<V,empty>;
   fromNodeCallback<V,E>(f: (cb: (err: E, value: ?V) => void) => void): Observable<V,E>;
-  fromEvents(target: Object, eventName: string, transformer?: (event: any) => any): Observable<any,*>;
+  fromEvents<V,E>(
+    target: EventTarget | EventEmitter, // `EventTarget` comes from Flow's built-in dom types
+    eventName: string,
+    transformer?: (...args: any[]) => V
+  ): Observable<V,E>;
   stream<V,E>(subscribe: (emitter: Emitter<V,E>) => ?() => void): Observable<V,E>;
 
-  constant<V>(value: V): Property<V,*>;
-  constantError<E>(err: E): Property<*,E>;
-  fromPromise<V>(promise: Promise<V>): Property<V,any>;
+  constant<V>(value: V): Property<V,empty>;
+  constantError<E>(err: E): Property<empty,E>;
 
-  fromESObservable(observable: Object): Observable<any,*>;
-  toESObservable(): Object;
+  fromPromise<V,E>(promise: Promise<V>): Property<V,E>;
+  fromESObservable<V,E>(observable: ESObservable<V,E>): Observable<V,E>;
 
-  combine<E>(obss: Observable<any,E>[], combinator?: Function): Observable<any,E>;
-  combine<E>(obss: Observable<any,E>[], passiveObss?: Observable<any,E>[], combinator?: Function): Observable<any,E>;
-  combine<E>(obss: {[key:string]:Observable<any,E>}, combinator?: Function): Observable<any,E>;
-  combine<E>(obss: {[key:string]:Observable<any,E>}, passiveObss?: {[key:string]:Observable<any,E>}, combinator?: Function): Observable<any,E>;
+  combine:
+    // array of observables
+    & (<E, Obss: Observable<any,E>[]>(
+      obss: Obss,
+      $?: empty
+    ) => Observable<$observedValuesTuple<Obss>, E>)
 
-  zip<V,E>(obss: Observable<V,E>[]): Observable<Array<V>,E>;
-  zip<E>(obss: Observable<any,E>[], combinator: Function): Observable<any,E>;
+    // array of observables, combinator
+    & (<V,E>(obss: Observable<any,E>[], combinator: (...args: any[]) => V) => Observable<V,E>)
+
+    // array of observables, array of passive observables
+    & (<V,V2,E,E2>(obss: Observable<V,E>[], passiveObss: Observable<V2,E2>[], $?: empty) => Observable<(V|V2)[],E|E2>)
+
+    // array of observables, array of passive observables, combinator
+    & (<V,E,E2>(obss: Observable<any,E>[], passiveObss: Observable<any,E2>[], combinator: (...args: any[]) => V) => Observable<V,E|E2>)
+
+    // object of observables
+    & (<E, Obss: { [key: string]: Observable<any, E> }>(
+      obss: Obss,
+      $?: empty
+    ) => Observable<$observedValuesObject<Obss>, E>)
+
+    // object of observables, combinator
+    & (<V, E, Obss: { [key: string]: Observable<any,E> }>(
+      obss: Obss,
+      combinator: (vs: $observedValuesObject<Obss>) => V
+    ) => Observable<V,E>)
+
+    // object of observables, object of passive observables
+    & (<E, E2, Obss: { [key: string]: Observable<any,E> }, PassiveObss: { [key: string]: Observable<any,E2> }>(
+      obss: Obss,
+      passiveObss: PassiveObss,
+      $?: empty
+    ) => Observable<
+      $observedValuesObject<Obss> & $observedValuesObject<PassiveObss>,
+      E|E2>)
+
+    // object of observables, object of passive observables, combinator
+    & (<V, E, E2, Obss: { [key: string]: Observable<any,E> }, PassiveObss: { [key: string]: Observable<any,E2> }>(
+      obss: Obss,
+      passiveObss: PassiveObss,
+      combinator: (vs: $observedValuesObject<Obss> & $observedValuesObject<PassiveObss>) => V,
+    ) => Observable<V, E|E2>);
+
+  zip:
+    & (<E, Obss: Observable<any,E>[]>(
+      obss: Obss,
+      $?: empty
+    ) => Observable<$observedValuesTuple<Obss>, E>)
+    & (<V,V2,E>(obss: Observable<any,E>[], combinator: (...args: any[]) => V2) => Observable<V2,E>);
+
   merge<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
   concat<V,E>(obss: Observable<V,E>[]): Observable<V,E>;
 
