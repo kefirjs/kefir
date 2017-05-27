@@ -1,4 +1,4 @@
-## 3.7.1 (27/05/2017)
+## 3.7.2 (27/05/2017)
 
  - Flow definitions improved [#242](https://github.com/rpominov/kefir/pull/242) [@hallettj](https://github.com/hallettj)
 
