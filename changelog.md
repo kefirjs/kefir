@@ -1,6 +1,10 @@
+## 3.7.1 (27/05/2017)
+
+ - Flow definitions improved [#242](https://github.com/rpominov/kefir/pull/242) [@hallettj](https://github.com/hallettj)
+
 ## 3.7.1 (21/01/2017)
 
- - The `.setName` method has been added to Flow defenitions [#232](https://github.com/rpominov/kefir/pull/232) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+ - The `.setName` method has been added to Flow definitions [#232](https://github.com/rpominov/kefir/pull/232) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
 
 ## 3.7.0 (31/12/2016)
 
