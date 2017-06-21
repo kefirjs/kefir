@@ -11,7 +11,7 @@ const mixin = {
   _handleValue(x) {
     this._n--
     this._emitValue(x)
-    if (this._n === 0) {
+    if (this._n <= 0) {
       this._emitEnd()
     }
   },

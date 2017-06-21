@@ -11,7 +11,7 @@ const mixin = {
   _handleError(x) {
     this._n--
     this._emitError(x)
-    if (this._n === 0) {
+    if (this._n <= 0) {
       this._emitEnd()
     }
   },
