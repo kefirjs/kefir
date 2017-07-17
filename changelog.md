@@ -1,3 +1,7 @@
+## 3.7.3 (17/07/2017)
+
+ - A bug in Flow definitions was fixed [#245](https://github.com/rpominov/kefir/issues/245)
+
 ## 3.7.2 (27/05/2017)
 
  - Flow definitions improved [#242](https://github.com/rpominov/kefir/pull/242) [@hallettj](https://github.com/hallettj)
