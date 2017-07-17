@@ -29,18 +29,20 @@ export type Observer<V,E> = {
   +end?: () => void;
 };
 
+interface ESObserver<-V,-E> {
+  start?: Function,
+  next?: (value: V) => any,
+  error?: (error: E) => any,
+  complete?: () => any,
+}
+
 /*
  * This is the interface described by https://github.com/tc39/proposal-observable
  * It provides interoperability between stream implementations, including Kefir,
  * RxJS, and zen-observable.
  */
 type ESObservable<+V,+E=*> = {
-  subscribe(callbacks: {
-    start?: Function,
-    next?: (value: V) => any,
-    error?: (error: E) => any,
-    complete?: () => any,
-  }): { unsubscribe: () => void };
+  subscribe(callbacks: ESObserver<V, E>): { unsubscribe: () => void };
 };
 
 declare class Observable<+V,+E=*> {
