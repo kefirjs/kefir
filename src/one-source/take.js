@@ -9,9 +9,12 @@ const mixin = {
   },
 
   _handleValue(x) {
+    if (this._n === 0) {
+      return
+    }
     this._n--
     this._emitValue(x)
-    if (this._n <= 0) {
+    if (this._n === 0) {
       this._emitEnd()
     }
   },

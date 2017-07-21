@@ -1,4 +1,4 @@
-{stream, prop, send, Kefir} = require('../test-helpers.coffee')
+{stream, prop, send, Kefir, pool} = require('../test-helpers.coffee')
 
 
 
@@ -34,6 +34,13 @@ describe 'take', ->
       a = stream()
       expect(a.take(1)).errorsToFlow(a)
 
+    it 'should emit once on circular dependency', ->
+      a = pool()
+      b = a.take(1).map((x) -> x + 1)
+      a.plug(b)
+
+      expect(b).toEmit [2, '<end>'], ->
+        send(a, [1, 2, 3, 4, 5])
 
 
 
