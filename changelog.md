@@ -1,3 +1,7 @@
+## 3.7.4 (25/08/2017)
+
+ - A bug `.take` / `.takeErrors` was fixed [#244](https://github.com/rpominov/kefir/pull/244) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+
 ## 3.7.3 (17/07/2017)
 
  - A bug in Flow definitions was fixed [#245](https://github.com/rpominov/kefir/issues/245)
