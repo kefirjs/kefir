@@ -9,6 +9,9 @@ const mixin = {
   },
 
   _handleError(x) {
+    if (this._n === 0) {
+      return
+    }
     this._n--
     this._emitError(x)
     if (this._n === 0) {

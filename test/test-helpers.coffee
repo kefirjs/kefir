@@ -70,6 +70,9 @@ exports.prop = ->
 exports.stream = ->
   new Kefir.Stream()
 
+exports.pool = ->
+  new Kefir.Pool()
+
 
 # This function changes timers' IDs so "simultaneous" timers are reversed
 # Also sets createdAt to 0 so closk.tick will sort by ID
