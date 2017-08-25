@@ -1,4 +1,4 @@
-/*! Kefir.js v3.7.3
+/*! Kefir.js v3.7.4
  *  https://github.com/rpominov/kefir
  */
 
@@ -1550,6 +1550,9 @@ var mixin$2 = {
     }
   },
   _handleValue: function (x) {
+    if (this._n === 0) {
+      return;
+    }
     this._n--;
     this._emitValue(x);
     if (this._n === 0) {
@@ -1575,6 +1578,9 @@ var mixin$3 = {
     }
   },
   _handleError: function (x) {
+    if (this._n === 0) {
+      return;
+    }
     this._n--;
     this._emitError(x);
     if (this._n === 0) {
