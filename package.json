@@ -5,7 +5,7 @@
   "main": "dist/kefir.js",
   "scripts": {
     "prettify": "./configs/prettier.sh",
-    "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
+    "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.esm.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
     "build-docs": "node configs/docs.js",
     "clean": "rm -r dist index.html || true",
     "build": "npm run clean && npm run build-js && npm run build-docs",
