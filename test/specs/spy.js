@@ -1,52 +1,66 @@
-{stream, send} = require('../test-helpers.coffee')
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const {stream, send} = require('../test-helpers.coffee');
 
-describe 'spy', ->
+describe('spy', function() {
 
-  describe 'adding', ->
+  describe('adding', function() {
 
-    it 'should return the stream', ->
-      expect(stream().spy()).toBeStream()
+    it('should return the stream', () => expect(stream().spy()).toBeStream());
 
-    it 'should not activate the stream', ->
-       a = stream().spy()
-       expect(a).not.toBeActive()
+    return it('should not activate the stream', function() {
+       const a = stream().spy();
+       return expect(a).not.toBeActive();
+    });
+  });
 
-  describe 'removing', ->
+  describe('removing', function() {
 
-    it 'should return the stream', ->
-      expect(stream().spy().offSpy()).toBeStream()
+    it('should return the stream', () => expect(stream().spy().offSpy()).toBeStream());
 
-    it 'should not activate the stream', ->
-       a = stream().spy().offSpy()
-       expect(a).not.toBeActive()
+    return it('should not activate the stream', function() {
+       const a = stream().spy().offSpy();
+       return expect(a).not.toBeActive();
+    });
+  });
 
-  describe 'console', ->
+  return describe('console', function() {
 
-    beforeEach ->
-      spyOn(console, 'log')
+    beforeEach(() => spyOn(console, 'log'));
 
-    it 'should have a default name', ->
-      a = stream()
-      a.spy()
-      expect(a).toEmit [1, 2, 3], ->
-        send(a, [1, 2, 3])
-        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 1)
-        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 2)
-        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 3)
+    it('should have a default name', function() {
+      const a = stream();
+      a.spy();
+      return expect(a).toEmit([1, 2, 3], function() {
+        send(a, [1, 2, 3]);
+        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 1);
+        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 2);
+        return expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 3);
+      });
+    });
 
-    it 'should use the name', ->
-      a = stream()
-      a.spy('spied')
-      expect(a).toEmit [1, 2, 3], ->
-        send(a, [1, 2, 3])
-        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 1)
-        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 2)
-        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 3)
+    it('should use the name', function() {
+      const a = stream();
+      a.spy('spied');
+      return expect(a).toEmit([1, 2, 3], function() {
+        send(a, [1, 2, 3]);
+        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 1);
+        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 2);
+        return expect(console.log).toHaveBeenCalledWith('spied', '<value>', 3);
+      });
+    });
 
-    it 'should not log if the spy has been removed', ->
-      a = stream()
-      a.spy()
-      a.offSpy()
-      expect(a).toEmit [1, 2, 3], ->
-        send(a, [1, 2, 3])
-        expect(console.log).not.toHaveBeenCalled()
+    return it('should not log if the spy has been removed', function() {
+      const a = stream();
+      a.spy();
+      a.offSpy();
+      return expect(a).toEmit([1, 2, 3], function() {
+        send(a, [1, 2, 3]);
+        return expect(console.log).not.toHaveBeenCalled();
+      });
+    });
+  });
+});

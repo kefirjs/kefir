@@ -1,54 +1,60 @@
-{stream, prop, send, Kefir} = require('../test-helpers.coffee')
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const {stream, prop, send, Kefir} = require('../test-helpers.coffee');
 
 
-streamWithCurrent = (event) ->
-  Kefir.stream (emitter) ->
-    emitter.emitEvent(event)
+const streamWithCurrent = event =>
+  Kefir.stream(emitter => emitter.emitEvent(event))
+;
 
 
 
-describe 'changes', ->
+describe('changes', function() {
 
 
-  describe 'stream', ->
+  describe('stream', function() {
 
-    it 'should return stream', ->
-      expect(stream().changes()).toBeStream()
+    it('should return stream', () => expect(stream().changes()).toBeStream());
 
-    it 'should activate/deactivate source', ->
-      a = stream()
-      expect(a.changes()).toActivate(a)
+    it('should activate/deactivate source', function() {
+      const a = stream();
+      return expect(a.changes()).toActivate(a);
+    });
 
-    it 'should be ended if source was ended', ->
-      expect(send(stream(), ['<end>']).changes()).toEmit ['<end:current>']
+    it('should be ended if source was ended', () => expect(send(stream(), ['<end>']).changes()).toEmit(['<end:current>']));
 
-    it 'test `streamWithCurrent` helper', ->
-      expect(streamWithCurrent({type: 'value', value: 1})).toEmit [{current: 1}]
-      expect(streamWithCurrent({type: 'error', value: 1})).toEmit [{currentError: 1}]
+    it('test `streamWithCurrent` helper', function() {
+      expect(streamWithCurrent({type: 'value', value: 1})).toEmit([{current: 1}]);
+      return expect(streamWithCurrent({type: 'error', value: 1})).toEmit([{currentError: 1}]);
+  });
 
-    it 'should handle events and current', ->
-      a = streamWithCurrent({type: 'value', value: 1})
-      expect(a.changes()).toEmit [2, {error: 5}, 3, '<end>'], ->
-        send(a, [2, {error: 5}, 3, '<end>'])
-      a = streamWithCurrent({type: 'error', value: 1})
-      expect(a.changes()).toEmit [2, {error: 5}, 3, '<end>'], ->
-        send(a, [2, {error: 5}, 3, '<end>'])
+    return it('should handle events and current', function() {
+      let a = streamWithCurrent({type: 'value', value: 1});
+      expect(a.changes()).toEmit([2, {error: 5}, 3, '<end>'], () => send(a, [2, {error: 5}, 3, '<end>']));
+      a = streamWithCurrent({type: 'error', value: 1});
+      return expect(a.changes()).toEmit([2, {error: 5}, 3, '<end>'], () => send(a, [2, {error: 5}, 3, '<end>']));
+    });
+  });
 
-  describe 'property', ->
+  return describe('property', function() {
 
-    it 'should return stream', ->
-      expect(prop().changes()).toBeStream()
+    it('should return stream', () => expect(prop().changes()).toBeStream());
 
-    it 'should activate/deactivate source', ->
-      a = prop()
-      expect(a.changes()).toActivate(a)
+    it('should activate/deactivate source', function() {
+      const a = prop();
+      return expect(a.changes()).toActivate(a);
+    });
 
-    it 'should be ended if source was ended', ->
-      expect(send(prop(), ['<end>']).changes()).toEmit ['<end:current>']
+    it('should be ended if source was ended', () => expect(send(prop(), ['<end>']).changes()).toEmit(['<end:current>']));
 
-    it 'should handle events and current', ->
-      a = send(prop(), [1, {error: 4}])
-      expect(a.changes()).toEmit [2, {error: 5}, 3, '<end>'], ->
-        send(a, [2, {error: 5}, 3, '<end>'])
+    return it('should handle events and current', function() {
+      const a = send(prop(), [1, {error: 4}]);
+      return expect(a.changes()).toEmit([2, {error: 5}, 3, '<end>'], () => send(a, [2, {error: 5}, 3, '<end>']));
+    });
+  });
+});
 
 

@@ -1,10 +1,16 @@
-Kefir = require('../../dist/kefir')
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const Kefir = require('../../dist/kefir');
 
-describe 'fromPoll', ->
+describe('fromPoll', function() {
 
-  it 'should return stream', ->
-    expect(Kefir.fromPoll(100, ->)).toBeStream()
+  it('should return stream', () => expect(Kefir.fromPoll(100, function() {})).toBeStream());
 
-  it 'should emit whatever fn returns at certain time', ->
-    i = 0
-    expect(Kefir.fromPoll(100, -> ++i)).toEmitInTime [[ 100, 1 ], [ 200, 2 ], [ 300, 3 ]], null, 350
+  return it('should emit whatever fn returns at certain time', function() {
+    let i = 0;
+    return expect(Kefir.fromPoll(100, () => ++i)).toEmitInTime([[ 100, 1 ], [ 200, 2 ], [ 300, 3 ]], null, 350);
+  });
+});
