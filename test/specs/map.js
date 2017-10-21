@@ -1,51 +1,50 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, Kefir} = require('../test-helpers')
 
-describe('map', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().map(function() {})).toBeStream())
+describe('map', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().map(() => {})).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.map(function() {})).toActivate(a)
+      expect(a.map(() => {})).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).map(function() {})).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).map(() => {})).toEmit(['<end:current>']))
 
-    it('should handle events', function() {
+    it('should handle events', () => {
       const a = stream()
-      return expect(a.map(x => x * 2)).toEmit([2, {error: 5}, 4, '<end>'], () => send(a, [1, {error: 5}, 2, '<end>']))
+      expect(a.map(x => x * 2)).toEmit([2, {error: 5}, 4, '<end>'], () => send(a, [1, {error: 5}, 2, '<end>']))
     })
 
-    return it('should work with default `fn`', function() {
+    it('should work with default `fn`', () => {
       const a = stream()
-      return expect(a.map()).toEmit([1, {error: 5}, 2, '<end>'], () => send(a, [1, {error: 5}, 2, '<end>']))
+      expect(a.map()).toEmit([1, {error: 5}, 2, '<end>'], () => send(a, [1, {error: 5}, 2, '<end>']))
     })
   })
 
-  return describe('property', function() {
-    it('should return property', () => expect(prop().map(function() {})).toBeProperty())
+  describe('property', () => {
+    it('should return property', () => {
+      expect(prop().map(() => {})).toBeProperty()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = prop()
-      return expect(a.map(function() {})).toActivate(a)
+      expect(a.map(() => {})).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).map(function() {})).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).map(() => {})).toEmit(['<end:current>']))
 
-    return it('should handle events and current', function() {
+    it('should handle events and current', () => {
       let a = send(prop(), [1])
       expect(a.map(x => x * 2)).toEmit([{current: 2}, 4, {error: 5}, 6, '<end>'], () =>
         send(a, [2, {error: 5}, 3, '<end>'])
       )
       a = send(prop(), [{error: 0}])
-      return expect(a.map(x => x * 2)).toEmit([{currentError: 0}, 4, {error: 5}, 6, '<end>'], () =>
+      expect(a.map(x => x * 2)).toEmit([{currentError: 0}, 4, {error: 5}, 6, '<end>'], () =>
         send(a, [2, {error: 5}, 3, '<end>'])
       )
     })

@@ -1,16 +1,15 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('fromCallback', function() {
-  it('should return stream', () => expect(Kefir.fromCallback(function() {})).toBeStream())
+describe('fromCallback', () => {
+  it('should return stream', () => {
+    expect(Kefir.fromCallback(() => {})).toBeStream()
+  })
 
-  it('should not be ended', () => expect(Kefir.fromCallback(function() {})).toEmit([]))
+  it('should not be ended', () => {
+    expect(Kefir.fromCallback(() => {})).toEmit([])
+  })
 
-  it('should call `callbackConsumer` on first activation, and only on first', function() {
+  it('should call `callbackConsumer` on first activation, and only on first', () => {
     let count = 0
     const s = Kefir.fromCallback(() => count++)
     expect(count).toBe(0)
@@ -20,24 +19,25 @@ describe('fromCallback', function() {
     activate(s)
     deactivate(s)
     activate(s)
-    return expect(count).toBe(1)
+    expect(count).toBe(1)
   })
 
-  it('should emit first result and end after that', function() {
+  it('should emit first result and end after that', () => {
     let cb = null
-    return expect(Kefir.fromCallback(_cb => cb = _cb)).toEmit([1, '<end>'], () => cb(1))
+    expect(Kefir.fromCallback(_cb => cb = _cb)).toEmit([1, '<end>'], () => cb(1))
   })
 
-  it('should work after deactivation/activate cicle', function() {
+  it('should work after deactivation/activate cicle', () => {
     let cb = null
     const s = Kefir.fromCallback(_cb => cb = _cb)
     activate(s)
     deactivate(s)
     activate(s)
     deactivate(s)
-    return expect(s).toEmit([1, '<end>'], () => cb(1))
+    expect(s).toEmit([1, '<end>'], () => cb(1))
   })
 
-  return it('should emit a current, if `callback` is called immediately in `callbackConsumer`', () =>
-    expect(Kefir.fromCallback(cb => cb(1))).toEmit([{current: 1}, '<end:current>']))
+  it('should emit a current, if `callback` is called immediately in `callbackConsumer`', () => {
+    expect(Kefir.fromCallback(cb => cb(1))).toEmit([{current: 1}, '<end:current>'])
+  })
 })

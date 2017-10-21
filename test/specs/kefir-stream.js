@@ -1,22 +1,21 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('Kefir.stream', function() {
-  it('should return stream', () => expect(Kefir.stream(function() {})).toBeStream())
+describe('Kefir.stream', () => {
+  it('should return stream', () => {
+    expect(Kefir.stream(() => {})).toBeStream()
+  })
 
-  it('should not be ended', () => expect(Kefir.stream(function() {})).toEmit([]))
+  it('should not be ended', () => {
+    expect(Kefir.stream(() => {})).toEmit([])
+  })
 
-  it('should emit values, errors, and end', function() {
+  it('should emit values, errors, and end', () => {
     let emitter = null
-    const a = Kefir.stream(function(em) {
+    const a = Kefir.stream(em => {
       emitter = em
       return null
     })
-    return expect(a).toEmit([1, 2, {error: -1}, 3, '<end>'], function() {
+    expect(a).toEmit([1, 2, {error: -1}, 3, '<end>'], () => {
       emitter.value(1)
       emitter.value(2)
       emitter.error(-1)
@@ -25,10 +24,10 @@ describe('Kefir.stream', function() {
     })
   })
 
-  it('should call `subscribe` / `unsubscribe` on activation / deactivation', function() {
+  it('should call `subscribe` / `unsubscribe` on activation / deactivation', () => {
     let subCount = 0
     let unsubCount = 0
-    const a = Kefir.stream(function() {
+    const a = Kefir.stream(() => {
       subCount++
       return () => unsubCount++
     })
@@ -47,23 +46,23 @@ describe('Kefir.stream', function() {
     expect(subCount).toBe(2)
     expect(unsubCount).toBe(1)
     deactivate(a)
-    return expect(unsubCount).toBe(2)
+    expect(unsubCount).toBe(2)
   })
 
-  it('should automatically controll isCurent argument in `send`', function() {
+  it('should automatically controll isCurent argument in `send`', () => {
     expect(
-      Kefir.stream(function(emitter) {
+      Kefir.stream(emitter => {
         emitter.end()
         return null
       })
     ).toEmit(['<end:current>'])
 
-    return expect(
-      Kefir.stream(function(emitter) {
+    expect(
+      Kefir.stream(emitter => {
         emitter.value(1)
         emitter.error(-1)
         emitter.value(2)
-        setTimeout(function() {
+        setTimeout(() => {
           emitter.value(2)
           return emitter.end()
         }, 1000)
@@ -72,13 +71,13 @@ describe('Kefir.stream', function() {
     ).toEmitInTime([[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']])
   })
 
-  it('should support emitter.event', () =>
+  it('should support emitter.event', () => {
     expect(
-      Kefir.stream(function(emitter) {
+      Kefir.stream(emitter => {
         emitter.event({type: 'value', value: 1, current: true})
         emitter.event({type: 'error', value: -1, current: false})
         emitter.event({type: 'value', value: 2, current: false})
-        setTimeout(function() {
+        setTimeout(() => {
           emitter.event({type: 'value', value: 3, current: true})
           emitter.event({type: 'value', value: 4, current: false})
           return emitter.event({type: 'end', value: undefined, current: false})
@@ -92,28 +91,31 @@ describe('Kefir.stream', function() {
       [1000, 3],
       [1000, 4],
       [1000, '<end>'],
-    ]))
+    ])
+  })
 
   // https://github.com/rpominov/kefir/issues/35
-  it('should work with .take(1) and sync emit', function() {
+  it('should work with .take(1) and sync emit', () => {
     const log = []
 
-    const a = Kefir.stream(function(emitter) {
+    const a = Kefir.stream(emitter => {
       const logRecord = {sub: 1, unsub: 0}
       log.push(logRecord)
       emitter.value(1)
       return () => logRecord.unsub++
     })
 
-    a.take(1).onValue(function() {})
-    a.take(1).onValue(function() {})
+    a.take(1).onValue(() => {})
+    a.take(1).onValue(() => {})
 
-    return expect(log).toEqual([{sub: 1, unsub: 1}, {sub: 1, unsub: 1}])
+    expect(log).toEqual([{sub: 1, unsub: 1}, {sub: 1, unsub: 1}])
   })
 
-  it('should not throw if not falsey but not a function returned', () => expect(Kefir.stream(() => true)).toEmit([]))
+  it('should not throw if not falsey but not a function returned', () => {
+    expect(Kefir.stream(() => true)).toEmit([])
+  })
 
-  it('emitter should return a boolean representing if anyone intrested in future events', function() {
+  it('emitter should return a boolean representing if anyone intrested in future events', () => {
     let emitter = null
     let a = Kefir.stream(em => emitter = em)
     activate(a)
@@ -121,29 +123,29 @@ describe('Kefir.stream', function() {
     deactivate(a)
     expect(emitter.value(1)).toBe(false)
 
-    a = Kefir.stream(function(em) {
+    a = Kefir.stream(em => {
       expect(em.value(1)).toBe(true)
       expect(em.value(2)).toBe(false)
-      return expect(em.value(3)).toBe(false)
+      expect(em.value(3)).toBe(false)
     })
     let lastX = null
-    var f = function(x) {
+    var f = x => {
       lastX = x
       if (x === 2) {
         return a.offValue(f)
       }
     }
     a.onValue(f)
-    return expect(lastX).toBe(2)
+    expect(lastX).toBe(2)
   })
 
-  return it('calling emitter.end() in undubscribe() should work fine', function() {
+  it('calling emitter.end() in undubscribe() should work fine', () => {
     let em = null
-    const s = Kefir.stream(function(_em) {
+    const s = Kefir.stream(_em => {
       em = _em
       return () => em.end()
     })
-    s.onValue(function() {})
+    s.onValue(() => {})
     em.value(1)
     return em.end()
   })

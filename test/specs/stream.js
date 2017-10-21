@@ -1,61 +1,60 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, send, activate, Kefir} = require('../test-helpers')
 
-describe('Stream', function() {
-  describe('new', function() {
-    it('should create a Stream', function() {
+describe('Stream', () => {
+  describe('new', () => {
+    it('should create a Stream', () => {
       expect(stream()).toBeStream()
-      return expect(new Kefir.Stream()).toBeStream()
+      expect(new Kefir.Stream()).toBeStream()
     })
 
-    it('should not be ended', () => expect(stream()).toEmit([]))
+    it('should not be ended', () => {
+      expect(stream()).toEmit([])
+    })
 
-    return it('should not be active', () => expect(stream()).not.toBeActive())
+    it('should not be active', () => {
+      expect(stream()).not.toBeActive()
+    })
   })
 
-  describe('end', function() {
-    it('should end when `end` sent', function() {
+  describe('end', () => {
+    it('should end when `end` sent', () => {
       const s = stream()
-      return expect(s).toEmit(['<end>'], () => send(s, ['<end>']))
+      expect(s).toEmit(['<end>'], () => send(s, ['<end>']))
     })
 
-    it('should call `end` subscribers', function() {
+    it('should call `end` subscribers', () => {
       const s = stream()
       const log = []
       s.onEnd(() => log.push(1))
       s.onEnd(() => log.push(2))
       expect(log).toEqual([])
       send(s, ['<end>'])
-      return expect(log).toEqual([1, 2])
+      expect(log).toEqual([1, 2])
     })
 
-    it('should call `end` subscribers on already ended stream', function() {
+    it('should call `end` subscribers on already ended stream', () => {
       const s = stream()
       send(s, ['<end>'])
       const log = []
       s.onEnd(() => log.push(1))
       s.onEnd(() => log.push(2))
-      return expect(log).toEqual([1, 2])
+      expect(log).toEqual([1, 2])
     })
 
-    it('should deactivate on end', function() {
+    it('should deactivate on end', () => {
       const s = stream()
       activate(s)
       expect(s).toBeActive()
       send(s, ['<end>'])
-      return expect(s).not.toBeActive()
+      expect(s).not.toBeActive()
     })
 
-    it('should stop deliver new values after end', function() {
+    it('should stop deliver new values after end', () => {
       const s = stream()
-      return expect(s).toEmit([1, 2, '<end>'], () => send(s, [1, 2, '<end>', 3]))
+      expect(s).toEmit([1, 2, '<end>'], () => send(s, [1, 2, '<end>', 3]))
     })
 
-    it('calling ._emitEnd twice should work fine', function() {
+    it('calling ._emitEnd twice should work fine', () => {
       let err = undefined
       try {
         const s = stream()
@@ -64,10 +63,10 @@ describe('Stream', function() {
       } catch (e) {
         err = e
       }
-      return expect(err && err.message).toBe(undefined)
+      expect(err && err.message).toBe(undefined)
     })
 
-    return it('calling ._emitEnd in an end handler should work fine', function() {
+    it('calling ._emitEnd in an end handler should work fine', () => {
       let err = undefined
       try {
         const s = stream()
@@ -76,46 +75,46 @@ describe('Stream', function() {
       } catch (e) {
         err = e
       }
-      return expect(err && err.message).toBe(undefined)
+      expect(err && err.message).toBe(undefined)
     })
   })
 
-  describe('active state', function() {
-    it('should activate when first subscriber added (value)', function() {
+  describe('active state', () => {
+    it('should activate when first subscriber added (value)', () => {
       const s = stream()
-      s.onValue(function() {})
-      return expect(s).toBeActive()
+      s.onValue(() => {})
+      expect(s).toBeActive()
     })
 
-    it('should activate when first subscriber added (error)', function() {
+    it('should activate when first subscriber added (error)', () => {
       const s = stream()
-      s.onError(function() {})
-      return expect(s).toBeActive()
+      s.onError(() => {})
+      expect(s).toBeActive()
     })
 
-    it('should activate when first subscriber added (end)', function() {
+    it('should activate when first subscriber added (end)', () => {
       const s = stream()
-      s.onEnd(function() {})
-      return expect(s).toBeActive()
+      s.onEnd(() => {})
+      expect(s).toBeActive()
     })
 
-    it('should activate when first subscriber added (any)', function() {
+    it('should activate when first subscriber added (any)', () => {
       const s = stream()
-      s.onAny(function() {})
-      return expect(s).toBeActive()
+      s.onAny(() => {})
+      expect(s).toBeActive()
     })
 
-    return it('should deactivate when all subscribers removed', function() {
+    it('should deactivate when all subscribers removed', () => {
       let any1, any2, end1, end2, error1, error2, value1, value2
       const s = stream()
-      s.onAny((any1 = function() {}))
-      s.onAny((any2 = function() {}))
-      s.onValue((value1 = function() {}))
-      s.onValue((value2 = function() {}))
-      s.onError((error1 = function() {}))
-      s.onError((error2 = function() {}))
-      s.onEnd((end1 = function() {}))
-      s.onEnd((end2 = function() {}))
+      s.onAny((any1 = () => {}))
+      s.onAny((any2 = () => {}))
+      s.onValue((value1 = () => {}))
+      s.onValue((value2 = () => {}))
+      s.onError((error1 = () => {}))
+      s.onError((error2 = () => {}))
+      s.onEnd((end1 = () => {}))
+      s.onEnd((end2 = () => {}))
       s.offValue(value1)
       s.offValue(value2)
       s.offError(error1)
@@ -125,22 +124,22 @@ describe('Stream', function() {
       s.offEnd(end1)
       expect(s).toBeActive()
       s.offEnd(end2)
-      return expect(s).not.toBeActive()
+      expect(s).not.toBeActive()
     })
   })
 
-  return describe('subscribers', function() {
-    it('should deliver values', function() {
+  describe('subscribers', () => {
+    it('should deliver values', () => {
       const s = stream()
-      return expect(s).toEmit([1, 2], () => send(s, [1, 2]))
+      expect(s).toEmit([1, 2], () => send(s, [1, 2]))
     })
 
-    it('should deliver errors', function() {
+    it('should deliver errors', () => {
       const s = stream()
-      return expect(s).toEmit([{error: 1}, {error: 2}], () => send(s, [{error: 1}, {error: 2}]))
+      expect(s).toEmit([{error: 1}, {error: 2}], () => send(s, [{error: 1}, {error: 2}]))
     })
 
-    it('should not deliver values to unsubscribed subscribers', function() {
+    it('should not deliver values to unsubscribed subscribers', () => {
       const log = []
       const a = x => log.push(`a${x}`)
       const b = x => log.push(`b${x}`)
@@ -148,16 +147,16 @@ describe('Stream', function() {
       s.onValue(a)
       s.onValue(b)
       send(s, [1])
-      s.offValue(function() {})
+      s.offValue(() => {})
       send(s, [2])
       s.offValue(a)
       send(s, [3])
       s.offValue(b)
       send(s, [4])
-      return expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
+      expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
     })
 
-    it('should not deliver errors to unsubscribed subscribers', function() {
+    it('should not deliver errors to unsubscribed subscribers', () => {
       const log = []
       const a = x => log.push(`a${x}`)
       const b = x => log.push(`b${x}`)
@@ -165,46 +164,46 @@ describe('Stream', function() {
       s.onError(a)
       s.onError(b)
       send(s, [{error: 1}])
-      s.offError(function() {})
+      s.offError(() => {})
       send(s, [{error: 2}])
       s.offError(a)
       send(s, [{error: 3}])
       s.offError(b)
       send(s, [{error: 4}])
-      return expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
+      expect(log).toEqual(['a1', 'b1', 'a2', 'b2', 'b3'])
     })
 
-    it('onValue subscribers should be called with 1 argument', function() {
+    it('onValue subscribers should be called with 1 argument', () => {
       const s = stream()
       let count = null
       s.onValue(function() {
         return (count = arguments.length)
       })
       send(s, [1])
-      return expect(count).toBe(1)
+      expect(count).toBe(1)
     })
 
-    it('onError subscribers should be called with 1 argument', function() {
+    it('onError subscribers should be called with 1 argument', () => {
       const s = stream()
       let count = null
       s.onError(function() {
         return (count = arguments.length)
       })
       send(s, [{error: 1}])
-      return expect(count).toBe(1)
+      expect(count).toBe(1)
     })
 
-    it('onAny subscribers should be called with 1 arguments', function() {
+    it('onAny subscribers should be called with 1 arguments', () => {
       const s = stream()
       let count = null
       s.onAny(function() {
         return (count = arguments.length)
       })
       send(s, [1])
-      return expect(count).toBe(1)
+      expect(count).toBe(1)
     })
 
-    it('onEnd subscribers should be called with 0 arguments', function() {
+    it('onEnd subscribers should be called with 0 arguments', () => {
       const s = stream()
       let count = null
       s.onEnd(function() {
@@ -215,13 +214,13 @@ describe('Stream', function() {
       s.onEnd(function() {
         return (count = arguments.length)
       })
-      return expect(count).toBe(0)
+      expect(count).toBe(0)
     })
 
-    it('should not call subscriber after unsubscribing (from another subscriber)', function() {
+    it('should not call subscriber after unsubscribing (from another subscriber)', () => {
       const log = []
       const a = () => log.push('a')
-      const b = function() {
+      const b = () => {
         s.offValue(a)
         return log.push('unsub a')
       }
@@ -229,13 +228,13 @@ describe('Stream', function() {
       s.onValue(b)
       s.onValue(a)
       send(s, [1])
-      return expect(log).toEqual(['unsub a'])
+      expect(log).toEqual(['unsub a'])
     })
 
-    return it('should not call subscribers after end (fired from another subscriber)', function() {
+    it('should not call subscribers after end (fired from another subscriber)', () => {
       const log = []
       const a = () => log.push('a')
-      const b = function() {
+      const b = () => {
         send(s, ['<end>'])
         return log.push('end fired')
       }
@@ -243,7 +242,7 @@ describe('Stream', function() {
       s.onValue(b)
       s.onValue(a)
       send(s, [1])
-      return expect(log).toEqual(['end fired'])
+      expect(log).toEqual(['end fired'])
     })
   })
 })

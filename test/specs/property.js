@@ -1,62 +1,61 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {prop, send, activate, Kefir} = require('../test-helpers')
 const sinon = require('sinon')
 
-describe('Property', function() {
-  describe('new', function() {
-    it('should create a Property', function() {
+describe('Property', () => {
+  describe('new', () => {
+    it('should create a Property', () => {
       expect(prop()).toBeProperty()
-      return expect(new Kefir.Property()).toBeProperty()
+      expect(new Kefir.Property()).toBeProperty()
     })
 
-    it('should not be ended', () => expect(prop()).toEmit([]))
+    it('should not be ended', () => {
+      expect(prop()).toEmit([])
+    })
 
-    return it('should not be active', () => expect(prop()).not.toBeActive())
+    it('should not be active', () => {
+      expect(prop()).not.toBeActive()
+    })
   })
 
-  describe('end', function() {
-    it('should end when `end` sent', function() {
+  describe('end', () => {
+    it('should end when `end` sent', () => {
       const s = prop()
-      return expect(s).toEmit(['<end>'], () => send(s, ['<end>']))
+      expect(s).toEmit(['<end>'], () => send(s, ['<end>']))
     })
 
-    it('should call `end` subscribers', function() {
+    it('should call `end` subscribers', () => {
       const s = prop()
       const log = []
       s.onEnd(() => log.push(1))
       s.onEnd(() => log.push(2))
       expect(log).toEqual([])
       send(s, ['<end>'])
-      return expect(log).toEqual([1, 2])
+      expect(log).toEqual([1, 2])
     })
 
-    it('should call `end` subscribers on already ended property', function() {
+    it('should call `end` subscribers on already ended property', () => {
       const s = prop()
       send(s, ['<end>'])
       const log = []
       s.onEnd(() => log.push(1))
       s.onEnd(() => log.push(2))
-      return expect(log).toEqual([1, 2])
+      expect(log).toEqual([1, 2])
     })
 
-    it('should deactivate on end', function() {
+    it('should deactivate on end', () => {
       const s = prop()
       activate(s)
       expect(s).toBeActive()
       send(s, ['<end>'])
-      return expect(s).not.toBeActive()
+      expect(s).not.toBeActive()
     })
 
-    it('should stop deliver new values after end', function() {
+    it('should stop deliver new values after end', () => {
       const s = prop()
-      return expect(s).toEmit([1, 2, '<end>'], () => send(s, [1, 2, '<end>', 3]))
+      expect(s).toEmit([1, 2, '<end>'], () => send(s, [1, 2, '<end>', 3]))
     })
 
-    it('calling ._emitEnd twice should work fine', function() {
+    it('calling ._emitEnd twice should work fine', () => {
       let err = undefined
       try {
         const s = prop()
@@ -65,10 +64,10 @@ describe('Property', function() {
       } catch (e) {
         err = e
       }
-      return expect(err && err.message).toBe(undefined)
+      expect(err && err.message).toBe(undefined)
     })
 
-    return it('calling ._emitEnd in an end handler should work fine', function() {
+    it('calling ._emitEnd in an end handler should work fine', () => {
       let err = undefined
       try {
         const s = prop()
@@ -77,44 +76,44 @@ describe('Property', function() {
       } catch (e) {
         err = e
       }
-      return expect(err && err.message).toBe(undefined)
+      expect(err && err.message).toBe(undefined)
     })
   })
 
-  describe('active state', function() {
-    it('should activate when first subscriber added (value)', function() {
+  describe('active state', () => {
+    it('should activate when first subscriber added (value)', () => {
       const s = prop()
-      s.onValue(function() {})
-      return expect(s).toBeActive()
+      s.onValue(() => {})
+      expect(s).toBeActive()
     })
 
-    it('should activate when first subscriber added (error)', function() {
+    it('should activate when first subscriber added (error)', () => {
       const s = prop()
-      s.onError(function() {})
-      return expect(s).toBeActive()
+      s.onError(() => {})
+      expect(s).toBeActive()
     })
 
-    it('should activate when first subscriber added (end)', function() {
+    it('should activate when first subscriber added (end)', () => {
       const s = prop()
-      s.onEnd(function() {})
-      return expect(s).toBeActive()
+      s.onEnd(() => {})
+      expect(s).toBeActive()
     })
 
-    it('should activate when first subscriber added (any)', function() {
+    it('should activate when first subscriber added (any)', () => {
       const s = prop()
-      s.onAny(function() {})
-      return expect(s).toBeActive()
+      s.onAny(() => {})
+      expect(s).toBeActive()
     })
 
-    return it('should deactivate when all subscribers removed', function() {
+    it('should deactivate when all subscribers removed', () => {
       let any1, any2, end1, end2, value1, value2
       const s = prop()
-      s.onAny((any1 = function() {}))
-      s.onAny((any2 = function() {}))
-      s.onValue((value1 = function() {}))
-      s.onValue((value2 = function() {}))
-      s.onEnd((end1 = function() {}))
-      s.onEnd((end2 = function() {}))
+      s.onAny((any1 = () => {}))
+      s.onAny((any2 = () => {}))
+      s.onValue((value1 = () => {}))
+      s.onValue((value2 = () => {}))
+      s.onEnd((end1 = () => {}))
+      s.onEnd((end2 = () => {}))
       s.offValue(value1)
       s.offValue(value2)
       s.offAny(any1)
@@ -122,22 +121,22 @@ describe('Property', function() {
       s.offEnd(end1)
       expect(s).toBeActive()
       s.offEnd(end2)
-      return expect(s).not.toBeActive()
+      expect(s).not.toBeActive()
     })
   })
 
-  return describe('subscribers', function() {
-    it('should deliver values and current', function() {
+  describe('subscribers', () => {
+    it('should deliver values and current', () => {
       const s = send(prop(), [0])
-      return expect(s).toEmit([{current: 0}, 1, 2], () => send(s, [1, 2]))
+      expect(s).toEmit([{current: 0}, 1, 2], () => send(s, [1, 2]))
     })
 
-    it('should deliver errors and current error', function() {
+    it('should deliver errors and current error', () => {
       const s = send(prop(), [{error: 0}])
-      return expect(s).toEmit([{currentError: 0}, {error: 1}, {error: 2}], () => send(s, [{error: 1}, {error: 2}]))
+      expect(s).toEmit([{currentError: 0}, {error: 1}, {error: 2}], () => send(s, [{error: 1}, {error: 2}]))
     })
 
-    it('onValue subscribers should be called with 1 argument', function() {
+    it('onValue subscribers should be called with 1 argument', () => {
       const s = send(prop(), [0])
       let count = null
       s.onValue(function() {
@@ -145,10 +144,10 @@ describe('Property', function() {
       })
       expect(count).toBe(1)
       send(s, [1])
-      return expect(count).toBe(1)
+      expect(count).toBe(1)
     })
 
-    it('onError subscribers should be called with 1 argument', function() {
+    it('onError subscribers should be called with 1 argument', () => {
       const s = send(prop(), [{error: 0}])
       let count = null
       s.onError(function() {
@@ -156,10 +155,10 @@ describe('Property', function() {
       })
       expect(count).toBe(1)
       send(s, [{error: 1}])
-      return expect(count).toBe(1)
+      expect(count).toBe(1)
     })
 
-    it('onAny subscribers should be called with 1 arguments', function() {
+    it('onAny subscribers should be called with 1 arguments', () => {
       const s = send(prop(), [0])
       let count = null
       s.onAny(function() {
@@ -167,10 +166,10 @@ describe('Property', function() {
       })
       expect(count).toBe(1)
       send(s, [1])
-      return expect(count).toBe(1)
+      expect(count).toBe(1)
     })
 
-    it('onEnd subscribers should be called with 0 arguments', function() {
+    it('onEnd subscribers should be called with 0 arguments', () => {
       const s = send(prop(), [0])
       let count = null
       s.onEnd(function() {
@@ -181,40 +180,40 @@ describe('Property', function() {
       s.onEnd(function() {
         return (count = arguments.length)
       })
-      return expect(count).toBe(0)
+      expect(count).toBe(0)
     })
 
-    it("can't have current value and error at same time", function() {
+    it("can't have current value and error at same time", () => {
       const p = send(prop(), [0])
       expect(p).toEmit([{current: 0}])
       send(p, [{error: 1}])
       expect(p).toEmit([{currentError: 1}])
       send(p, [2])
-      return expect(p).toEmit([{current: 2}])
+      expect(p).toEmit([{current: 2}])
     })
 
-    it('should update catched current value before dispatching it', function() {
+    it('should update catched current value before dispatching it', () => {
       const p = send(prop(), [0])
       const spy = sinon.spy()
-      p.onValue(function(x) {
+      p.onValue(x => {
         if (x === 1) {
           return p.onValue(spy)
         }
       })
       send(p, [1])
-      return expect(spy.args).toEqual([[1]])
+      expect(spy.args).toEqual([[1]])
     })
 
-    return it('should update catched current error before dispatching it', function() {
+    it('should update catched current error before dispatching it', () => {
       const p = send(prop(), [{error: 0}])
       const spy = sinon.spy()
-      p.onError(function(x) {
+      p.onError(x => {
         if (x === 1) {
           return p.onError(spy)
         }
       })
       send(p, [{error: 1}])
-      return expect(spy.args).toEqual([[1]])
+      expect(spy.args).toEqual([[1]])
     })
   })
 })

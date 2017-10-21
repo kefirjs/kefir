@@ -1,11 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const Kefir = require('../dist/kefir')
 const sinon = require('sinon')
 
@@ -13,7 +5,7 @@ Kefir.dissableDeprecationWarnings()
 
 exports.Kefir = Kefir
 
-const logItem = function(event, isCurrent) {
+const logItem = (event, isCurrent) => {
   if (event.type === 'value') {
     if (isCurrent) {
       return {current: event.value}
@@ -35,27 +27,27 @@ const logItem = function(event, isCurrent) {
   }
 }
 
-exports.watch = function(obs) {
+const watch = (exports.watch = obs => {
   const log = []
   const fn = event => log.push(logItem(event, isCurrent))
   const unwatch = () => obs.offAny(fn)
-  var isCurrent = true
+  let isCurrent = true
   obs.onAny(fn)
   isCurrent = false
   return {log, unwatch}
-}
+})
 
-exports.watchWithTime = function(obs) {
+const watchWithTime = (exports.watchWithTime = function(obs) {
   const startTime = new Date()
   const log = []
   let isCurrent = true
   obs.onAny(event => log.push([new Date() - startTime, logItem(event, isCurrent)]))
   isCurrent = false
   return log
-}
+})
 
-exports.send = function(obs, events) {
-  for (let event of Array.from(events)) {
+const send = (exports.send = function(obs, events) {
+  for (let event of events) {
     if (event === '<end>') {
       obs._emitEnd()
     }
@@ -66,25 +58,25 @@ exports.send = function(obs, events) {
     }
   }
   return obs
-}
+})
 
-const _activateHelper = function() {}
+const _activateHelper = () => {}
 
-exports.activate = function(obs) {
+const activate = (exports.activate = obs => {
   obs.onEnd(_activateHelper)
   return obs
-}
+})
 
-exports.deactivate = function(obs) {
+const deactivate = (exports.deactivate = obs => {
   obs.offEnd(_activateHelper)
   return obs
-}
+})
 
-exports.prop = () => new Kefir.Property()
+const prop = (exports.prop = () => new Kefir.Property())
 
-exports.stream = () => new Kefir.Stream()
+const stream = (exports.stream = () => new Kefir.Stream())
 
-exports.pool = () => new Kefir.Pool()
+const pool = (exports.pool = () => new Kefir.Pool())
 
 // This function changes timers' IDs so "simultaneous" timers are reversed
 // Also sets createdAt to 0 so closk.tick will sort by ID
@@ -93,12 +85,12 @@ exports.pool = () => new Kefir.Pool()
 //   2) We need to restore (unshake) them back somehow (after calling tick)
 //   Hopefully we'll get a native implementation, and wont have to fix those
 //   https://github.com/sinonjs/lolex/issues/24
-const shakeTimers = function(clock) {
+const shakeTimers = clock => {
   const ids = Object.keys(clock.timers)
   const timers = ids.map(id => clock.timers[id])
 
   // see https://github.com/sinonjs/lolex/blob/a93c8a9af05fb064ae5c2ad1bfc72874973167ee/src/lolex.js#L175-L209
-  timers.sort(function(a, b) {
+  timers.sort((a, b) => {
     if (a.callAt < b.callAt) {
       return -1
     }
@@ -128,74 +120,68 @@ const shakeTimers = function(clock) {
   })
 
   ids.sort((a, b) => a - b)
-  return timers.forEach(function(timer, i) {
+  timers.forEach((timer, i) => {
     const id = ids[i]
     timer.createdAt = 0
     timer.id = id
-    return (clock.timers[id] = timer)
+    clock.timers[id] = timer
   })
 }
 
-exports.withFakeTime = function(cb, reverseSimultaneous) {
+const withFakeTime = (exports.withFakeTime = (cb, reverseSimultaneous) => {
   if (reverseSimultaneous == null) {
     reverseSimultaneous = false
   }
   const clock = sinon.useFakeTimers(10000)
-  const tick = function(t) {
+  const tick = t => {
     if (reverseSimultaneous) {
       shakeTimers(clock)
     }
-    return clock.tick(t)
+    clock.tick(t)
   }
   cb(tick, clock)
-  return clock.restore()
-}
+  clock.restore()
+})
 
-exports.inBrowser =
-  typeof window !== 'undefined' && window !== null && (typeof document !== 'undefined' && document !== null)
+const inBrowser = (exports.inBrowser =
+  typeof window !== 'undefined' && window !== null && (typeof document !== 'undefined' && document !== null))
 
-exports.withDOM = function(cb) {
+exports.withDOM = cb => {
   const div = document.createElement('div')
   document.body.appendChild(div)
   cb(div)
-  return document.body.removeChild(div)
+  document.body.removeChild(div)
 }
 
 // see:
 //   https://github.com/rpominov/kefir/issues/134
 //   https://github.com/rpominov/kefir/pull/135
-exports.shakyTimeTest = function(testCb) {
-  it('[shaky time test: normal run]', function() {
+const shakyTimeTest = (exports.shakyTimeTest = testCb => {
+  it('[shaky time test: normal run]', () => {
     const expectToEmitOverShakyTime = (stream, expectedLog, cb, timeLimit) =>
       expect(stream).toEmitInTime(expectedLog, cb, timeLimit)
-    return testCb(expectToEmitOverShakyTime)
+    testCb(expectToEmitOverShakyTime)
   })
 
-  return it('[shaky time test: reverse run]', function() {
+  it('[shaky time test: reverse run]', () => {
     const expectToEmitOverShakyTime = (stream, expectedLog, cb, timeLimit) =>
       expect(stream).toEmitInTime(expectedLog, cb, timeLimit, true)
-    return testCb(expectToEmitOverShakyTime)
+    testCb(expectToEmitOverShakyTime)
   })
-}
+})
 
 beforeEach(function() {
-  return this.addMatchers({
+  this.addMatchers({
     toBeProperty() {
-      this.message = function() {
-        return `Expected ${this.actual.toString()} to be instance of Property`
-      }
+      this.message = () => `Expected ${this.actual.toString()} to be instance of Property`
       return this.actual instanceof Kefir.Property
     },
     toBeStream() {
-      this.message = function() {
-        return `Expected ${this.actual.toString()} to be instance of Stream`
-      }
+      this.message = () => `Expected ${this.actual.toString()} to be instance of Stream`
       return this.actual instanceof Kefir.Stream
     },
     toBePool() {
-      this.message = function() {
-        return `Expected ${this.actual.toString()} to be instance of Pool`
-      }
+      this.message = () => `Expected ${this.actual.toString()} to be instance of Pool`
       return this.actual instanceof Kefir.Pool
     },
 
@@ -204,7 +190,7 @@ beforeEach(function() {
     },
 
     toEmit(expectedLog, cb) {
-      const {log, unwatch} = exports.watch(this.actual)
+      const {log, unwatch} = watch(this.actual)
       if (typeof cb === 'function') {
         cb()
       }
@@ -216,20 +202,20 @@ beforeEach(function() {
     errorsToFlow(source) {
       const expectedLog = this.isNot ? [] : [{error: -2}, {error: -3}]
       if (this.actual instanceof Kefir.Property) {
-        exports.activate(this.actual)
-        exports.send(source, [{error: -1}])
-        exports.deactivate(this.actual)
+        activate(this.actual)
+        send(source, [{error: -1}])
+        deactivate(this.actual)
         if (!this.isNot) {
           expectedLog.unshift({currentError: -1})
         }
       } else if (source instanceof Kefir.Property) {
-        exports.send(source, [{error: -1}])
+        send(source, [{error: -1}])
         if (!this.isNot) {
           expectedLog.unshift({currentError: -1})
         }
       }
-      const {log, unwatch} = exports.watch(this.actual)
-      exports.send(source, [{error: -2}, {error: -3}])
+      const {log, unwatch} = watch(this.actual)
+      send(source, [{error: -2}, {error: -3}])
       unwatch()
       if (this.isNot) {
         this.message = () => `Expected errors not to flow (i.e. to emit [], actually emitted ${jasmine.pp(log)})`
@@ -249,12 +235,12 @@ beforeEach(function() {
         reverseSimultaneous = false
       }
       let log = null
-      exports.withFakeTime(tick => {
-        log = exports.watchWithTime(this.actual)
+      withFakeTime(tick => {
+        log = watchWithTime(this.actual)
         if (typeof cb === 'function') {
           cb(tick)
         }
-        return tick(timeLimit)
+        tick(timeLimit)
       }, reverseSimultaneous)
       this.message = () => `Expected to emit ${jasmine.pp(expectedLog)}, actually emitted ${jasmine.pp(log)}`
       return this.env.equals_(expectedLog, log)
@@ -262,8 +248,6 @@ beforeEach(function() {
 
     toActivate(...obss) {
       let obs
-      const orOp = (a, b) => a || b
-      const andOp = (a, b) => a && b
 
       const notStr = this.isNot ? 'not ' : ''
       const notNotStr = this.isNot ? '' : 'not '
@@ -287,85 +271,39 @@ beforeEach(function() {
         correctResults[`some ${notNotStr}activated at second try`] = false
       }
 
-      const check = function(test, conditions) {
-        let condition
+      const check = (test, conditions) => {
         if (correctResults[test] === true) {
-          for (condition of Array.from(conditions)) {
+          for (let condition of conditions) {
             if (!condition) {
               tests[test] = false
               return
             }
           }
         } else {
-          for (condition of Array.from(conditions)) {
+          for (let condition of conditions) {
             if (condition) {
               return
             }
           }
-          return (tests[test] = false)
+          tests[test] = false
         }
       }
 
-      check(
-        'some activated at start',
-        (() => {
-          const result = []
-          for (obs of Array.from(obss)) {
-            result.push(!obs._active)
-          }
-          return result
-        })()
-      )
+      check('some activated at start', obss.map(obs => !obs._active))
 
-      exports.activate(this.actual)
-      check(
-        `some ${notNotStr}activated`,
-        (() => {
-          const result1 = []
-          for (obs of Array.from(obss)) {
-            result1.push(obs._active)
-          }
-          return result1
-        })()
-      )
+      activate(this.actual)
+      check(`some ${notNotStr}activated`, obss.map(obs => obs._active))
 
-      exports.deactivate(this.actual)
-      check(
-        `some ${notNotStr}deactivated`,
-        (() => {
-          const result2 = []
-          for (obs of Array.from(obss)) {
-            result2.push(!obs._active)
-          }
-          return result2
-        })()
-      )
+      deactivate(this.actual)
+      check(`some ${notNotStr}deactivated`, obss.map(obs => !obs._active))
 
-      exports.activate(this.actual)
-      check(
-        `some ${notNotStr}activated at second try`,
-        (() => {
-          const result3 = []
-          for (obs of Array.from(obss)) {
-            result3.push(obs._active)
-          }
-          return result3
-        })()
-      )
+      activate(this.actual)
+      check(`some ${notNotStr}activated at second try`, obss.map(obs => obs._active))
 
-      exports.deactivate(this.actual)
-      check(
-        `some ${notNotStr}deactivated at second try`,
-        (() => {
-          const result4 = []
-          for (obs of Array.from(obss)) {
-            result4.push(!obs._active)
-          }
-          return result4
-        })()
-      )
+      deactivate(this.actual)
+      check(`some ${notNotStr}deactivated at second try`, obss.map(obs => !obs._active))
 
-      this.message = function() {
+      this.message = () => {
         const failedTest = (() => {
           const result5 = []
           for (let name in tests) {
@@ -377,7 +315,7 @@ beforeEach(function() {
         })().join(', ')
         const obssNames = (() => {
           const result6 = []
-          for (obs of Array.from(obss)) {
+          for (obs of obss) {
             result6.push(obs.toString())
           }
           return result6

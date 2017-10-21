@@ -1,16 +1,15 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('fromNodeCallback', function() {
-  it('should return stream', () => expect(Kefir.fromNodeCallback(function() {})).toBeStream())
+describe('fromNodeCallback', () => {
+  it('should return stream', () => {
+    expect(Kefir.fromNodeCallback(() => {})).toBeStream()
+  })
 
-  it('should not be ended', () => expect(Kefir.fromNodeCallback(function() {})).toEmit([]))
+  it('should not be ended', () => {
+    expect(Kefir.fromNodeCallback(() => {})).toEmit([])
+  })
 
-  it('should call `callbackConsumer` on first activation, and only on first', function() {
+  it('should call `callbackConsumer` on first activation, and only on first', () => {
     let count = 0
     const s = Kefir.fromNodeCallback(() => count++)
     expect(count).toBe(0)
@@ -20,32 +19,32 @@ describe('fromNodeCallback', function() {
     activate(s)
     deactivate(s)
     activate(s)
-    return expect(count).toBe(1)
+    expect(count).toBe(1)
   })
 
-  it('should emit first result and end after that', function() {
+  it('should emit first result and end after that', () => {
     let cb = null
-    return expect(Kefir.fromNodeCallback(_cb => cb = _cb)).toEmit([1, '<end>'], () => cb(null, 1))
+    expect(Kefir.fromNodeCallback(_cb => cb = _cb)).toEmit([1, '<end>'], () => cb(null, 1))
   })
 
-  it('should emit first error and end after that', function() {
+  it('should emit first error and end after that', () => {
     let cb = null
-    return expect(Kefir.fromNodeCallback(_cb => cb = _cb)).toEmit([{error: -1}, '<end>'], () => cb(-1))
+    expect(Kefir.fromNodeCallback(_cb => cb = _cb)).toEmit([{error: -1}, '<end>'], () => cb(-1))
   })
 
-  it('should work after deactivation/activate cicle', function() {
+  it('should work after deactivation/activate cicle', () => {
     let cb = null
     const s = Kefir.fromNodeCallback(_cb => cb = _cb)
     activate(s)
     deactivate(s)
     activate(s)
     deactivate(s)
-    return expect(s).toEmit([1, '<end>'], () => cb(null, 1))
+    expect(s).toEmit([1, '<end>'], () => cb(null, 1))
   })
 
-  return it('should emit a current, if `callback` is called immediately in `callbackConsumer`', function() {
+  it('should emit a current, if `callback` is called immediately in `callbackConsumer`', () => {
     expect(Kefir.fromNodeCallback(cb => cb(null, 1))).toEmit([{current: 1}, '<end:current>'])
 
-    return expect(Kefir.fromNodeCallback(cb => cb(-1))).toEmit([{currentError: -1}, '<end:current>'])
+    expect(Kefir.fromNodeCallback(cb => cb(-1))).toEmit([{currentError: -1}, '<end:current>'])
   })
 })

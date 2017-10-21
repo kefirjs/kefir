@@ -1,22 +1,17 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('pool', function() {
-  it('should return stream', function() {
+describe('pool', () => {
+  it('should return stream', () => {
     expect(Kefir.pool()).toBeStream()
-    return expect(new Kefir.Pool()).toBeStream()
+    expect(new Kefir.Pool()).toBeStream()
   })
 
-  it('should return pool', function() {
+  it('should return pool', () => {
     expect(Kefir.pool()).toBePool()
-    return expect(new Kefir.Pool()).toBePool()
+    expect(new Kefir.Pool()).toBePool()
   })
 
-  it('should activate sources', function() {
+  it('should activate sources', () => {
     const a = stream()
     const b = prop()
     const c = stream()
@@ -24,25 +19,25 @@ describe('pool', function() {
     expect(pool).toActivate(a, b, c)
     pool.unplug(b)
     expect(pool).toActivate(a, c)
-    return expect(pool).not.toActivate(b)
+    expect(pool).not.toActivate(b)
   })
 
-  it('should deliver events from observables', function() {
+  it('should deliver events from observables', () => {
     const a = stream()
     const b = send(prop(), [0])
     const c = stream()
     const pool = Kefir.pool().plug(a).plug(b).plug(c)
-    return expect(pool).toEmit([{current: 0}, 1, 2, 3, 4, 5, 6], function() {
+    expect(pool).toEmit([{current: 0}, 1, 2, 3, 4, 5, 6], () => {
       send(a, [1])
       send(b, [2])
       send(c, [3])
       send(a, ['<end>'])
       send(b, [4, '<end>'])
-      return send(c, [5, 6, '<end>'])
+      send(c, [5, 6, '<end>'])
     })
   })
 
-  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
+  it('should deliver currents from all source properties, but only to first subscriber on each activation', () => {
     const a = send(prop(), [0])
     const b = send(prop(), [1])
     const c = send(prop(), [2])
@@ -57,35 +52,35 @@ describe('pool', function() {
     pool = Kefir.pool().plug(a).plug(b).plug(c)
     activate(pool)
     deactivate(pool)
-    return expect(pool).toEmit([{current: 0}, {current: 1}, {current: 2}])
+    expect(pool).toEmit([{current: 0}, {current: 1}, {current: 2}])
   })
 
-  it('should not deliver events from removed sources', function() {
+  it('should not deliver events from removed sources', () => {
     const a = stream()
     const b = send(prop(), [0])
     const c = stream()
     const pool = Kefir.pool().plug(a).plug(b).plug(c).unplug(b)
-    return expect(pool).toEmit([1, 3, 5, 6], function() {
+    expect(pool).toEmit([1, 3, 5, 6], () => {
       send(a, [1])
       send(b, [2])
       send(c, [3])
       send(a, ['<end>'])
       send(b, [4, '<end>'])
-      return send(c, [5, 6, '<end>'])
+      send(c, [5, 6, '<end>'])
     })
   })
 
-  it('should correctly handle current values of new sub sources', function() {
+  it('should correctly handle current values of new sub sources', () => {
     const pool = Kefir.pool()
     const b = send(prop(), [1])
     const c = send(prop(), [2])
-    return expect(pool).toEmit([1, 2], function() {
+    expect(pool).toEmit([1, 2], () => {
       pool.plug(b)
       return pool.plug(c)
     })
   })
 
-  return it('errors should flow', function() {
+  it('errors should flow', () => {
     const a = stream()
     const b = prop()
     const c = stream()
@@ -101,6 +96,6 @@ describe('pool', function() {
     pool.unplug(b)
     expect(pool).not.errorsToFlow(b)
     pool.plug(c)
-    return expect(pool).errorsToFlow(c)
+    expect(pool).errorsToFlow(c)
   })
 })

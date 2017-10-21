@@ -1,45 +1,42 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('zip', function() {
-  it('should return stream', function() {
+describe('zip', () => {
+  it('should return stream', () => {
     expect(Kefir.zip([])).toBeStream()
     expect(Kefir.zip([stream(), prop()])).toBeStream()
     expect(stream().zip(stream())).toBeStream()
-    return expect(prop().zip(prop())).toBeStream()
+    expect(prop().zip(prop())).toBeStream()
   })
 
-  it('should be ended if empty array provided', () => expect(Kefir.zip([])).toEmit(['<end:current>']))
+  it('should be ended if empty array provided', () => {
+    expect(Kefir.zip([])).toEmit(['<end:current>'])
+  })
 
-  it('should be ended if array of ended observables provided', function() {
+  it('should be ended if array of ended observables provided', () => {
     const a = send(stream(), ['<end>'])
     const b = send(prop(), ['<end>'])
     const c = send(stream(), ['<end>'])
     expect(Kefir.zip([a, b, c])).toEmit(['<end:current>'])
-    return expect(a.zip(b)).toEmit(['<end:current>'])
+    expect(a.zip(b)).toEmit(['<end:current>'])
   })
 
-  it('should be ended and has current if array of ended properties provided and each of them has current', function() {
+  it('should be ended and has current if array of ended properties provided and each of them has current', () => {
     const a = send(prop(), [1, '<end>'])
     const b = send(prop(), [2, '<end>'])
     const c = send(prop(), [3, '<end>'])
     expect(Kefir.zip([a, b, c])).toEmit([{current: [1, 2, 3]}, '<end:current>'])
-    return expect(a.zip(b)).toEmit([{current: [1, 2]}, '<end:current>'])
+    expect(a.zip(b)).toEmit([{current: [1, 2]}, '<end:current>'])
   })
 
-  it('should activate sources', function() {
+  it('should activate sources', () => {
     const a = stream()
     const b = prop()
     const c = stream()
     expect(Kefir.zip([a, b, c])).toActivate(a, b, c)
-    return expect(a.zip(b)).toActivate(a, b)
+    expect(a.zip(b)).toActivate(a, b)
   })
 
-  it('should handle events and current from observables', function() {
+  it('should handle events and current from observables', () => {
     let a = stream()
     let b = send(prop(), [0])
     const c = stream()
@@ -48,7 +45,7 @@ describe('zip', function() {
     // c   ----3-------5-------8------X
     //     ----•-------•---------•----X
     //   [1,0,3] [4,2,5]   [6,9,8]
-    expect(Kefir.zip([a, b, c])).toEmit([[1, 0, 3], [4, 2, 5], [6, 9, 8], '<end>'], function() {
+    expect(Kefir.zip([a, b, c])).toEmit([[1, 0, 3], [4, 2, 5], [6, 9, 8], '<end>'], () => {
       send(a, [1])
       send(b, [2])
       send(c, [3])
@@ -58,19 +55,19 @@ describe('zip', function() {
       send(c, [8])
       send(b, [9, '<end>'])
       send(a, ['<end>'])
-      return send(c, ['<end>'])
+      send(c, ['<end>'])
     })
 
     a = stream()
     b = send(prop(), [0])
-    return expect(a.zip(b)).toEmit([[1, 0], [3, 2], '<end>'], function() {
+    expect(a.zip(b)).toEmit([[1, 0], [3, 2], '<end>'], () => {
       send(b, [2])
       send(a, [1, 3, '<end>'])
-      return send(b, ['<end>'])
+      send(b, ['<end>'])
     })
   })
 
-  it('should support arrays', function() {
+  it('should support arrays', () => {
     let a = [1, 4, 6, 7]
     let b = send(prop(), [0])
     const c = stream()
@@ -79,36 +76,37 @@ describe('zip', function() {
     // c   ----3-------5-------8------X
     //     ----•-------•---------•----X
     //   [1,0,3] [4,2,5]   [6,9,8]
-    expect(Kefir.zip([a, b, c])).toEmit([[1, 0, 3], [4, 2, 5], [6, 9, 8], '<end>'], function() {
+    expect(Kefir.zip([a, b, c])).toEmit([[1, 0, 3], [4, 2, 5], [6, 9, 8], '<end>'], () => {
       send(b, [2])
       send(c, [3])
       send(c, [5])
       send(c, [8])
       send(b, [9, '<end>'])
-      return send(c, ['<end>'])
+      send(c, ['<end>'])
     })
 
     a = [1, 3]
     b = send(prop(), [0])
-    return expect(b.zip(a)).toEmit([{current: [0, 1]}, [2, 3], '<end>'], function() {
+    expect(b.zip(a)).toEmit([{current: [0, 1]}, [2, 3], '<end>'], () => {
       send(b, [2])
-      return send(b, ['<end>'])
+      send(b, ['<end>'])
     })
   })
 
-  it('should work with arrays only', () =>
+  it('should work with arrays only', () => {
     expect(Kefir.zip([[1, 2, 3], [4, 5], [6, 7, 8, 9]])).toEmit([
       {current: [1, 4, 6]},
       {current: [2, 5, 7]},
       '<end:current>',
-    ]))
+    ])
+  })
 
-  it('should accept optional combinator function', function() {
+  it('should accept optional combinator function', () => {
     const join = (...args) => args.join('+')
     let a = stream()
     let b = send(prop(), [0])
     const c = stream()
-    expect(Kefir.zip([a, b, c], join)).toEmit(['1+0+3', '4+2+5', '6+9+8', '<end>'], function() {
+    expect(Kefir.zip([a, b, c], join)).toEmit(['1+0+3', '4+2+5', '6+9+8', '<end>'], () => {
       send(a, [1])
       send(b, [2])
       send(c, [3])
@@ -118,19 +116,19 @@ describe('zip', function() {
       send(c, [8])
       send(b, [9, '<end>'])
       send(a, ['<end>'])
-      return send(c, ['<end>'])
+      send(c, ['<end>'])
     })
 
     a = stream()
     b = send(prop(), [0])
-    return expect(a.zip(b, join)).toEmit(['1+0', '3+2', '<end>'], function() {
+    expect(a.zip(b, join)).toEmit(['1+0', '3+2', '<end>'], () => {
       send(b, [2])
       send(a, [1, 3, '<end>'])
-      return send(b, ['<end>'])
+      send(b, ['<end>'])
     })
   })
 
-  it('errors should flow', function() {
+  it('errors should flow', () => {
     let a = stream()
     let b = prop()
     let c = stream()
@@ -142,19 +140,19 @@ describe('zip', function() {
     a = stream()
     b = prop()
     c = stream()
-    return expect(Kefir.zip([a, b, c])).errorsToFlow(c)
+    expect(Kefir.zip([a, b, c])).errorsToFlow(c)
   })
 
-  it('when activating second time and has 2+ properties in sources, should emit current value at most once', function() {
+  it('when activating second time and has 2+ properties in sources, should emit current value at most once', () => {
     const a = send(prop(), [0])
     const b = send(prop(), [1])
     const cb = Kefir.zip([a, b])
     activate(cb)
     deactivate(cb)
-    return expect(cb).toEmit([{current: [0, 1]}])
+    expect(cb).toEmit([{current: [0, 1]}])
   })
 
-  return it('should work correctly when unsuscribing after one sync event', function() {
+  it('should work correctly when unsuscribing after one sync event', () => {
     let c1
     const a0 = stream()
     const a = a0.toProperty(() => 1)
@@ -168,6 +166,6 @@ describe('zip', function() {
     deactivate(c1)
 
     activate(c.take(1))
-    return expect(b).not.toBeActive()
+    expect(b).not.toBeActive()
   })
 })

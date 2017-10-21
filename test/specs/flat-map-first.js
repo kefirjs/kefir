@@ -1,27 +1,24 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('flatMapFirst', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().flatMapFirst()).toBeStream())
+describe('flatMapFirst', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().flatMapFirst()).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.flatMapFirst()).toActivate(a)
+      expect(a.flatMapFirst()).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
       expect(send(stream(), ['<end>']).flatMapFirst()).toEmit(['<end:current>']))
 
-    it('should handle events', function() {
+    it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = stream()
-      return expect(a.flatMapFirst()).toEmit([1, 2, 4, '<end>'], function() {
+      expect(a.flatMapFirst()).toEmit([1, 2, 4, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -29,11 +26,11 @@ describe('flatMapFirst', function() {
         send(b, [2, '<end>'])
         send(c, [3])
         send(a, [c, '<end>'])
-        return send(c, [4, '<end>'])
+        send(c, [4, '<end>'])
       })
     })
 
-    it('should activate sub-sources (only first)', function() {
+    it('should activate sub-sources (only first)', () => {
       const a = stream()
       const b = stream()
       const c = send(prop(), [0])
@@ -42,19 +39,19 @@ describe('flatMapFirst', function() {
       send(a, [b, c])
       deactivate(map)
       expect(map).toActivate(b)
-      return expect(map).not.toActivate(c)
+      expect(map).not.toActivate(c)
     })
 
-    it('should accept optional map fn', function() {
+    it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      return expect(a.flatMapFirst(x => x.obs)).toEmit([1, 2, '<end>'], function() {
+      expect(a.flatMapFirst(x => x.obs)).toEmit([1, 2, '<end>'], () => {
         send(a, [{obs: b}, '<end>'])
-        return send(b, [1, 2, '<end>'])
+        send(b, [1, 2, '<end>'])
       })
     })
 
-    it('should correctly handle current values of sub sources on activation', function() {
+    it('should correctly handle current values of sub sources on activation', () => {
       const a = stream()
       const b = send(prop(), [1])
       const c = send(prop(), [2])
@@ -62,21 +59,21 @@ describe('flatMapFirst', function() {
       activate(m)
       send(a, [b, c])
       deactivate(m)
-      return expect(m).toEmit([{current: 1}])
+      expect(m).toEmit([{current: 1}])
     })
 
-    it('should correctly handle current values of new sub sources', function() {
+    it('should correctly handle current values of new sub sources', () => {
       const a = stream()
       const b = send(prop(), [1, '<end>'])
       const c = send(prop(), [2])
       const d = send(prop(), [3])
-      return expect(a.flatMapFirst()).toEmit([1, 2], () => send(a, [b, c, d]))
+      expect(a.flatMapFirst()).toEmit([1, 2], () => send(a, [b, c, d]))
     })
 
-    it('should work nicely with Kefir.constant and Kefir.never', function() {
+    it('should work nicely with Kefir.constant and Kefir.never', () => {
       const a = stream()
-      return expect(
-        a.flatMapFirst(function(x) {
+      expect(
+        a.flatMapFirst(x => {
           if (x > 2) {
             return Kefir.constant(x)
           } else {
@@ -86,12 +83,12 @@ describe('flatMapFirst', function() {
       ).toEmit([3, 4, 5], () => send(a, [1, 2, 3, 4, 5]))
     })
 
-    return it('should not call transformer function when skiping values', function() {
+    it('should not call transformer function when skiping values', () => {
       let count = 0
       const a = stream()
       const b = stream()
       const c = stream()
-      const result = a.flatMapFirst(function(x) {
+      const result = a.flatMapFirst(x => {
         count++
         return x
       })
@@ -104,16 +101,18 @@ describe('flatMapFirst', function() {
       send(b, ['<end>'])
       expect(count).toBe(1)
       send(a, [c])
-      return expect(count).toBe(2)
+      expect(count).toBe(2)
     })
   })
 
-  return describe('property', function() {
-    it('should return stream', () => expect(prop().flatMapFirst()).toBeStream())
+  describe('property', () => {
+    it('should return stream', () => {
+      expect(prop().flatMapFirst()).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = prop()
-      return expect(a.flatMapFirst()).toActivate(a)
+      expect(a.flatMapFirst()).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
@@ -125,10 +124,10 @@ describe('flatMapFirst', function() {
         '<end:current>',
       ]))
 
-    return it('should correctly handle current value of source', function() {
+    it('should correctly handle current value of source', () => {
       const a = send(prop(), [0])
       const b = send(prop(), [a])
-      return expect(b.flatMapFirst()).toEmit([{current: 0}])
+      expect(b.flatMapFirst()).toEmit([{current: 0}])
     })
   })
 })

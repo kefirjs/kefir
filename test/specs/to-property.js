@@ -1,20 +1,15 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, Kefir, activate, deactivate} = require('../test-helpers')
 
-describe('toProperty', function() {
-  describe('stream', function() {
-    it('should return property', function() {
+describe('toProperty', () => {
+  describe('stream', () => {
+    it('should return property', () => {
       expect(stream().toProperty(() => 0)).toBeProperty()
-      return expect(stream().toProperty()).toBeProperty()
+      expect(stream().toProperty()).toBeProperty()
     })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.toProperty()).toActivate(a)
+      expect(a.toProperty()).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
@@ -23,14 +18,14 @@ describe('toProperty', function() {
     it('should be ended if source was ended (with current)', () =>
       expect(send(stream(), ['<end>']).toProperty(() => 0)).toEmit([{current: 0}, '<end:current>']))
 
-    it('should handle events', function() {
+    it('should handle events', () => {
       const a = stream()
       const p = a.toProperty(() => 0)
       expect(p).toEmit([{current: 0}, 1, {error: 3}, 2, '<end>'], () => send(a, [1, {error: 3}, 2, '<end>']))
-      return expect(p).toEmit([{current: 2}, '<end:current>'])
+      expect(p).toEmit([{current: 2}, '<end:current>'])
     })
 
-    it('should call callback on each activation', function() {
+    it('should call callback on each activation', () => {
       let count = 0
       const a = stream()
       const p = a.toProperty(() => count++)
@@ -39,11 +34,11 @@ describe('toProperty', function() {
       deactivate(p)
       expect(count).toBe(1)
       activate(p)
-      return expect(count).toBe(2)
+      expect(count).toBe(2)
     })
 
-    it('should reset value by getting new from the callback on each activation', function() {
-      const getCurrent = function(p) {
+    it('should reset value by getting new from the callback on each activation', () => {
+      const getCurrent = p => {
         let result = null
         const getter = x => result = x
         p.onValue(getter)
@@ -59,37 +54,37 @@ describe('toProperty', function() {
       send(a, [1])
       expect(getCurrent(p)).toBe(1)
       deactivate(p)
-      return expect(getCurrent(p)).toBe(0)
+      expect(getCurrent(p)).toBe(0)
     })
 
-    return it('should throw when called with not a function', function() {
+    it('should throw when called with not a function', () => {
       let err = null
       try {
         stream().toProperty(1)
       } catch (e) {
         err = e
       }
-      return expect(err.message).toBe('You should call toProperty() with a function or no arguments.')
+      expect(err.message).toBe('You should call toProperty() with a function or no arguments.')
     })
   })
 
-  return describe('property', function() {
-    it('should return property', function() {
+  describe('property', () => {
+    it('should return property', () => {
       expect(prop().toProperty(() => 0)).toBeProperty()
-      return expect(prop().toProperty()).toBeProperty()
+      expect(prop().toProperty()).toBeProperty()
     })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = prop()
-      return expect(a.toProperty(() => 0)).toActivate(a)
+      expect(a.toProperty(() => 0)).toActivate(a)
     })
 
-    it('should be ended if source was ended', function() {
+    it('should be ended if source was ended', () => {
       expect(send(prop(), ['<end>']).toProperty(() => 0)).toEmit([{current: 0}, '<end:current>'])
-      return expect(send(prop(), [1, '<end>']).toProperty(() => 0)).toEmit([{current: 1}, '<end:current>'])
+      expect(send(prop(), [1, '<end>']).toProperty(() => 0)).toEmit([{current: 1}, '<end:current>'])
     })
 
-    it('should handle events', function() {
+    it('should handle events', () => {
       let a = send(prop(), [1])
       let b = a.toProperty(() => 0)
       expect(b).toEmit([{current: 1}, 2, {error: 3}, '<end>'], () => send(a, [2, {error: 3}, '<end>']))
@@ -98,10 +93,10 @@ describe('toProperty', function() {
       a = prop()
       b = a.toProperty(() => 0)
       expect(b).toEmit([{current: 0}, 2, {error: 3}, 4, '<end>'], () => send(a, [2, {error: 3}, 4, '<end>']))
-      return expect(b).toEmit([{current: 4}, '<end:current>'])
+      expect(b).toEmit([{current: 4}, '<end:current>'])
     })
 
-    return it('if original property has no current, and .toProperty called with no arguments, then result should have no current', () =>
+    it('if original property has no current, and .toProperty called with no arguments, then result should have no current', () =>
       expect(prop().toProperty()).toEmit([]))
   })
 })

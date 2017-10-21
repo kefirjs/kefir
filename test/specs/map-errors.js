@@ -1,48 +1,47 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, Kefir} = require('../test-helpers')
 
-describe('mapErrors', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().mapErrors(function() {})).toBeStream())
+describe('mapErrors', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().mapErrors(() => {})).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.mapErrors(function() {})).toActivate(a)
+      expect(a.mapErrors(() => {})).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).mapErrors(function() {})).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).mapErrors(() => {})).toEmit(['<end:current>']))
 
-    return it('should handle events', function() {
+    it('should handle events', () => {
       const a = stream()
-      return expect(a.mapErrors(x => x * 2)).toEmit([1, {error: -2}, 2, {error: -4}, '<end>'], () =>
+      expect(a.mapErrors(x => x * 2)).toEmit([1, {error: -2}, 2, {error: -4}, '<end>'], () =>
         send(a, [1, {error: -1}, 2, {error: -2}, '<end>'])
       )
     })
   })
 
-  return describe('property', function() {
-    it('should return property', () => expect(prop().mapErrors(function() {})).toBeProperty())
+  describe('property', () => {
+    it('should return property', () => {
+      expect(prop().mapErrors(() => {})).toBeProperty()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = prop()
-      return expect(a.mapErrors(function() {})).toActivate(a)
+      expect(a.mapErrors(() => {})).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).mapErrors(function() {})).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).mapErrors(() => {})).toEmit(['<end:current>']))
 
-    return it('should handle events and current', function() {
+    it('should handle events and current', () => {
       let a = send(prop(), [1])
       expect(a.mapErrors(x => x * 2)).toEmit([{current: 1}, 2, {error: -4}, 3, {error: -6}, '<end>'], () =>
         send(a, [2, {error: -2}, 3, {error: -3}, '<end>'])
       )
       a = send(prop(), [{error: -1}])
-      return expect(a.mapErrors(x => x * 2)).toEmit([{currentError: -2}, 2, {error: -4}, 3, {error: -6}, '<end>'], () =>
+      expect(a.mapErrors(x => x * 2)).toEmit([{currentError: -2}, 2, {error: -4}, 3, {error: -6}, '<end>'], () =>
         send(a, [2, {error: -2}, 3, {error: -3}, '<end>'])
       )
     })

@@ -1,11 +1,6 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('fromPromise', function() {
+describe('fromPromise', () => {
   const inProgress = {
     then() {},
   }
@@ -36,9 +31,11 @@ describe('fromPromise', function() {
     },
   }
 
-  it('should return property', () => expect(Kefir.fromPromise(inProgress)).toBeProperty())
+  it('should return property', () => {
+    expect(Kefir.fromPromise(inProgress)).toBeProperty()
+  })
 
-  it('should call `property.then` on first activation, and only on first', function() {
+  it('should call `property.then` on first activation, and only on first', () => {
     let count = 0
     const s = Kefir.fromPromise({
       then() {
@@ -52,10 +49,10 @@ describe('fromPromise', function() {
     activate(s)
     deactivate(s)
     activate(s)
-    return expect(count).toBe(1)
+    expect(count).toBe(1)
   })
 
-  it('should call `property.done`', function() {
+  it('should call `property.done`', () => {
     let count = 0
     const s = Kefir.fromPromise({
       then() {
@@ -72,26 +69,29 @@ describe('fromPromise', function() {
     activate(s)
     deactivate(s)
     activate(s)
-    return expect(count).toBe(1)
+    expect(count).toBe(1)
   })
 
-  it('should work correctly with inProgress property', () => expect(Kefir.fromPromise(inProgress)).toEmitInTime([]))
+  it('should work correctly with inProgress property', () => {
+    expect(Kefir.fromPromise(inProgress)).toEmitInTime([])
+  })
 
-  it('... with fulfilledSync property', () =>
-    expect(Kefir.fromPromise(fulfilledSync)).toEmit([{current: 1}, '<end:current>']))
+  it('... with fulfilledSync property', () => {
+    expect(Kefir.fromPromise(fulfilledSync)).toEmit([{current: 1}, '<end:current>'])
+  })
 
   it('... with failedSync property', () =>
     expect(Kefir.fromPromise(failedSync)).toEmit([{currentError: 1}, '<end:current>']))
 
-  it('... with fulfilledAsync property', function() {
+  it('... with fulfilledAsync property', () => {
     const a = Kefir.fromPromise(fulfilledAsync)
     expect(a).toEmitInTime([[1000, 1], [1000, '<end>']])
-    return expect(a).toEmit([{current: 1}, '<end:current>'])
+    expect(a).toEmit([{current: 1}, '<end:current>'])
   })
 
-  return it('... with failedAsync property', function() {
+  it('... with failedAsync property', () => {
     const a = Kefir.fromPromise(failedAsync)
     expect(a).toEmitInTime([[1000, {error: 1}], [1000, '<end>']])
-    return expect(a).toEmit([{currentError: 1}, '<end:current>'])
+    expect(a).toEmit([{currentError: 1}, '<end:current>'])
   })
 })

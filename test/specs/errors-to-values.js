@@ -1,67 +1,68 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-const {stream, prop, send, Kefir} = require('../test-helpers')
+const {stream, prop, send} = require('../test-helpers')
 
 const handler = x => ({
   convert: x >= 0,
   value: x * 3,
 })
 
-describe('errorsToValues', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().errorsToValues(function() {})).toBeStream())
-
-    it('should activate/deactivate source', function() {
-      const a = stream()
-      return expect(a.errorsToValues(function() {})).toActivate(a)
+describe('errorsToValues', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().errorsToValues(() => {})).toBeStream()
     })
 
-    it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).errorsToValues(function() {})).toEmit(['<end:current>']))
-
-    it('should handle events', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.errorsToValues(handler)).toEmit([1, 6, {error: -1}, 9, 4, '<end>'], () =>
+      expect(a.errorsToValues(() => {})).toActivate(a)
+    })
+
+    it('should be ended if source was ended', () => {
+      expect(send(stream(), ['<end>']).errorsToValues(() => {})).toEmit(['<end:current>'])
+    })
+
+    it('should handle events', () => {
+      const a = stream()
+      expect(a.errorsToValues(handler)).toEmit([1, 6, {error: -1}, 9, 4, '<end>'], () =>
         send(a, [1, {error: 2}, {error: -1}, {error: 3}, 4, '<end>'])
       )
     })
 
-    return it('default handler should convert all errors', function() {
+    it('default handler should convert all errors', () => {
       const a = stream()
-      return expect(a.errorsToValues()).toEmit([1, 2, -1, 3, 4, '<end>'], () =>
+      expect(a.errorsToValues()).toEmit([1, 2, -1, 3, 4, '<end>'], () =>
         send(a, [1, {error: 2}, {error: -1}, {error: 3}, 4, '<end>'])
       )
     })
   })
 
-  return describe('property', function() {
-    it('should return property', () => expect(prop().errorsToValues(function() {})).toBeProperty())
-
-    it('should activate/deactivate source', function() {
-      const a = prop()
-      return expect(a.errorsToValues(function() {})).toActivate(a)
+  describe('property', () => {
+    it('should return property', () => {
+      expect(prop().errorsToValues(() => {})).toBeProperty()
     })
 
-    it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).errorsToValues(function() {})).toEmit(['<end:current>']))
+    it('should activate/deactivate source', () => {
+      const a = prop()
+      expect(a.errorsToValues(() => {})).toActivate(a)
+    })
 
-    it('should handle events', function() {
+    it('should be ended if source was ended', () => {
+      expect(send(prop(), ['<end>']).errorsToValues(() => {})).toEmit(['<end:current>'])
+    })
+
+    it('should handle events', () => {
       const a = send(prop(), [1])
-      return expect(a.errorsToValues(handler)).toEmit([{current: 1}, 6, {error: -1}, 9, 4, '<end>'], () =>
+      expect(a.errorsToValues(handler)).toEmit([{current: 1}, 6, {error: -1}, 9, 4, '<end>'], () =>
         send(a, [{error: 2}, {error: -1}, {error: 3}, 4, '<end>'])
       )
     })
 
-    return it('should handle currents', function() {
+    it('should handle currents', () => {
       let a = send(prop(), [{error: -2}])
       expect(a.errorsToValues(handler)).toEmit([{currentError: -2}])
       a = send(prop(), [{error: 2}])
       expect(a.errorsToValues(handler)).toEmit([{current: 6}])
       a = send(prop(), [1])
-      return expect(a.errorsToValues(handler)).toEmit([{current: 1}])
+      expect(a.errorsToValues(handler)).toEmit([{current: 1}])
     })
   })
 })

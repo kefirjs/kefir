@@ -1,61 +1,60 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, send} = require('../test-helpers')
 
-describe('log', function() {
-  describe('adding', function() {
-    it('should return the stream', () => expect(stream().log()).toBeStream())
+describe('log', () => {
+  describe('adding', () => {
+    it('should return the stream', () => {
+      expect(stream().log()).toBeStream()
+    })
 
-    return it('should activate the stream', function() {
+    it('should activate the stream', () => {
       const a = stream().log()
-      return expect(a).toBeActive()
+      expect(a).toBeActive()
     })
   })
 
-  describe('removing', function() {
-    it('should return the stream', () => expect(stream().log().offLog()).toBeStream())
+  describe('removing', () => {
+    it('should return the stream', () => {
+      expect(stream().log().offLog()).toBeStream()
+    })
 
-    return it('should deactivate the stream', function() {
+    it('should deactivate the stream', () => {
       const a = stream().log().offLog()
-      return expect(a).not.toBeActive()
+      expect(a).not.toBeActive()
     })
   })
 
-  return describe('console', function() {
+  describe('console', () => {
     beforeEach(() => spyOn(console, 'log'))
 
-    it('should have a default name', function() {
+    it('should have a default name', () => {
       const a = stream()
       a.log()
-      return expect(a).toEmit([1, 2, 3], function() {
+      expect(a).toEmit([1, 2, 3], () => {
         send(a, [1, 2, 3])
         expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 1)
         expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 2)
-        return expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 3)
+        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 3)
       })
     })
 
-    it('should use the name', function() {
+    it('should use the name', () => {
       const a = stream()
       a.log('logged')
-      return expect(a).toEmit([1, 2, 3], function() {
+      expect(a).toEmit([1, 2, 3], () => {
         send(a, [1, 2, 3])
         expect(console.log).toHaveBeenCalledWith('logged', '<value>', 1)
         expect(console.log).toHaveBeenCalledWith('logged', '<value>', 2)
-        return expect(console.log).toHaveBeenCalledWith('logged', '<value>', 3)
+        expect(console.log).toHaveBeenCalledWith('logged', '<value>', 3)
       })
     })
 
-    return it('should not log if the log has been removed', function() {
+    it('should not log if the log has been removed', () => {
       const a = stream()
       a.log()
       a.offLog()
-      return expect(a).toEmit([1, 2, 3], function() {
+      expect(a).toEmit([1, 2, 3], () => {
         send(a, [1, 2, 3])
-        return expect(console.log).not.toHaveBeenCalled()
+        expect(console.log).not.toHaveBeenCalled()
       })
     })
   })

@@ -1,16 +1,13 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const Kefir = require('../../dist/kefir')
 
-describe('withInterval', function() {
-  it('should return stream', () => expect(Kefir.withInterval(100, function() {})).toBeStream())
+describe('withInterval', () => {
+  it('should return stream', () => {
+    expect(Kefir.withInterval(100, () => {})).toBeStream()
+  })
 
-  it('should work as expected', function() {
+  it('should work as expected', () => {
     let i = 0
-    const fn = function(emitter) {
+    const fn = emitter => {
       i++
       if (i === 2) {
         emitter.error(-1)
@@ -22,7 +19,7 @@ describe('withInterval', function() {
         return emitter.end()
       }
     }
-    return expect(Kefir.withInterval(100, fn)).toEmitInTime([
+    expect(Kefir.withInterval(100, fn)).toEmitInTime([
       [100, 1],
       [100, 2],
       [200, {error: -1}],
@@ -32,9 +29,9 @@ describe('withInterval', function() {
     ])
   })
 
-  return it('should support emitter.emitEvent', function() {
+  it('should support emitter.emitEvent', () => {
     let i = 0
-    const fn = function(emitter) {
+    const fn = emitter => {
       i++
       if (i === 2) {
         emitter.emitEvent({type: 'error', value: -1, current: false})
@@ -46,7 +43,7 @@ describe('withInterval', function() {
         return emitter.emitEvent({type: 'end', value: undefined, current: false})
       }
     }
-    return expect(Kefir.withInterval(100, fn)).toEmitInTime([
+    expect(Kefir.withInterval(100, fn)).toEmitInTime([
       [100, 1],
       [100, 2],
       [200, {error: -1}],

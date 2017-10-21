@@ -1,13 +1,8 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-const {stream, prop, send, Kefir, deactivate, activate} = require('../test-helpers')
+const {stream, prop, send} = require('../test-helpers')
 
-describe('bufferWhileBy', function() {
-  describe('common', function() {
-    it('should activate/deactivate sources', function() {
+describe('bufferWhileBy', () => {
+  describe('common', () => {
+    it('should activate/deactivate sources', () => {
       let a = stream()
       let b = stream()
       expect(a.bufferWhileBy(b)).toActivate(a, b)
@@ -19,59 +14,59 @@ describe('bufferWhileBy', function() {
       expect(a.bufferWhileBy(b)).toActivate(a, b)
       a = prop()
       b = prop()
-      return expect(a.bufferWhileBy(b)).toActivate(a, b)
+      expect(a.bufferWhileBy(b)).toActivate(a, b)
     })
 
-    it('should flush empty buffer and then end when primary ends', function() {
+    it('should flush empty buffer and then end when primary ends', () => {
       expect(send(stream(), ['<end>']).bufferWhileBy(stream())).toEmit([{current: []}, '<end:current>'])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b)).toEmit([[], '<end>'], () => send(a, ['<end>']))
+      expect(a.bufferWhileBy(b)).toEmit([[], '<end>'], () => send(a, ['<end>']))
     })
 
-    it('should flush empty buffer when secondary emits false (w/ {flushOnChange: true})', function() {
+    it('should flush empty buffer when secondary emits false (w/ {flushOnChange: true})', () => {
       expect(stream().bufferWhileBy(send(prop(), [false]), {flushOnChange: true})).toEmit([{current: []}])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b, {flushOnChange: true})).toEmit([[]], () => send(b, [true, false]))
+      expect(a.bufferWhileBy(b, {flushOnChange: true})).toEmit([[]], () => send(b, [true, false]))
     })
 
-    it('should flush buffer on end', function() {
+    it('should flush buffer on end', () => {
       expect(send(prop(), [1, '<end>']).bufferWhileBy(stream())).toEmit([{current: [1]}, '<end:current>'])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b)).toEmit([[1, 2], '<end>'], () => send(a, [1, 2, '<end>']))
+      expect(a.bufferWhileBy(b)).toEmit([[1, 2], '<end>'], () => send(a, [1, 2, '<end>']))
     })
 
-    it('should not flush buffer on end if {flushOnEnd: false}', function() {
+    it('should not flush buffer on end if {flushOnEnd: false}', () => {
       expect(send(prop(), [1, '<end>']).bufferWhileBy(stream(), {flushOnEnd: false})).toEmit(['<end:current>'])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit(['<end>'], () => send(a, [1, 2, '<end>']))
+      expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit(['<end>'], () => send(a, [1, 2, '<end>']))
     })
 
-    it("should end when secondary ends, if it haven't emitted any value (w/ {flushOnEnd: false})", function() {
+    it("should end when secondary ends, if it haven't emitted any value (w/ {flushOnEnd: false})", () => {
       expect(stream().bufferWhileBy(send(stream(), ['<end>']), {flushOnEnd: false})).toEmit(['<end:current>'])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit(['<end>'], () => send(b, ['<end>']))
+      expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit(['<end>'], () => send(b, ['<end>']))
     })
 
-    it('should end when secondary ends, if its last emitted value was truthy (w/ {flushOnEnd: false})', function() {
+    it('should end when secondary ends, if its last emitted value was truthy (w/ {flushOnEnd: false})', () => {
       expect(stream().bufferWhileBy(send(prop(), [true, '<end>']), {flushOnEnd: false})).toEmit(['<end:current>'])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit(['<end>'], () => send(b, [true, '<end>']))
+      expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit(['<end>'], () => send(b, [true, '<end>']))
     })
 
-    it('should not end when secondary ends, if its last emitted value was falsy (w/ {flushOnEnd: false})', function() {
+    it('should not end when secondary ends, if its last emitted value was falsy (w/ {flushOnEnd: false})', () => {
       expect(stream().bufferWhileBy(send(prop(), [false, '<end>']), {flushOnEnd: false})).toEmit([])
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit([], () => send(b, [false, '<end>']))
+      expect(a.bufferWhileBy(b, {flushOnEnd: false})).toEmit([], () => send(b, [false, '<end>']))
     })
 
-    it('should not end when secondary ends (w/o {flushOnEnd: false})', function() {
+    it('should not end when secondary ends (w/o {flushOnEnd: false})', () => {
       expect(stream().bufferWhileBy(send(prop(), ['<end>']))).toEmit([])
       let a = stream()
       let b = stream()
@@ -83,13 +78,13 @@ describe('bufferWhileBy', function() {
       expect(stream().bufferWhileBy(send(prop(), [false, '<end>']))).toEmit([])
       a = stream()
       b = stream()
-      return expect(a.bufferWhileBy(b)).toEmit([], () => send(b, [false, '<end>']))
+      expect(a.bufferWhileBy(b)).toEmit([], () => send(b, [false, '<end>']))
     })
 
-    it('should flush buffer on each value from primary if last value form secondary was falsy', function() {
+    it('should flush buffer on each value from primary if last value form secondary was falsy', () => {
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b)).toEmit([[1, 2, 3, 4], [5], [6, 7, 8]], function() {
+      expect(a.bufferWhileBy(b)).toEmit([[1, 2, 3, 4], [5], [6, 7, 8]], () => {
         send(a, [1, 2]) // buffering
         send(b, [true])
         send(a, [3]) // still buffering
@@ -99,11 +94,11 @@ describe('bufferWhileBy', function() {
         send(b, [true])
         send(a, [6, 7]) // buffering again
         send(b, [false])
-        return send(a, [8])
+        send(a, [8])
       })
     }) // flushing 6,7,8
 
-    it('errors should flow', function() {
+    it('errors should flow', () => {
       let a = stream()
       let b = stream()
       expect(a.bufferWhileBy(b)).errorsToFlow(a)
@@ -127,48 +122,60 @@ describe('bufferWhileBy', function() {
       expect(a.bufferWhileBy(b)).errorsToFlow(a)
       a = prop()
       b = prop()
-      return expect(a.bufferWhileBy(b)).errorsToFlow(b)
+      expect(a.bufferWhileBy(b)).errorsToFlow(b)
     })
 
-    return it('should flush on change if {flushOnChange === true}', function() {
+    it('should flush on change if {flushOnChange === true}', () => {
       const a = stream()
       const b = stream()
-      return expect(a.bufferWhileBy(b, {flushOnChange: true})).toEmit([[1, 2, 3]], function() {
+      expect(a.bufferWhileBy(b, {flushOnChange: true})).toEmit([[1, 2, 3]], () => {
         send(a, [1, 2]) // buffering
         send(b, [true])
         send(a, [3]) // still buffering
-        return send(b, [false])
+        send(b, [false])
       })
     })
   }) // flush
 
-  describe('stream + stream', () => it('returns stream', () => expect(stream().bufferWhileBy(stream())).toBeStream()))
+  describe('stream + stream', () => {
+    it('returns stream', () => {
+      expect(stream().bufferWhileBy(stream())).toBeStream()
+    })
+  })
 
-  describe('stream + property', () => it('returns stream', () => expect(stream().bufferWhileBy(prop())).toBeStream()))
+  describe('stream + property', () => {
+    it('returns stream', () => {
+      expect(stream().bufferWhileBy(prop())).toBeStream()
+    })
+  })
 
-  describe('property + stream', function() {
-    it('returns property', () => expect(prop().bufferWhileBy(stream())).toBeProperty())
+  describe('property + stream', () => {
+    it('returns property', () => {
+      expect(prop().bufferWhileBy(stream())).toBeProperty()
+    })
 
-    return it('includes current to buffer', function() {
+    it('includes current to buffer', () => {
       const a = send(prop(), [1])
       const b = stream()
-      return expect(a.bufferWhileBy(b)).toEmit([[1, 2]], function() {
+      expect(a.bufferWhileBy(b)).toEmit([[1, 2]], () => {
         send(b, [false])
-        return send(a, [2])
+        send(a, [2])
       })
     })
   })
 
-  return describe('property + property', function() {
-    it('returns property', () => expect(prop().bufferWhileBy(prop())).toBeProperty())
+  describe('property + property', () => {
+    it('returns property', () => {
+      expect(prop().bufferWhileBy(prop())).toBeProperty()
+    })
 
-    return it('both have current', function() {
+    it('both have current', () => {
       let a = send(prop(), [1])
       let b = send(prop(), [false])
       expect(a.bufferWhileBy(b)).toEmit([{current: [1]}])
       a = send(prop(), [1])
       b = send(prop(), [true])
-      return expect(a.bufferWhileBy(b)).toEmit([])
+      expect(a.bufferWhileBy(b)).toEmit([])
     })
   })
 })

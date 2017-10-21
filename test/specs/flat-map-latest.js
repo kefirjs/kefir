@@ -1,27 +1,24 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('flatMapLatest', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().flatMapLatest()).toBeStream())
+describe('flatMapLatest', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().flatMapLatest()).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.flatMapLatest()).toActivate(a)
+      expect(a.flatMapLatest()).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
       expect(send(stream(), ['<end>']).flatMapLatest()).toEmit(['<end:current>']))
 
-    it('should handle events', function() {
+    it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = send(prop(), [0])
-      return expect(a.flatMapLatest()).toEmit([1, 0, 3, 5, '<end>'], function() {
+      expect(a.flatMapLatest()).toEmit([1, 0, 3, 5, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -30,11 +27,11 @@ describe('flatMapLatest', function() {
         send(c, [3])
         send(a, [b, '<end>'])
         send(c, [4])
-        return send(b, [5, '<end>'])
+        send(b, [5, '<end>'])
       })
     })
 
-    it('should activate sub-sources (only latest)', function() {
+    it('should activate sub-sources (only latest)', () => {
       const a = stream()
       const b = stream()
       const c = send(prop(), [0])
@@ -43,19 +40,19 @@ describe('flatMapLatest', function() {
       send(a, [b, c])
       deactivate(map)
       expect(map).toActivate(c)
-      return expect(map).not.toActivate(b)
+      expect(map).not.toActivate(b)
     })
 
-    it('should accept optional map fn', function() {
+    it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      return expect(a.flatMapLatest(x => x.obs)).toEmit([1, 2, '<end>'], function() {
+      expect(a.flatMapLatest(x => x.obs)).toEmit([1, 2, '<end>'], () => {
         send(a, [{obs: b}, '<end>'])
-        return send(b, [1, 2, '<end>'])
+        send(b, [1, 2, '<end>'])
       })
     })
 
-    it('should correctly handle current values of sub sources on activation', function() {
+    it('should correctly handle current values of sub sources on activation', () => {
       const a = stream()
       const b = send(prop(), [1])
       const c = send(prop(), [2])
@@ -63,20 +60,20 @@ describe('flatMapLatest', function() {
       activate(m)
       send(a, [b, c])
       deactivate(m)
-      return expect(m).toEmit([{current: 2}])
+      expect(m).toEmit([{current: 2}])
     })
 
-    it('should correctly handle current values of new sub sources', function() {
+    it('should correctly handle current values of new sub sources', () => {
       const a = stream()
       const b = send(prop(), [1])
       const c = send(prop(), [2])
-      return expect(a.flatMapLatest()).toEmit([1, 2], () => send(a, [b, c]))
+      expect(a.flatMapLatest()).toEmit([1, 2], () => send(a, [b, c]))
     })
 
-    return it('should work nicely with Kefir.constant and Kefir.never', function() {
+    it('should work nicely with Kefir.constant and Kefir.never', () => {
       const a = stream()
-      return expect(
-        a.flatMapLatest(function(x) {
+      expect(
+        a.flatMapLatest(x => {
           if (x > 2) {
             return Kefir.constant(x)
           } else {
@@ -87,12 +84,14 @@ describe('flatMapLatest', function() {
     })
   })
 
-  return describe('property', function() {
-    it('should return stream', () => expect(prop().flatMapLatest()).toBeStream())
+  describe('property', () => {
+    it('should return stream', () => {
+      expect(prop().flatMapLatest()).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = prop()
-      return expect(a.flatMapLatest()).toActivate(a)
+      expect(a.flatMapLatest()).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
@@ -104,10 +103,10 @@ describe('flatMapLatest', function() {
         '<end:current>',
       ]))
 
-    return it('should correctly handle current value of source', function() {
+    it('should correctly handle current value of source', () => {
       const a = send(prop(), [0])
       const b = send(prop(), [a])
-      return expect(b.flatMapLatest()).toEmit([{current: 0}])
+      expect(b.flatMapLatest()).toEmit([{current: 0}])
     })
   })
 })

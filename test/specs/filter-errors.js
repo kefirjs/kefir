@@ -1,32 +1,29 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-const {stream, prop, send, Kefir} = require('../test-helpers')
+const {stream, prop, send} = require('../test-helpers')
 
-describe('filterErrors', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().filterErrors(function() {})).toBeStream())
+describe('filterErrors', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().filterErrors(() => {})).toBeStream()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.filterErrors(function() {})).toActivate(a)
+      expect(a.filterErrors(() => {})).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).filterErrors(function() {})).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).filterErrors(() => {})).toEmit(['<end:current>']))
 
-    it('should handle events', function() {
+    it('should handle events', () => {
       const a = stream()
-      return expect(a.filterErrors(x => x > 3)).toEmit([-1, {error: 4}, -2, {error: 5}, {error: 6}, '<end>'], () =>
+      expect(a.filterErrors(x => x > 3)).toEmit([-1, {error: 4}, -2, {error: 5}, {error: 6}, '<end>'], () =>
         send(a, [-1, {error: 1}, {error: 2}, {error: 3}, {error: 4}, -2, {error: 5}, {error: 0}, {error: 6}, '<end>'])
       )
     })
 
-    return it('shoud use id as default predicate', function() {
+    it('shoud use id as default predicate', () => {
       const a = stream()
-      return expect(a.filterErrors()).toEmit([-1, {error: 4}, -2, {error: 5}, false, {error: 6}, '<end>'], () =>
+      expect(a.filterErrors()).toEmit([-1, {error: 4}, -2, {error: 5}, false, {error: 6}, '<end>'], () =>
         send(a, [
           -1,
           {error: 0},
@@ -44,36 +41,38 @@ describe('filterErrors', function() {
     })
   })
 
-  return describe('property', function() {
-    it('should return property', () => expect(prop().filterErrors(function() {})).toBeProperty())
+  describe('property', () => {
+    it('should return property', () => {
+      expect(prop().filterErrors(() => {})).toBeProperty()
+    })
 
-    it('should activate/deactivate source', function() {
+    it('should activate/deactivate source', () => {
       const a = prop()
-      return expect(a.filterErrors(function() {})).toActivate(a)
+      expect(a.filterErrors(() => {})).toActivate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).filterErrors(function() {})).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).filterErrors(() => {})).toEmit(['<end:current>']))
 
-    it('should handle events and current', function() {
+    it('should handle events and current', () => {
       const a = send(prop(), [{error: 5}])
-      return expect(a.filterErrors(x => x > 3)).toEmit([{currentError: 5}, {error: 4}, -2, {error: 6}, '<end>'], () =>
+      expect(a.filterErrors(x => x > 3)).toEmit([{currentError: 5}, {error: 4}, -2, {error: 6}, '<end>'], () =>
         send(a, [{error: 1}, {error: 2}, {error: 3}, {error: 4}, -2, {error: 0}, {error: 6}, '<end>'])
       )
     })
 
-    it('should handle current (not pass)', function() {
+    it('should handle current (not pass)', () => {
       const a = send(prop(), [{error: 0}])
-      return expect(a.filterErrors(x => x > 2)).toEmit([])
+      expect(a.filterErrors(x => x > 2)).toEmit([])
     })
 
-    return it('shoud use id as default predicate', function() {
+    it('shoud use id as default predicate', () => {
       let a = send(prop(), [{error: 5}])
       expect(a.filterErrors()).toEmit([{currentError: 5}, {error: 4}, -2, {error: 6}, '<end>'], () =>
         send(a, [{error: 0}, {error: false}, {error: null}, {error: 4}, -2, {error: undefined}, {error: 6}, '<end>'])
       )
       a = send(prop(), [{error: 0}])
-      return expect(a.filterErrors()).toEmit([])
+      expect(a.filterErrors()).toEmit([])
     })
   })
 })

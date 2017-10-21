@@ -1,54 +1,54 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-const {stream, prop, send, Kefir} = require('../test-helpers')
+const {stream, prop, send} = require('../test-helpers')
 
-describe('beforeEnd', function() {
-  describe('stream', function() {
-    it('should return stream', () => expect(stream().beforeEnd(function() {})).toBeStream())
-
-    it('should activate/deactivate source', function() {
-      const a = stream()
-      return expect(a.beforeEnd(function() {})).toActivate(a)
+describe('beforeEnd', () => {
+  describe('stream', () => {
+    it('should return stream', () => {
+      expect(stream().beforeEnd(() => {})).toBeStream()
     })
 
-    it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).beforeEnd(() => 42)).toEmit([{current: 42}, '<end:current>']))
-
-    it('should handle events', function() {
+    it('should activate/deactivate source', () => {
       const a = stream()
-      return expect(a.beforeEnd(() => 42)).toEmit([1, 2, 42, '<end>'], () => send(a, [1, 2, '<end>']))
+      expect(a.beforeEnd(() => {})).toActivate(a)
     })
 
-    return it('errors should flow', function() {
+    it('should be ended if source was ended', () => {
+      expect(send(stream(), ['<end>']).beforeEnd(() => 42)).toEmit([{current: 42}, '<end:current>'])
+    })
+
+    it('should handle events', () => {
       const a = stream()
-      return expect(a.beforeEnd(function() {})).errorsToFlow(a)
+      expect(a.beforeEnd(() => 42)).toEmit([1, 2, 42, '<end>'], () => send(a, [1, 2, '<end>']))
+    })
+
+    it('errors should flow', () => {
+      const a = stream()
+      expect(a.beforeEnd(() => {})).errorsToFlow(a)
     })
   })
 
-  return describe('property', function() {
-    it('should return property', () => expect(prop().beforeEnd(function() {})).toBeProperty())
-
-    it('should activate/deactivate source', function() {
-      const a = prop()
-      return expect(a.beforeEnd(function() {})).toActivate(a)
+  describe('property', () => {
+    it('should return property', () => {
+      expect(prop().beforeEnd(() => {})).toBeProperty()
     })
 
-    it('should be ended if source was ended', function() {
+    it('should activate/deactivate source', () => {
+      const a = prop()
+      expect(a.beforeEnd(() => {})).toActivate(a)
+    })
+
+    it('should be ended if source was ended', () => {
       expect(send(prop(), ['<end>']).beforeEnd(() => 42)).toEmit([{current: 42}, '<end:current>'])
-      return expect(send(prop(), [1, '<end>']).beforeEnd(() => 42)).toEmit([{current: 42}, '<end:current>'])
+      expect(send(prop(), [1, '<end>']).beforeEnd(() => 42)).toEmit([{current: 42}, '<end:current>'])
     })
 
-    it('should handle events and current', function() {
+    it('should handle events and current', () => {
       const a = send(prop(), [1])
-      return expect(a.beforeEnd(() => 42)).toEmit([{current: 1}, 2, 3, 42, '<end>'], () => send(a, [2, 3, '<end>']))
+      expect(a.beforeEnd(() => 42)).toEmit([{current: 1}, 2, 3, 42, '<end>'], () => send(a, [2, 3, '<end>']))
     })
 
-    return it('errors should flow', function() {
+    it('errors should flow', () => {
       const a = prop()
-      return expect(a.beforeEnd(function() {})).errorsToFlow(a)
+      expect(a.beforeEnd(() => {})).errorsToFlow(a)
     })
   })
 })

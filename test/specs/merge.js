@@ -1,59 +1,56 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
 
-describe('merge', function() {
-  it('should return stream', function() {
+describe('merge', () => {
+  it('should return stream', () => {
     expect(Kefir.merge([])).toBeStream()
     expect(Kefir.merge([stream(), prop()])).toBeStream()
     expect(stream().merge(stream())).toBeStream()
-    return expect(prop().merge(prop())).toBeStream()
+    expect(prop().merge(prop())).toBeStream()
   })
 
-  it('should be ended if empty array provided', () => expect(Kefir.merge([])).toEmit(['<end:current>']))
+  it('should be ended if empty array provided', () => {
+    expect(Kefir.merge([])).toEmit(['<end:current>'])
+  })
 
-  it('should be ended if array of ended observables provided', function() {
+  it('should be ended if array of ended observables provided', () => {
     const a = send(stream(), ['<end>'])
     const b = send(prop(), ['<end>'])
     const c = send(stream(), ['<end>'])
     expect(Kefir.merge([a, b, c])).toEmit(['<end:current>'])
-    return expect(a.merge(b)).toEmit(['<end:current>'])
+    expect(a.merge(b)).toEmit(['<end:current>'])
   })
 
-  it('should activate sources', function() {
+  it('should activate sources', () => {
     const a = stream()
     const b = prop()
     const c = stream()
     expect(Kefir.merge([a, b, c])).toActivate(a, b, c)
-    return expect(a.merge(b)).toActivate(a, b)
+    expect(a.merge(b)).toActivate(a, b)
   })
 
-  it('should deliver events from observables, then end when all of them end', function() {
+  it('should deliver events from observables, then end when all of them end', () => {
     let a = stream()
     let b = send(prop(), [0])
     const c = stream()
-    expect(Kefir.merge([a, b, c])).toEmit([{current: 0}, 1, 2, 3, 4, 5, 6, '<end>'], function() {
+    expect(Kefir.merge([a, b, c])).toEmit([{current: 0}, 1, 2, 3, 4, 5, 6, '<end>'], () => {
       send(a, [1])
       send(b, [2])
       send(c, [3])
       send(a, ['<end>'])
       send(b, [4, '<end>'])
-      return send(c, [5, 6, '<end>'])
+      send(c, [5, 6, '<end>'])
     })
     a = stream()
     b = send(prop(), [0])
-    return expect(a.merge(b)).toEmit([{current: 0}, 1, 2, 3, '<end>'], function() {
+    expect(a.merge(b)).toEmit([{current: 0}, 1, 2, 3, '<end>'], () => {
       send(a, [1])
       send(b, [2])
       send(a, ['<end>'])
-      return send(b, [3, '<end>'])
+      send(b, [3, '<end>'])
     })
   })
 
-  it('should deliver currents from all source properties, but only to first subscriber on each activation', function() {
+  it('should deliver currents from all source properties, but only to first subscriber on each activation', () => {
     const a = send(prop(), [0])
     const b = send(prop(), [1])
     const c = send(prop(), [2])
@@ -68,10 +65,10 @@ describe('merge', function() {
     merge = Kefir.merge([a, b, c])
     activate(merge)
     deactivate(merge)
-    return expect(merge).toEmit([{current: 0}, {current: 1}, {current: 2}])
+    expect(merge).toEmit([{current: 0}, {current: 1}, {current: 2}])
   })
 
-  it('errors should flow', function() {
+  it('errors should flow', () => {
     let a = stream()
     let b = prop()
     let c = stream()
@@ -83,14 +80,14 @@ describe('merge', function() {
     a = stream()
     b = prop()
     c = stream()
-    return expect(Kefir.merge([a, b, c])).errorsToFlow(c)
+    expect(Kefir.merge([a, b, c])).errorsToFlow(c)
   })
 
-  return it('should work correctly when unsuscribing after one sync event', function() {
+  it('should work correctly when unsuscribing after one sync event', () => {
     const a = Kefir.constant(1)
     const b = Kefir.interval(1000, 1)
     const c = a.merge(b)
     activate(c.take(1))
-    return expect(b).not.toBeActive()
+    expect(b).not.toBeActive()
   })
 })
