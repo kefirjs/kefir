@@ -3,7 +3,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {stream, prop, send, Kefir, pool} = require('../test-helpers.coffee')
+const {stream, prop, send, Kefir, pool} = require('../test-helpers')
 
 describe('takeErrors', function() {
   describe('stream', function() {

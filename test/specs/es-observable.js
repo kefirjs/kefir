@@ -5,7 +5,7 @@
  */
 const $$observable = require('symbol-observable').default
 const Observable = require('zen-observable')
-const {stream, prop, send, Kefir} = require('../test-helpers.coffee')
+const {stream, prop, send, Kefir} = require('../test-helpers')
 
 describe('[Symbol.observable]', function() {
   it('outputs a compatible Observable', function(done) {

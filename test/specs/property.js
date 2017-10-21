@@ -3,7 +3,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {prop, send, activate, Kefir} = require('../test-helpers.coffee')
+const {prop, send, activate, Kefir} = require('../test-helpers')
 const sinon = require('sinon')
 
 describe('Property', function() {

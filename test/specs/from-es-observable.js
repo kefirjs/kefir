@@ -5,7 +5,7 @@
  */
 const Observable = require('zen-observable')
 const Rx = require('@reactivex/rxjs')
-const {activate, deactivate, Kefir} = require('../test-helpers.coffee')
+const {activate, deactivate, Kefir} = require('../test-helpers')
 
 describe('fromESObservable', function() {
   it('turns an ES7 observable into a stream', () => expect(Kefir.fromESObservable(Observable.of(1, 2))).toBeStream())

@@ -3,7 +3,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {stream, prop, send} = require('../test-helpers.coffee')
+const {stream, prop, send} = require('../test-helpers')
 
 describe('setName', function() {
   it('should return same observable', function() {

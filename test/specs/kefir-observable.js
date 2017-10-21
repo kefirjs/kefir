@@ -1,4 +1,4 @@
-let {Kefir} = require('../test-helpers.coffee')
+let {Kefir} = require('../test-helpers')
 
 describe('Kefir.Observable', () => {
   describe('observe', () => {

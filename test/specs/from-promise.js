@@ -3,7 +3,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {activate, deactivate, Kefir} = require('../test-helpers.coffee')
+const {activate, deactivate, Kefir} = require('../test-helpers')
 
 describe('fromPromise', function() {
   const inProgress = {
