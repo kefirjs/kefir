@@ -1,0 +1,61 @@
+const {stream, send} = require('../test-helpers')
+
+describe('log', () => {
+  describe('adding', () => {
+    it('should return the stream', () => {
+      expect(stream().log()).toBeStream()
+    })
+
+    it('should activate the stream', () => {
+      const a = stream().log()
+      expect(a).toBeActive()
+    })
+  })
+
+  describe('removing', () => {
+    it('should return the stream', () => {
+      expect(stream().log().offLog()).toBeStream()
+    })
+
+    it('should deactivate the stream', () => {
+      const a = stream().log().offLog()
+      expect(a).not.toBeActive()
+    })
+  })
+
+  describe('console', () => {
+    beforeEach(() => spyOn(console, 'log'))
+
+    it('should have a default name', () => {
+      const a = stream()
+      a.log()
+      expect(a).toEmit([1, 2, 3], () => {
+        send(a, [1, 2, 3])
+        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 1)
+        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 2)
+        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 3)
+      })
+    })
+
+    it('should use the name', () => {
+      const a = stream()
+      a.log('logged')
+      expect(a).toEmit([1, 2, 3], () => {
+        send(a, [1, 2, 3])
+        expect(console.log).toHaveBeenCalledWith('logged', '<value>', 1)
+        expect(console.log).toHaveBeenCalledWith('logged', '<value>', 2)
+        expect(console.log).toHaveBeenCalledWith('logged', '<value>', 3)
+      })
+    })
+
+    it('should not log if the log has been removed', () => {
+      const a = stream()
+      a.log()
+      a.offLog()
+      expect(a).toEmit([1, 2, 3], () => {
+        send(a, [1, 2, 3])
+        expect(console.log).not.toHaveBeenCalled()
+      })
+    })
+  })
+})

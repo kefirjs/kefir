@@ -1,4 +1,4 @@
-let {Kefir} = require('../test-helpers.coffee')
+let {Kefir} = require('../test-helpers')
 const {Observable} = Kefir.staticLand
 
 describe('Kefir.staticLand.Observable', () => {
