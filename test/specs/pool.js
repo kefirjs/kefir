@@ -80,6 +80,19 @@ describe('pool', () => {
     })
   })
 
+  it('should deactivate self in circular dependency', () => {
+    const pool = Kefir.pool()
+    pool.plug(pool.map(x => x))
+
+    const sub = pool.observe()
+
+    expect(pool).toBeActive()
+
+    sub.unsubscribe()
+
+    expect(pool).not.toBeActive()
+  })
+
   it('errors should flow', () => {
     const a = stream()
     const b = prop()
