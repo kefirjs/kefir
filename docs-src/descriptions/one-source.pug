@@ -829,8 +829,24 @@ pre(title='events in time').
                  12      14
 div
 
++descr-method('thru', 'thru', 'obs.thru(transformer)').
+  Calls #[b transformer] with #[b obs] as argument and returns whatever
+  #[b transformer] returned. Put another way, #[tt o.thru(fn)] is the
+  same as #[tt fn(o)]. This allows you to integrate your helper functions
+  into chains of Kefir method calls without adding them to Observable prototype.
 
+pre.javascript(title='example')
+  :escapehtml
+    var source = Kefir.sequentially(100, [1, 2, 3, 4, 5, 6]);
+    var transformer = obs => obs.filter(x => x > 2);
+    var result = source.thru(transformer).map(x => x - 1); // is the same as transformer(source).map(...)
+    result.log();
+div
 
+pre(title='events in time').
+  source:  ---1---2---3---4---5---6X
+  result:  -----------2---3---4---5X
+div
 
 +descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
   The most general transformation method. All other transformation methods above
