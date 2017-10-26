@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "3.7.4",
+  "version": "3.8.0",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
@@ -9,9 +9,9 @@
     "build-docs": "node configs/docs.js",
     "clean": "rm -r dist index.html || true",
     "build": "npm run clean && npm run build-js && npm run build-docs",
-    "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && jasmine-node --coffee --matchall test/specs && flow check",
-    "test-only": "rollup -c ./configs/rollup.dev.js && jasmine-node --coffee --matchall test/specs",
-    "test-debug": "rollup -c ./configs/rollup.dev.js && node --inspect-brk `npm bin`/jasmine-node --coffee --matchall test/specs"
+    "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && jasmine-node --matchall test/specs && flow check",
+    "test-only": "rollup -c ./configs/rollup.dev.js && jasmine-node --matchall test/specs",
+    "test-debug": "rollup -c ./configs/rollup.dev.js && node --inspect-brk `npm bin`/jasmine-node --matchall test/specs"
   },
   "keywords": [
     "frp",
@@ -38,7 +38,6 @@
   "devDependencies": {
     "@reactivex/rxjs": "5.3.0",
     "babel-preset-es2015-loose-rollup": "7.0.0",
-    "coffee-script": "1.12.5",
     "flow-bin": "0.50.0",
     "inquirer": "0.10.1",
     "jasmine-node": "1.14.5",

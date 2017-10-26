@@ -1,3 +1,7 @@
+## 3.8.0 (27/10/2017)
+
+ - New method `.thru` [#thru](https://github.com/rpominov/kefir/pull/257) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+
 ## 3.7.4 (25/08/2017)
 
  - A bug `.take` / `.takeErrors` was fixed [#244](https://github.com/rpominov/kefir/pull/244) [@mAAdhaTTah](https://github.com/mAAdhaTTah)

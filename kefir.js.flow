@@ -104,6 +104,7 @@ declare class Observable<+V,+E=*> {
   slidingWindow(max: number, min?: number): Observable<V[],E>;
   bufferWhile(predicate?: (value: V) => boolean, options?: {flushOnEnd?: boolean}): Observable<V[],E>;
   transduce(transducer: any): Observable<any,E>;
+  thru<V2>(callback: (this => V2)): V2;
   withHandler<V2,E2>(handler: (emitter: Emitter<V2,E2>, event: Event<V,E>) => void): Observable<V2,E2>;
 
   combine<V2,E2>(otherObs: Observable<V2,E2>, $?: empty): Observable<[V,V2],E|E2>;
