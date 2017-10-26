@@ -278,6 +278,12 @@ Observable.prototype.withHandler = function(fn) {
   return withHandler(this, fn)
 }
 
+// (Stream, Stream -> a) -> a
+// (Property, Property -> a) -> a
+Observable.prototype.thru = function(fn) {
+  return fn(this)
+}
+
 // Combine observables
 // -----------------------------------------------------------------------------
 
