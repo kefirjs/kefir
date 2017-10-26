@@ -1074,7 +1074,11 @@ into chains of Kefir method calls without adding them to Observable prototype.
 var transformer = obs =&gt; obs.filter(x =&gt; x &gt; 2);
 var result = source.thru(transformer).map(x =&gt; x - 1); // is the same as transformer(source).map(...)
 result.log();</pre><div></div><pre title="events in time">source:  ---1---2---3---4---5---6X
-result:  -----------2---3---4---5X</pre><div></div><p id="with-handler"><a class="header" href="#with-handler">withHandler</a><code>obs.withHandler(handler)</code><br/>The most general transformation method. All other transformation methods above
+result:  -----------2---3---4---5X</pre><div></div><pre title="console output">&gt; [sequentially.filter.map] &lt;value&gt; 2
+&gt; [sequentially.filter.map] &lt;value&gt; 3
+&gt; [sequentially.filter.map] &lt;value&gt; 4
+&gt; [sequentially.filter.map] &lt;value&gt; 5
+&gt; [sequentially.filter.map] &lt;end&gt;</pre><div></div><p id="with-handler"><a class="header" href="#with-handler">withHandler</a><code>obs.withHandler(handler)</code><br/>The most general transformation method. All other transformation methods above
 can be implemented via <b>withHandler</b>.
 Will call the <b>handler</b> function on each event from <b>obs</b> observable,
 passing to it two arguments: an <a href="#emitter-object">emitter</a>,
