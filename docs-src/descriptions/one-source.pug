@@ -848,6 +848,15 @@ pre(title='events in time').
   result:  -----------2---3---4---5X
 div
 
+pre(title='console output')
+  :escapehtml
+    > [sequentially.filter.map] <value> 2
+    > [sequentially.filter.map] <value> 3
+    > [sequentially.filter.map] <value> 4
+    > [sequentially.filter.map] <value> 5
+    > [sequentially.filter.map] <end>
+div
+
 +descr-method('with-handler', 'withHandler', 'obs.withHandler(handler)').
   The most general transformation method. All other transformation methods above
   can be implemented via #[b withHandler].
