@@ -1,4 +1,4 @@
-/*! Kefir.js v3.7.4
+/*! Kefir.js v3.8.0
  *  https://github.com/rpominov/kefir
  */
 
@@ -3486,6 +3486,12 @@ Observable.prototype.transduce = function (transducer) {
 // (Property, Function) -> Property
 Observable.prototype.withHandler = function (fn) {
   return withHandler(this, fn);
+};
+
+// (Stream, Stream -> a) -> a
+// (Property, Property -> a) -> a
+Observable.prototype.thru = function (fn) {
+  return fn(this);
 };
 
 // Combine observables
