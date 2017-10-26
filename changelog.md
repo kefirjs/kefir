@@ -1,6 +1,6 @@
 ## 3.8.0 (27/10/2017)
 
- - New method `.thru` [#thru](https://github.com/rpominov/kefir/pull/257) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+ - New method `.thru` [#257](https://github.com/rpominov/kefir/pull/257) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
 
 ## 3.7.4 (25/08/2017)
 
