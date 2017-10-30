@@ -1,5 +1,8 @@
 language: node_js
 sudo: false
+before_script:
+  - npm link
+  - npm link kefir
 node_js:
 - '4'
 - '7'

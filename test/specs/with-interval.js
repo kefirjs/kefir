@@ -1,8 +1,9 @@
-const Kefir = require('../../dist/kefir')
+const {Kefir} = require('../test-helpers')
+const {expect} = require('../test-helpers')
 
 describe('withInterval', () => {
   it('should return stream', () => {
-    expect(Kefir.withInterval(100, () => {})).toBeStream()
+    expect(Kefir.withInterval(100, () => {})).to.be.observable.stream()
   })
 
   it('should work as expected', () => {
@@ -19,7 +20,7 @@ describe('withInterval', () => {
         return emitter.end()
       }
     }
-    expect(Kefir.withInterval(100, fn)).toEmitInTime([
+    expect(Kefir.withInterval(100, fn)).to.emitInTime([
       [100, 1],
       [100, 2],
       [200, {error: -1}],
@@ -43,7 +44,7 @@ describe('withInterval', () => {
         return emitter.emitEvent({type: 'end', value: undefined, current: false})
       }
     }
-    expect(Kefir.withInterval(100, fn)).toEmitInTime([
+    expect(Kefir.withInterval(100, fn)).to.emitInTime([
       [100, 1],
       [100, 2],
       [200, {error: -1}],

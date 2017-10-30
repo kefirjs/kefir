@@ -1,23 +1,23 @@
-const {stream, prop, send} = require('../test-helpers')
+const {stream, prop, send, expect} = require('../test-helpers')
 
 describe('debounce', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().debounce(100)).toBeStream()
+      expect(stream().debounce(100)).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.debounce(100)).toActivate(a)
+      expect(a.debounce(100)).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(stream(), ['<end>']).debounce(100)).toEmit(['<end:current>'])
+      expect(send(stream(), ['<end>']).debounce(100)).to.emit(['<end:current>'])
     })
 
     it('should handle events', () => {
       const a = stream()
-      expect(a.debounce(100)).toEmitInTime([[160, 3], [360, 4], [710, 8], [710, '<end>']], tick => {
+      expect(a.debounce(100)).to.emitInTime([[160, 3], [360, 4], [710, 8], [710, '<end>']], tick => {
         send(a, [1])
         tick(30)
         send(a, [2])
@@ -38,7 +38,7 @@ describe('debounce', () => {
 
     it('should end immediately if no value to emit later', () => {
       const a = stream()
-      expect(a.debounce(100)).toEmitInTime([[100, 1], [200, '<end>']], tick => {
+      expect(a.debounce(100)).to.emitInTime([[100, 1], [200, '<end>']], tick => {
         send(a, [1])
         tick(200)
         send(a, ['<end>'])
@@ -47,7 +47,7 @@ describe('debounce', () => {
 
     it('should handle events (immediate)', () => {
       const a = stream()
-      expect(a.debounce(100, {immediate: true})).toEmitInTime([[0, 1], [260, 4], [460, 5], [610, '<end>']], tick => {
+      expect(a.debounce(100, {immediate: true})).to.emitInTime([[0, 1], [260, 4], [460, 5], [610, '<end>']], tick => {
         send(a, [1])
         tick(30)
         send(a, [2])
@@ -68,36 +68,36 @@ describe('debounce', () => {
 
     it('should end immediately if no value to emit later (immediate)', () => {
       const a = stream()
-      expect(a.debounce(100, {immediate: true})).toEmitInTime([[0, 1], [0, '<end>']], tick => send(a, [1, '<end>']))
+      expect(a.debounce(100, {immediate: true})).to.emitInTime([[0, 1], [0, '<end>']], tick => send(a, [1, '<end>']))
     })
 
     it('errors should flow', () => {
       const a = stream()
-      expect(a.debounce(100)).errorsToFlow(a)
+      expect(a.debounce(100)).to.flowErrors(a)
     })
   })
 
   describe('property', () => {
     it('should return property', () => {
-      expect(prop().debounce(100)).toBeProperty()
+      expect(prop().debounce(100)).to.be.observable.property()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.debounce(100)).toActivate(a)
+      expect(a.debounce(100)).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(prop(), ['<end>']).debounce(100)).toEmit(['<end:current>'])
+      expect(send(prop(), ['<end>']).debounce(100)).to.emit(['<end:current>'])
     })
 
     it('should be ended if source was ended (with current)', () => {
-      expect(send(prop(), [1, '<end>']).debounce(100)).toEmit([{current: 1}, '<end:current>'])
+      expect(send(prop(), [1, '<end>']).debounce(100)).to.emit([{current: 1}, '<end:current>'])
     })
 
     it('should handle events', () => {
       const a = send(prop(), [0])
-      expect(a.debounce(100)).toEmitInTime([[0, {current: 0}], [160, 3], [360, 4], [710, 8], [710, '<end>']], tick => {
+      expect(a.debounce(100)).to.emitInTime([[0, {current: 0}], [160, 3], [360, 4], [710, 8], [710, '<end>']], tick => {
         send(a, [1])
         tick(30)
         send(a, [2])
@@ -118,7 +118,7 @@ describe('debounce', () => {
 
     it('should end immediately if no value to emit later', () => {
       const a = send(prop(), [0])
-      expect(a.debounce(100)).toEmitInTime([[0, {current: 0}], [100, 1], [200, '<end>']], tick => {
+      expect(a.debounce(100)).to.emitInTime([[0, {current: 0}], [100, 1], [200, '<end>']], tick => {
         send(a, [1])
         tick(200)
         send(a, ['<end>'])
@@ -127,7 +127,7 @@ describe('debounce', () => {
 
     it('should handle events (immediate)', () => {
       const a = send(prop(), [0])
-      expect(a.debounce(100, {immediate: true})).toEmitInTime(
+      expect(a.debounce(100, {immediate: true})).to.emitInTime(
         [[0, {current: 0}], [0, 1], [260, 4], [460, 5], [610, '<end>']],
         tick => {
           send(a, [1])
@@ -151,14 +151,14 @@ describe('debounce', () => {
 
     it('should end immediately if no value to emit later (immediate)', () => {
       const a = send(prop(), [0])
-      expect(a.debounce(100, {immediate: true})).toEmitInTime([[0, {current: 0}], [0, 1], [0, '<end>']], tick =>
+      expect(a.debounce(100, {immediate: true})).to.emitInTime([[0, {current: 0}], [0, 1], [0, '<end>']], tick =>
         send(a, [1, '<end>'])
       )
     })
 
     it('errors should flow', () => {
       const a = prop()
-      expect(a.debounce(100)).errorsToFlow(a)
+      expect(a.debounce(100)).to.flowErrors(a)
     })
   })
 })

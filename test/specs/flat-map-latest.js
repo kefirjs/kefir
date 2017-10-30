@@ -1,24 +1,24 @@
-const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
+const {stream, prop, send, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMapLatest', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().flatMapLatest()).toBeStream()
+      expect(stream().flatMapLatest()).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.flatMapLatest()).toActivate(a)
+      expect(a.flatMapLatest()).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatMapLatest()).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).flatMapLatest()).to.emit(['<end:current>']))
 
     it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = send(prop(), [0])
-      expect(a.flatMapLatest()).toEmit([1, 0, 3, 5, '<end>'], () => {
+      expect(a.flatMapLatest()).to.emit([1, 0, 3, 5, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -39,14 +39,14 @@ describe('flatMapLatest', () => {
       activate(map)
       send(a, [b, c])
       deactivate(map)
-      expect(map).toActivate(c)
-      expect(map).not.toActivate(b)
+      expect(map).to.activate(c)
+      expect(map).not.to.activate(b)
     })
 
     it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      expect(a.flatMapLatest(x => x.obs)).toEmit([1, 2, '<end>'], () => {
+      expect(a.flatMapLatest(x => x.obs)).to.emit([1, 2, '<end>'], () => {
         send(a, [{obs: b}, '<end>'])
         send(b, [1, 2, '<end>'])
       })
@@ -60,14 +60,14 @@ describe('flatMapLatest', () => {
       activate(m)
       send(a, [b, c])
       deactivate(m)
-      expect(m).toEmit([{current: 2}])
+      expect(m).to.emit([{current: 2}])
     })
 
     it('should correctly handle current values of new sub sources', () => {
       const a = stream()
       const b = send(prop(), [1])
       const c = send(prop(), [2])
-      expect(a.flatMapLatest()).toEmit([1, 2], () => send(a, [b, c]))
+      expect(a.flatMapLatest()).to.emit([1, 2], () => send(a, [b, c]))
     })
 
     it('should work nicely with Kefir.constant and Kefir.never', () => {
@@ -80,25 +80,25 @@ describe('flatMapLatest', () => {
             return Kefir.never()
           }
         })
-      ).toEmit([3, 4, 5], () => send(a, [1, 2, 3, 4, 5]))
+      ).to.emit([3, 4, 5], () => send(a, [1, 2, 3, 4, 5]))
     })
   })
 
   describe('property', () => {
     it('should return stream', () => {
-      expect(prop().flatMapLatest()).toBeStream()
+      expect(prop().flatMapLatest()).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.flatMapLatest()).toActivate(a)
+      expect(a.flatMapLatest()).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).flatMapLatest()).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).flatMapLatest()).to.emit(['<end:current>']))
 
     it('should be ended if source was ended (with value)', () =>
-      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapLatest()).toEmit([
+      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapLatest()).to.emit([
         {current: 0},
         '<end:current>',
       ]))
@@ -106,7 +106,7 @@ describe('flatMapLatest', () => {
     it('should correctly handle current value of source', () => {
       const a = send(prop(), [0])
       const b = send(prop(), [a])
-      expect(b.flatMapLatest()).toEmit([{current: 0}])
+      expect(b.flatMapLatest()).to.emit([{current: 0}])
     })
   })
 })

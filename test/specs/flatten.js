@@ -1,18 +1,18 @@
-const {stream, prop, send, Kefir} = require('../test-helpers')
+const {stream, prop, send, Kefir, expect} = require('../test-helpers')
 
 describe('flatten', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().flatten(() => {})).toBeStream()
+      expect(stream().flatten(() => {})).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.flatten(() => {})).toActivate(a)
+      expect(a.flatten(() => {})).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatten(() => {})).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).flatten(() => {})).to.emit(['<end:current>']))
 
     it('should handle events', () => {
       const a = stream()
@@ -24,27 +24,27 @@ describe('flatten', () => {
             return []
           }
         })
-      ).toEmit([1, 2, {error: 4}, 1, 2, 3, '<end>'], () => send(a, [1, 2, {error: 4}, 3, '<end>']))
+      ).to.emit([1, 2, {error: 4}, 1, 2, 3, '<end>'], () => send(a, [1, 2, {error: 4}, 3, '<end>']))
     })
 
     it('if no `fn` provided should use the `id` function by default', () => {
       const a = stream()
-      expect(a.flatten()).toEmit([1, 2, 3, '<end>'], () => send(a, [[1], [], [2, 3], '<end>']))
+      expect(a.flatten()).to.emit([1, 2, 3, '<end>'], () => send(a, [[1], [], [2, 3], '<end>']))
     })
   })
 
   describe('property', () => {
     it('should return stream', () => {
-      expect(prop().flatten(() => {})).toBeStream()
+      expect(prop().flatten(() => {})).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.flatten(() => {})).toActivate(a)
+      expect(a.flatten(() => {})).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).flatten(() => {})).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).flatten(() => {})).to.emit(['<end:current>']))
 
     it('should handle events (handler skips current)', () => {
       const a = send(prop(), [1])
@@ -56,16 +56,16 @@ describe('flatten', () => {
             return []
           }
         })
-      ).toEmit([1, 2, {error: 4}, 1, 2, 3, '<end>'], () => send(a, [2, {error: 4}, 3, '<end>']))
+      ).to.emit([1, 2, {error: 4}, 1, 2, 3, '<end>'], () => send(a, [2, {error: 4}, 3, '<end>']))
     })
 
     it('should handle current correctly', () => {
-      expect(send(prop(), [1]).flatten(x => [x])).toEmit([{current: 1}])
-      expect(send(prop(), [{error: 0}]).flatten(() => {})).toEmit([{currentError: 0}])
+      expect(send(prop(), [1]).flatten(x => [x])).to.emit([{current: 1}])
+      expect(send(prop(), [{error: 0}]).flatten(() => {})).to.emit([{currentError: 0}])
     })
 
     it('should handle multiple currents correctly', () =>
-      expect(send(prop(), [2]).flatten(x => __range__(1, x, true))).toEmit([{current: 1}, {current: 2}]))
+      expect(send(prop(), [2]).flatten(x => __range__(1, x, true))).to.emit([{current: 1}, {current: 2}]))
   })
 })
 

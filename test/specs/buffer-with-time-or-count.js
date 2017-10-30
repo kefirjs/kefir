@@ -1,4 +1,4 @@
-const {stream, prop, send} = require('../test-helpers')
+const {stream, prop, send, expect} = require('../test-helpers')
 
 const intv = 300
 const cnt = 4
@@ -6,21 +6,21 @@ const cnt = 4
 describe('bufferWithTimeOrCount', () => {
   describe('stream', () => {
     it('should stream', () => {
-      expect(stream().bufferWithTimeOrCount(intv, cnt)).toBeStream()
+      expect(stream().bufferWithTimeOrCount(intv, cnt)).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.bufferWithTimeOrCount(intv, cnt)).toActivate(a)
+      expect(a.bufferWithTimeOrCount(intv, cnt)).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(stream(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit(['<end:current>'])
+      expect(send(stream(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).to.emit(['<end:current>'])
     })
 
     it('should flush buffer when either interval or count is reached', () => {
       const a = stream()
-      expect(a.bufferWithTimeOrCount(intv, cnt)).toEmitInTime(
+      expect(a.bufferWithTimeOrCount(intv, cnt)).to.emitInTime(
         [[300, [1, 2, 3]], [500, [4, 5, 6, 7]], [800, []], [900, [8, 9]], [900, '<end>']],
         tick => {
           tick(100)
@@ -47,7 +47,7 @@ describe('bufferWithTimeOrCount', () => {
 
     it('should not flush buffer on end if {flushOnEnd: false}', () => {
       const a = stream()
-      expect(a.bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).toEmitInTime(
+      expect(a.bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).to.emitInTime(
         [[300, [1, 2, 3]], [500, [4, 5, 6, 7]], [700, '<end>']],
         tick => {
           tick(100)
@@ -74,29 +74,31 @@ describe('bufferWithTimeOrCount', () => {
 
     it('errors should flow', () => {
       const a = stream()
-      expect(a.bufferWithTimeOrCount(intv, cnt)).errorsToFlow(a)
+      expect(a.bufferWithTimeOrCount(intv, cnt)).to.flowErrors(a)
     })
   })
 
   describe('property', () => {
     it('should property', () => {
-      expect(prop().bufferWithTimeOrCount(intv, cnt)).toBeProperty()
+      expect(prop().bufferWithTimeOrCount(intv, cnt)).to.be.observable.property()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.bufferWithTimeOrCount(intv, cnt)).toActivate(a)
+      expect(a.bufferWithTimeOrCount(intv, cnt)).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(prop(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit(['<end:current>'])
-      expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt)).toEmit([{current: [1]}, '<end:current>'])
-      expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).toEmit(['<end:current>'])
+      expect(send(prop(), ['<end>']).bufferWithTimeOrCount(intv, cnt)).to.emit(['<end:current>'])
+      expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt)).to.emit([{current: [1]}, '<end:current>'])
+      expect(send(prop(), [1, '<end>']).bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).to.emit([
+        '<end:current>',
+      ])
     })
 
     it('should flush buffer when either interval or count is reached', () => {
       const a = send(prop(), [0])
-      expect(a.bufferWithTimeOrCount(intv, cnt)).toEmitInTime(
+      expect(a.bufferWithTimeOrCount(intv, cnt)).to.emitInTime(
         [[300, [0, 1, 2]], [500, [3, 4, 5, 6]], [800, []], [900, [7, 8]], [900, '<end>']],
         tick => {
           tick(100)
@@ -121,7 +123,7 @@ describe('bufferWithTimeOrCount', () => {
 
     it('should not flush buffer on end if {flushOnEnd: false}', () => {
       const a = send(prop(), [0])
-      expect(a.bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).toEmitInTime(
+      expect(a.bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).to.emitInTime(
         [[300, [0, 1, 2]], [500, [3, 4, 5, 6]], [700, '<end>']],
         tick => {
           tick(100)
@@ -146,7 +148,7 @@ describe('bufferWithTimeOrCount', () => {
 
     it('errors should flow', () => {
       const a = prop()
-      expect(a.bufferWithTimeOrCount(intv, cnt)).errorsToFlow(a)
+      expect(a.bufferWithTimeOrCount(intv, cnt)).to.flowErrors(a)
     })
   })
 })

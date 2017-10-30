@@ -1,12 +1,12 @@
-const {activate, deactivate, Kefir} = require('../test-helpers')
+const {activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('Kefir.stream', () => {
   it('should return stream', () => {
-    expect(Kefir.stream(() => {})).toBeStream()
+    expect(Kefir.stream(() => {})).to.be.observable.stream()
   })
 
   it('should not be ended', () => {
-    expect(Kefir.stream(() => {})).toEmit([])
+    expect(Kefir.stream(() => {})).to.emit([])
   })
 
   it('should emit values, errors, and end', () => {
@@ -15,7 +15,7 @@ describe('Kefir.stream', () => {
       emitter = em
       return null
     })
-    expect(a).toEmit([1, 2, {error: -1}, 3, '<end>'], () => {
+    expect(a).to.emit([1, 2, {error: -1}, 3, '<end>'], () => {
       emitter.value(1)
       emitter.value(2)
       emitter.error(-1)
@@ -31,22 +31,22 @@ describe('Kefir.stream', () => {
       subCount++
       return () => unsubCount++
     })
-    expect(subCount).toBe(0)
-    expect(unsubCount).toBe(0)
+    expect(subCount).to.equal(0)
+    expect(unsubCount).to.equal(0)
     activate(a)
-    expect(subCount).toBe(1)
+    expect(subCount).to.equal(1)
     activate(a)
-    expect(subCount).toBe(1)
+    expect(subCount).to.equal(1)
     deactivate(a)
-    expect(unsubCount).toBe(0)
+    expect(unsubCount).to.equal(0)
     deactivate(a)
-    expect(unsubCount).toBe(1)
-    expect(subCount).toBe(1)
+    expect(unsubCount).to.equal(1)
+    expect(subCount).to.equal(1)
     activate(a)
-    expect(subCount).toBe(2)
-    expect(unsubCount).toBe(1)
+    expect(subCount).to.equal(2)
+    expect(unsubCount).to.equal(1)
     deactivate(a)
-    expect(unsubCount).toBe(2)
+    expect(unsubCount).to.equal(2)
   })
 
   it('should automatically controll isCurent argument in `send`', () => {
@@ -55,7 +55,7 @@ describe('Kefir.stream', () => {
         emitter.end()
         return null
       })
-    ).toEmit(['<end:current>'])
+    ).to.emit(['<end:current>'])
 
     expect(
       Kefir.stream(emitter => {
@@ -68,7 +68,7 @@ describe('Kefir.stream', () => {
         }, 1000)
         return null
       })
-    ).toEmitInTime([[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']])
+    ).to.emitInTime([[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']])
   })
 
   it('should support emitter.event', () => {
@@ -84,7 +84,7 @@ describe('Kefir.stream', () => {
         }, 1000)
         return null
       })
-    ).toEmitInTime([
+    ).to.emitInTime([
       [0, {current: 1}],
       [0, {currentError: -1}],
       [0, {current: 2}],
@@ -108,25 +108,25 @@ describe('Kefir.stream', () => {
     a.take(1).onValue(() => {})
     a.take(1).onValue(() => {})
 
-    expect(log).toEqual([{sub: 1, unsub: 1}, {sub: 1, unsub: 1}])
+    expect(log).to.deep.equal([{sub: 1, unsub: 1}, {sub: 1, unsub: 1}])
   })
 
   it('should not throw if not falsey but not a function returned', () => {
-    expect(Kefir.stream(() => true)).toEmit([])
+    expect(Kefir.stream(() => true)).to.emit([])
   })
 
   it('emitter should return a boolean representing if anyone intrested in future events', () => {
     let emitter = null
     let a = Kefir.stream(em => emitter = em)
     activate(a)
-    expect(emitter.value(1)).toBe(true)
+    expect(emitter.value(1)).to.equal(true)
     deactivate(a)
-    expect(emitter.value(1)).toBe(false)
+    expect(emitter.value(1)).to.equal(false)
 
     a = Kefir.stream(em => {
-      expect(em.value(1)).toBe(true)
-      expect(em.value(2)).toBe(false)
-      expect(em.value(3)).toBe(false)
+      expect(em.value(1)).to.equal(true)
+      expect(em.value(2)).to.equal(false)
+      expect(em.value(3)).to.equal(false)
     })
     let lastX = null
     var f = x => {
@@ -136,7 +136,7 @@ describe('Kefir.stream', () => {
       }
     }
     a.onValue(f)
-    expect(lastX).toBe(2)
+    expect(lastX).to.equal(2)
   })
 
   it('calling emitter.end() in undubscribe() should work fine', () => {

@@ -1,4 +1,4 @@
-const {stream, prop, send} = require('../test-helpers')
+const {stream, prop, send, expect} = require('../test-helpers')
 
 const handler = x => ({
   convert: x >= 0,
@@ -8,28 +8,28 @@ const handler = x => ({
 describe('errorsToValues', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().errorsToValues(() => {})).toBeStream()
+      expect(stream().errorsToValues(() => {})).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.errorsToValues(() => {})).toActivate(a)
+      expect(a.errorsToValues(() => {})).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(stream(), ['<end>']).errorsToValues(() => {})).toEmit(['<end:current>'])
+      expect(send(stream(), ['<end>']).errorsToValues(() => {})).to.emit(['<end:current>'])
     })
 
     it('should handle events', () => {
       const a = stream()
-      expect(a.errorsToValues(handler)).toEmit([1, 6, {error: -1}, 9, 4, '<end>'], () =>
+      expect(a.errorsToValues(handler)).to.emit([1, 6, {error: -1}, 9, 4, '<end>'], () =>
         send(a, [1, {error: 2}, {error: -1}, {error: 3}, 4, '<end>'])
       )
     })
 
     it('default handler should convert all errors', () => {
       const a = stream()
-      expect(a.errorsToValues()).toEmit([1, 2, -1, 3, 4, '<end>'], () =>
+      expect(a.errorsToValues()).to.emit([1, 2, -1, 3, 4, '<end>'], () =>
         send(a, [1, {error: 2}, {error: -1}, {error: 3}, 4, '<end>'])
       )
     })
@@ -37,32 +37,32 @@ describe('errorsToValues', () => {
 
   describe('property', () => {
     it('should return property', () => {
-      expect(prop().errorsToValues(() => {})).toBeProperty()
+      expect(prop().errorsToValues(() => {})).to.be.observable.property()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.errorsToValues(() => {})).toActivate(a)
+      expect(a.errorsToValues(() => {})).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(prop(), ['<end>']).errorsToValues(() => {})).toEmit(['<end:current>'])
+      expect(send(prop(), ['<end>']).errorsToValues(() => {})).to.emit(['<end:current>'])
     })
 
     it('should handle events', () => {
       const a = send(prop(), [1])
-      expect(a.errorsToValues(handler)).toEmit([{current: 1}, 6, {error: -1}, 9, 4, '<end>'], () =>
+      expect(a.errorsToValues(handler)).to.emit([{current: 1}, 6, {error: -1}, 9, 4, '<end>'], () =>
         send(a, [{error: 2}, {error: -1}, {error: 3}, 4, '<end>'])
       )
     })
 
     it('should handle currents', () => {
       let a = send(prop(), [{error: -2}])
-      expect(a.errorsToValues(handler)).toEmit([{currentError: -2}])
+      expect(a.errorsToValues(handler)).to.emit([{currentError: -2}])
       a = send(prop(), [{error: 2}])
-      expect(a.errorsToValues(handler)).toEmit([{current: 6}])
+      expect(a.errorsToValues(handler)).to.emit([{current: 6}])
       a = send(prop(), [1])
-      expect(a.errorsToValues(handler)).toEmit([{current: 1}])
+      expect(a.errorsToValues(handler)).to.emit([{current: 1}])
     })
   })
 })

@@ -1,24 +1,24 @@
-const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
+const {stream, prop, send, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMap', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().flatMap()).toBeStream()
+      expect(stream().flatMap()).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.flatMap()).toActivate(a)
+      expect(a.flatMap()).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatMap()).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).flatMap()).to.emit(['<end:current>']))
 
     it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = send(prop(), [0])
-      expect(a.flatMap()).toEmit([1, 2, 0, 3, 4, '<end>'], () => {
+      expect(a.flatMap()).to.emit([1, 2, 0, 3, 4, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1, 2])
@@ -36,13 +36,13 @@ describe('flatMap', () => {
       activate(map)
       send(a, [b, c])
       deactivate(map)
-      expect(map).toActivate(b, c)
+      expect(map).to.activate(b, c)
     })
 
     it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      expect(a.flatMap(x => x.obs)).toEmit([1, 2, '<end>'], () => {
+      expect(a.flatMap(x => x.obs)).to.emit([1, 2, '<end>'], () => {
         send(b, [0])
         send(a, [{obs: b}, '<end>'])
         send(b, [1, 2, '<end>'])
@@ -57,14 +57,14 @@ describe('flatMap', () => {
       activate(m)
       send(a, [b, c])
       deactivate(m)
-      expect(m).toEmit([{current: 1}, {current: 2}])
+      expect(m).to.emit([{current: 1}, {current: 2}])
     })
 
     it('should correctly handle current values of new sub sources', () => {
       const a = stream()
       const b = send(prop(), [1])
       const c = send(prop(), [2])
-      expect(a.flatMap()).toEmit([1, 2], () => send(a, [b, c]))
+      expect(a.flatMap()).to.emit([1, 2], () => send(a, [b, c]))
     })
 
     it('should work nicely with Kefir.constant and Kefir.never', () => {
@@ -79,7 +79,7 @@ describe('flatMap', () => {
             return Kefir.never()
           }
         })
-      ).toEmit([3, {error: -1}, 4, {error: -2}, 5], () => send(a, [1, 2, 3, -1, 4, -2, 5]))
+      ).to.emit([3, {error: -1}, 4, {error: -2}, 5], () => send(a, [1, 2, 3, -1, 4, -2, 5]))
     })
 
     // https://github.com/rpominov/kefir/issues/29
@@ -104,9 +104,9 @@ describe('flatMap', () => {
       activate(result)
       send(a, [b, c])
       deactivate(result)
-      expect(result).errorsToFlow(a)
-      expect(result).errorsToFlow(b)
-      expect(result).errorsToFlow(c)
+      expect(result).to.flowErrors(a)
+      expect(result).to.flowErrors(b)
+      expect(result).to.flowErrors(c)
     })
 
     // https://github.com/rpominov/kefir/issues/92
@@ -123,8 +123,8 @@ describe('flatMap', () => {
 
       b.onValue(() => {})
 
-      expect(subs).toBe(1)
-      expect(unsubs).toBe(1)
+      expect(subs).to.equal(1)
+      expect(unsubs).to.equal(1)
     })
 
     it('should be possible to add same obs twice on activation', () => {
@@ -133,26 +133,26 @@ describe('flatMap', () => {
         em.emit(b)
         return em.emit(b)
       })
-      expect(a.flatMap()).toEmit([{current: 1}, {current: 1}])
+      expect(a.flatMap()).to.emit([{current: 1}, {current: 1}])
     })
   })
 
   describe('property', () => {
     it('should return stream', () => {
-      expect(prop().flatMap()).toBeStream()
+      expect(prop().flatMap()).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.flatMap()).toActivate(a)
+      expect(a.flatMap()).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(prop(), ['<end>']).flatMap()).toEmit(['<end:current>'])
+      expect(send(prop(), ['<end>']).flatMap()).to.emit(['<end:current>'])
     })
 
     it('should be ended if source was ended (with value)', () =>
-      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMap()).toEmit([{current: 0}, '<end:current>']))
+      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMap()).to.emit([{current: 0}, '<end:current>']))
 
     it('should not costantly adding current value on each activation', () => {
       const a = send(prop(), [0])
@@ -162,14 +162,14 @@ describe('flatMap', () => {
       deactivate(map)
       activate(map)
       deactivate(map)
-      expect(map).toEmit([{current: 0}])
+      expect(map).to.emit([{current: 0}])
     })
 
     it('should allow to add same obs several times', () => {
       const b = send(prop(), ['b0'])
       const c = stream()
       const a = send(prop(), [b])
-      expect(a.flatMap()).toEmit(
+      expect(a.flatMap()).to.emit(
         [{current: 'b0'}, 'b0', 'b0', 'b0', 'b0', 'b1', 'b1', 'b1', 'b1', 'b1', 'c1', 'c1', 'c1', '<end>'],
         () => {
           send(a, [b, c, b, c, c, b, b, '<end>'])
@@ -182,13 +182,13 @@ describe('flatMap', () => {
     it('should correctly handle current value of source', () => {
       const a = send(prop(), [0])
       const b = send(prop(), [a])
-      expect(b.flatMap()).toEmit([{current: 0}])
+      expect(b.flatMap()).to.emit([{current: 0}])
     })
 
     it('errors should flow 1', () => {
       const a = prop()
       const result = a.flatMap()
-      expect(result).errorsToFlow(a)
+      expect(result).to.flowErrors(a)
     })
 
     it('errors should flow 2', () => {
@@ -199,8 +199,8 @@ describe('flatMap', () => {
       activate(result)
       send(a, [b, c])
       deactivate(result)
-      expect(result).errorsToFlow(b)
-      expect(result).errorsToFlow(c)
+      expect(result).to.flowErrors(b)
+      expect(result).to.flowErrors(c)
     })
   })
 })

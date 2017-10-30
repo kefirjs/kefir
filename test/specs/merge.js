@@ -1,38 +1,38 @@
-const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
+const {stream, prop, send, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('merge', () => {
   it('should return stream', () => {
-    expect(Kefir.merge([])).toBeStream()
-    expect(Kefir.merge([stream(), prop()])).toBeStream()
-    expect(stream().merge(stream())).toBeStream()
-    expect(prop().merge(prop())).toBeStream()
+    expect(Kefir.merge([])).to.be.observable.stream()
+    expect(Kefir.merge([stream(), prop()])).to.be.observable.stream()
+    expect(stream().merge(stream())).to.be.observable.stream()
+    expect(prop().merge(prop())).to.be.observable.stream()
   })
 
   it('should be ended if empty array provided', () => {
-    expect(Kefir.merge([])).toEmit(['<end:current>'])
+    expect(Kefir.merge([])).to.emit(['<end:current>'])
   })
 
   it('should be ended if array of ended observables provided', () => {
     const a = send(stream(), ['<end>'])
     const b = send(prop(), ['<end>'])
     const c = send(stream(), ['<end>'])
-    expect(Kefir.merge([a, b, c])).toEmit(['<end:current>'])
-    expect(a.merge(b)).toEmit(['<end:current>'])
+    expect(Kefir.merge([a, b, c])).to.emit(['<end:current>'])
+    expect(a.merge(b)).to.emit(['<end:current>'])
   })
 
   it('should activate sources', () => {
     const a = stream()
     const b = prop()
     const c = stream()
-    expect(Kefir.merge([a, b, c])).toActivate(a, b, c)
-    expect(a.merge(b)).toActivate(a, b)
+    expect(Kefir.merge([a, b, c])).to.activate(a, b, c)
+    expect(a.merge(b)).to.activate(a, b)
   })
 
   it('should deliver events from observables, then end when all of them end', () => {
     let a = stream()
     let b = send(prop(), [0])
     const c = stream()
-    expect(Kefir.merge([a, b, c])).toEmit([{current: 0}, 1, 2, 3, 4, 5, 6, '<end>'], () => {
+    expect(Kefir.merge([a, b, c])).to.emit([{current: 0}, 1, 2, 3, 4, 5, 6, '<end>'], () => {
       send(a, [1])
       send(b, [2])
       send(c, [3])
@@ -42,7 +42,7 @@ describe('merge', () => {
     })
     a = stream()
     b = send(prop(), [0])
-    expect(a.merge(b)).toEmit([{current: 0}, 1, 2, 3, '<end>'], () => {
+    expect(a.merge(b)).to.emit([{current: 0}, 1, 2, 3, '<end>'], () => {
       send(a, [1])
       send(b, [2])
       send(a, ['<end>'])
@@ -56,31 +56,31 @@ describe('merge', () => {
     const c = send(prop(), [2])
 
     let merge = Kefir.merge([a, b, c])
-    expect(merge).toEmit([{current: 0}, {current: 1}, {current: 2}])
+    expect(merge).to.emit([{current: 0}, {current: 1}, {current: 2}])
 
     merge = Kefir.merge([a, b, c])
     activate(merge)
-    expect(merge).toEmit([])
+    expect(merge).to.emit([])
 
     merge = Kefir.merge([a, b, c])
     activate(merge)
     deactivate(merge)
-    expect(merge).toEmit([{current: 0}, {current: 1}, {current: 2}])
+    expect(merge).to.emit([{current: 0}, {current: 1}, {current: 2}])
   })
 
   it('errors should flow', () => {
     let a = stream()
     let b = prop()
     let c = stream()
-    expect(Kefir.merge([a, b, c])).errorsToFlow(a)
+    expect(Kefir.merge([a, b, c])).to.flowErrors(a)
     a = stream()
     b = prop()
     c = stream()
-    expect(Kefir.merge([a, b, c])).errorsToFlow(b)
+    expect(Kefir.merge([a, b, c])).to.flowErrors(b)
     a = stream()
     b = prop()
     c = stream()
-    expect(Kefir.merge([a, b, c])).errorsToFlow(c)
+    expect(Kefir.merge([a, b, c])).to.flowErrors(c)
   })
 
   it('should work correctly when unsuscribing after one sync event', () => {
@@ -88,6 +88,6 @@ describe('merge', () => {
     const b = Kefir.interval(1000, 1)
     const c = a.merge(b)
     activate(c.take(1))
-    expect(b).not.toBeActive()
+    expect(b).not.to.be.active()
   })
 })

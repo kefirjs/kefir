@@ -1,4 +1,4 @@
-let {Kefir} = require('../test-helpers')
+let {Kefir, expect} = require('../test-helpers')
 
 describe('Kefir.Observable', () => {
   describe('observe', () => {
@@ -14,38 +14,38 @@ describe('Kefir.Observable', () => {
     })
 
     it('should return a Subscription', () => {
-      expect(sub.closed).toBe(false)
-      expect(typeof sub.unsubscribe).toBe('function')
+      expect(sub.closed).to.equal(false)
+      expect(typeof sub.unsubscribe).to.equal('function')
     })
 
     it('should call Observer methods', () => {
-      expect(count).toBe(0)
+      expect(count).to.equal(0)
 
       em.emit(1)
-      expect(count).toBe(1)
+      expect(count).to.equal(1)
 
       em.emit(1)
-      expect(count).toBe(2)
+      expect(count).to.equal(2)
 
       em.error(1)
-      expect(count).toBe(1)
+      expect(count).to.equal(1)
 
       em.end()
-      expect(count).toBe(0)
-      expect(sub.closed).toBe(true)
+      expect(count).to.equal(0)
+      expect(sub.closed).to.equal(true)
     })
 
     it('should unsubcribe early', () => {
-      expect(count).toBe(0)
+      expect(count).to.equal(0)
 
       em.emit(1)
-      expect(count).toBe(1)
+      expect(count).to.equal(1)
 
       sub.unsubscribe()
 
       em.emit(1)
-      expect(count).toBe(1)
-      expect(sub.closed).toBe(true)
+      expect(count).to.equal(1)
+      expect(sub.closed).to.equal(true)
     })
 
     it('closed=true after end (w/o end handler)', () => {
@@ -54,7 +54,7 @@ describe('Kefir.Observable', () => {
       })
       sub = obs.observe(() => {})
       em.end()
-      expect(sub.closed).toBe(true)
+      expect(sub.closed).to.equal(true)
     })
   })
 })

@@ -1,24 +1,24 @@
-const {stream, prop, send, activate, deactivate, Kefir} = require('../test-helpers')
+const {stream, prop, send, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMapFirst', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().flatMapFirst()).toBeStream()
+      expect(stream().flatMapFirst()).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.flatMapFirst()).toActivate(a)
+      expect(a.flatMapFirst()).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatMapFirst()).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).flatMapFirst()).to.emit(['<end:current>']))
 
     it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = stream()
-      expect(a.flatMapFirst()).toEmit([1, 2, 4, '<end>'], () => {
+      expect(a.flatMapFirst()).to.emit([1, 2, 4, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -38,14 +38,14 @@ describe('flatMapFirst', () => {
       activate(map)
       send(a, [b, c])
       deactivate(map)
-      expect(map).toActivate(b)
-      expect(map).not.toActivate(c)
+      expect(map).to.activate(b)
+      expect(map).not.to.activate(c)
     })
 
     it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      expect(a.flatMapFirst(x => x.obs)).toEmit([1, 2, '<end>'], () => {
+      expect(a.flatMapFirst(x => x.obs)).to.emit([1, 2, '<end>'], () => {
         send(a, [{obs: b}, '<end>'])
         send(b, [1, 2, '<end>'])
       })
@@ -59,7 +59,7 @@ describe('flatMapFirst', () => {
       activate(m)
       send(a, [b, c])
       deactivate(m)
-      expect(m).toEmit([{current: 1}])
+      expect(m).to.emit([{current: 1}])
     })
 
     it('should correctly handle current values of new sub sources', () => {
@@ -67,7 +67,7 @@ describe('flatMapFirst', () => {
       const b = send(prop(), [1, '<end>'])
       const c = send(prop(), [2])
       const d = send(prop(), [3])
-      expect(a.flatMapFirst()).toEmit([1, 2], () => send(a, [b, c, d]))
+      expect(a.flatMapFirst()).to.emit([1, 2], () => send(a, [b, c, d]))
     })
 
     it('should work nicely with Kefir.constant and Kefir.never', () => {
@@ -80,7 +80,7 @@ describe('flatMapFirst', () => {
             return Kefir.never()
           }
         })
-      ).toEmit([3, 4, 5], () => send(a, [1, 2, 3, 4, 5]))
+      ).to.emit([3, 4, 5], () => send(a, [1, 2, 3, 4, 5]))
     })
 
     it('should not call transformer function when skiping values', () => {
@@ -93,33 +93,33 @@ describe('flatMapFirst', () => {
         return x
       })
       activate(result)
-      expect(count).toBe(0)
+      expect(count).to.equal(0)
       send(a, [b])
-      expect(count).toBe(1)
+      expect(count).to.equal(1)
       send(a, [c])
-      expect(count).toBe(1)
+      expect(count).to.equal(1)
       send(b, ['<end>'])
-      expect(count).toBe(1)
+      expect(count).to.equal(1)
       send(a, [c])
-      expect(count).toBe(2)
+      expect(count).to.equal(2)
     })
   })
 
   describe('property', () => {
     it('should return stream', () => {
-      expect(prop().flatMapFirst()).toBeStream()
+      expect(prop().flatMapFirst()).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.flatMapFirst()).toActivate(a)
+      expect(a.flatMapFirst()).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).flatMapFirst()).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).flatMapFirst()).to.emit(['<end:current>']))
 
     it('should be ended if source was ended (with value)', () =>
-      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapFirst()).toEmit([
+      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapFirst()).to.emit([
         {current: 0},
         '<end:current>',
       ]))
@@ -127,7 +127,7 @@ describe('flatMapFirst', () => {
     it('should correctly handle current value of source', () => {
       const a = send(prop(), [0])
       const b = send(prop(), [a])
-      expect(b.flatMapFirst()).toEmit([{current: 0}])
+      expect(b.flatMapFirst()).to.emit([{current: 0}])
     })
   })
 })

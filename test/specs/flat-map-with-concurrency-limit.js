@@ -1,25 +1,25 @@
-const {stream, prop, send, activate, deactivate} = require('../test-helpers')
+const {stream, prop, send, activate, deactivate, expect} = require('../test-helpers')
 
 describe('flatMapConcurLimit', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().flatMapConcurLimit(null, 1)).toBeStream()
+      expect(stream().flatMapConcurLimit(null, 1)).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.flatMapConcurLimit(null, 1)).toActivate(a)
+      expect(a.flatMapConcurLimit(null, 1)).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatMapConcurLimit(null, 1)).toEmit(['<end:current>']))
+      expect(send(stream(), ['<end>']).flatMapConcurLimit(null, 1)).to.emit(['<end:current>']))
 
     it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = stream()
       const d = stream()
-      expect(a.flatMapConcurLimit(null, 2)).toEmit([1, 2, 4, 5, 6, '<end>'], () => {
+      expect(a.flatMapConcurLimit(null, 2)).to.emit([1, 2, 4, 5, 6, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -41,16 +41,16 @@ describe('flatMapConcurLimit', () => {
       activate(map)
       send(a, [b, c, d])
       deactivate(map)
-      expect(map).toActivate(b, c)
-      expect(map).not.toActivate(d)
+      expect(map).to.activate(b, c)
+      expect(map).not.to.activate(d)
       send(b, ['<end>'])
-      expect(map).toActivate(d)
+      expect(map).to.activate(d)
     })
 
     it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      expect(a.flatMapConcurLimit(x => x.obs, 1)).toEmit([1, 2, '<end>'], () => {
+      expect(a.flatMapConcurLimit(x => x.obs, 1)).to.emit([1, 2, '<end>'], () => {
         send(b, [0])
         send(a, [{obs: b}, '<end>'])
         send(b, [1, 2, '<end>'])
@@ -66,7 +66,7 @@ describe('flatMapConcurLimit', () => {
       activate(m)
       send(a, [b, c, d])
       deactivate(m)
-      expect(m).toEmit([{current: 1}, {current: 2}])
+      expect(m).to.emit([{current: 1}, {current: 2}])
     })
 
     it('should correctly handle current values of new sub sources', () => {
@@ -75,12 +75,12 @@ describe('flatMapConcurLimit', () => {
       const c = send(prop(), [2])
       const d = send(prop(), [3])
       const e = send(prop(), [4])
-      expect(a.flatMapConcurLimit(null, 2)).toEmit([4, 1, 2], () => send(a, [e, b, c, d]))
+      expect(a.flatMapConcurLimit(null, 2)).to.emit([4, 1, 2], () => send(a, [e, b, c, d]))
     })
 
     it('limit = 0', () => {
       const a = stream()
-      expect(a.flatMapConcurLimit(null, 0)).toEmit(['<end:current>'])
+      expect(a.flatMapConcurLimit(null, 0)).to.emit(['<end:current>'])
     })
 
     it('limit = -1', () => {
@@ -88,7 +88,7 @@ describe('flatMapConcurLimit', () => {
       const b = stream()
       const c = stream()
       const d = stream()
-      expect(a.flatMapConcurLimit(null, -1)).toEmit([1, 2, 3, 4, 5, 6, '<end>'], () => {
+      expect(a.flatMapConcurLimit(null, -1)).to.emit([1, 2, 3, 4, 5, 6, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -107,7 +107,7 @@ describe('flatMapConcurLimit', () => {
       const b = stream()
       const c = stream()
       const d = stream()
-      expect(a.flatMapConcurLimit(null, -2)).toEmit([1, 2, 3, 4, 5, 6, '<end>'], () => {
+      expect(a.flatMapConcurLimit(null, -2)).to.emit([1, 2, 3, 4, 5, 6, '<end>'], () => {
         send(b, [0])
         send(a, [b])
         send(b, [1])
@@ -123,19 +123,19 @@ describe('flatMapConcurLimit', () => {
 
   describe('property', () => {
     it('should return stream', () => {
-      expect(prop().flatMapConcurLimit(null, 1)).toBeStream()
+      expect(prop().flatMapConcurLimit(null, 1)).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.flatMapConcurLimit(null, 1)).toActivate(a)
+      expect(a.flatMapConcurLimit(null, 1)).to.activate(a)
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).flatMapConcurLimit(null, 1)).toEmit(['<end:current>']))
+      expect(send(prop(), ['<end>']).flatMapConcurLimit(null, 1)).to.emit(['<end:current>']))
 
     it('should be ended if source was ended (with value)', () =>
-      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapConcurLimit(null, 1)).toEmit([
+      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapConcurLimit(null, 1)).to.emit([
         {current: 0},
         '<end:current>',
       ]))
@@ -143,7 +143,7 @@ describe('flatMapConcurLimit', () => {
     it('should correctly handle current value of source', () => {
       const a = send(prop(), [0])
       const b = send(prop(), [a])
-      expect(b.flatMapConcurLimit(null, 1)).toEmit([{current: 0}])
+      expect(b.flatMapConcurLimit(null, 1)).to.emit([{current: 0}])
     })
   })
 })
