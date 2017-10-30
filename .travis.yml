@@ -4,8 +4,9 @@ before_script:
   - npm link
   - npm link kefir
 node_js:
-- '4'
-- '7'
+  - 6
+  - 8
+  - stable
 notifications:
   webhooks:
     urls:
