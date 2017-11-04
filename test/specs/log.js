@@ -1,4 +1,4 @@
-const {stream, send, expect} = require('../test-helpers')
+const {stream, send, value, error, end, expect} = require('../test-helpers')
 const sinon = require('sinon')
 
 describe('log', () => {
@@ -33,8 +33,8 @@ describe('log', () => {
     it('should have a default name', () => {
       const a = stream()
       a.log()
-      expect(a).to.emit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 1)
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 2)
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 3)
@@ -44,8 +44,8 @@ describe('log', () => {
     it('should use the name', () => {
       const a = stream()
       a.log('logged')
-      expect(a).to.emit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
         expect(console.log).to.have.been.calledWith('logged', '<value>', 1)
         expect(console.log).to.have.been.calledWith('logged', '<value>', 2)
         expect(console.log).to.have.been.calledWith('logged', '<value>', 3)
@@ -56,8 +56,8 @@ describe('log', () => {
       const a = stream()
       a.log()
       a.offLog()
-      expect(a).to.emit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
         expect(console.log).not.to.have.been.called
       })
     })

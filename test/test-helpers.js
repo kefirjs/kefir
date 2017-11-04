@@ -1,11 +1,13 @@
 const Kefir = require('../dist/kefir')
-const {expect, use} = require('chai')
-const chaiKefir = require('chai-kefir')
+const {config, expect, use} = require('chai')
+const chaiKefir = require('chai-kefir').default
 const sinonChai = require('sinon-chai')
 
+config.truncateThreshold = false
+
+const {plugin, send, value, error, end, activate, deactivate, prop, stream, pool} = chaiKefir(Kefir)
 use(sinonChai)
-use(chaiKefir.default)
-const {watch, watchWithTime, send, activate, deactivate, prop, stream, pool} = chaiKefir
+use(plugin)
 
 use(({Assertion}, utils) => {
   Assertion.addMethod('activate', function assertActivate(...obss) {
@@ -101,14 +103,15 @@ use(({Assertion}, utils) => {
 Kefir.dissableDeprecationWarnings()
 
 exports.Kefir = Kefir
-exports.watch = watch
-exports.watchWithTime = watchWithTime
 exports.send = send
 exports.activate = activate
 exports.deactivate = deactivate
 exports.prop = prop
 exports.stream = stream
 exports.pool = pool
+exports.value = value
+exports.error = error
+exports.end = end
 
 // see:
 //   https://github.com/rpominov/kefir/issues/134

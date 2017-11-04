@@ -1,4 +1,4 @@
-const {stream, send, expect} = require('../test-helpers')
+const {stream, send, value, error, end, expect} = require('../test-helpers')
 const sinon = require('sinon')
 
 describe('spy', () => {
@@ -33,8 +33,8 @@ describe('spy', () => {
     it('should have a default name', () => {
       const a = stream()
       a.spy()
-      expect(a).to.emit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 1)
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 2)
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 3)
@@ -44,8 +44,8 @@ describe('spy', () => {
     it('should use the name', () => {
       const a = stream()
       a.spy('spied')
-      expect(a).to.emit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
         expect(console.log).to.have.been.calledWith('spied', '<value>', 1)
         expect(console.log).to.have.been.calledWith('spied', '<value>', 2)
         expect(console.log).to.have.been.calledWith('spied', '<value>', 3)
@@ -56,8 +56,8 @@ describe('spy', () => {
       const a = stream()
       a.spy()
       a.offSpy()
-      expect(a).to.emit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
         expect(console.log).not.to.have.been.called
       })
     })

@@ -1,4 +1,4 @@
-const {stream, prop, send, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, expect} = require('../test-helpers')
 
 describe('flatten', () => {
   describe('stream', () => {
@@ -12,7 +12,7 @@ describe('flatten', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatten(() => {})).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).flatten(() => {})).to.emit([end({current: true})]))
 
     it('should handle events', () => {
       const a = stream()
@@ -24,12 +24,16 @@ describe('flatten', () => {
             return []
           }
         })
-      ).to.emit([1, 2, {error: 4}, 1, 2, 3, '<end>'], () => send(a, [1, 2, {error: 4}, 3, '<end>']))
+      ).to.emit([value(1), value(2), error(4), value(1), value(2), value(3), end()], () =>
+        send(a, [value(1), value(2), error(4), value(3), end()])
+      )
     })
 
     it('if no `fn` provided should use the `id` function by default', () => {
       const a = stream()
-      expect(a.flatten()).to.emit([1, 2, 3, '<end>'], () => send(a, [[1], [], [2, 3], '<end>']))
+      expect(a.flatten()).to.emit([value(1), value(2), value(3), end()], () =>
+        send(a, [value([1]), value([]), value([2, 3]), end()])
+      )
     })
   })
 
@@ -44,10 +48,10 @@ describe('flatten', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).flatten(() => {})).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).flatten(() => {})).to.emit([end({current: true})]))
 
     it('should handle events (handler skips current)', () => {
-      const a = send(prop(), [1])
+      const a = send(prop(), [value(1)])
       expect(
         a.flatten(x => {
           if (x > 1) {
@@ -56,16 +60,21 @@ describe('flatten', () => {
             return []
           }
         })
-      ).to.emit([1, 2, {error: 4}, 1, 2, 3, '<end>'], () => send(a, [2, {error: 4}, 3, '<end>']))
+      ).to.emit([value(1), value(2), error(4), value(1), value(2), value(3), end()], () =>
+        send(a, [value(2), error(4), value(3), end()])
+      )
     })
 
     it('should handle current correctly', () => {
-      expect(send(prop(), [1]).flatten(x => [x])).to.emit([{current: 1}])
-      expect(send(prop(), [{error: 0}]).flatten(() => {})).to.emit([{currentError: 0}])
+      expect(send(prop(), [value(1)]).flatten(x => [x])).to.emit([value(1, {current: true})])
+      expect(send(prop(), [error(0)]).flatten(() => {})).to.emit([error(0, {current: true})])
     })
 
     it('should handle multiple currents correctly', () =>
-      expect(send(prop(), [2]).flatten(x => __range__(1, x, true))).to.emit([{current: 1}, {current: 2}]))
+      expect(send(prop(), [value(2)]).flatten(x => __range__(1, x, true))).to.emit([
+        value(1, {current: true}),
+        value(2, {current: true}),
+      ]))
   })
 })
 

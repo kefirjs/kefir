@@ -1,4 +1,4 @@
-const {stream, prop, send, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, expect} = require('../test-helpers')
 
 describe('takeUntilBy', () => {
   describe('common', () =>
@@ -41,40 +41,40 @@ describe('takeUntilBy', () => {
     })
 
     it('should be ended if primary was ended', () =>
-      expect(send(stream(), ['<end>']).takeUntilBy(stream())).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).takeUntilBy(stream())).to.emit([end({current: true})]))
 
     it('should not be ended if secondary was ended', () =>
-      expect(stream().takeUntilBy(send(stream(), ['<end>']))).to.emit([]))
+      expect(stream().takeUntilBy(send(stream(), [end()]))).to.emit([]))
 
     it('should not end when secondary ends if there was no values from it', () => {
       const a = stream()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit([], () => send(b, ['<end>']))
+      expect(a.takeUntilBy(b)).to.emit([], () => send(b, [end()]))
     })
 
     it('should end on first any value from secondary', () => {
       const a = stream()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit(['<end>'], () => send(b, [0]))
+      expect(a.takeUntilBy(b)).to.emit([end()], () => send(b, [value(0)]))
     })
 
     it('should emit values from primary until first value from secondary', () => {
       const a = stream()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit([1, 2], () => send(a, [1, 2]))
+      expect(a.takeUntilBy(b)).to.emit([value(1), value(2)], () => send(a, [value(1), value(2)]))
     })
 
     it('should take values as expected', () => {
       const a = stream()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit([3, 4, '<end>'], () => {
-        send(a, [3, 4])
-        send(b, [0])
-        send(a, [5, 6])
-        send(b, [false])
-        send(a, [7, 8])
-        send(b, [true])
-        send(a, [9])
+      expect(a.takeUntilBy(b)).to.emit([value(3), value(4), end()], () => {
+        send(a, [value(3), value(4)])
+        send(b, [value(0)])
+        send(a, [value(5), value(6)])
+        send(b, [value(false)])
+        send(a, [value(7), value(8)])
+        send(b, [value(true)])
+        send(a, [value(9)])
       })
     })
   })
@@ -91,43 +91,44 @@ describe('takeUntilBy', () => {
     })
 
     it('should be ended if primary was ended', () =>
-      expect(send(stream(), ['<end>']).takeUntilBy(prop())).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).takeUntilBy(prop())).to.emit([end({current: true})]))
 
     it('should not be ended if secondary was ended and has no current', () =>
-      expect(stream().takeUntilBy(send(prop(), ['<end>']))).to.emit([]))
+      expect(stream().takeUntilBy(send(prop(), [end()]))).to.emit([]))
 
-    it('should be ended if secondary was ended and has any current', () =>
-      expect(stream().takeUntilBy(send(prop(), [0, '<end>']))).to.emit(['<end:current>']))
+    it('should be ended if secondary was ended and has any current', () => {
+      expect(stream().takeUntilBy(send(prop(), [value(0), end()]))).to.emit([end({current: true})])
+    })
 
     it('should end on first any value from secondary', () => {
       const a = stream()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit(['<end>'], () => send(b, [0]))
+      expect(a.takeUntilBy(b)).to.emit([end()], () => send(b, [value(0)]))
     })
 
     it('should not end when secondary ends there was no values from it', () => {
       const a = stream()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit([], () => send(b, ['<end>']))
+      expect(a.takeUntilBy(b)).to.emit([], () => send(b, [end()]))
     })
 
     it('should emit values from primary until first value from secondary', () => {
       const a = stream()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit([1, 2], () => send(a, [1, 2]))
+      expect(a.takeUntilBy(b)).to.emit([value(1), value(2)], () => send(a, [value(1), value(2)]))
     })
 
     it('should take values as expected', () => {
       const a = stream()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit([3, 4, '<end>'], () => {
-        send(a, [3, 4])
-        send(b, [0])
-        send(a, [5, 6])
-        send(b, [false])
-        send(a, [7, 8])
-        send(b, [true])
-        send(a, [9])
+      expect(a.takeUntilBy(b)).to.emit([value(3), value(4), end()], () => {
+        send(a, [value(3), value(4)])
+        send(b, [value(0)])
+        send(a, [value(5), value(6)])
+        send(b, [value(false)])
+        send(a, [value(7), value(8)])
+        send(b, [value(true)])
+        send(a, [value(9)])
       })
     })
   })
@@ -144,40 +145,40 @@ describe('takeUntilBy', () => {
     })
 
     it('should be ended if primary was ended', () =>
-      expect(send(prop(), ['<end>']).takeUntilBy(stream())).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).takeUntilBy(stream())).to.emit([end({current: true})]))
 
     it('should not be ended if secondary was ended', () =>
-      expect(prop().takeUntilBy(send(stream(), ['<end>']))).to.emit([]))
+      expect(prop().takeUntilBy(send(stream(), [end()]))).to.emit([]))
 
     it('should not end when secondary ends if there was no values from it', () => {
       const a = prop()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit([], () => send(b, ['<end>']))
+      expect(a.takeUntilBy(b)).to.emit([], () => send(b, [end()]))
     })
 
     it('should end on first any value from secondary', () => {
       const a = prop()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit(['<end>'], () => send(b, [0]))
+      expect(a.takeUntilBy(b)).to.emit([end()], () => send(b, [value(0)]))
     })
 
     it('should emit values from primary until first value from secondary', () => {
       const a = prop()
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit([1, 2], () => send(a, [1, 2]))
+      expect(a.takeUntilBy(b)).to.emit([value(1), value(2)], () => send(a, [value(1), value(2)]))
     })
 
     it('should take values as expected', () => {
-      const a = send(prop(), [0])
+      const a = send(prop(), [value(0)])
       const b = stream()
-      expect(a.takeUntilBy(b)).to.emit([{current: 0}, 3, 4, '<end>'], () => {
-        send(a, [3, 4])
-        send(b, [1])
-        send(a, [5, 6])
-        send(b, [false])
-        send(a, [7, 8])
-        send(b, [true])
-        send(a, [9])
+      expect(a.takeUntilBy(b)).to.emit([value(0, {current: true}), value(3), value(4), end()], () => {
+        send(a, [value(3), value(4)])
+        send(b, [value(1)])
+        send(a, [value(5), value(6)])
+        send(b, [value(false)])
+        send(a, [value(7), value(8)])
+        send(b, [value(true)])
+        send(a, [value(9)])
       })
     })
   })
@@ -192,43 +193,43 @@ describe('takeUntilBy', () => {
     })
 
     it('should be ended if primary was ended', () =>
-      expect(send(prop(), ['<end>']).takeUntilBy(prop())).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).takeUntilBy(prop())).to.emit([end({current: true})]))
 
     it('should not be ended if secondary was ended and has no current', () =>
-      expect(prop().takeUntilBy(send(prop(), ['<end>']))).to.emit([]))
+      expect(prop().takeUntilBy(send(prop(), [end()]))).to.emit([]))
 
     it('should be ended if secondary was ended and has any current', () =>
-      expect(prop().takeUntilBy(send(prop(), [0, '<end>']))).to.emit(['<end:current>']))
+      expect(prop().takeUntilBy(send(prop(), [value(0), end()]))).to.emit([end({current: true})]))
 
     it('should end on first any value from secondary', () => {
       const a = prop()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit(['<end>'], () => send(b, [0]))
+      expect(a.takeUntilBy(b)).to.emit([end()], () => send(b, [value(0)]))
     })
 
     it('should not end when secondary ends if there was no values from it', () => {
       const a = prop()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit([], () => send(b, ['<end>']))
+      expect(a.takeUntilBy(b)).to.emit([], () => send(b, [end()]))
     })
 
     it('should emit values from primary until first value from secondary', () => {
       const a = prop()
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit([1, 2], () => send(a, [1, 2]))
+      expect(a.takeUntilBy(b)).to.emit([value(1), value(2)], () => send(a, [value(1), value(2)]))
     })
 
     it('should take values as expected', () => {
-      const a = send(prop(), [0])
+      const a = send(prop(), [value(0)])
       const b = prop()
-      expect(a.takeUntilBy(b)).to.emit([{current: 0}, 3, 4, '<end>'], () => {
-        send(a, [3, 4])
-        send(b, [1])
-        send(a, [5, 6])
-        send(b, [false])
-        send(a, [7, 8])
-        send(b, [true])
-        send(a, [9])
+      expect(a.takeUntilBy(b)).to.emit([value(0, {current: true}), value(3), value(4), end()], () => {
+        send(a, [value(3), value(4)])
+        send(b, [value(1)])
+        send(a, [value(5), value(6)])
+        send(b, [value(false)])
+        send(a, [value(7), value(8)])
+        send(b, [value(true)])
+        send(a, [value(9)])
       })
     })
   })

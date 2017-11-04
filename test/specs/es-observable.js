@@ -1,6 +1,6 @@
 const $$observable = require('symbol-observable').default
 const Observable = require('zen-observable')
-const {stream, send, expect} = require('../test-helpers')
+const {stream, send, value, error, end, expect} = require('../test-helpers')
 
 describe('[Symbol.observable]', () => {
   it('outputs a compatible Observable', done => {
@@ -11,12 +11,12 @@ describe('[Symbol.observable]', () => {
       next(x) {
         values.push(x)
       },
-      complete(x) {
+      complete() {
         expect(values).to.deep.equal([1, 2, 3])
         done()
       },
     })
-    send(a, [1, 2, 3, '<end>'])
+    send(a, [value(1), value(2), value(3), end()])
   })
 
   it('unsubscribes stream after an error', () => {
@@ -28,7 +28,7 @@ describe('[Symbol.observable]', () => {
         values.push(x)
       },
     })
-    send(a, [1, {error: 2}, 3])
+    send(a, [value(1), error(2), value(3)])
     expect(values).to.deep.equal([1])
   })
 
@@ -41,9 +41,9 @@ describe('[Symbol.observable]', () => {
         values.push(x)
       },
     })
-    send(a, [1])
+    send(a, [value(1)])
     subscribtion.unsubscribe()
-    send(a, [2])
+    send(a, [value(2)])
     expect(values).to.deep.equal([1])
   })
 
@@ -66,7 +66,7 @@ describe('[Symbol.observable]', () => {
     const onComplete = x => completes.push(x)
     const observable = a[$$observable]()
     observable.subscribe(onValue, onError, onComplete)
-    send(a, [1, {error: 2}])
+    send(a, [value(1), error(2)])
     expect(values).to.deep.equal([1])
     expect(errors).to.deep.equal([2])
     expect(completes).to.deep.equal([undefined])
@@ -77,7 +77,7 @@ describe('[Symbol.observable]', () => {
     const observable = a[$$observable]()
     const subscribtion = observable.subscribe(() => {})
     expect(subscribtion.closed).to.deep.equal(false)
-    send(a, ['<end>'])
+    send(a, [end()])
     expect(subscribtion.closed).to.deep.equal(true)
   })
 })

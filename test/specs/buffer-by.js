@@ -1,4 +1,4 @@
-const {stream, prop, send, expect} = require('../test-helpers')
+const {stream, prop, send, value, end, expect} = require('../test-helpers')
 
 describe('bufferBy', () => {
   describe('common', () => {
@@ -18,51 +18,54 @@ describe('bufferBy', () => {
     })
 
     it('should end when primary ends', () => {
-      expect(send(stream(), ['<end>']).bufferBy(stream())).to.emit([{current: []}, '<end:current>'])
+      expect(send(stream(), [end()]).bufferBy(stream())).to.emit([value([], {current: true}), end({current: true})])
       const a = stream()
       const b = stream()
-      expect(a.bufferBy(b)).to.emit([[], '<end>'], () => send(a, ['<end>']))
+      expect(a.bufferBy(b)).to.emit([value([]), end()], () => send(a, [end()]))
     })
 
     it('should flush buffer on end', () => {
-      expect(send(prop(), [1, '<end>']).bufferBy(stream())).to.emit([{current: [1]}, '<end:current>'])
+      expect(send(prop(), [value(1), end()]).bufferBy(stream())).to.emit([
+        value([1], {current: true}),
+        end({current: true}),
+      ])
       const a = stream()
       const b = stream()
-      expect(a.bufferBy(b)).to.emit([[1, 2], '<end>'], () => send(a, [1, 2, '<end>']))
+      expect(a.bufferBy(b)).to.emit([value([1, 2]), end()], () => send(a, [value(1), value(2), end()]))
     })
 
     it('should not flush buffer on end if {flushOnEnd: false}', () => {
-      expect(send(prop(), [1, '<end>']).bufferBy(stream(), {flushOnEnd: false})).to.emit(['<end:current>'])
+      expect(send(prop(), [value(1), end()]).bufferBy(stream(), {flushOnEnd: false})).to.emit([end({current: true})])
       const a = stream()
       const b = stream()
-      expect(a.bufferBy(b, {flushOnEnd: false})).to.emit(['<end>'], () => send(a, [1, 2, '<end>']))
+      expect(a.bufferBy(b, {flushOnEnd: false})).to.emit([end()], () => send(a, [value(1), value(2), end()]))
     })
 
     it('should not end when secondary ends', () => {
-      expect(stream().bufferBy(send(stream(), ['<end>']))).to.emit([])
+      expect(stream().bufferBy(send(stream(), [end()]))).to.emit([])
       const a = stream()
       const b = stream()
-      expect(a.bufferBy(b)).to.emit([], () => send(b, ['<end>']))
+      expect(a.bufferBy(b)).to.emit([], () => send(b, [end()]))
     })
 
     it('should do end when secondary ends if {flushOnEnd: false}', () => {
-      expect(stream().bufferBy(send(stream(), ['<end>']), {flushOnEnd: false})).to.emit(['<end:current>'])
+      expect(stream().bufferBy(send(stream(), [end()]), {flushOnEnd: false})).to.emit([end({current: true})])
       const a = stream()
       const b = stream()
-      expect(a.bufferBy(b, {flushOnEnd: false})).to.emit(['<end>'], () => send(b, ['<end>']))
+      expect(a.bufferBy(b, {flushOnEnd: false})).to.emit([end()], () => send(b, [end()]))
     })
 
     it('should flush buffer on each value from secondary', () => {
       const a = stream()
       const b = stream()
-      expect(a.bufferBy(b)).to.emit([[], [1, 2], [], [3]], () => {
-        send(b, [0])
-        send(a, [1, 2])
-        send(b, [0])
-        send(b, [0])
-        send(a, [3])
-        send(b, [0])
-        send(a, [4])
+      expect(a.bufferBy(b)).to.emit([value([]), value([1, 2]), value([]), value([3])], () => {
+        send(b, [value(0)])
+        send(a, [value(1), value(2)])
+        send(b, [value(0)])
+        send(b, [value(0)])
+        send(a, [value(3)])
+        send(b, [value(0)])
+        send(a, [value(4)])
       })
     })
 
@@ -112,9 +115,9 @@ describe('bufferBy', () => {
     })
 
     it('includes current to buffer', () => {
-      const a = send(prop(), [1])
+      const a = send(prop(), [value(1)])
       const b = stream()
-      expect(a.bufferBy(b)).to.emit([[1]], () => send(b, [0]))
+      expect(a.bufferBy(b)).to.emit([value([1])], () => send(b, [value(0)]))
     })
   })
 
@@ -124,9 +127,9 @@ describe('bufferBy', () => {
     })
 
     it('both have current', () => {
-      const a = send(prop(), [1])
-      const b = send(prop(), [2])
-      expect(a.bufferBy(b)).to.emit([{current: [1]}])
+      const a = send(prop(), [value(1)])
+      const b = send(prop(), [value(2)])
+      expect(a.bufferBy(b)).to.emit([value([1], {current: true})])
     })
   })
 })

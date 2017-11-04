@@ -1,4 +1,4 @@
-const {stream, prop, send, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, expect} = require('../test-helpers')
 
 const handler = x => ({
   convert: x < 0,
@@ -17,19 +17,19 @@ describe('valuesToErrors', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).valuesToErrors(() => {})).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).valuesToErrors(() => {})).to.emit([end({current: true})]))
 
     it('should handle events', () => {
       const a = stream()
-      expect(a.valuesToErrors(handler)).to.emit([1, {error: -6}, {error: -3}, {error: -12}, 5, '<end>'], () =>
-        send(a, [1, -2, {error: -3}, -4, 5, '<end>'])
+      expect(a.valuesToErrors(handler)).to.emit([value(1), error(-6), error(-3), error(-12), value(5), end()], () =>
+        send(a, [value(1), value(-2), error(-3), value(-4), value(5), end()])
       )
     })
 
     it('default handler should convert all values', () => {
       const a = stream()
-      expect(a.valuesToErrors()).to.emit([{error: 1}, {error: -2}, {error: -3}, {error: -4}, {error: 5}, '<end>'], () =>
-        send(a, [1, -2, {error: -3}, -4, 5, '<end>'])
+      expect(a.valuesToErrors()).to.emit([error(1), error(-2), error(-3), error(-4), error(5), end()], () =>
+        send(a, [value(1), value(-2), error(-3), value(-4), value(5), end()])
       )
     })
   })
@@ -45,23 +45,23 @@ describe('valuesToErrors', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).valuesToErrors(() => {})).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).valuesToErrors(() => {})).to.emit([end({current: true})]))
 
     it('should handle events', () => {
-      const a = send(prop(), [1])
+      const a = send(prop(), [value(1)])
       expect(a.valuesToErrors(handler)).to.emit(
-        [{current: 1}, {error: -6}, {error: -3}, {error: -12}, 5, '<end>'],
-        () => send(a, [-2, {error: -3}, -4, 5, '<end>'])
+        [value(1, {current: true}), error(-6), error(-3), error(-12), value(5), end()],
+        () => send(a, [value(-2), error(-3), value(-4), value(5), end()])
       )
     })
 
     it('should handle currents', () => {
-      let a = send(prop(), [2])
-      expect(a.valuesToErrors(handler)).to.emit([{current: 2}])
-      a = send(prop(), [-2])
-      expect(a.valuesToErrors(handler)).to.emit([{currentError: -6}])
-      a = send(prop(), [{error: -2}])
-      expect(a.valuesToErrors(handler)).to.emit([{currentError: -2}])
+      let a = send(prop(), [value(2)])
+      expect(a.valuesToErrors(handler)).to.emit([value(2, {current: true})])
+      a = send(prop(), [value(-2)])
+      expect(a.valuesToErrors(handler)).to.emit([error(-6, {current: true})])
+      a = send(prop(), [error(-2)])
+      expect(a.valuesToErrors(handler)).to.emit([error(-2, {current: true})])
     })
   })
 })

@@ -1,4 +1,4 @@
-const {stream, prop, send, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, expect} = require('../test-helpers')
 
 describe('withHandler', () => {
   const mirror = (emitter, event) => {
@@ -41,28 +41,29 @@ describe('withHandler', () => {
     })
 
     it('should not be ended if source was ended (by default)', () =>
-      expect(send(stream(), ['<end>']).withHandler(() => {})).to.emit([]))
+      expect(send(stream(), [end()]).withHandler(() => {})).to.emit([]))
 
     it('should be ended if source was ended (with `mirror` handler)', () =>
-      expect(send(stream(), ['<end>']).withHandler(mirror)).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).withHandler(mirror)).to.emit([end({current: true})]))
 
     it('should handle events (with `duplicate` handler)', () => {
       const a = stream()
-      expect(a.withHandler(duplicate)).to.emit([1, 1, {error: 3}, {error: 3}, 2, 2, '<end>'], () =>
-        send(a, [1, {error: 3}, 2, '<end>'])
+      expect(a.withHandler(duplicate)).to.emit(
+        [value(1), value(1), error(3), error(3), value(2), value(2), end()],
+        () => send(a, [value(1), error(3), value(2), end()])
       )
     })
 
     it('should automatically preserve isCurent (end)', () => {
       const a = stream()
-      expect(a.withHandler(mirror)).to.emit(['<end>'], () => send(a, ['<end>']))
-      expect(a.withHandler(mirror)).to.emit(['<end:current>'])
+      expect(a.withHandler(mirror)).to.emit([end()], () => send(a, [end()]))
+      expect(a.withHandler(mirror)).to.emit([end({current: true})])
     })
 
     it('should support emitter.emitEvent', () => {
       const a = stream()
-      expect(a.withHandler(emitEventMirror)).to.emit([1, {error: 3}, 2, '<end>'], () =>
-        send(a, [1, {error: 3}, 2, '<end>'])
+      expect(a.withHandler(emitEventMirror)).to.emit([value(1), error(3), value(2), end()], () =>
+        send(a, [value(1), error(3), value(2), end()])
       )
     })
   })
@@ -78,54 +79,59 @@ describe('withHandler', () => {
     })
 
     it('should not be ended if source was ended (by default)', () =>
-      expect(send(prop(), ['<end>']).withHandler(() => {})).to.emit([]))
+      expect(send(prop(), [end()]).withHandler(() => {})).to.emit([]))
 
     it('should be ended if source was ended (with `mirror` handler)', () =>
-      expect(send(prop(), ['<end>']).withHandler(mirror)).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).withHandler(mirror)).to.emit([end({current: true})]))
 
     it('should handle events and current (with `duplicate` handler)', () => {
-      let a = send(prop(), [1])
-      expect(a.withHandler(duplicate)).to.emit([{current: 1}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], () =>
-        send(a, [2, {error: 4}, 3, '<end>'])
+      let a = send(prop(), [value(1)])
+      expect(a.withHandler(duplicate)).to.emit(
+        [value(1, {current: true}), value(2), value(2), error(4), error(4), value(3), value(3), end()],
+        () => send(a, [value(2), error(4), value(3), end()])
       )
-      a = send(prop(), [{error: 0}])
-      expect(a.withHandler(duplicate)).to.emit([{currentError: 0}, 2, 2, {error: 4}, {error: 4}, 3, 3, '<end>'], () =>
-        send(a, [2, {error: 4}, 3, '<end>'])
+      a = send(prop(), [error(0)])
+      expect(a.withHandler(duplicate)).to.emit(
+        [error(0, {current: true}), value(2), value(2), error(4), error(4), value(3), value(3), end()],
+        () => send(a, [value(2), error(4), value(3), end()])
       )
     })
 
     it('should support emitter.emitEvent', () => {
-      const a = send(prop(), [1])
-      expect(a.withHandler(emitEventMirror)).to.emit([{current: 1}, 2, {error: 4}, 3, '<end>'], () =>
-        send(a, [2, {error: 4}, 3, '<end>'])
+      const a = send(prop(), [value(1)])
+      expect(a.withHandler(emitEventMirror)).to.emit(
+        [value(1, {current: true}), value(2), error(4), value(3), end()],
+        () => send(a, [value(2), error(4), value(3), end()])
       )
-      expect(send(prop(), [{error: -1}]).withHandler(emitEventMirror)).to.emit([{currentError: -1}])
+      expect(send(prop(), [error(-1, {current: true})]).withHandler(emitEventMirror)).to.emit([
+        error(-1, {current: true}),
+      ])
     })
 
     it('should automatically preserve isCurent (end)', () => {
       const a = prop()
-      expect(a.withHandler(mirror)).to.emit(['<end>'], () => send(a, ['<end>']))
-      expect(a.withHandler(mirror)).to.emit(['<end:current>'])
+      expect(a.withHandler(mirror)).to.emit([end()], () => send(a, [end()]))
+      expect(a.withHandler(mirror)).to.emit([end({current: true})])
     })
 
     it('should automatically preserve isCurent (value)', () => {
       const a = prop()
-      expect(a.withHandler(mirror)).to.emit([1], () => send(a, [1]))
-      expect(a.withHandler(mirror)).to.emit([{current: 1}])
+      expect(a.withHandler(mirror)).to.emit([value(1)], () => send(a, [value(1)]))
+      expect(a.withHandler(mirror)).to.emit([value(1, {current: true})])
 
       let savedEmitter = null
       expect(
         a.withHandler((emitter, event) => {
           mirror(emitter, event)
-          return (savedEmitter = emitter)
+          savedEmitter = emitter
         })
-      ).to.emit([{current: 1}, 2], () => savedEmitter.emit(2))
+      ).to.emit([value(1, {current: true}), value(2)], () => savedEmitter.value(2))
     })
 
     it('should automatically preserve isCurent (error)', () => {
       const a = prop()
-      expect(a.withHandler(mirror)).to.emit([{error: 1}], () => send(a, [{error: 1}]))
-      expect(a.withHandler(mirror)).to.emit([{currentError: 1}])
+      expect(a.withHandler(mirror)).to.emit([error(1)], () => send(a, [error(1)]))
+      expect(a.withHandler(mirror)).to.emit([error(1, {current: true})])
 
       let savedEmitter = null
       expect(
@@ -133,7 +139,7 @@ describe('withHandler', () => {
           mirror(emitter, event)
           return (savedEmitter = emitter)
         })
-      ).to.emit([{currentError: 1}, {error: 2}], () => savedEmitter.emit({error: 2}))
+      ).to.emit([error(1, {current: true}), error(2)], () => savedEmitter.error(2))
     })
   })
 })

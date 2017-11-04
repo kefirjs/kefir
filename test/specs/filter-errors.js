@@ -1,4 +1,4 @@
-const {stream, prop, send, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, expect} = require('../test-helpers')
 
 describe('filterErrors', () => {
   describe('stream', () => {
@@ -12,30 +12,30 @@ describe('filterErrors', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).filterErrors(() => {})).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).filterErrors(() => {})).to.emit([end({current: true})]))
 
     it('should handle events', () => {
       const a = stream()
-      expect(a.filterErrors(x => x > 3)).to.emit([-1, {error: 4}, -2, {error: 5}, {error: 6}, '<end>'], () =>
-        send(a, [-1, {error: 1}, {error: 2}, {error: 3}, {error: 4}, -2, {error: 5}, {error: 0}, {error: 6}, '<end>'])
+      expect(a.filterErrors(x => x > 3)).to.emit([value(-1), error(4), value(-2), error(5), error(6), end()], () =>
+        send(a, [value(-1), error(1), error(2), error(3), error(4), value(-2), error(5), error(0), error(6), end()])
       )
     })
 
     it('shoud use id as default predicate', () => {
       const a = stream()
-      expect(a.filterErrors()).to.emit([-1, {error: 4}, -2, {error: 5}, false, {error: 6}, '<end>'], () =>
+      expect(a.filterErrors()).to.emit([value(-1), error(4), value(-2), error(5), value(false), error(6), end()], () =>
         send(a, [
-          -1,
-          {error: 0},
-          {error: false},
-          {error: null},
-          {error: 4},
-          -2,
-          {error: 5},
-          {error: ''},
-          false,
-          {error: 6},
-          '<end>',
+          value(-1),
+          error(0),
+          error(false),
+          error(null),
+          error(4),
+          value(-2),
+          error(5),
+          error(''),
+          value(false),
+          error(6),
+          end(),
         ])
       )
     })
@@ -52,26 +52,27 @@ describe('filterErrors', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).filterErrors(() => {})).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).filterErrors(() => {})).to.emit([end({current: true})]))
 
     it('should handle events and current', () => {
-      const a = send(prop(), [{error: 5}])
-      expect(a.filterErrors(x => x > 3)).to.emit([{currentError: 5}, {error: 4}, -2, {error: 6}, '<end>'], () =>
-        send(a, [{error: 1}, {error: 2}, {error: 3}, {error: 4}, -2, {error: 0}, {error: 6}, '<end>'])
+      const a = send(prop(), [error(5)])
+      expect(a.filterErrors(x => x > 3)).to.emit(
+        [error(5, {current: true}), error(4), value(-2), error(6), end()],
+        () => send(a, [error(1), error(2), error(3), error(4), value(-2), error(0), error(6), end()])
       )
     })
 
     it('should handle current (not pass)', () => {
-      const a = send(prop(), [{error: 0}])
+      const a = send(prop(), [error(0)])
       expect(a.filterErrors(x => x > 2)).to.emit([])
     })
 
     it('shoud use id as default predicate', () => {
-      let a = send(prop(), [{error: 5}])
-      expect(a.filterErrors()).to.emit([{currentError: 5}, {error: 4}, -2, {error: 6}, '<end>'], () =>
-        send(a, [{error: 0}, {error: false}, {error: null}, {error: 4}, -2, {error: undefined}, {error: 6}, '<end>'])
+      let a = send(prop(), [error(5)])
+      expect(a.filterErrors()).to.emit([error(5, {current: true}), error(4), value(-2), error(6), end()], () =>
+        send(a, [error(0), error(false), error(null), error(4), value(-2), error(undefined), error(6), end()])
       )
-      a = send(prop(), [{error: 0}])
+      a = send(prop(), [error(0)])
       expect(a.filterErrors()).to.emit([])
     })
   })

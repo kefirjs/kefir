@@ -1,4 +1,4 @@
-const {activate, deactivate, Kefir, expect} = require('../test-helpers')
+const {activate, deactivate, value, error, end, Kefir, expect} = require('../test-helpers')
 
 describe('Kefir.stream', () => {
   it('should return stream', () => {
@@ -15,7 +15,7 @@ describe('Kefir.stream', () => {
       emitter = em
       return null
     })
-    expect(a).to.emit([1, 2, {error: -1}, 3, '<end>'], () => {
+    expect(a).to.emit([value(1), value(2), error(-1), value(3), end()], () => {
       emitter.value(1)
       emitter.value(2)
       emitter.error(-1)
@@ -55,7 +55,7 @@ describe('Kefir.stream', () => {
         emitter.end()
         return null
       })
-    ).to.emit(['<end:current>'])
+    ).to.emit([end({current: true})])
 
     expect(
       Kefir.stream(emitter => {
@@ -68,7 +68,13 @@ describe('Kefir.stream', () => {
         }, 1000)
         return null
       })
-    ).to.emitInTime([[0, {current: 1}], [0, {currentError: -1}], [0, {current: 2}], [1000, 2], [1000, '<end>']])
+    ).to.emitInTime([
+      [0, value(1, {current: true})],
+      [0, error(-1, {current: true})],
+      [0, value(2, {current: true})],
+      [1000, value(2)],
+      [1000, end()],
+    ])
   })
 
   it('should support emitter.event', () => {
@@ -85,12 +91,12 @@ describe('Kefir.stream', () => {
         return null
       })
     ).to.emitInTime([
-      [0, {current: 1}],
-      [0, {currentError: -1}],
-      [0, {current: 2}],
-      [1000, 3],
-      [1000, 4],
-      [1000, '<end>'],
+      [0, value(1, {current: true})],
+      [0, error(-1, {current: true})],
+      [0, value(2, {current: true})],
+      [1000, value(3)],
+      [1000, value(4)],
+      [1000, end()],
     ])
   })
 

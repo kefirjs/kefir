@@ -1,4 +1,4 @@
-const {stream, prop, send, Kefir, activate, deactivate, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, activate, deactivate, expect} = require('../test-helpers')
 
 describe('toProperty', () => {
   describe('stream', () => {
@@ -13,16 +13,18 @@ describe('toProperty', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).toProperty()).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).toProperty()).to.emit([end({current: true})]))
 
     it('should be ended if source was ended (with current)', () =>
-      expect(send(stream(), ['<end>']).toProperty(() => 0)).to.emit([{current: 0}, '<end:current>']))
+      expect(send(stream(), [end()]).toProperty(() => 0)).to.emit([value(0, {current: true}), end({current: true})]))
 
     it('should handle events', () => {
       const a = stream()
       const p = a.toProperty(() => 0)
-      expect(p).to.emit([{current: 0}, 1, {error: 3}, 2, '<end>'], () => send(a, [1, {error: 3}, 2, '<end>']))
-      expect(p).to.emit([{current: 2}, '<end:current>'])
+      expect(p).to.emit([value(0, {current: true}), value(1), error(3), value(2), end()], () =>
+        send(a, [value(1), error(3), value(2), end()])
+      )
+      expect(p).to.emit([value(2, {current: true}), end({current: true})])
     })
 
     it('should call callback on each activation', () => {
@@ -51,7 +53,7 @@ describe('toProperty', () => {
 
       expect(getCurrent(p)).to.equal(0)
       activate(p)
-      send(a, [1])
+      send(a, [value(1)])
       expect(getCurrent(p)).to.equal(1)
       deactivate(p)
       expect(getCurrent(p)).to.equal(0)
@@ -80,20 +82,27 @@ describe('toProperty', () => {
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(prop(), ['<end>']).toProperty(() => 0)).to.emit([{current: 0}, '<end:current>'])
-      expect(send(prop(), [1, '<end>']).toProperty(() => 0)).to.emit([{current: 1}, '<end:current>'])
+      expect(send(prop(), [end()]).toProperty(() => 0)).to.emit([value(0, {current: true}), end({current: true})])
+      expect(send(prop(), [value(1), end()]).toProperty(() => 0)).to.emit([
+        value(1, {current: true}),
+        end({current: true}),
+      ])
     })
 
     it('should handle events', () => {
-      let a = send(prop(), [1])
+      let a = send(prop(), [value(1)])
       let b = a.toProperty(() => 0)
-      expect(b).to.emit([{current: 1}, 2, {error: 3}, '<end>'], () => send(a, [2, {error: 3}, '<end>']))
-      expect(b).to.emit([{currentError: 3}, '<end:current>'])
+      expect(b).to.emit([value(1, {current: true}), value(2), error(3), end()], () =>
+        send(a, [value(2), error(3), end()])
+      )
+      expect(b).to.emit([error(3, {current: true}), end({current: true})])
 
       a = prop()
       b = a.toProperty(() => 0)
-      expect(b).to.emit([{current: 0}, 2, {error: 3}, 4, '<end>'], () => send(a, [2, {error: 3}, 4, '<end>']))
-      expect(b).to.emit([{current: 4}, '<end:current>'])
+      expect(b).to.emit([value(0, {current: true}), value(2), error(3), value(4), end()], () =>
+        send(a, [value(2), error(3), value(4), end()])
+      )
+      expect(b).to.emit([value(4, {current: true}), end({current: true})])
     })
 
     it('if original property has no current, and .toProperty called with no arguments, then result should have no current', () =>

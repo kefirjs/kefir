@@ -1,4 +1,4 @@
-const {stream, prop, send, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, expect} = require('../test-helpers')
 
 function Promise1(cb) {
   const promise = {type: 1, fulfilled: false, rejected: false}
@@ -55,23 +55,23 @@ describe('toPromise', () => {
     })
 
     it('should not fulfill/reject if obs ends without value', () => {
-      let promise = send(stream(), ['<end>']).toPromise()
+      let promise = send(stream(), [end()]).toPromise()
       expect(promise.fulfilled || promise.rejected).to.equal(false)
 
-      promise = send(stream(), ['<end>']).toPromise(Promise1)
+      promise = send(stream(), [end()]).toPromise(Promise1)
       expect(promise.fulfilled || promise.rejected).to.equal(false)
     })
 
     it('should fulfill with latest value on end', () => {
       let a = stream()
       let promise = a.toPromise()
-      send(a, [1, {error: -1}, 2, '<end>'])
+      send(a, [value(1), error(-1, {current: true}), value(2), end()])
       expect(promise.fulfilled).to.equal(true)
       expect(promise.result).to.equal(2)
 
       a = stream()
       promise = a.toPromise(Promise1)
-      send(a, [1, 2, '<end>'])
+      send(a, [value(1), value(2), end()])
       expect(promise.fulfilled).to.equal(true)
       expect(promise.result).to.equal(2)
     })
@@ -79,13 +79,13 @@ describe('toPromise', () => {
     it('should reject with latest error on end', () => {
       let a = stream()
       let promise = a.toPromise()
-      send(a, [{error: -1}, 1, {error: -2}, '<end>'])
+      send(a, [error(-1, {current: true}), value(1), error(-2), end()])
       expect(promise.rejected).to.equal(true)
       expect(promise.result).to.equal(-2)
 
       a = stream()
       promise = a.toPromise(Promise1)
-      send(a, [{error: -1}, 1, {error: -2}, '<end>'])
+      send(a, [error(-1, {current: true}), value(1), error(-2), end()])
       expect(promise.rejected).to.equal(true)
       expect(promise.result).to.equal(-2)
     })
@@ -104,21 +104,21 @@ describe('toPromise', () => {
 
   describe('property', () => {
     it('should handle currents (resolved)', () => {
-      let promise = send(prop(), [1, '<end>']).toPromise()
+      let promise = send(prop(), [value(1), end()]).toPromise()
       expect(promise.fulfilled).to.equal(true)
       expect(promise.result).to.equal(1)
 
-      promise = send(prop(), [1, '<end>']).toPromise(Promise1)
+      promise = send(prop(), [value(1), end()]).toPromise(Promise1)
       expect(promise.fulfilled).to.equal(true)
       expect(promise.result).to.equal(1)
     })
 
     it('should handle currents (rejected)', () => {
-      let promise = send(prop(), [{error: -1}, '<end>']).toPromise()
+      let promise = send(prop(), [error(-1, {current: true}), end()]).toPromise()
       expect(promise.rejected).to.equal(true)
       expect(promise.result).to.equal(-1)
 
-      promise = send(prop(), [{error: -1}, '<end>']).toPromise(Promise1)
+      promise = send(prop(), [error(-1, {current: true}), end()]).toPromise(Promise1)
       expect(promise.rejected).to.equal(true)
       expect(promise.result).to.equal(-1)
     })

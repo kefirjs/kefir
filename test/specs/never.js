@@ -1,4 +1,4 @@
-const {Kefir, expect} = require('../test-helpers')
+const {end, Kefir, expect} = require('../test-helpers')
 
 describe('never', () => {
   it('should return stream', () => {
@@ -6,6 +6,6 @@ describe('never', () => {
   })
 
   it('should be ended', () => {
-    expect(Kefir.never()).to.emit(['<end:current>'])
+    expect(Kefir.never()).to.emit([end({current: true})])
   })
 })

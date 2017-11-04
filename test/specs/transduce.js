@@ -4,7 +4,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {stream, prop, send, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, expect} = require('../test-helpers')
 
 const comp = (...fns) => x => {
   for (let f of Array.from(fns.slice(0).reverse())) {
@@ -18,91 +18,123 @@ const testWithLib = (name, t) =>
     describe('stream', () => {
       it('`map` should work', () => {
         const a = stream()
-        expect(a.transduce(t.map(x => x * 2))).to.emit([2, 4, 6, '<end>'], () => send(a, [1, 2, 3, '<end>']))
+        expect(a.transduce(t.map(x => x * 2))).to.emit([value(2), value(4), value(6), end()], () =>
+          send(a, [value(1), value(2), value(3), end()])
+        )
       })
 
       it('`filter` should work', () => {
         const a = stream()
-        expect(a.transduce(t.filter(x => x % 2 === 0))).to.emit([2, 4, '<end>'], () => send(a, [1, 2, 3, 4, '<end>']))
+        expect(a.transduce(t.filter(x => x % 2 === 0))).to.emit([value(2), value(4), end()], () =>
+          send(a, [value(1), value(2), value(3), value(4), end()])
+        )
       })
 
       it('`take` should work', () => {
         let a = stream()
-        expect(a.transduce(t.take(2))).to.emit([1, 2, '<end>'], () => send(a, [1, 2, 3, 4]))
+        expect(a.transduce(t.take(2))).to.emit([value(1), value(2), end()], () =>
+          send(a, [value(1), value(2), value(3), value(4)])
+        )
         a = stream()
-        expect(a.transduce(t.take(2))).to.emit([1, '<end>'], () => send(a, [1, '<end>']))
+        expect(a.transduce(t.take(2))).to.emit([value(1), end()], () => send(a, [value(1), end()]))
       })
 
       it('`map.filter.take` should work', () => {
         const tr = comp(t.map(x => x + 10), t.filter(x => x % 2 === 0), t.take(2))
         const a = stream()
-        expect(a.transduce(tr)).to.emit([12, 14, '<end>'], () => send(a, [1, 2, 3, 4, 5, 6]))
+        expect(a.transduce(tr)).to.emit([value(12), value(14), end()], () =>
+          send(a, [value(1), value(2), value(3), value(4), value(5), value(6)])
+        )
       })
 
       if (t.partitionAll) {
         it('`partitionAll` should work', () => {
           let a = stream()
-          expect(a.transduce(t.partitionAll(2))).to.emit([[1, 2], [3, 4], '<end>'], () =>
-            send(a, [1, 2, 3, 4, '<end>'])
+          expect(a.transduce(t.partitionAll(2))).to.emit([value([1, 2]), value([3, 4]), end()], () =>
+            send(a, [value(1), value(2), value(3), value(4), end()])
           )
           a = stream()
-          expect(a.transduce(t.partitionAll(2))).to.emit([[1, 2], [3], '<end>'], () => send(a, [1, 2, 3, '<end>']))
+          expect(a.transduce(t.partitionAll(2))).to.emit([value([1, 2]), value([3]), end()], () =>
+            send(a, [value(1), value(2), value(3), end()])
+          )
         })
         it('`take.partitionAll` should work', () => {
           let tr = comp(t.take(3), t.partitionAll(2))
           let a = stream()
-          expect(a.transduce(tr)).to.emit([[1, 2], [3], '<end>'], () => send(a, [1, 2, 3, 4, '<end>']))
+          expect(a.transduce(tr)).to.emit([value([1, 2]), value([3]), end()], () =>
+            send(a, [value(1), value(2), value(3), value(4), end()])
+          )
           tr = comp(t.take(2), t.partitionAll(2))
           a = stream()
-          expect(a.transduce(tr)).to.emit([[1, 2], '<end>'], () => send(a, [1, 2, 3, 4, '<end>']))
+          expect(a.transduce(tr)).to.emit([value([1, 2]), end()], () =>
+            send(a, [value(1), value(2), value(3), value(4), end()])
+          )
         })
       }
     })
 
     describe('property', () => {
       it('`map` should work', () => {
-        const a = send(prop(), [1])
-        expect(a.transduce(t.map(x => x * 2))).to.emit([{current: 2}, 4, 6, '<end>'], () => send(a, [2, 3, '<end>']))
+        const a = send(prop(), [value(1)])
+        expect(a.transduce(t.map(x => x * 2))).to.emit([value(2, {current: true}), value(4), value(6), end()], () =>
+          send(a, [value(2), value(3), end()])
+        )
       })
 
       it('`filter` should work', () => {
-        let a = send(prop(), [1])
-        expect(a.transduce(t.filter(x => x % 2 === 0))).to.emit([2, 4, '<end>'], () => send(a, [2, 3, 4, '<end>']))
-        a = send(prop(), [2])
-        expect(a.transduce(t.filter(x => x % 2 === 0))).to.emit([{current: 2}, 4, '<end>'], () =>
-          send(a, [1, 3, 4, '<end>'])
+        let a = send(prop(), [value(1)])
+        expect(a.transduce(t.filter(x => x % 2 === 0))).to.emit([value(2), value(4), end()], () =>
+          send(a, [value(2), value(3), value(4), end()])
+        )
+        a = send(prop(), [value(2)])
+        expect(a.transduce(t.filter(x => x % 2 === 0))).to.emit([value(2, {current: true}), value(4), end()], () =>
+          send(a, [value(1), value(3), value(4), end()])
         )
       })
 
       it('`take` should work', () => {
-        let a = send(prop(), [1])
-        expect(a.transduce(t.take(2))).to.emit([{current: 1}, 2, '<end>'], () => send(a, [2, 3, 4]))
-        a = send(prop(), [1])
-        expect(a.transduce(t.take(3))).to.emit([{current: 1}, 2, '<end>'], () => send(a, [2, '<end>']))
+        let a = send(prop(), [value(1)])
+        expect(a.transduce(t.take(2))).to.emit([value(1, {current: true}), value(2), end()], () =>
+          send(a, [value(2), value(3), value(4)])
+        )
+        a = send(prop(), [value(1)])
+        expect(a.transduce(t.take(3))).to.emit([value(1, {current: true}), value(2), end()], () =>
+          send(a, [value(2), end()])
+        )
       })
 
       it('`map.filter.take` should work', () => {
         const tr = comp(t.map(x => x + 10), t.filter(x => x % 2 === 0), t.take(2))
-        let a = send(prop(), [1])
-        expect(a.transduce(tr)).to.emit([12, 14, '<end>'], () => send(a, [2, 3, 4, 5, 6]))
-        a = send(prop(), [2])
-        expect(a.transduce(tr)).to.emit([{current: 12}, 14, '<end>'], () => send(a, [1, 3, 4, 5, 6]))
+        let a = send(prop(), [value(1)])
+        expect(a.transduce(tr)).to.emit([value(12), value(14), end()], () =>
+          send(a, [value(2), value(3), value(4), value(5), value(6)])
+        )
+        a = send(prop(), [value(2)])
+        expect(a.transduce(tr)).to.emit([value(12, {current: true}), value(14), end()], () =>
+          send(a, [value(1), value(3), value(4), value(5), value(6)])
+        )
       })
 
       if (t.partitionAll) {
         it('`partitionAll` should work', () => {
-          let a = send(prop(), [1])
-          expect(a.transduce(t.partitionAll(2))).to.emit([[1, 2], [3, 4], '<end>'], () => send(a, [2, 3, 4, '<end>']))
-          a = send(prop(), [1])
-          expect(a.transduce(t.partitionAll(2))).to.emit([[1, 2], [3], '<end>'], () => send(a, [2, 3, '<end>']))
+          let a = send(prop(), [value(1)])
+          expect(a.transduce(t.partitionAll(2))).to.emit([value([1, 2]), value([3, 4]), end()], () =>
+            send(a, [value(2), value(3), value(4), end()])
+          )
+          a = send(prop(), [value(1)])
+          expect(a.transduce(t.partitionAll(2))).to.emit([value([1, 2]), value([3]), end()], () =>
+            send(a, [value(2), value(3), end()])
+          )
         })
         it('`take.partitionAll` should work', () => {
           let tr = comp(t.take(3), t.partitionAll(2))
-          let a = send(prop(), [1])
-          expect(a.transduce(tr)).to.emit([[1, 2], [3], '<end>'], () => send(a, [2, 3, 4, '<end>']))
+          let a = send(prop(), [value(1)])
+          expect(a.transduce(tr)).to.emit([value([1, 2]), value([3]), end()], () =>
+            send(a, [value(2), value(3), value(4), end()])
+          )
           tr = comp(t.take(2), t.partitionAll(2))
-          a = send(prop(), [1])
-          expect(a.transduce(tr)).to.emit([[1, 2], '<end>'], () => send(a, [2, 3, 4, '<end>']))
+          a = send(prop(), [value(1)])
+          expect(a.transduce(tr)).to.emit([value([1, 2]), end()], () => send(a, [value(2), value(3), value(4), end()]))
         })
       }
     })
@@ -123,11 +155,13 @@ describe('transduce', () => {
       })
 
       it('should be ended if source was ended', () =>
-        expect(send(stream(), ['<end>']).transduce(noop)).to.emit(['<end:current>']))
+        expect(send(stream(), [end()]).transduce(noop)).to.emit([end({current: true})]))
 
       it('should handle events', () => {
         const a = stream()
-        expect(a.transduce(noop)).to.emit([1, 2, {error: 4}, 3, '<end>'], () => send(a, [1, 2, {error: 4}, 3, '<end>']))
+        expect(a.transduce(noop)).to.emit([value(1), value(2), error(4), value(3), end()], () =>
+          send(a, [value(1), value(2), error(4), value(3), end()])
+        )
       })
     })
 
@@ -142,21 +176,21 @@ describe('transduce', () => {
       })
 
       it('should be ended if source was ended', () =>
-        expect(send(prop(), ['<end>']).transduce(noop)).to.emit(['<end:current>']))
+        expect(send(prop(), [end()]).transduce(noop)).to.emit([end({current: true})]))
 
       it('should handle events and current', () => {
-        let a = send(prop(), [1])
-        expect(a.transduce(noop)).to.emit([{current: 1}, 2, {error: 4}, 3, '<end>'], () =>
-          send(a, [2, {error: 4}, 3, '<end>'])
+        let a = send(prop(), [value(1)])
+        expect(a.transduce(noop)).to.emit([value(1, {current: true}), value(2), error(4), value(3), end()], () =>
+          send(a, [value(2), error(4), value(3), end()])
         )
-        a = send(prop(), [{error: 0}])
-        expect(a.transduce(noop)).to.emit([{currentError: 0}, 2, {error: 4}, 3, '<end>'], () =>
-          send(a, [2, {error: 4}, 3, '<end>'])
+        a = send(prop(), [error(0)])
+        expect(a.transduce(noop)).to.emit([error(0, {current: true}), value(2), error(4), value(3), end()], () =>
+          send(a, [value(2), error(4), value(3), end()])
         )
       })
     })
   })
 
   testWithLib('Cognitect Labs', require('transducers-js'))
-  return testWithLib("James Long's", require('transducers.js'))
+  testWithLib("James Long's", require('transducers.js'))
 })

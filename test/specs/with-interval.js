@@ -1,5 +1,4 @@
-const {Kefir} = require('../test-helpers')
-const {expect} = require('../test-helpers')
+const {value, error, end, Kefir, expect} = require('../test-helpers')
 
 describe('withInterval', () => {
   it('should return stream', () => {
@@ -21,12 +20,12 @@ describe('withInterval', () => {
       }
     }
     expect(Kefir.withInterval(100, fn)).to.emitInTime([
-      [100, 1],
-      [100, 2],
-      [200, {error: -1}],
-      [300, 3],
-      [300, 6],
-      [300, '<end>'],
+      [100, value(1)],
+      [100, value(2)],
+      [200, error(-1)],
+      [300, value(3)],
+      [300, value(6)],
+      [300, end()],
     ])
   })
 
@@ -45,12 +44,12 @@ describe('withInterval', () => {
       }
     }
     expect(Kefir.withInterval(100, fn)).to.emitInTime([
-      [100, 1],
-      [100, 2],
-      [200, {error: -1}],
-      [300, 3],
-      [300, 6],
-      [300, '<end>'],
+      [100, value(1)],
+      [100, value(2)],
+      [200, error(-1)],
+      [300, value(3)],
+      [300, value(6)],
+      [300, end()],
     ])
   })
 })

@@ -1,4 +1,4 @@
-const {Kefir, expect} = require('../test-helpers')
+const {Kefir, expect, value, end} = require('../test-helpers')
 
 describe('constant', () => {
   it('should return property', () => {
@@ -6,6 +6,6 @@ describe('constant', () => {
   })
 
   it('should be ended and has current', () => {
-    expect(Kefir.constant(1)).to.emit([{current: 1}, '<end:current>'])
+    expect(Kefir.constant(1)).to.emit([value(1, {current: true}), end({current: true})])
   })
 })

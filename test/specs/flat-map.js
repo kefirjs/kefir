@@ -1,4 +1,4 @@
-const {stream, prop, send, activate, deactivate, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, error, end, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMap', () => {
   describe('stream', () => {
@@ -12,29 +12,29 @@ describe('flatMap', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatMap()).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).flatMap()).to.emit([end({current: true})]))
 
     it('should handle events', () => {
       const a = stream()
       const b = stream()
-      const c = send(prop(), [0])
-      expect(a.flatMap()).to.emit([1, 2, 0, 3, 4, '<end>'], () => {
-        send(b, [0])
-        send(a, [b])
-        send(b, [1, 2])
-        send(a, [c, '<end>'])
-        send(b, [3, '<end>'])
-        send(c, [4, '<end>'])
+      const c = send(prop(), [value(0)])
+      expect(a.flatMap()).to.emit([value(1), value(2), value(0), value(3), value(4), end()], () => {
+        send(b, [value(0)])
+        send(a, [value(b)])
+        send(b, [value(1), value(2)])
+        send(a, [value(c), end()])
+        send(b, [value(3), end()])
+        send(c, [value(4), end()])
       })
     })
 
     it('should activate sub-sources', () => {
       const a = stream()
       const b = stream()
-      const c = send(prop(), [0])
+      const c = send(prop(), [value(0)])
       const map = a.flatMap()
       activate(map)
-      send(a, [b, c])
+      send(a, [value(b), value(c)])
       deactivate(map)
       expect(map).to.activate(b, c)
     })
@@ -42,29 +42,29 @@ describe('flatMap', () => {
     it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      expect(a.flatMap(x => x.obs)).to.emit([1, 2, '<end>'], () => {
-        send(b, [0])
-        send(a, [{obs: b}, '<end>'])
-        send(b, [1, 2, '<end>'])
+      expect(a.flatMap(x => x.obs)).to.emit([value(1), value(2), end()], () => {
+        send(b, [value(0)])
+        send(a, [value({obs: b}), end()])
+        send(b, [value(1), value(2), end()])
       })
     })
 
     it('should correctly handle current values of sub sources on activation', () => {
       const a = stream()
-      const b = send(prop(), [1])
-      const c = send(prop(), [2])
+      const b = send(prop(), [value(1)])
+      const c = send(prop(), [value(2)])
       const m = a.flatMap()
       activate(m)
-      send(a, [b, c])
+      send(a, [value(b), value(c)])
       deactivate(m)
-      expect(m).to.emit([{current: 1}, {current: 2}])
+      expect(m).to.emit([value(1, {current: true}), value(2, {current: true})])
     })
 
     it('should correctly handle current values of new sub sources', () => {
       const a = stream()
-      const b = send(prop(), [1])
-      const c = send(prop(), [2])
-      expect(a.flatMap()).to.emit([1, 2], () => send(a, [b, c]))
+      const b = send(prop(), [value(1)])
+      const c = send(prop(), [value(2)])
+      expect(a.flatMap()).to.emit([value(1), value(2)], () => send(a, [value(b), value(c)]))
     })
 
     it('should work nicely with Kefir.constant and Kefir.never', () => {
@@ -79,7 +79,9 @@ describe('flatMap', () => {
             return Kefir.never()
           }
         })
-      ).to.emit([3, {error: -1}, 4, {error: -2}, 5], () => send(a, [1, 2, 3, -1, 4, -2, 5]))
+      ).to.emit([value(3), error(-1), value(4), error(-2), value(5)], () =>
+        send(a, [value(1), value(2), value(3), value(-1), value(4), value(-2), value(5)])
+      )
     })
 
     // https://github.com/rpominov/kefir/issues/29
@@ -89,9 +91,9 @@ describe('flatMap', () => {
       const handler = () => {}
       stream1.onValue(handler)
       const sub = stream()
-      send(src, [sub, '<end>'])
+      send(src, [value(sub), end()])
       stream1.offValue(handler)
-      send(sub, ['<end>'])
+      send(sub, [end()])
       // Throws exception
       return stream1.onValue(handler)
     })
@@ -102,7 +104,7 @@ describe('flatMap', () => {
       const c = prop()
       const result = a.flatMap()
       activate(result)
-      send(a, [b, c])
+      send(a, [value(b), value(c)])
       deactivate(result)
       expect(result).to.flowErrors(a)
       expect(result).to.flowErrors(b)
@@ -128,12 +130,12 @@ describe('flatMap', () => {
     })
 
     it('should be possible to add same obs twice on activation', () => {
-      const b = send(prop(), [1])
+      const b = send(prop(), [value(1)])
       const a = Kefir.stream(em => {
         em.emit(b)
         return em.emit(b)
       })
-      expect(a.flatMap()).to.emit([{current: 1}, {current: 1}])
+      expect(a.flatMap()).to.emit([value(1, {current: true}), value(1, {current: true})])
     })
   })
 
@@ -148,41 +150,59 @@ describe('flatMap', () => {
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(prop(), ['<end>']).flatMap()).to.emit(['<end:current>'])
+      expect(send(prop(), [end()]).flatMap()).to.emit([end({current: true})])
     })
 
     it('should be ended if source was ended (with value)', () =>
-      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMap()).to.emit([{current: 0}, '<end:current>']))
+      expect(send(prop(), [value(send(prop(), [value(0), end()])), end()]).flatMap()).to.emit([
+        value(0, {current: true}),
+        end({current: true}),
+      ]))
 
     it('should not costantly adding current value on each activation', () => {
-      const a = send(prop(), [0])
-      const b = send(prop(), [a])
+      const a = send(prop(), [value(0)])
+      const b = send(prop(), [value(a)])
       const map = b.flatMap()
       activate(map)
       deactivate(map)
       activate(map)
       deactivate(map)
-      expect(map).to.emit([{current: 0}])
+      expect(map).to.emit([value(0, {current: true})])
     })
 
     it('should allow to add same obs several times', () => {
-      const b = send(prop(), ['b0'])
+      const b = send(prop(), [value('b0')])
       const c = stream()
-      const a = send(prop(), [b])
+      const a = send(prop(), [value(b)])
       expect(a.flatMap()).to.emit(
-        [{current: 'b0'}, 'b0', 'b0', 'b0', 'b0', 'b1', 'b1', 'b1', 'b1', 'b1', 'c1', 'c1', 'c1', '<end>'],
+        [
+          value('b0', {current: true}),
+          value('b0'),
+          value('b0'),
+          value('b0'),
+          value('b0'),
+          value('b1'),
+          value('b1'),
+          value('b1'),
+          value('b1'),
+          value('b1'),
+          value('c1'),
+          value('c1'),
+          value('c1'),
+          end(),
+        ],
         () => {
-          send(a, [b, c, b, c, c, b, b, '<end>'])
-          send(b, ['b1', '<end>'])
-          send(c, ['c1', '<end>'])
+          send(a, [value(b), value(c), value(b), value(c), value(c), value(b), value(b), end()])
+          send(b, [value('b1'), end()])
+          send(c, [value('c1'), end()])
         }
       )
     })
 
     it('should correctly handle current value of source', () => {
-      const a = send(prop(), [0])
-      const b = send(prop(), [a])
-      expect(b.flatMap()).to.emit([{current: 0}])
+      const a = send(prop(), [value(0)])
+      const b = send(prop(), [value(a)])
+      expect(b.flatMap()).to.emit([value(0, {current: true})])
     })
 
     it('errors should flow 1', () => {
@@ -197,7 +217,7 @@ describe('flatMap', () => {
       const c = prop()
       const result = a.flatMap()
       activate(result)
-      send(a, [b, c])
+      send(a, [value(b), value(c)])
       deactivate(result)
       expect(result).to.flowErrors(b)
       expect(result).to.flowErrors(c)

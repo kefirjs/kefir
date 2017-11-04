@@ -1,4 +1,4 @@
-const {stream, prop, send, activate, deactivate, Kefir, expect} = require('../test-helpers')
+const {stream, prop, send, value, end, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMapConcat', () => {
   describe('stream', () => {
@@ -12,63 +12,63 @@ describe('flatMapConcat', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(stream(), ['<end>']).flatMapConcat()).to.emit(['<end:current>']))
+      expect(send(stream(), [end()]).flatMapConcat()).to.emit([end({current: true})]))
 
     it('should handle events', () => {
       const a = stream()
       const b = stream()
       const c = stream()
-      expect(a.flatMapConcat()).to.emit([1, 2, 5, 6, '<end>'], () => {
-        send(b, [0])
-        send(a, [b])
-        send(b, [1, 2])
-        send(a, [c, '<end>'])
-        send(c, [4])
-        send(b, [5, '<end>'])
-        send(c, [6, '<end>'])
+      expect(a.flatMapConcat()).to.emit([value(1), value(2), value(5), value(6), end()], () => {
+        send(b, [value(0)])
+        send(a, [value(b)])
+        send(b, [value(1), value(2)])
+        send(a, [value(c), end()])
+        send(c, [value(4)])
+        send(b, [value(5), end()])
+        send(c, [value(6), end()])
       })
     })
 
     it('should activate sub-sources', () => {
       const a = stream()
       const b = stream()
-      const c = send(prop(), [0])
+      const c = send(prop(), [value(0)])
       const map = a.flatMapConcat()
       activate(map)
-      send(a, [b, c])
+      send(a, [value(b), value(c)])
       deactivate(map)
       expect(map).to.activate(b)
       expect(map).not.to.activate(c)
-      send(b, ['<end>'])
+      send(b, [end()])
       expect(map).to.activate(c)
     })
 
     it('should accept optional map fn', () => {
       const a = stream()
       const b = stream()
-      expect(a.flatMapConcat(x => x.obs)).to.emit([1, 2, '<end>'], () => {
-        send(b, [0])
-        send(a, [{obs: b}, '<end>'])
-        send(b, [1, 2, '<end>'])
+      expect(a.flatMapConcat(x => x.obs)).to.emit([value(1), value(2), end()], () => {
+        send(b, [value(0)])
+        send(a, [value({obs: b}), end()])
+        send(b, [value(1), value(2), end()])
       })
     })
 
     it('should correctly handle current values of sub sources on activation', () => {
       const a = stream()
-      const b = send(prop(), [1])
+      const b = send(prop(), [value(1)])
       const m = a.flatMapConcat()
       activate(m)
-      send(a, [b])
+      send(a, [value(b)])
       deactivate(m)
-      expect(m).to.emit([{current: 1}])
+      expect(m).to.emit([value(1, {current: true})])
     })
 
     it('should correctly handle current values of new sub sources', () => {
       const a = stream()
-      const b = send(prop(), [1, '<end>'])
-      const c = send(prop(), [2])
-      const d = send(prop(), [3])
-      expect(a.flatMapConcat()).to.emit([1, 2], () => send(a, [b, c, d]))
+      const b = send(prop(), [value(1), end()])
+      const c = send(prop(), [value(2)])
+      const d = send(prop(), [value(3)])
+      expect(a.flatMapConcat()).to.emit([value(1), value(2)], () => send(a, [value(b), value(c), value(d)]))
     })
 
     it('should work nicely with Kefir.constant and Kefir.never', () => {
@@ -81,7 +81,7 @@ describe('flatMapConcat', () => {
             return Kefir.never()
           }
         })
-      ).to.emit([3, 4, 5], () => send(a, [1, 2, 3, 4, 5]))
+      ).to.emit([value(3), value(4), value(5)], () => send(a, [value(1), value(2), value(3), value(4), value(5)]))
     })
   })
 
@@ -96,18 +96,18 @@ describe('flatMapConcat', () => {
     })
 
     it('should be ended if source was ended', () =>
-      expect(send(prop(), ['<end>']).flatMapConcat()).to.emit(['<end:current>']))
+      expect(send(prop(), [end()]).flatMapConcat()).to.emit([end({current: true})]))
 
     it('should be ended if source was ended (with value)', () =>
-      expect(send(prop(), [send(prop(), [0, '<end>']), '<end>']).flatMapConcat()).to.emit([
-        {current: 0},
-        '<end:current>',
+      expect(send(prop(), [value(send(prop(), [value(0), end()])), end()]).flatMapConcat()).to.emit([
+        value(0, {current: true}),
+        end({current: true}),
       ]))
 
     it('should correctly handle current value of source', () => {
-      const a = send(prop(), [0])
-      const b = send(prop(), [a])
-      expect(b.flatMapConcat()).to.emit([{current: 0}])
+      const a = send(prop(), [value(0)])
+      const b = send(prop(), [value(a)])
+      expect(b.flatMapConcat()).to.emit([value(0, {current: true})])
     })
   })
 })

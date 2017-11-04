@@ -1,4 +1,4 @@
-const {prop, send, activate, Kefir, expect} = require('../test-helpers')
+const {prop, send, value, error, end, activate, Kefir, expect} = require('../test-helpers')
 const sinon = require('sinon')
 
 describe('Property', () => {
@@ -20,7 +20,7 @@ describe('Property', () => {
   describe('end', () => {
     it('should end when `end` sent', () => {
       const s = prop()
-      expect(s).to.emit(['<end>'], () => send(s, ['<end>']))
+      expect(s).to.emit([end()], () => send(s, [end()]))
     })
 
     it('should call `end` subscribers', () => {
@@ -29,13 +29,13 @@ describe('Property', () => {
       s.onEnd(() => log.push(1))
       s.onEnd(() => log.push(2))
       expect(log).to.deep.equal([])
-      send(s, ['<end>'])
+      send(s, [end()])
       expect(log).to.deep.equal([1, 2])
     })
 
     it('should call `end` subscribers on already ended property', () => {
       const s = prop()
-      send(s, ['<end>'])
+      send(s, [end()])
       const log = []
       s.onEnd(() => log.push(1))
       s.onEnd(() => log.push(2))
@@ -46,13 +46,13 @@ describe('Property', () => {
       const s = prop()
       activate(s)
       expect(s).to.be.active()
-      send(s, ['<end>'])
+      send(s, [end()])
       expect(s).not.to.be.active()
     })
 
     it('should stop deliver new values after end', () => {
       const s = prop()
-      expect(s).to.emit([1, 2, '<end>'], () => send(s, [1, 2, '<end>', 3]))
+      expect(s).to.emit([value(1), value(2), end()], () => send(s, [value(1), value(2), end(), value(3)]))
     })
 
     it('calling ._emitEnd twice should work fine', () => {
@@ -127,55 +127,55 @@ describe('Property', () => {
 
   describe('subscribers', () => {
     it('should deliver values and current', () => {
-      const s = send(prop(), [0])
-      expect(s).to.emit([{current: 0}, 1, 2], () => send(s, [1, 2]))
+      const s = send(prop(), [value(0)])
+      expect(s).to.emit([value(0, {current: true}), value(1), value(2)], () => send(s, [value(1), value(2)]))
     })
 
     it('should deliver errors and current error', () => {
-      const s = send(prop(), [{error: 0}])
-      expect(s).to.emit([{currentError: 0}, {error: 1}, {error: 2}], () => send(s, [{error: 1}, {error: 2}]))
+      const s = send(prop(), [error(0)])
+      expect(s).to.emit([error(0, {current: true}), error(1), error(2)], () => send(s, [error(1), error(2)]))
     })
 
     it('onValue subscribers should be called with 1 argument', () => {
-      const s = send(prop(), [0])
+      const s = send(prop(), [value(0)])
       let count = null
       s.onValue(function() {
         return (count = arguments.length)
       })
       expect(count).to.equal(1)
-      send(s, [1])
+      send(s, [value(1)])
       expect(count).to.equal(1)
     })
 
     it('onError subscribers should be called with 1 argument', () => {
-      const s = send(prop(), [{error: 0}])
+      const s = send(prop(), [error(0)])
       let count = null
       s.onError(function() {
         return (count = arguments.length)
       })
       expect(count).to.equal(1)
-      send(s, [{error: 1}])
+      send(s, [error(1)])
       expect(count).to.equal(1)
     })
 
     it('onAny subscribers should be called with 1 arguments', () => {
-      const s = send(prop(), [0])
+      const s = send(prop(), [value(0)])
       let count = null
       s.onAny(function() {
         return (count = arguments.length)
       })
       expect(count).to.equal(1)
-      send(s, [1])
+      send(s, [value(1)])
       expect(count).to.equal(1)
     })
 
     it('onEnd subscribers should be called with 0 arguments', () => {
-      const s = send(prop(), [0])
+      const s = send(prop(), [value(0)])
       let count = null
       s.onEnd(function() {
         return (count = arguments.length)
       })
-      send(s, ['<end>'])
+      send(s, [end()])
       expect(count).to.equal(0)
       s.onEnd(function() {
         return (count = arguments.length)
@@ -184,35 +184,35 @@ describe('Property', () => {
     })
 
     it("can't have current value and error at same time", () => {
-      const p = send(prop(), [0])
-      expect(p).to.emit([{current: 0}])
-      send(p, [{error: 1}])
-      expect(p).to.emit([{currentError: 1}])
-      send(p, [2])
-      expect(p).to.emit([{current: 2}])
+      const p = send(prop(), [value(0)])
+      expect(p).to.emit([value(0, {current: true})])
+      send(p, [error(1)])
+      expect(p).to.emit([error(1, {current: true})])
+      send(p, [value(2)])
+      expect(p).to.emit([value(2, {current: true})])
     })
 
     it('should update catched current value before dispatching it', () => {
-      const p = send(prop(), [0])
+      const p = send(prop(), [value(0)])
       const spy = sinon.spy()
       p.onValue(x => {
         if (x === 1) {
           return p.onValue(spy)
         }
       })
-      send(p, [1])
+      send(p, [value(1)])
       expect(spy.args).to.deep.equal([[1]])
     })
 
     it('should update catched current error before dispatching it', () => {
-      const p = send(prop(), [{error: 0}])
+      const p = send(prop(), [error(0)])
       const spy = sinon.spy()
       p.onError(x => {
         if (x === 1) {
           return p.onError(spy)
         }
       })
-      send(p, [{error: 1}])
+      send(p, [error(1)])
       expect(spy.args).to.deep.equal([[1]])
     })
   })

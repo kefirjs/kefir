@@ -1,4 +1,4 @@
-const {activate, deactivate, Kefir, expect} = require('../test-helpers')
+const {activate, deactivate, Kefir, value, end, expect} = require('../test-helpers')
 
 describe('fromCallback', () => {
   it('should return stream', () => {
@@ -24,7 +24,7 @@ describe('fromCallback', () => {
 
   it('should emit first result and end after that', () => {
     let cb = null
-    expect(Kefir.fromCallback(_cb => cb = _cb)).to.emit([1, '<end>'], () => cb(1))
+    expect(Kefir.fromCallback(_cb => cb = _cb)).to.emit([value(1), end()], () => cb(1))
   })
 
   it('should work after deactivation/activate cicle', () => {
@@ -34,10 +34,10 @@ describe('fromCallback', () => {
     deactivate(s)
     activate(s)
     deactivate(s)
-    expect(s).to.emit([1, '<end>'], () => cb(1))
+    expect(s).to.emit([value(1), end()], () => cb(1))
   })
 
   it('should emit a current, if `callback` is called immediately in `callbackConsumer`', () => {
-    expect(Kefir.fromCallback(cb => cb(1))).to.emit([{current: 1}, '<end:current>'])
+    expect(Kefir.fromCallback(cb => cb(1))).to.emit([value(1, {current: true}), end({current: true})])
   })
 })
