@@ -1,5 +1,5 @@
 /*! Kefir.js v3.8.0
- *  https://github.com/rpominov/kefir
+ *  https://github.com/kefirjs/kefir
  */
 
 (function (global, factory) {
@@ -739,7 +739,7 @@ inherit(S$5, Stream, {
     var unsubscribe = fn(emitter(this));
     this._unsubscribe = typeof unsubscribe === 'function' ? unsubscribe : null;
 
-    // fix https://github.com/rpominov/kefir/issues/35
+    // fix https://github.com/kefirjs/kefir/issues/35
     if (!this._active) {
       this._callUnsubscribe();
     }
@@ -1295,7 +1295,7 @@ inherit(Combine, Stream, {
     this._aliveCount = this._activeCount;
 
     // we need to suscribe to _passive_ sources before _active_
-    // (see https://github.com/rpominov/kefir/issues/98)
+    // (see https://github.com/kefirjs/kefir/issues/98)
     for (var i = this._activeCount; i < this._sources.length; i++) {
       this._sources[i].onAny(this._$handlers[i]);
     }
@@ -3605,28 +3605,28 @@ function warn(msg) {
 
 // (Stream|Property, Stream|Property) -> Property
 Observable.prototype.awaiting = function (other) {
-  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145');
+  warn('You are using deprecated .awaiting() method, see https://github.com/kefirjs/kefir/issues/145');
   return awaiting(this, other);
 };
 
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
 Observable.prototype.valuesToErrors = function (fn) {
-  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149');
+  warn('You are using deprecated .valuesToErrors() method, see https://github.com/kefirjs/kefir/issues/149');
   return valuesToErrors(this, fn);
 };
 
 // (Stream, Function|undefined) -> Stream
 // (Property, Function|undefined) -> Property
 Observable.prototype.errorsToValues = function (fn) {
-  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149');
+  warn('You are using deprecated .errorsToValues() method, see https://github.com/kefirjs/kefir/issues/149');
   return errorsToValues(this, fn);
 };
 
 // (Stream) -> Stream
 // (Property) -> Property
 Observable.prototype.endOnError = function () {
-  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150');
+  warn('You are using deprecated .endOnError() method, see https://github.com/kefirjs/kefir/issues/150');
   return endOnError(this);
 };
 
