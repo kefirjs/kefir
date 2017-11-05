@@ -86,7 +86,11 @@ describe('Kefir.stream', () => {
         setTimeout(() => {
           emitter.event({type: 'value', value: 3, current: true})
           emitter.event({type: 'value', value: 4, current: false})
-          return emitter.event({type: 'end', value: undefined, current: false})
+          return emitter.event({
+            type: 'end',
+            value: undefined,
+            current: false,
+          })
         }, 1000)
         return null
       })
@@ -100,7 +104,7 @@ describe('Kefir.stream', () => {
     ])
   })
 
-  // https://github.com/rpominov/kefir/issues/35
+  // https://github.com/kefirjs/kefir/issues/35
   it('should work with .take(1) and sync emit', () => {
     const log = []
 

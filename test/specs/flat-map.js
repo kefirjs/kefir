@@ -84,7 +84,7 @@ describe('flatMap', () => {
       )
     })
 
-    // https://github.com/rpominov/kefir/issues/29
+    // https://github.com/kefirjs/kefir/issues/29
     it('Bug in flatMap: exception thrown when resubscribing to stream', () => {
       const src = stream()
       const stream1 = src.flatMap(x => x)
@@ -111,7 +111,7 @@ describe('flatMap', () => {
       expect(result).to.flowErrors(c)
     })
 
-    // https://github.com/rpominov/kefir/issues/92
+    // https://github.com/kefirjs/kefir/issues/92
     it('Bug "flatMap with take(1) doesn\'t unsubscribe from source"', () => {
       let subs = 0
       let unsubs = 0

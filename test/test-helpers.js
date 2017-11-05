@@ -114,8 +114,8 @@ exports.error = error
 exports.end = end
 
 // see:
-//   https://github.com/rpominov/kefir/issues/134
-//   https://github.com/rpominov/kefir/pull/135
+//   https://github.com/kefirjs/kefir/issues/134
+//   https://github.com/kefirjs/kefir/pull/135
 exports.shakyTimeTest = testCb => {
   it('[shaky time test: normal run]', () => {
     const expectToEmitOverShakyTime = (stream, expectedLog, cb, timeLimit) =>
@@ -125,7 +125,10 @@ exports.shakyTimeTest = testCb => {
 
   it('[shaky time test: reverse run]', () => {
     const expectToEmitOverShakyTime = (stream, expectedLog, cb, timeLimit) =>
-      expect(stream).to.emitInTime(expectedLog, cb, {timeLimit, reverseSimultaneous: true})
+      expect(stream).to.emitInTime(expectedLog, cb, {
+        timeLimit,
+        reverseSimultaneous: true,
+      })
     testCb(expectToEmitOverShakyTime)
   })
 }

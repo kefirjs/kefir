@@ -36,7 +36,7 @@ describe('skipDuplicates', () => {
     })
 
     it('should help with creating circular dependencies', () => {
-      // https://github.com/rpominov/kefir/issues/42
+      // https://github.com/kefirjs/kefir/issues/42
 
       const a = stream()
       const b = Kefir.pool()

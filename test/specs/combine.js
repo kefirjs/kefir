@@ -245,7 +245,7 @@ describe('combine', () => {
         expect(Kefir.combine([a, b], [c, d])).to.flowErrors(b)
       })
 
-      // https://github.com/rpominov/kefir/issues/98
+      // https://github.com/kefirjs/kefir/issues/98
       it('should work nice for emitating atomic updates', () => {
         const a = stream()
         const b = a.map(x => x + 2)
@@ -493,7 +493,7 @@ describe('combine', () => {
         expect(Kefir.combine({a, b}, {c, d})).to.flowErrors(b)
       })
 
-      // https://github.com/rpominov/kefir/issues/98
+      // https://github.com/kefirjs/kefir/issues/98
       it('should work nice for emitating atomic updates', () => {
         const a = stream()
         const b = a.map(x => x + 2)

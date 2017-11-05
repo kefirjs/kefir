@@ -61,7 +61,7 @@ describe('sampledBy', () => {
     expect(s1).to.emit([value(0)], () => send(b, [value(1)]))
   })
 
-  // https://github.com/rpominov/kefir/issues/98
+  // https://github.com/kefirjs/kefir/issues/98
   it('should work nice for emitating atomic updates', () => {
     const a = stream()
     const b = a.map(x => x + 2)

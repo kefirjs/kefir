@@ -31,7 +31,7 @@ describe('delay', () => {
       expect(a.delay(100)).to.flowErrors(a)
     })
 
-    // see https://github.com/rpominov/kefir/issues/134
+    // see https://github.com/kefirjs/kefir/issues/134
     describe('works with undependable setTimeout', () => {
       shakyTimeTest(expectToEmitOverShakyTime => {
         const a = stream()

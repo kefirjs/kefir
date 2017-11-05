@@ -14,7 +14,7 @@ See also [Deprecated API docs](https://github.com/kefirjs/kefir/blob/master/depr
 
 [![Build Status](https://travis-ci.org/kefirjs/kefir.svg?branch=master)](https://travis-ci.org/kefirjs/kefir)
 [![Dependency Status](https://david-dm.org/kefirjs/kefir.svg)](https://david-dm.org/kefirjs/kefir)
-[![devDependency Status](https://david-dm.org/kefirjs/kefir/dev-status.svg)](https://david-dm.org/rpominov/kefir#info=devDependencies)
+[![devDependency Status](https://david-dm.org/kefirjs/kefir/dev-status.svg)](https://david-dm.org/kefirjs/kefir#info=devDependencies)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pozadi/kefir?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 
