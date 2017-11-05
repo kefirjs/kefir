@@ -9,9 +9,9 @@
     "build-docs": "node configs/docs.js",
     "clean": "rm -r dist index.html || true",
     "build": "npm run clean && npm run build-js && npm run build-docs",
-    "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && jasmine-node --matchall test/specs && flow check",
-    "test-only": "rollup -c ./configs/rollup.dev.js && jasmine-node --matchall test/specs",
-    "test-debug": "rollup -c ./configs/rollup.dev.js && node --inspect-brk `npm bin`/jasmine-node --matchall test/specs"
+    "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && mocha && flow check",
+    "test-only": "rollup -c ./configs/rollup.dev.js && mocha",
+    "test-debug": "rollup -c ./configs/rollup.dev.js && mocha --inspect-brk"
   },
   "keywords": [
     "frp",
@@ -38,9 +38,11 @@
   "devDependencies": {
     "@reactivex/rxjs": "5.3.0",
     "babel-preset-es2015-loose-rollup": "7.0.0",
+    "chai": "^4.1.2",
+    "chai-kefir": "^2.0.1",
     "flow-bin": "0.50.0",
     "inquirer": "0.10.1",
-    "jasmine-node": "1.14.5",
+    "mocha": "^4.0.1",
     "prettier": "1.0.2",
     "pug": "2.0.0-beta11",
     "rollup": "0.41.6",
@@ -51,6 +53,7 @@
     "semver": "5.3.0",
     "shelljs": "0.5.3",
     "sinon": "1.17.1",
+    "sinon-chai": "^2.14.0",
     "transducers-js": "0.4.174",
     "transducers.js": "0.3.2",
     "zen-observable": "0.5.1"

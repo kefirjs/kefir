@@ -1,81 +1,94 @@
-const {stream, prop, send, Kefir} = require('../test-helpers')
+const {stream, prop, send, value, error, end, Kefir, expect} = require('../test-helpers')
 
 describe('skip', () => {
   describe('stream', () => {
     it('should return stream', () => {
-      expect(stream().skip(3)).toBeStream()
+      expect(stream().skip(3)).to.be.observable.stream()
     })
 
     it('should activate/deactivate source', () => {
       const a = stream()
-      expect(a.skip(3)).toActivate(a)
+      expect(a.skip(3)).to.activate(a)
     })
 
     it('should be ended if source was ended', () => {
-      expect(send(stream(), ['<end>']).skip(3)).toEmit(['<end:current>'])
+      expect(send(stream(), [end()]).skip(3)).to.emit([end({current: true})])
     })
 
     it('should handle events (less than `n`)', () => {
       const a = stream()
-      expect(a.skip(3)).toEmit(['<end>'], () => send(a, [1, 2, '<end>']))
+      expect(a.skip(3)).to.emit([end()], () => send(a, [value(1), value(2), end()]))
     })
 
     it('should handle events (more than `n`)', () => {
       const a = stream()
-      expect(a.skip(3)).toEmit([4, 5, '<end>'], () => send(a, [1, 2, 3, 4, 5, '<end>']))
+      expect(a.skip(3)).to.emit([value(4), value(5), end()], () =>
+        send(a, [value(1), value(2), value(3), value(4), value(5), end()])
+      )
     })
 
     it('should handle events (n == 0)', () => {
       const a = stream()
-      expect(a.skip(0)).toEmit([1, 2, 3, '<end>'], () => send(a, [1, 2, 3, '<end>']))
+      expect(a.skip(0)).to.emit([value(1), value(2), value(3), end()], () =>
+        send(a, [value(1), value(2), value(3), end()])
+      )
     })
 
     it('should handle events (n == -1)', () => {
       const a = stream()
-      expect(a.skip(-1)).toEmit([1, 2, 3, '<end>'], () => send(a, [1, 2, 3, '<end>']))
+      expect(a.skip(-1)).to.emit([value(1), value(2), value(3), end()], () =>
+        send(a, [value(1), value(2), value(3), end()])
+      )
     })
 
     it('errors should flow', () => {
       const a = stream()
-      expect(a.skip(1)).errorsToFlow(a)
+      expect(a.skip(1)).to.flowErrors(a)
     })
   })
 
   describe('property', () => {
     it('should return property', () => {
-      expect(prop().skip(3)).toBeProperty()
+      expect(prop().skip(3)).to.be.observable.property()
     })
 
     it('should activate/deactivate source', () => {
       const a = prop()
-      expect(a.skip(3)).toActivate(a)
+      expect(a.skip(3)).to.activate(a)
     })
 
-    it('should be ended if source was ended', () => expect(send(prop(), ['<end>']).skip(3)).toEmit(['<end:current>']))
+    it('should be ended if source was ended', () =>
+      expect(send(prop(), [end()]).skip(3)).to.emit([end({current: true})]))
 
     it('should handle events and current (less than `n`)', () => {
-      const a = send(prop(), [1])
-      expect(a.skip(3)).toEmit(['<end>'], () => send(a, [2, '<end>']))
+      const a = send(prop(), [value(1)])
+      expect(a.skip(3)).to.emit([end()], () => send(a, [value(2), end()]))
     })
 
     it('should handle events and current (more than `n`)', () => {
-      const a = send(prop(), [1])
-      expect(a.skip(3)).toEmit([4, 5, '<end>'], () => send(a, [2, 3, 4, 5, '<end>']))
+      const a = send(prop(), [value(1)])
+      expect(a.skip(3)).to.emit([value(4), value(5), end()], () =>
+        send(a, [value(2), value(3), value(4), value(5), end()])
+      )
     })
 
     it('should handle events and current (n == 0)', () => {
-      const a = send(prop(), [1])
-      expect(a.skip(0)).toEmit([{current: 1}, 2, 3, '<end>'], () => send(a, [2, 3, '<end>']))
+      const a = send(prop(), [value(1)])
+      expect(a.skip(0)).to.emit([value(1, {current: true}), value(2), value(3), end()], () =>
+        send(a, [value(2), value(3), end()])
+      )
     })
 
     it('should handle events and current (n == -1)', () => {
-      const a = send(prop(), [1])
-      expect(a.skip(-1)).toEmit([{current: 1}, 2, 3, '<end>'], () => send(a, [2, 3, '<end>']))
+      const a = send(prop(), [value(1)])
+      expect(a.skip(-1)).to.emit([value(1, {current: true}), value(2), value(3), end()], () =>
+        send(a, [value(2), value(3), end()])
+      )
     })
 
     it('errors should flow', () => {
       const a = prop()
-      expect(a.skip(1)).errorsToFlow(a)
+      expect(a.skip(1)).to.flowErrors(a)
     })
   })
 })
