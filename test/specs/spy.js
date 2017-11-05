@@ -1,50 +1,54 @@
-const {stream, send} = require('../test-helpers')
+const {stream, send, value, error, end, expect} = require('../test-helpers')
+const sinon = require('sinon')
 
 describe('spy', () => {
   describe('adding', () => {
     it('should return the stream', () => {
-      expect(stream().spy()).toBeStream()
+      expect(stream().spy()).to.be.observable.stream()
     })
 
     it('should not activate the stream', () => {
       const a = stream().spy()
-      expect(a).not.toBeActive()
+      expect(a).not.to.be.active()
     })
   })
 
   describe('removing', () => {
     it('should return the stream', () => {
-      expect(stream().spy().offSpy()).toBeStream()
+      expect(stream().spy().offSpy()).to.be.observable.stream()
     })
 
     it('should not activate the stream', () => {
       const a = stream().spy().offSpy()
-      expect(a).not.toBeActive()
+      expect(a).not.to.be.active()
     })
   })
 
   describe('console', () => {
-    beforeEach(() => spyOn(console, 'log'))
+    let stub
+    beforeEach(() => stub = sinon.stub(console, 'log'))
+
+    afterEach(() => stub.restore())
 
     it('should have a default name', () => {
       const a = stream()
       a.spy()
-      expect(a).toEmit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
-        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 1)
-        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 2)
-        expect(console.log).toHaveBeenCalledWith('[stream]', '<value>', 3)
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
+        expect(console.log).to.have.been.calledWith('[stream]', '<value>', 1)
+        expect(console.log).to.have.been.calledWith('[stream]', '<value>', 2)
+        expect(console.log).to.have.been.calledWith('[stream]', '<value>', 3)
       })
     })
 
     it('should use the name', () => {
       const a = stream()
       a.spy('spied')
-      expect(a).toEmit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
-        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 1)
-        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 2)
-        expect(console.log).toHaveBeenCalledWith('spied', '<value>', 3)
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
+        expect(console.log).to.have.been.calledWith('spied', '<value>', 1)
+        expect(console.log).to.have.been.calledWith('spied', '<value>', 2)
+        expect(console.log).to.have.been.calledWith('spied', '<value>', 3)
       })
     })
 
@@ -52,9 +56,9 @@ describe('spy', () => {
       const a = stream()
       a.spy()
       a.offSpy()
-      expect(a).toEmit([1, 2, 3], () => {
-        send(a, [1, 2, 3])
-        expect(console.log).not.toHaveBeenCalled()
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
+        expect(console.log).not.to.have.been.called
       })
     })
   })

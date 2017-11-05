@@ -1,4 +1,4 @@
-const {activate, deactivate, Kefir} = require('../test-helpers')
+const {activate, deactivate, Kefir, value, end, expect} = require('../test-helpers')
 
 describe('fromEvents', () => {
   const domTarget = () => ({
@@ -38,62 +38,62 @@ describe('fromEvents', () => {
   })
 
   it('should return stream', () => {
-    expect(Kefir.fromEvents(domTarget(), 'foo')).toBeStream()
+    expect(Kefir.fromEvents(domTarget(), 'foo')).to.be.observable.stream()
   })
 
   it('should not be ended', () => {
-    expect(Kefir.fromEvents(domTarget(), 'foo')).toEmit([])
+    expect(Kefir.fromEvents(domTarget(), 'foo')).to.emit([])
   })
 
   it('should subscribe/unsubscribe from target', () => {
     let target = domTarget()
     let a = Kefir.fromEvents(target, 'foo')
-    expect(target.fooListener).toBeUndefined()
+    expect(target.fooListener).to.equal(undefined)
     activate(a)
-    expect(target.fooListener).toEqual(jasmine.any(Function))
+    expect(target.fooListener).to.be.a('function')
     deactivate(a)
-    expect(target.fooListener).toBeUndefined()
+    expect(target.fooListener).to.equal(undefined)
 
     target = onOffTarget()
     a = Kefir.fromEvents(target, 'foo')
-    expect(target.fooListener).toBeUndefined()
+    expect(target.fooListener).to.equal(undefined)
     activate(a)
-    expect(target.fooListener).toEqual(jasmine.any(Function))
+    expect(target.fooListener).to.be.a('function')
     deactivate(a)
-    expect(target.fooListener).toBeUndefined()
+    expect(target.fooListener).to.equal(undefined)
 
     target = nodeTarget()
     a = Kefir.fromEvents(target, 'foo')
-    expect(target.fooListener).toBeUndefined()
+    expect(target.fooListener).to.equal(undefined)
     activate(a)
-    expect(target.fooListener).toEqual(jasmine.any(Function))
+    expect(target.fooListener).to.be.a('function')
     deactivate(a)
-    expect(target.fooListener).toBeUndefined()
+    expect(target.fooListener).to.equal(undefined)
   })
 
   it('should emit values', () => {
     let target = domTarget()
     let a = Kefir.fromEvents(target, 'foo')
-    expect(a).toEmit([1, 2, 3], () => {
+    expect(a).to.emit([value(1), value(2), value(3)], () => {
       target.fooListener(1)
       target.fooListener(2)
-      return target.fooListener(3)
+      target.fooListener(3)
     })
 
     target = nodeTarget()
     a = Kefir.fromEvents(target, 'foo')
-    expect(a).toEmit([1, 2, 3], () => {
+    expect(a).to.emit([value(1), value(2), value(3)], () => {
       target.fooListener(1)
       target.fooListener(2)
-      return target.fooListener(3)
+      target.fooListener(3)
     })
 
     target = onOffTarget()
     a = Kefir.fromEvents(target, 'foo')
-    expect(a).toEmit([1, 2, 3], () => {
+    expect(a).to.emit([value(1), value(2), value(3)], () => {
       target.fooListener(1)
       target.fooListener(2)
-      return target.fooListener(3)
+      target.fooListener(3)
     })
   })
 
@@ -102,11 +102,14 @@ describe('fromEvents', () => {
     const a = Kefir.fromEvents(target, 'foo', function(a, b) {
       return [this, a, b]
     })
-    expect(a).toEmit([[{a: 1}, undefined, undefined], [{b: 1}, 1, undefined], [{c: 1}, 1, 2]], () => {
-      target.fooListener.call({a: 1})
-      target.fooListener.call({b: 1}, 1)
-      return target.fooListener.call({c: 1}, 1, 2)
-    })
+    expect(a).to.emit(
+      [value([{a: 1}, undefined, undefined]), value([{b: 1}, 1, undefined]), value([{c: 1}, 1, 2])],
+      () => {
+        target.fooListener.call({a: 1})
+        target.fooListener.call({b: 1}, 1)
+        target.fooListener.call({c: 1}, 1, 2)
+      }
+    )
   })
 
   it('the callback passed to the target should always retrun undefined (no transformer)', () => {
@@ -121,9 +124,9 @@ describe('fromEvents', () => {
     }
     const a = Kefir.fromEvents(target, 'foo')
     a.take(2).onValue(() => {})
-    expect(cb(1)).toEqual(undefined)
-    expect(cb(2)).toEqual(undefined)
-    expect(cb).toEqual(null)
+    expect(cb(1)).to.deep.equal(undefined)
+    expect(cb(2)).to.deep.equal(undefined)
+    expect(cb).to.deep.equal(null)
   })
 
   it('the callback passed to the target should always retrun undefined (with transformer)', () => {
@@ -138,8 +141,8 @@ describe('fromEvents', () => {
     }
     const a = Kefir.fromEvents(target, 'foo', x => x)
     a.take(2).onValue(() => {})
-    expect(cb(1)).toEqual(undefined)
-    expect(cb(2)).toEqual(undefined)
-    expect(cb).toEqual(null)
+    expect(cb(1)).to.deep.equal(undefined)
+    expect(cb(2)).to.deep.equal(undefined)
+    expect(cb).to.deep.equal(null)
   })
 })

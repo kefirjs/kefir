@@ -1,10 +1,10 @@
 const Observable = require('zen-observable')
 const Rx = require('@reactivex/rxjs')
-const {activate, deactivate, Kefir} = require('../test-helpers')
+const {activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('fromESObservable', () => {
   it('turns an ES7 observable into a stream', () => {
-    expect(Kefir.fromESObservable(Observable.of(1, 2))).toBeStream()
+    expect(Kefir.fromESObservable(Observable.of(1, 2))).to.be.observable.stream()
   })
 
   it('emits events from observable to stream', done => {
@@ -12,7 +12,7 @@ describe('fromESObservable', () => {
     const values = []
     stream.onValue(value => values.push(value))
     return stream.onEnd(() => {
-      expect(values).toEqual([1, 2])
+      expect(values).to.deep.equal([1, 2])
       return done()
     })
   })
@@ -30,7 +30,7 @@ describe('fromESObservable', () => {
     const values = []
     stream.onValue(value => values.push(value))
     return stream.onEnd(() => {
-      expect(values).toEqual(['hello world'])
+      expect(values).to.deep.equal(['hello world'])
       return done()
     })
   })
