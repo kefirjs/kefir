@@ -29,10 +29,10 @@
     "Observable"
   ],
   "author": "Roman Pominov <rpominov@gmail.com>",
-  "homepage": "https://github.com/rpominov/kefir",
+  "homepage": "https://github.com/kefirjs/kefir",
   "repository": {
     "type": "git",
-    "url": "http://github.com/rpominov/kefir.git"
+    "url": "http://github.com/kefirjs/kefir.git"
   },
   "license": "MIT",
   "devDependencies": {
