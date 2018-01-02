@@ -31,9 +31,9 @@ export type Observer<V,E> = {
 
 interface ESObserver<-V,-E> {
   start?: Function,
-  next?: (value: V) => any,
-  error?: (error: E) => any,
-  complete?: () => any,
+  +next?: (value: V) => any,
+  +error?: (error: E) => any,
+  +complete?: () => any,
 }
 
 /*
