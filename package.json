@@ -7,6 +7,7 @@
     "prettify": "./configs/prettier.sh",
     "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
     "build-docs": "node configs/docs.js",
+    "deploy-docs": "git checkout gh-pages && git merge master && npm run build && git add . && git commit -m 'build all' && git push && git checkout master",
     "clean": "rm -r dist index.html || true",
     "build": "npm run clean && npm run build-js && npm run build-docs",
     "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && mocha && flow check",
