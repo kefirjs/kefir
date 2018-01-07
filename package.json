@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
@@ -40,7 +40,7 @@
     "babel-preset-es2015-loose-rollup": "7.0.0",
     "chai": "^4.1.2",
     "chai-kefir": "^2.0.1",
-    "flow-bin": "0.50.0",
+    "flow-bin": "0.62.0",
     "inquirer": "0.10.1",
     "mocha": "^4.0.1",
     "prettier": "1.0.2",
