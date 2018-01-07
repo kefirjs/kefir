@@ -1,4 +1,4 @@
-/*! Kefir.js v3.8.0
+/*! Kefir.js v3.8.1
  *  https://github.com/kefirjs/kefir
  */
 
