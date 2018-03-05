@@ -85,6 +85,29 @@ describe('flatMapConcat', () => {
     })
   })
 
+  it('should work nicely with Kefir.constant and Kefir.later', () => {
+    const a = Kefir.sequentially(1, [1, 2, 3, 4, 5, 6, 7, 8])
+    expect(
+      a.flatMapConcat(n => {
+        if (n === 2) {
+          return Kefir.later(100, n)
+        } else {
+          return Kefir.constant(n)
+        }
+      })
+    ).to.emitInTime([
+      [1, value(1)],
+      [102, value(2)],
+      [102, value(3)],
+      [102, value(4)],
+      [102, value(5)],
+      [102, value(6)],
+      [102, value(7)],
+      [102, value(8)],
+      [102, end()],
+    ])
+  })
+
   describe('property', () => {
     it('should return stream', () => {
       expect(prop().flatMapConcat()).to.be.observable.stream()
