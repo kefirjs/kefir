@@ -1,12 +1,12 @@
 # Deprecated API Methods documentation
 
 All documentation on deprecated methods are moved
-from [main docs](http://rpominov.github.io/kefir/) to this file.
+from [main docs](http://kefirjs.github.io/kefir/) to this file.
 
-See also [2.x's version of this document](https://github.com/rpominov/kefir/blob/v2/deprecated-api-docs.md) containing docs on methods that were removed in 3.0.
+See also [2.x's version of this document](https://github.com/kefirjs/kefir/blob/v2/deprecated-api-docs.md) containing docs on methods that were removed in 3.0.
 
 
-### `obs.awaiting(otherObs)` [#145](https://github.com/rpominov/kefir/issues/145)
+### `obs.awaiting(otherObs)` [#145](https://github.com/kefirjs/kefir/issues/145)
 
 Returns a property that represents the awaiting status of two observables,
 i.e. answers the question «Has **obs** observable emitted a value since
@@ -39,7 +39,7 @@ result:  f---t-f--t-f--t-fX
 ```
 
 
-### `obs.valuesToErrors([handler])` [#149](https://github.com/rpominov/kefir/issues/149)
+### `obs.valuesToErrors([handler])` [#149](https://github.com/kefirjs/kefir/issues/149)
 
 Converts values to errors. By default it converts all values to errors,
 but you can specify a custom **handler** function to change that. The **handler**
@@ -75,7 +75,7 @@ result:  ---•---e---•---eX
 ```
 
 
-### `obs.errorsToValues([handler])` [#149](https://github.com/rpominov/kefir/issues/149)
+### `obs.errorsToValues([handler])` [#149](https://github.com/kefirjs/kefir/issues/149)
 
 Same as valuesToErrors but vice versa.
 
@@ -106,7 +106,7 @@ result:  ---•---e---•---eX
 ```
 
 
-### `obs.endOnError()` [#150](https://github.com/rpominov/kefir/issues/150)
+### `obs.endOnError()` [#150](https://github.com/kefirjs/kefir/issues/150)
 
 Makes an observable to end on first error.
 

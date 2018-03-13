@@ -24,7 +24,7 @@
 | `Bacon.later(delay, value)` | `Kefir.later(delay, value)` |  |
 | `new Bacon.EventStream(subscribe)` | Use `Kefir.stream()` |  |
 | Use bus | `Kefir.emitter()` |  |
-| `Bacon.fromBinder(subscribe)` | `Kefir.stream(subscribe)` | In Kefir [emitter](https://rpominov.github.io/kefir/#emitter-object) is used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
+| `Bacon.fromBinder(subscribe)` | `Kefir.stream(subscribe)` | In Kefir [emitter](https://kefirjs.github.io/kefir/#emitter-object) is used unlike `sink` function in Bacon. In Kefir there is no feature "The sink function may return Bacon.noMore ..." |
 | No alt. | `Kefir.withInterval(interval, handler)` |  |
 
 

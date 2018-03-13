@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PRETTIER="`npm bin`/prettier --no-semi --no-bracket-spacing --print-width 120 --single-quote --trailing-comma es5"
 

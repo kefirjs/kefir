@@ -1,6 +1,6 @@
 {
   "name": "kefir",
-  "version": "3.7.4",
+  "version": "3.8.2",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "module": "dist/kefir.esm.js",
@@ -8,11 +8,12 @@
     "prettify": "./configs/prettier.sh",
     "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.esm.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
     "build-docs": "node configs/docs.js",
+    "deploy-docs": "git checkout gh-pages && git merge master && npm run build && git add . && git commit -m 'build all' && git push && git checkout master",
     "clean": "rm -r dist index.html || true",
     "build": "npm run clean && npm run build-js && npm run build-docs",
-    "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && jasmine-node --coffee --matchall test/specs && flow check",
-    "test-only": "rollup -c ./configs/rollup.dev.js && jasmine-node --coffee --matchall test/specs",
-    "test-debug": "rollup -c ./configs/rollup.dev.js && node --inspect-brk `npm bin`/jasmine-node --coffee --matchall test/specs"
+    "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && mocha && flow check",
+    "test-only": "rollup -c ./configs/rollup.dev.js && mocha",
+    "test-debug": "rollup -c ./configs/rollup.dev.js && mocha --inspect-brk"
   },
   "keywords": [
     "frp",
@@ -30,19 +31,20 @@
     "Observable"
   ],
   "author": "Roman Pominov <rpominov@gmail.com>",
-  "homepage": "https://github.com/rpominov/kefir",
+  "homepage": "https://github.com/kefirjs/kefir",
   "repository": {
     "type": "git",
-    "url": "http://github.com/rpominov/kefir.git"
+    "url": "http://github.com/kefirjs/kefir.git"
   },
   "license": "MIT",
   "devDependencies": {
     "@reactivex/rxjs": "5.3.0",
     "babel-preset-es2015-loose-rollup": "7.0.0",
-    "coffee-script": "1.12.5",
-    "flow-bin": "0.50.0",
+    "chai": "^4.1.2",
+    "chai-kefir": "^2.0.1",
+    "flow-bin": "0.62.0",
     "inquirer": "0.10.1",
-    "jasmine-node": "1.14.5",
+    "mocha": "^4.0.1",
     "prettier": "1.0.2",
     "pug": "2.0.0-beta11",
     "rollup": "0.41.6",
@@ -53,6 +55,7 @@
     "semver": "5.3.0",
     "shelljs": "0.5.3",
     "sinon": "1.17.1",
+    "sinon-chai": "^2.14.0",
     "transducers-js": "0.4.174",
     "transducers.js": "0.3.2",
     "zen-observable": "0.5.1"

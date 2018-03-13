@@ -278,6 +278,12 @@ Observable.prototype.withHandler = function(fn) {
   return withHandler(this, fn)
 }
 
+// (Stream, Stream -> a) -> a
+// (Property, Property -> a) -> a
+Observable.prototype.thru = function(fn) {
+  return fn(this)
+}
+
 // Combine observables
 // -----------------------------------------------------------------------------
 
@@ -405,7 +411,7 @@ function warn(msg) {
 // (Stream|Property, Stream|Property) -> Property
 import awaiting from './two-sources/awaiting'
 Observable.prototype.awaiting = function(other) {
-  warn('You are using deprecated .awaiting() method, see https://github.com/rpominov/kefir/issues/145')
+  warn('You are using deprecated .awaiting() method, see https://github.com/kefirjs/kefir/issues/145')
   return awaiting(this, other)
 }
 
@@ -413,7 +419,7 @@ Observable.prototype.awaiting = function(other) {
 // (Property, Function|undefined) -> Property
 import valuesToErrors from './one-source/values-to-errors'
 Observable.prototype.valuesToErrors = function(fn) {
-  warn('You are using deprecated .valuesToErrors() method, see https://github.com/rpominov/kefir/issues/149')
+  warn('You are using deprecated .valuesToErrors() method, see https://github.com/kefirjs/kefir/issues/149')
   return valuesToErrors(this, fn)
 }
 
@@ -421,7 +427,7 @@ Observable.prototype.valuesToErrors = function(fn) {
 // (Property, Function|undefined) -> Property
 import errorsToValues from './one-source/errors-to-values'
 Observable.prototype.errorsToValues = function(fn) {
-  warn('You are using deprecated .errorsToValues() method, see https://github.com/rpominov/kefir/issues/149')
+  warn('You are using deprecated .errorsToValues() method, see https://github.com/kefirjs/kefir/issues/149')
   return errorsToValues(this, fn)
 }
 
@@ -429,7 +435,7 @@ Observable.prototype.errorsToValues = function(fn) {
 // (Property) -> Property
 import endOnError from './one-source/end-on-error'
 Observable.prototype.endOnError = function() {
-  warn('You are using deprecated .endOnError() method, see https://github.com/rpominov/kefir/issues/150')
+  warn('You are using deprecated .endOnError() method, see https://github.com/kefirjs/kefir/issues/150')
   return endOnError(this)
 }
 

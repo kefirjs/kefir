@@ -1,7 +1,7 @@
 {
   "name": "kefir",
-  "version": "3.7.4",
-  "homepage": "https://github.com/rpominov/kefir",
+  "version": "3.8.2",
+  "homepage": "https://github.com/kefirjs/kefir",
   "authors": [
     "Roman Pominov <rpominov@gmail.com>"
   ],
