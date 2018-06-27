@@ -1,12 +1,13 @@
 {
   "name": "kefir",
-  "version": "3.8.1",
+  "version": "3.8.3",
   "description": "Reactive Programming library for JavaScript inspired by Bacon.js and RxJS with focus on high performance and low memory usage",
   "main": "dist/kefir.js",
   "scripts": {
     "prettify": "./configs/prettier.sh",
-    "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
+    "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.esm.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
     "build-docs": "node configs/docs.js",
+    "deploy-docs": "git checkout gh-pages && git merge master && npm run build && git add . && git commit -m 'build all' && git push && git checkout master",
     "clean": "rm -r dist index.html || true",
     "build": "npm run clean && npm run build-js && npm run build-docs",
     "test": "./configs/prettier.sh check && rollup -c ./configs/rollup.dev.js && mocha && flow check",

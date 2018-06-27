@@ -75,6 +75,11 @@ inherit(AbstractPool, Stream, {
         if (obs._currentEvent) {
           this._emit(obs._currentEvent.type, obs._currentEvent.value)
         }
+        if (this._queue.length !== 0) {
+          this._pullQueue()
+        } else if (this._curSources.length === 0) {
+          this._onEmpty()
+        }
         return
       }
 
