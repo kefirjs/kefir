@@ -2,12 +2,6 @@
  *  https://github.com/kefirjs/kefir
  */
 
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.Kefir = global.Kefir || {})));
-}(this, (function (exports) { 'use strict';
-
 function createObj(proto) {
   var F = function () {};
   F.prototype = proto;
@@ -3668,35 +3662,4 @@ var Kefir = {
 
 Kefir.Kefir = Kefir;
 
-exports.dissableDeprecationWarnings = dissableDeprecationWarnings;
-exports.Kefir = Kefir;
-exports.Observable = Observable;
-exports.Stream = Stream;
-exports.Property = Property;
-exports.never = never;
-exports.later = later;
-exports.interval = interval;
-exports.sequentially = sequentially;
-exports.fromPoll = fromPoll;
-exports.withInterval = withInterval;
-exports.fromCallback = fromCallback;
-exports.fromNodeCallback = fromNodeCallback;
-exports.fromEvents = fromEvents;
-exports.stream = stream;
-exports.constant = constant;
-exports.constantError = constantError;
-exports.fromPromise = fromPromise;
-exports.fromESObservable = fromESObservable;
-exports.combine = combine;
-exports.zip = zip;
-exports.merge = merge;
-exports.concat = concat$1;
-exports.Pool = Pool;
-exports.pool = pool;
-exports.repeat = repeat;
-exports.staticLand = staticLand;
-exports['default'] = Kefir;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+export { dissableDeprecationWarnings, Kefir, Observable, Stream, Property, never, later, interval, sequentially, fromPoll, withInterval, fromCallback, fromNodeCallback, fromEvents, stream, constant, constantError, fromPromise, fromESObservable, combine, zip, merge, concat$1 as concat, Pool, pool, repeat, staticLand };export default Kefir;
