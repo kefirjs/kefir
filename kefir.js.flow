@@ -42,7 +42,7 @@ interface ESObserver<-V,-E> {
  * RxJS, and zen-observable.
  */
 type ESObservable<+V,+E=*> = {
-  subscribe(callbacks: ESObserver<V, E>): { unsubscribe: () => void };
+  subscribe(callbacks: ESObserver<V, E>): { unsubscribe(): void };
 };
 
 declare class Observable<+V,+E=*> {
