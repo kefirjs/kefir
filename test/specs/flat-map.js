@@ -131,13 +131,11 @@ describe('flatMap', () => {
 
     it('should not error when source ends in response to synchronous value', () => {
       const src = stream()
-      const result = src
-        .flatMap(x => Kefir.constant(x))
-        .onValue(x => {
-          if (x === 1) {
-            send(src, [end()])
-          }
-        })
+      const result = src.flatMap(x => Kefir.constant(x)).onValue(x => {
+        if (x === 1) {
+          send(src, [end()])
+        }
+      })
       expect(result).to.emit([end()], () => {
         send(src, [value(1)])
       })
