@@ -129,19 +129,21 @@ describe('flatMap', () => {
       expect(unsubs).to.equal(1)
     })
 
-    it('should handle source ending in response to synchronous value', () => {
-      let mainEm
-      Kefir.stream(em => {
-        mainEm = em
-      })
+    it('should not error when source ends in response to synchronous value', () => {
+      let didEnd = false
+      const src = stream()
+      src
         .flatMap(x => Kefir.constant(x))
         .onValue(x => {
           if (x === 1) {
-            mainEm.end()
+            send(src, [end()])
           }
         })
-
-      mainEm.value(1)
+        .onEnd(() => {
+          didEnd = true
+        })
+      send(src, [value(1)])
+      expect(didEnd).to.be.true
     })
 
     it('should be possible to add same obs twice on activation', () => {
