@@ -24,7 +24,7 @@
 
 ## 3.6.1 (29/11/2016)
 
- - Flow definitions fixed and updated to be compatible with Flow 0.36 [#229](https://github.com/kefirjs/kefir/pull/229) [@AgentME](https://github.com/AgentME)
+ - Flow definitions fixed and updated to be compatible with Flow 0.36 [#229](https://github.com/kefirjs/kefir/pull/229) [@Macil](https://github.com/Macil)
 
 ## 3.6.0 (19/10/2016)
 
@@ -36,11 +36,11 @@
 
 ## 3.5.1 (29/08/2016)
 
- - `.filter(Bolean)` support in Flow definitions [#218](https://github.com/kefirjs/kefir/pull/218) [@AgentME](https://github.com/AgentME)
+ - `.filter(Bolean)` support in Flow definitions [#218](https://github.com/kefirjs/kefir/pull/218) [@Macil](https://github.com/Macil)
 
 ## 3.5.0 (29/08/2016)
 
- - Flow types are now included in NPM package [#217](https://github.com/kefirjs/kefir/pull/217) [@AgentME](https://github.com/AgentME)
+ - Flow types are now included in NPM package [#217](https://github.com/kefirjs/kefir/pull/217) [@Macil](https://github.com/Macil)
 
 ## 3.4.0 (17/08/2016)
 
@@ -113,7 +113,7 @@ See also [Umbrella 3.0](https://github.com/kefirjs/kefir/issues/138)
 
 ## 2.8.1 (30/08/2015)
 
- - A bug in `.delay` fixed [#134](https://github.com/kefirjs/kefir/issues/134) [@AgentME](https://github.com/AgentME)
+ - A bug in `.delay` fixed [#134](https://github.com/kefirjs/kefir/issues/134) [@Macil](https://github.com/Macil)
 
 ## 2.8.0 (21/08/2015)
 
