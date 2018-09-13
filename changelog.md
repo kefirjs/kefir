@@ -1,3 +1,20 @@
+## 3.8.4 (12/09/2018)
+
+- A bug causing an exception to be thrown when a flatMapped stream is ended while the flatMap callback returns an ended property was fixed [#281](https://github.com/kefirjs/kefir/pull/281) [@Macil](https://github.com/Macil)
+- Flow type definitions were improved [#282](https://github.com/kefirjs/kefir/pull/282) [@Macil](https://github.com/Macil)
+
+## 3.8.3 (14/03/2018)
+
+- Added ES module build [#251](https://github.com/kefirjs/kefir/pull/251) [@zephraph](https://github.com/zephraph)
+
+## 3.8.2 (05/03/2018)
+
+- A bug with `.flatMapConcat` was fixed [#274](https://github.com/kefirjs/kefir/pull/274) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+
+## 3.8.1 (06/01/2018)
+
+- Flow type definitions were fixed to be compatible with Flow v0.62.0 [#269](https://github.com/kefirjs/kefir/pull/269) [@hallettj](https://github.com/hallettj)
+
 ## 3.8.0 (27/10/2017)
 
  - New method `.thru` [#257](https://github.com/kefirjs/kefir/pull/257) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
