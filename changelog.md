@@ -9,7 +9,7 @@
 
 ## 3.8.2 (05/03/2018)
 
-- A bug with `.flatMapConcat` was fixed [#274](https://github.com/kefirjs/kefir/pull/274) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+- Fixed a bug in `.flatMapConcat` where values emitted during a delay would get dropped instead of queued. [#274](https://github.com/kefirjs/kefir/pull/274) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
 
 ## 3.8.1 (06/01/2018)
 
