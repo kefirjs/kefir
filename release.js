@@ -1,6 +1,6 @@
+var child_process = require('child_process')
 var inquirer = require('inquirer')
 var semver = require('semver')
-var shell = require('shelljs')
 var fs = require('fs')
 
 var pkg = require('./package.json')
@@ -80,7 +80,11 @@ function bumpVersion(fileName, obj, dry) {
 function run(cmd, dry) {
   console.log('Running `' + cmd + '`')
   if (!dry) {
-    if (shell.exec(cmd, {silent: false}).code === 0) {
+    var proc = child_process.spawnSync(cmd, {
+      stdio: 'inherit',
+      shell: true
+    })
+    if (proc.status === 0) {
       console.log('... ok')
     } else {
       console.error('... fail!')
