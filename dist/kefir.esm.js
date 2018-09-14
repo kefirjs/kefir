@@ -1,4 +1,4 @@
-/*! Kefir.js v3.8.3
+/*! Kefir.js v3.8.5
  *  https://github.com/kefirjs/kefir
  */
 
@@ -2591,10 +2591,13 @@ inherit(AbstractPool, Stream, {
         if (obs._currentEvent) {
           this._emit(obs._currentEvent.type, obs._currentEvent.value);
         }
-        if (this._queue.length !== 0) {
-          this._pullQueue();
-        } else if (this._curSources.length === 0) {
-          this._onEmpty();
+        // The _emit above could have caused this stream to end.
+        if (this._active) {
+          if (this._queue.length !== 0) {
+            this._pullQueue();
+          } else if (this._curSources.length === 0) {
+            this._onEmpty();
+          }
         }
         return;
       }
