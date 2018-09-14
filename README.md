@@ -12,9 +12,9 @@ See also [Deprecated API docs](https://github.com/kefirjs/kefir/blob/master/depr
 
 
 
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kefirjs/kefir/blob/master/LICENSE.txt)
+[![npm version](https://img.shields.io/npm/v/kefir.svg?style=flat)](https://www.npmjs.com/package/kefir)
 [![Build Status](https://travis-ci.org/kefirjs/kefir.svg?branch=master)](https://travis-ci.org/kefirjs/kefir)
-[![Dependency Status](https://david-dm.org/kefirjs/kefir.svg)](https://david-dm.org/kefirjs/kefir)
-[![devDependency Status](https://david-dm.org/kefirjs/kefir/dev-status.svg)](https://david-dm.org/kefirjs/kefir#info=devDependencies)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pozadi/kefir?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 

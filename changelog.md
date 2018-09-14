@@ -1,3 +1,20 @@
+## 3.8.5 (13/09/2018)
+
+- A bug causing an exception to be thrown when a flatMapped stream is ended while the flatMap callback returns an ended property was fixed [#281](https://github.com/kefirjs/kefir/pull/281) [@Macil](https://github.com/Macil)
+- Flow type definitions were improved [#282](https://github.com/kefirjs/kefir/pull/282) [@Macil](https://github.com/Macil)
+
+## 3.8.3 (14/03/2018)
+
+- Added ES module build [#251](https://github.com/kefirjs/kefir/pull/251) [@zephraph](https://github.com/zephraph)
+
+## 3.8.2 (05/03/2018)
+
+- Fixed a bug in `.flatMapConcat` where values emitted during a delay would get dropped instead of queued. [#274](https://github.com/kefirjs/kefir/pull/274) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+
+## 3.8.1 (06/01/2018)
+
+- Flow type definitions were fixed to be compatible with Flow v0.62.0 [#269](https://github.com/kefirjs/kefir/pull/269) [@hallettj](https://github.com/hallettj)
+
 ## 3.8.0 (27/10/2017)
 
  - New method `.thru` [#257](https://github.com/kefirjs/kefir/pull/257) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
@@ -24,7 +41,7 @@
 
 ## 3.6.1 (29/11/2016)
 
- - Flow definitions fixed and updated to be compatible with Flow 0.36 [#229](https://github.com/kefirjs/kefir/pull/229) [@AgentME](https://github.com/AgentME)
+ - Flow definitions fixed and updated to be compatible with Flow 0.36 [#229](https://github.com/kefirjs/kefir/pull/229) [@Macil](https://github.com/Macil)
 
 ## 3.6.0 (19/10/2016)
 
@@ -36,11 +53,11 @@
 
 ## 3.5.1 (29/08/2016)
 
- - `.filter(Bolean)` support in Flow definitions [#218](https://github.com/kefirjs/kefir/pull/218) [@AgentME](https://github.com/AgentME)
+ - `.filter(Bolean)` support in Flow definitions [#218](https://github.com/kefirjs/kefir/pull/218) [@Macil](https://github.com/Macil)
 
 ## 3.5.0 (29/08/2016)
 
- - Flow types are now included in NPM package [#217](https://github.com/kefirjs/kefir/pull/217) [@AgentME](https://github.com/AgentME)
+ - Flow types are now included in NPM package [#217](https://github.com/kefirjs/kefir/pull/217) [@Macil](https://github.com/Macil)
 
 ## 3.4.0 (17/08/2016)
 
@@ -113,7 +130,7 @@ See also [Umbrella 3.0](https://github.com/kefirjs/kefir/issues/138)
 
 ## 2.8.1 (30/08/2015)
 
- - A bug in `.delay` fixed [#134](https://github.com/kefirjs/kefir/issues/134) [@AgentME](https://github.com/AgentME)
+ - A bug in `.delay` fixed [#134](https://github.com/kefirjs/kefir/issues/134) [@Macil](https://github.com/Macil)
 
 ## 2.8.0 (21/08/2015)
 
