@@ -1,4 +1,4 @@
-## 3.8.4 (12/09/2018)
+## 3.8.4 (13/09/2018)
 
 - A bug causing an exception to be thrown when a flatMapped stream is ended while the flatMap callback returns an ended property was fixed [#281](https://github.com/kefirjs/kefir/pull/281) [@Macil](https://github.com/Macil)
 - Flow type definitions were improved [#282](https://github.com/kefirjs/kefir/pull/282) [@Macil](https://github.com/Macil)
