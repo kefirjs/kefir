@@ -82,7 +82,7 @@ function run(cmd, dry) {
   if (!dry) {
     var proc = child_process.spawnSync(cmd, {
       stdio: 'inherit',
-      shell: true
+      shell: true,
     })
     if (proc.status === 0) {
       console.log('... ok')
