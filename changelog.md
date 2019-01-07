@@ -1,3 +1,8 @@
+## 3.8.6 (06/01/2019)
+
+- Added missing Flow type definition for `Pool.unplug` method [#289](https://github.com/kefirjs/kefir/pull/289) [@Macil](https://github.com/Macil)
+- Added "module" field to package.json for Rollup [#290](https://github.com/kefirjs/kefir/pull/290) [@mAAdhaTTah](https://github.com/mAAdhaTTah)
+
 ## 3.8.5 (13/09/2018)
 
 - A bug causing an exception to be thrown when a flatMapped stream is ended while the flatMap callback returns an ended property was fixed [#281](https://github.com/kefirjs/kefir/pull/281) [@Macil](https://github.com/Macil)
