@@ -147,6 +147,7 @@ declare class Observable<+V,+E=*> {
 
 declare class Pool<V,E=*> extends Observable<V,E> {
   plug(s: Observable<V,E>): () => void;
+  unplug(s: Observable<V,E>): () => void;
 }
 
 declare class Stream<+V,+E=*> extends Observable<V,E> {
