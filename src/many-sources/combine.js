@@ -4,6 +4,7 @@ import {inherit} from '../utils/objects'
 import {concat, fillArray} from '../utils/collections'
 import {spread} from '../utils/functions'
 import never from '../primary/never'
+import {atomicQueuePush} from '../dispatcher'
 
 function collect(source, keys, values) {
   for (var prop in source) {
@@ -123,7 +124,7 @@ inherit(Combine, Stream, {
         if (this._activating) {
           this._emitAfterActivation = true
         } else {
-          this._emitIfFull()
+          atomicQueuePush(this, this._emitIfFull)
         }
       }
     } else {

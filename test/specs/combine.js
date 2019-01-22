@@ -254,6 +254,41 @@ describe('combine', () => {
           send(a, [value(1), value(2), value(3)])
         )
       })
+
+      it('should work nice for emitating atomic updates with active props', () => {
+        const a = stream()
+        const b = a.map(x => x + 2)
+        const c = a.map(x => x * 2)
+        let combined = Kefir.combine([b, c])
+
+        expect(combined).to.emit([value([3, 2]), value([4, 4]), value([5, 6])], () =>
+          send(a, [value(1), value(2), value(3)])
+        )
+
+        expect(combined.combine(c)).to.emit([value([[3, 2], 2]), value([[4, 4], 4]), value([[5, 6], 6])], () =>
+          send(a, [value(1), value(2), value(3)])
+        )
+
+        expect(Kefir.combine([combined, combined])).to.emit(
+          [value([[3, 2], [3, 2]]), value([[4, 4], [4, 4]]), value([[5, 6], [5, 6]])],
+          () => send(a, [value(1), value(2), value(3)])
+        )
+
+        const p = send(prop(), [value(1)])
+
+        const basePoolA = Kefir.pool()
+        const combA = Kefir.combine([basePoolA, p])
+        const combB = Kefir.combine([basePoolA, p])
+        let emitted = []
+
+        combA.onValue(v => emitted.push(v))
+        combA.onValue(v => emitted.push(v))
+        combB.onValue(v => emitted.push(v))
+
+        basePoolA.plug(Kefir.constant(2))
+
+        expect(emitted).to.deep.equal([[2, 1], [2, 1], [2, 1]])
+      })
     })
   })
 
@@ -499,6 +534,16 @@ describe('combine', () => {
         const b = a.map(x => x + 2)
         const c = a.map(x => x * 2)
         expect(Kefir.combine({b}, {c})).to.emit([value({b: 3, c: 2}), value({b: 4, c: 4}), value({b: 5, c: 6})], () =>
+          send(a, [value(1), value(2), value(3)])
+        )
+      })
+
+      // https://github.com/kefirjs/kefir/issues/98
+      it('should work nice for emitating atomic updates with active props', () => {
+        const a = stream()
+        const b = a.map(x => x + 2)
+        const c = a.map(x => x * 2)
+        expect(Kefir.combine({b, c})).to.emit([value({b: 3, c: 2}), value({b: 4, c: 4}), value({b: 5, c: 6})], () =>
           send(a, [value(1), value(2), value(3)])
         )
       })

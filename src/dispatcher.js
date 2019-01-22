@@ -1,6 +1,6 @@
 import {extend} from './utils/objects'
 import {VALUE, ERROR, ANY} from './constants'
-import {concat, findByPred, remove, contains} from './utils/collections'
+import {concat, find, findByPred, remove, contains} from './utils/collections'
 
 function callSubscriber(type, fn, event) {
   if (type === ANY) {
@@ -11,6 +11,31 @@ function callSubscriber(type, fn, event) {
     } else {
       fn()
     }
+  }
+}
+
+const IE10Map = function() {
+  this.list = []
+  this.has = function(item) {
+    return find(this.list, item) !== -1
+  }
+  this.set = function(item) {
+    return this.list.push(item)
+  }
+  this.delete = function(item) {
+    this.list = remove(this.list, find(this.list, item))
+  }
+}
+
+let globalDispatcherLoopCounter = 0
+let atomicMap = typeof Map !== 'undefined' ? new Map() : new IE10Map()
+let atomicQueue = []
+
+export let atomicQueuePush = function(node) {
+  // do not allow calling same effect twice
+  if (!atomicMap.has(node)) {
+    atomicMap.set(node, 1)
+    atomicQueue.push(arguments)
   }
 }
 
@@ -57,6 +82,7 @@ extend(Dispatcher.prototype, {
   },
 
   dispatch(event) {
+    globalDispatcherLoopCounter++
     this._inLoop++
     for (let i = 0, spies = this._spies; this._spies !== null && i < spies.length; i++) {
       spies[i](event)
@@ -72,12 +98,20 @@ extend(Dispatcher.prototype, {
       if (this._removedItems !== null && contains(this._removedItems, items[i])) {
         continue
       }
-
       callSubscriber(items[i].type, items[i].fn, event)
     }
     this._inLoop--
+    globalDispatcherLoopCounter--
+
     if (this._inLoop === 0) {
       this._removedItems = null
+    }
+    if (globalDispatcherLoopCounter === 0 && atomicQueue.length > 0) {
+      let args
+      while ((args = atomicQueue.shift())) {
+        atomicMap.delete(args[0])
+        args[1].call(args[0])
+      }
     }
   },
 
