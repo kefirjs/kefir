@@ -1,23 +1,23 @@
 const {stream, prop, send, value, error, end, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
-describe('combine', () => {
+describe('combineBatched', () => {
   describe('array', () => {
     it('should stream', () => {
-      expect(Kefir.combine([])).to.be.observable.stream()
-      expect(Kefir.combine([stream(), prop()])).to.be.observable.stream()
+      expect(Kefir.combineBatched([])).to.be.observable.stream()
+      expect(Kefir.combineBatched([stream(), prop()])).to.be.observable.stream()
       expect(stream().combine(stream())).to.be.observable.stream()
       expect(prop().combine(prop())).to.be.observable.stream()
     })
 
     it('should be ended if empty array provided', () => {
-      expect(Kefir.combine([])).to.emit([end({current: true})])
+      expect(Kefir.combineBatched([])).to.emit([end({current: true})])
     })
 
     it('should be ended if array of ended observables provided', () => {
       const a = send(stream(), [end()])
       const b = send(prop(), [end()])
       const c = send(stream(), [end()])
-      expect(Kefir.combine([a, b, c])).to.emit([end({current: true})])
+      expect(Kefir.combineBatched([a, b, c])).to.emit([end({current: true})])
       expect(a.combine(b)).to.emit([end({current: true})])
     })
 
@@ -25,7 +25,7 @@ describe('combine', () => {
       const a = send(prop(), [value(1), end()])
       const b = send(prop(), [value(2), end()])
       const c = send(prop(), [value(3), end()])
-      expect(Kefir.combine([a, b, c])).to.emit([value([1, 2, 3], {current: true}), end({current: true})])
+      expect(Kefir.combineBatched([a, b, c])).to.emit([value([1, 2, 3], {current: true}), end({current: true})])
       expect(a.combine(b)).to.emit([value([1, 2], {current: true}), end({current: true})])
     })
 
@@ -33,7 +33,7 @@ describe('combine', () => {
       const a = stream()
       const b = prop()
       const c = stream()
-      expect(Kefir.combine([a, b, c])).to.activate(a, b, c)
+      expect(Kefir.combineBatched([a, b, c])).to.activate(a, b, c)
       expect(a.combine(b)).to.activate(a, b)
     })
 
@@ -41,7 +41,7 @@ describe('combine', () => {
       let a = stream()
       let b = send(prop(), [value(0)])
       const c = stream()
-      expect(Kefir.combine([a, b, c])).to.emit(
+      expect(Kefir.combineBatched([a, b, c])).to.emit(
         [value([1, 0, 2]), value([1, 3, 2]), value([1, 4, 2]), value([1, 4, 5]), value([1, 4, 6]), end()],
         () => {
           send(a, [value(1)])
@@ -67,7 +67,7 @@ describe('combine', () => {
       let b = send(prop(), [value(0)])
       const c = stream()
       const join = (...args) => args.join('+')
-      expect(Kefir.combine([a, b, c], join)).to.emit(
+      expect(Kefir.combineBatched([a, b, c], join)).to.emit(
         [value('1+0+2'), value('1+3+2'), value('1+4+2'), value('1+4+5'), value('1+4+6'), end()],
         () => {
           send(a, [value(1)])
@@ -91,7 +91,7 @@ describe('combine', () => {
     it('when activating second time and has 2+ properties in sources, should emit current value at most once', () => {
       const a = send(prop(), [value(0)])
       const b = send(prop(), [value(1)])
-      const cb = Kefir.combine([a, b])
+      const cb = Kefir.combineBatched([a, b])
       activate(cb)
       deactivate(cb)
       expect(cb).to.emit([value([0, 1], {current: true})])
@@ -101,15 +101,15 @@ describe('combine', () => {
       let a = stream()
       let b = prop()
       let c = stream()
-      expect(Kefir.combine([a, b, c])).to.flowErrors(a)
+      expect(Kefir.combineBatched([a, b, c])).to.flowErrors(a)
       a = stream()
       b = prop()
       c = stream()
-      expect(Kefir.combine([a, b, c])).to.flowErrors(b)
+      expect(Kefir.combineBatched([a, b, c])).to.flowErrors(b)
       a = stream()
       b = prop()
       c = stream()
-      expect(Kefir.combine([a, b, c])).to.flowErrors(c)
+      expect(Kefir.combineBatched([a, b, c])).to.flowErrors(c)
     })
 
     it('should handle errors correctly', () => {
@@ -125,7 +125,7 @@ describe('combine', () => {
       const a = stream()
       const b = stream()
       const c = stream()
-      expect(Kefir.combine([a, b, c])).to.emit(
+      expect(Kefir.combineBatched([a, b, c])).to.emit(
         [
           error(-1),
           error(-1),
@@ -153,27 +153,27 @@ describe('combine', () => {
 
     describe('sampledBy al =>ity (3 arity combine)', () => {
       it('should stream', () => {
-        expect(Kefir.combine([], [])).to.be.observable.stream()
-        expect(Kefir.combine([stream(), prop()], [stream(), prop()])).to.be.observable.stream()
+        expect(Kefir.combineBatched([], [])).to.be.observable.stream()
+        expect(Kefir.combineBatched([stream(), prop()], [stream(), prop()])).to.be.observable.stream()
       })
 
       it('should be ended if empty array provided', () => {
-        expect(Kefir.combine([stream(), prop()], [])).to.emit([])
-        expect(Kefir.combine([], [stream(), prop()])).to.emit([end({current: true})])
+        expect(Kefir.combineBatched([stream(), prop()], [])).to.emit([])
+        expect(Kefir.combineBatched([], [stream(), prop()])).to.emit([end({current: true})])
       })
 
       it('should be ended if array of ended observables provided', () => {
         const a = send(stream(), [end()])
         const b = send(prop(), [end()])
         const c = send(stream(), [end()])
-        expect(Kefir.combine([a, b, c], [stream(), prop()])).to.emit([end({current: true})])
+        expect(Kefir.combineBatched([a, b, c], [stream(), prop()])).to.emit([end({current: true})])
       })
 
       it('should be ended and emmit current (once) if array of ended properties provided and each of them has current', () => {
         const a = send(prop(), [value(1), end()])
         const b = send(prop(), [value(2), end()])
         const c = send(prop(), [value(3), end()])
-        const s1 = Kefir.combine([a, b], [c])
+        const s1 = Kefir.combineBatched([a, b], [c])
         expect(s1).to.emit([value([1, 2, 3], {current: true}), end({current: true})])
         expect(s1).to.emit([end({current: true})])
       })
@@ -182,7 +182,7 @@ describe('combine', () => {
         const a = stream()
         const b = prop()
         const c = stream()
-        expect(Kefir.combine([a, b], [c])).to.activate(a, b, c)
+        expect(Kefir.combineBatched([a, b], [c])).to.activate(a, b, c)
       })
 
       it('should handle events and current from observables', () => {
@@ -190,7 +190,7 @@ describe('combine', () => {
         const b = send(prop(), [value(0)])
         const c = stream()
         const d = stream()
-        expect(Kefir.combine([c, d], [a, b])).to.emit(
+        expect(Kefir.combineBatched([c, d], [a, b])).to.emit(
           [value([2, 3, 1, 0]), value([5, 3, 1, 4]), value([6, 3, 1, 4]), value([6, 7, 1, 4]), end()],
           () => {
             send(a, [value(1)])
@@ -209,7 +209,7 @@ describe('combine', () => {
         const b = send(prop(), [value(0)])
         const c = stream()
         const d = stream()
-        expect(Kefir.combine([c, d], [a, b], join)).to.emit(
+        expect(Kefir.combineBatched([c, d], [a, b], join)).to.emit(
           [value('2+3+1+0'), value('5+3+1+4'), value('6+3+1+4'), value('6+7+1+4'), end()],
           () => {
             send(a, [value(1)])
@@ -226,7 +226,7 @@ describe('combine', () => {
         const a = send(prop(), [value(0)])
         const b = send(prop(), [value(1)])
         const c = send(prop(), [value(2)])
-        const sb = Kefir.combine([a, b], [c])
+        const sb = Kefir.combineBatched([a, b], [c])
         activate(sb)
         deactivate(sb)
         expect(sb).to.emit([value([0, 1, 2], {current: true})])
@@ -237,12 +237,12 @@ describe('combine', () => {
         let b = prop()
         let c = stream()
         let d = prop()
-        expect(Kefir.combine([a, b], [c, d])).to.flowErrors(a)
+        expect(Kefir.combineBatched([a, b], [c, d])).to.flowErrors(a)
         a = stream()
         b = prop()
         c = stream()
         d = prop()
-        expect(Kefir.combine([a, b], [c, d])).to.flowErrors(b)
+        expect(Kefir.combineBatched([a, b], [c, d])).to.flowErrors(b)
       })
 
       // https://github.com/kefirjs/kefir/issues/98
@@ -250,7 +250,7 @@ describe('combine', () => {
         const a = stream()
         const b = a.map(x => x + 2)
         const c = a.map(x => x * 2)
-        expect(Kefir.combine([b], [c])).to.emit([value([3, 2]), value([4, 4]), value([5, 6])], () =>
+        expect(Kefir.combineBatched([b], [c])).to.emit([value([3, 2]), value([4, 4]), value([5, 6])], () =>
           send(a, [value(1), value(2), value(3)])
         )
       })
@@ -259,30 +259,26 @@ describe('combine', () => {
         const a = stream()
         const b = a.map(x => x + 2)
         const c = a.map(x => x * 2)
-        let combined = Kefir.combine([b, c])
+        let combined = Kefir.combineBatched([b, c])
 
-        expect(combined).to.emit([value([3, 2]), value([4, 2]), value([4, 4]), value([5, 4]), value([5, 6])], () =>
+        expect(combined).to.emit([value([3, 2]), value([4, 4]), value([5, 6])], () =>
           send(a, [value(1), value(2), value(3)])
         )
 
-        expect(combined.combine(c)).to.emit(
-          [
-            value([[3, 2], 2]),
-            value([[4, 2], 2]),
-            value([[4, 4], 2]),
-            value([[4, 4], 4]),
-            value([[5, 4], 4]),
-            value([[5, 6], 4]),
-            value([[5, 6], 6]),
-          ],
+        expect(combined.combineBatched(c)).to.emit([value([[3, 2], 2]), value([[4, 4], 4]), value([[5, 6], 6])], () =>
+          send(a, [value(1), value(2), value(3)])
+        )
+
+        expect(Kefir.combineBatched([combined, combined])).to.emit(
+          [value([[3, 2], [3, 2]]), value([[4, 4], [4, 4]]), value([[5, 6], [5, 6]])],
           () => send(a, [value(1), value(2), value(3)])
         )
 
         const p = send(prop(), [value(1)])
 
         const basePoolA = Kefir.pool()
-        const combA = Kefir.combine([basePoolA, p])
-        const combB = Kefir.combine([basePoolA, p])
+        const combA = Kefir.combineBatched([basePoolA, p])
+        const combB = Kefir.combineBatched([basePoolA, p])
         let emitted = []
 
         combA.onValue(v => emitted.push(v))
@@ -298,40 +294,43 @@ describe('combine', () => {
 
   describe('object', () => {
     it('should stream', () => {
-      expect(Kefir.combine({})).to.be.observable.stream()
-      expect(Kefir.combine({s: stream(), p: prop()})).to.be.observable.stream()
+      expect(Kefir.combineBatched({})).to.be.observable.stream()
+      expect(Kefir.combineBatched({s: stream(), p: prop()})).to.be.observable.stream()
     })
 
     it('should be ended if empty array provided', () => {
-      expect(Kefir.combine({})).to.emit([end({current: true})])
+      expect(Kefir.combineBatched({})).to.emit([end({current: true})])
     })
 
     it('should be ended if array of ended observables provided', () => {
       const a = send(stream(), [end()])
       const b = send(prop(), [end()])
       const c = send(stream(), [end()])
-      expect(Kefir.combine({a, b, c})).to.emit([end({current: true})])
+      expect(Kefir.combineBatched({a, b, c})).to.emit([end({current: true})])
     })
 
     it('should be ended and has current if array of ended properties provided and each of them has current', () => {
       const a = send(prop(), [value(1), end()])
       const b = send(prop(), [value(2), end()])
       const c = send(prop(), [value(3), end()])
-      expect(Kefir.combine({a, b, c})).to.emit([value({a: 1, b: 2, c: 3}, {current: true}), end({current: true})])
+      expect(Kefir.combineBatched({a, b, c})).to.emit([
+        value({a: 1, b: 2, c: 3}, {current: true}),
+        end({current: true}),
+      ])
     })
 
     it('should activate sources', () => {
       const a = stream()
       const b = prop()
       const c = stream()
-      expect(Kefir.combine({a, b, c})).to.activate(a, b, c)
+      expect(Kefir.combineBatched({a, b, c})).to.activate(a, b, c)
     })
 
     it('should handle events and current from observables', () => {
       const a = stream()
       const b = send(prop(), [value(0)])
       const c = stream()
-      expect(Kefir.combine({a, b, c})).to.emit(
+      expect(Kefir.combineBatched({a, b, c})).to.emit(
         [
           value({a: 1, b: 0, c: 2}),
           value({a: 1, b: 3, c: 2}),
@@ -356,7 +355,7 @@ describe('combine', () => {
       const b = send(prop(), [value(0)])
       const c = stream()
       const join = ev => ev.a + '+' + ev.b + '+' + ev.c
-      expect(Kefir.combine({a, b, c}, join)).to.emit(
+      expect(Kefir.combineBatched({a, b, c}, join)).to.emit(
         [value('1+0+2'), value('1+3+2'), value('1+4+2'), value('1+4+5'), value('1+4+6'), end()],
         () => {
           send(a, [value(1)])
@@ -372,7 +371,7 @@ describe('combine', () => {
     it('when activating second time and has 2+ properties in sources, should emit current value at most once', () => {
       const a = send(prop(), [value(0)])
       const b = send(prop(), [value(1)])
-      const cb = Kefir.combine({a, b})
+      const cb = Kefir.combineBatched({a, b})
       activate(cb)
       deactivate(cb)
       expect(cb).to.emit([value({a: 0, b: 1}, {current: true})])
@@ -382,15 +381,15 @@ describe('combine', () => {
       let a = stream()
       let b = prop()
       let c = stream()
-      expect(Kefir.combine({a, b, c})).to.flowErrors(a)
+      expect(Kefir.combineBatched({a, b, c})).to.flowErrors(a)
       a = stream()
       b = prop()
       c = stream()
-      expect(Kefir.combine({a, b, c})).to.flowErrors(b)
+      expect(Kefir.combineBatched({a, b, c})).to.flowErrors(b)
       a = stream()
       b = prop()
       c = stream()
-      expect(Kefir.combine({a, b, c})).to.flowErrors(c)
+      expect(Kefir.combineBatched({a, b, c})).to.flowErrors(c)
     })
 
     it('should handle errors correctly', () => {
@@ -406,7 +405,7 @@ describe('combine', () => {
       const a = stream()
       const b = stream()
       const c = stream()
-      expect(Kefir.combine({a, b, c})).to.emit(
+      expect(Kefir.combineBatched({a, b, c})).to.emit(
         [
           error(-1),
           error(-1),
@@ -434,27 +433,27 @@ describe('combine', () => {
 
     describe('sampledBy al =>ity (3 arity combine)', () => {
       it('should stream', () => {
-        expect(Kefir.combine({}, {})).to.be.observable.stream()
-        expect(Kefir.combine({s1: stream(), p1: prop()}, {s2: stream(), p2: prop()})).to.be.observable.stream()
+        expect(Kefir.combineBatched({}, {})).to.be.observable.stream()
+        expect(Kefir.combineBatched({s1: stream(), p1: prop()}, {s2: stream(), p2: prop()})).to.be.observable.stream()
       })
 
       it('should be ended if empty array provided', () => {
-        expect(Kefir.combine({s1: stream(), p1: prop()}, {})).to.emit([])
-        expect(Kefir.combine({}, {s2: stream(), p2: prop()})).to.emit([end({current: true})])
+        expect(Kefir.combineBatched({s1: stream(), p1: prop()}, {})).to.emit([])
+        expect(Kefir.combineBatched({}, {s2: stream(), p2: prop()})).to.emit([end({current: true})])
       })
 
       it('should be ended if array of ended observables provided', () => {
         const a = send(stream(), [end()])
         const b = send(prop(), [end()])
         const c = send(stream(), [end()])
-        expect(Kefir.combine({a, b, c}, {d: stream(), e: prop()})).to.emit([end({current: true})])
+        expect(Kefir.combineBatched({a, b, c}, {d: stream(), e: prop()})).to.emit([end({current: true})])
       })
 
       it('should be ended and emmit current (once) if array of ended properties provided and each of them has current', () => {
         const a = send(prop(), [value(1), end()])
         const b = send(prop(), [value(2), end()])
         const c = send(prop(), [value(3), end()])
-        const s1 = Kefir.combine({a, b}, {c})
+        const s1 = Kefir.combineBatched({a, b}, {c})
         expect(s1).to.emit([value({a: 1, b: 2, c: 3}, {current: true}), end({current: true})])
         expect(s1).to.emit([end({current: true})])
       })
@@ -463,7 +462,7 @@ describe('combine', () => {
         const a = stream()
         const b = prop()
         const c = stream()
-        expect(Kefir.combine({a, b}, {c})).to.activate(a, b, c)
+        expect(Kefir.combineBatched({a, b}, {c})).to.activate(a, b, c)
       })
 
       it('should handle events and current from observables', () => {
@@ -471,7 +470,7 @@ describe('combine', () => {
         const b = send(prop(), [value(0)])
         const c = stream()
         const d = stream()
-        expect(Kefir.combine({c, d}, {a, b})).to.emit(
+        expect(Kefir.combineBatched({c, d}, {a, b})).to.emit(
           [
             value({a: 1, b: 0, c: 2, d: 3}),
             value({a: 1, b: 4, c: 5, d: 3}),
@@ -496,7 +495,7 @@ describe('combine', () => {
         const b = send(prop(), [value(0)])
         const c = stream()
         const d = stream()
-        expect(Kefir.combine({c, d}, {a, b}, join)).to.emit(
+        expect(Kefir.combineBatched({c, d}, {a, b}, join)).to.emit(
           [value('2+3+1+0'), value('5+3+1+4'), value('6+3+1+4'), value('6+7+1+4'), end()],
           () => {
             send(a, [value(1)])
@@ -513,7 +512,7 @@ describe('combine', () => {
         const a = send(prop(), [value(0)])
         const b = send(prop(), [value(1)])
         const c = send(prop(), [value(2)])
-        const sb = Kefir.combine({a, b}, {c})
+        const sb = Kefir.combineBatched({a, b}, {c})
         activate(sb)
         deactivate(sb)
         expect(sb).to.emit([value({a: 0, b: 1, c: 2}, {current: true})])
@@ -524,12 +523,12 @@ describe('combine', () => {
         let b = prop()
         let c = stream()
         let d = prop()
-        expect(Kefir.combine({a, b}, {c, d})).to.flowErrors(a)
+        expect(Kefir.combineBatched({a, b}, {c, d})).to.flowErrors(a)
         a = stream()
         b = prop()
         c = stream()
         d = prop()
-        expect(Kefir.combine({a, b}, {c, d})).to.flowErrors(b)
+        expect(Kefir.combineBatched({a, b}, {c, d})).to.flowErrors(b)
       })
 
       // https://github.com/kefirjs/kefir/issues/98
@@ -537,12 +536,19 @@ describe('combine', () => {
         const a = stream()
         const b = a.map(x => x + 2)
         const c = a.map(x => x * 2)
-        expect(Kefir.combine({b}, {c})).to.emit([value({b: 3, c: 2}), value({b: 4, c: 4}), value({b: 5, c: 6})], () =>
-          send(a, [value(1), value(2), value(3)])
+        expect(Kefir.combineBatched({b}, {c})).to.emit(
+          [value({b: 3, c: 2}), value({b: 4, c: 4}), value({b: 5, c: 6})],
+          () => send(a, [value(1), value(2), value(3)])
         )
+      })
 
-        expect(Kefir.combine({b, c})).to.emit(
-          [value({b: 3, c: 2}), value({b: 4, c: 2}), value({b: 4, c: 4}), value({b: 5, c: 4}), value({b: 5, c: 6})],
+      // https://github.com/kefirjs/kefir/issues/98
+      it('should work nice for emitating atomic updates with active props', () => {
+        const a = stream()
+        const b = a.map(x => x + 2)
+        const c = a.map(x => x * 2)
+        expect(Kefir.combineBatched({b, c})).to.emit(
+          [value({b: 3, c: 2}), value({b: 4, c: 4}), value({b: 5, c: 6})],
           () => send(a, [value(1), value(2), value(3)])
         )
       })
@@ -552,7 +558,7 @@ describe('combine', () => {
         const b = stream()
         const _a = stream()
 
-        expect(Kefir.combine({a, b}, {a: _a})).to.emit(
+        expect(Kefir.combineBatched({a, b}, {a: _a})).to.emit(
           [value({a: 1, b: 4}), value({a: 2, b: 4}), value({a: 3, b: 4})],
           () => {
             send(_a, [value(-1)])
@@ -572,8 +578,8 @@ describe('combine', () => {
     it('should not allow mismatched argument types', () => {
       const a = stream()
       const b = stream()
-      const arrayAndObject = () => Kefir.combine([a], {b})
-      const objectAndArray = () => Kefir.combine({a}, [b])
+      const arrayAndObject = () => Kefir.combineBatched([a], {b})
+      const objectAndArray = () => Kefir.combineBatched({a}, [b])
       expect(arrayAndObject).to.throw()
       expect(objectAndArray).to.throw()
     }))

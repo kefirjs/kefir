@@ -1,6 +1,6 @@
 import {extend} from './utils/objects'
 import {VALUE, ERROR, ANY} from './constants'
-import {concat, find, findByPred, remove, contains} from './utils/collections'
+import {concat, findByPred, remove, contains} from './utils/collections'
 
 function callSubscriber(type, fn, event) {
   if (type === ANY) {
@@ -14,29 +14,32 @@ function callSubscriber(type, fn, event) {
   }
 }
 
-const IE10Map = function() {
-  this.list = []
-  this.has = function(item) {
-    return find(this.list, item) !== -1
-  }
-  this.set = function(item) {
-    return this.list.push(item)
-  }
-  this.delete = function(item) {
-    this.list = remove(this.list, find(this.list, item))
-  }
-}
+export const BatchingQueueSingleton = {
+  lockCounter: 0,
+  batchingQueue: [],
 
-let globalDispatcherLoopCounter = 0
-let atomicMap = typeof Map !== 'undefined' ? new Map() : new IE10Map()
-let atomicQueue = []
+  lock: function() {
+    this.lockCounter++
+  },
 
-export let atomicQueuePush = function(node) {
-  // do not allow calling same effect twice
-  if (!atomicMap.has(node)) {
-    atomicMap.set(node, 1)
-    atomicQueue.push(arguments)
-  }
+  release: function() {
+    this.lockCounter--
+
+    if (this.lockCounter === 0 && this.batchingQueue.length > 0) {
+      this.flushBatchingQueue()
+    }
+  },
+
+  push: function(node) {
+    this.batchingQueue.push(node)
+  },
+
+  flushBatchingQueue: function() {
+    let batchedNode
+    while ((batchedNode = this.batchingQueue.shift())) {
+      batchedNode._emitQueued()
+    }
+  },
 }
 
 function Dispatcher() {
@@ -82,7 +85,8 @@ extend(Dispatcher.prototype, {
   },
 
   dispatch(event) {
-    globalDispatcherLoopCounter++
+    BatchingQueueSingleton.lock()
+
     this._inLoop++
     for (let i = 0, spies = this._spies; this._spies !== null && i < spies.length; i++) {
       spies[i](event)
@@ -101,18 +105,12 @@ extend(Dispatcher.prototype, {
       callSubscriber(items[i].type, items[i].fn, event)
     }
     this._inLoop--
-    globalDispatcherLoopCounter--
 
     if (this._inLoop === 0) {
       this._removedItems = null
     }
-    if (globalDispatcherLoopCounter === 0 && atomicQueue.length > 0) {
-      let args
-      while ((args = atomicQueue.shift())) {
-        atomicMap.delete(args[0])
-        args[1].call(args[0])
-      }
-    }
+
+    BatchingQueueSingleton.release()
   },
 
   cleanup() {

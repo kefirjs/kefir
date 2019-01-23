@@ -295,6 +295,13 @@ Observable.prototype.combine = function(other, combinator) {
 }
 
 // (Array<Stream|Property>, Function|undefiend) -> Stream
+// (Array<Stream|Property>, Array<Stream|Property>, Function|undefiend) -> Stream
+import combineBatched from './many-sources/combine-batched'
+Observable.prototype.combineBatched = function(other, combinator) {
+  return combineBatched([this, other], combinator)
+}
+
+// (Array<Stream|Property>, Function|undefiend) -> Stream
 import zip from './many-sources/zip'
 Observable.prototype.zip = function(other, combinator) {
   return zip([this, other], combinator)
@@ -461,6 +468,7 @@ const Kefir = {
   fromPromise,
   fromESObservable,
   combine,
+  combineBatched,
   zip,
   merge,
   concat,
@@ -492,6 +500,7 @@ export {
   fromPromise,
   fromESObservable,
   combine,
+  combineBatched,
   zip,
   merge,
   concat,

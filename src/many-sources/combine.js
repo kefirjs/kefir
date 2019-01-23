@@ -4,7 +4,6 @@ import {inherit} from '../utils/objects'
 import {concat, fillArray} from '../utils/collections'
 import {spread} from '../utils/functions'
 import never from '../primary/never'
-import {atomicQueuePush} from '../dispatcher'
 
 function collect(source, keys, values) {
   for (var prop in source) {
@@ -27,7 +26,7 @@ function defaultErrorsCombinator(errors) {
   return latestError.error
 }
 
-function Combine(active, passive, combinator) {
+export function Combine(active, passive, combinator) {
   Stream.call(this)
   this._activeCount = active.length
   this._sources = concat(active, passive)
@@ -77,6 +76,10 @@ inherit(Combine, Stream, {
     }
   },
 
+  _emitCombined() {
+    this._emitIfFull()
+  },
+
   _emitIfFull() {
     let hasAllValues = true
     let hasErrors = false
@@ -124,7 +127,7 @@ inherit(Combine, Stream, {
         if (this._activating) {
           this._emitAfterActivation = true
         } else {
-          atomicQueuePush(this, this._emitIfFull)
+          this._emitCombined()
         }
       }
     } else {
@@ -153,16 +156,16 @@ inherit(Combine, Stream, {
   },
 })
 
-function combineAsArray(active, passive = [], combinator) {
+function combineAsArray(active, passive = [], combinator, constructor) {
   if (!Array.isArray(passive)) {
     throw new Error('Combine can only combine active and passive collections of the same type.')
   }
 
   combinator = combinator ? spread(combinator, active.length + passive.length) : x => x
-  return active.length === 0 ? never() : new Combine(active, passive, combinator)
+  return active.length === 0 ? never() : new constructor(active, passive, combinator)
 }
 
-function combineAsObject(active, passive = {}, combinator) {
+function combineAsObject(active, passive = {}, combinator, constructor) {
   if (typeof passive !== 'object' || Array.isArray(passive)) {
     throw new Error('Combine can only combine active and passive collections of the same type.')
   }
@@ -180,16 +183,20 @@ function combineAsObject(active, passive = {}, combinator) {
     return combinator ? combinator(event) : event
   }
 
-  return activeObservables.length === 0 ? never() : new Combine(activeObservables, passiveObservables, objectify)
+  return activeObservables.length === 0 ? never() : new constructor(activeObservables, passiveObservables, objectify)
 }
 
-export default function combine(active, passive, combinator) {
+export function handleCombineParameters(active, passive, combinator, constructor) {
   if (typeof passive === 'function') {
     combinator = passive
     passive = undefined
   }
 
   return Array.isArray(active)
-    ? combineAsArray(active, passive, combinator)
-    : combineAsObject(active, passive, combinator)
+    ? combineAsArray(active, passive, combinator, constructor)
+    : combineAsObject(active, passive, combinator, constructor)
+}
+
+export default function combine(active, passive, combinator) {
+  return handleCombineParameters(active, passive, combinator, Combine)
 }
