@@ -18,10 +18,11 @@ export default function BatchingQueue() {
     if (!this.lockCounter) {
       node._emitQueued()
     } else {
-      if (!this.batchingQueue) {
-        this.batchingQueue = []
+      if (this.batchingQueue) {
+        this.batchingQueue.push(node);
+      } else {
+        this.batchingQueue = [node];
       }
-      this.batchingQueue.push(node)
     }
   }
 
