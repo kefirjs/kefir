@@ -127,7 +127,7 @@ inherit(Combine, Stream, {
         if (this._activating) {
           this._emitAfterActivation = true
         } else {
-          this._emitCombined()
+          this._emitCombined(this._sources[i])
         }
       }
     } else {

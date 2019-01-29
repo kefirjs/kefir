@@ -566,6 +566,36 @@ describe('combine', () => {
         )
       })
     })
+
+    it('should emit combined value synchronously', () => {
+      let innerFooBusEmitter
+      const innerFooStream = Kefir.stream(emitter => {
+        innerFooBusEmitter = emitter
+      })
+      const innerFooCombined = Kefir.combineBatched([innerFooStream], x => x) // Some Kefir observable based on innerFooBus
+
+      let log = []
+
+      innerFooCombined.filter(x => x === 123).onValue(x => {
+        log.push('foo ' + x)
+      })
+
+      function foo() {
+        innerFooBusEmitter.emit(123)
+      }
+
+      const bar = innerFooCombined.filter(x => x === 1)
+
+      bar.onValue(x => {
+        log.push('pre-foo')
+        foo()
+        log.push('post-foo')
+      })
+
+      innerFooBusEmitter.emit(1)
+
+      expect(log).to.deep.eq(['pre-foo', 'foo 123', 'post-foo'])
+    })
   })
 
   describe('mismatches', () =>

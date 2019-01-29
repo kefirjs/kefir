@@ -1,8 +1,8 @@
 import {inherit} from './utils/objects'
 import Observable from './observable'
 
-function Stream() {
-  Observable.call(this)
+function Stream(batchingQueue) {
+  Observable.call(this, batchingQueue)
 }
 
 inherit(Stream, Observable, {

@@ -5,7 +5,7 @@ import {VALUE, ERROR, END} from '../constants'
 
 function createConstructor(BaseClass, name) {
   return function AnonymousObservable(source, options) {
-    BaseClass.call(this)
+    BaseClass.call(this, source.batchingQueue)
     this._source = source
     this._name = `${source._name}.${name}`
     this._init(options)

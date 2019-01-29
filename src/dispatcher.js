@@ -14,36 +14,9 @@ function callSubscriber(type, fn, event) {
   }
 }
 
-export const BatchingQueueSingleton = {
-  lockCounter: 0,
-  batchingQueue: [],
-
-  lock: function() {
-    this.lockCounter++
-  },
-
-  release: function() {
-    this.lockCounter--
-
-    if (this.lockCounter === 0 && this.batchingQueue.length > 0) {
-      this.flushBatchingQueue()
-    }
-  },
-
-  push: function(node) {
-    this.batchingQueue.push(node)
-  },
-
-  flushBatchingQueue: function() {
-    let batchedNode
-    while ((batchedNode = this.batchingQueue.shift())) {
-      batchedNode._emitQueued()
-    }
-  },
-}
-
-function Dispatcher() {
+function Dispatcher(batchingQueue) {
   this._items = []
+  this._batchingQueue = batchingQueue
   this._spies = []
   this._inLoop = 0
   this._removedItems = null
@@ -85,7 +58,7 @@ extend(Dispatcher.prototype, {
   },
 
   dispatch(event) {
-    BatchingQueueSingleton.lock()
+    this._batchingQueue.lock()
 
     this._inLoop++
     for (let i = 0, spies = this._spies; this._spies !== null && i < spies.length; i++) {
@@ -110,7 +83,7 @@ extend(Dispatcher.prototype, {
       this._removedItems = null
     }
 
-    BatchingQueueSingleton.release()
+    this._batchingQueue.release()
   },
 
   cleanup() {

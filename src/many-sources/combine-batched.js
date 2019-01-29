@@ -1,6 +1,5 @@
 import {inherit} from '../utils/objects'
 import {Combine, handleCombineParameters} from './combine'
-import {BatchingQueueSingleton} from '../dispatcher'
 
 function CombineBatched(active, passive, combinator) {
   Combine.call(this, active, passive, combinator)
@@ -15,11 +14,11 @@ inherit(CombineBatched, Combine, {
     Combine.prototype._emitIfFull.call(this)
   },
 
-  _emitCombined() {
+  _emitCombined(source) {
     if (!this._isQueued) {
       this._isQueued = true
 
-      BatchingQueueSingleton.push(this)
+      source.batchingQueue.push(this)
     }
   },
 })

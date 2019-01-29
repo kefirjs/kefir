@@ -3,8 +3,8 @@ import {VALUE, ERROR, END} from './constants'
 import {callSubscriber} from './dispatcher'
 import Observable from './observable'
 
-function Property() {
-  Observable.call(this)
+function Property(batchingQueue) {
+  Observable.call(this, batchingQueue)
   this._currentEvent = null
 }
 

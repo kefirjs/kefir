@@ -2,9 +2,11 @@ import {extend} from './utils/objects'
 import {VALUE, ERROR, ANY, END} from './constants'
 import {Dispatcher, callSubscriber} from './dispatcher'
 import {findByPred} from './utils/collections'
+import BatchingQueue from './batching-queue'
 
-function Observable() {
-  this._dispatcher = new Dispatcher()
+function Observable(batchingQueue) {
+  this.batchingQueue = batchingQueue || new BatchingQueue()
+  this._dispatcher = new Dispatcher(this.batchingQueue)
   this._active = false
   this._alive = true
   this._activating = false
