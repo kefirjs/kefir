@@ -18,7 +18,7 @@ inherit(CombineBatched, Combine, {
     if (!this._isQueued) {
       this._isQueued = true
 
-      source.batchingQueue.push(this)
+      source._batchingQueue.push(this)
     }
   },
 })

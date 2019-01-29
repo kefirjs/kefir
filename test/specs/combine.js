@@ -572,7 +572,7 @@ describe('combine', () => {
       const innerFooStream = Kefir.stream(emitter => {
         innerFooBusEmitter = emitter
       })
-      const innerFooCombined = Kefir.combineBatched([innerFooStream], x => x) // Some Kefir observable based on innerFooBus
+      const innerFooCombined = Kefir.combineBatched([innerFooStream], x => x) // Some Kefir observable based on innerFooStream
 
       let log = []
 

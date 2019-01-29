@@ -1,6 +1,6 @@
 export default function BatchingQueue() {
   this.lockCounter = 0
-  this.batchingQueue = undefined
+  this.batched = undefined
 
   this.lock = function() {
     this.lockCounter++
@@ -9,7 +9,7 @@ export default function BatchingQueue() {
   this.release = function() {
     this.lockCounter--
 
-    if (this.lockCounter === 0 && this.batchingQueue) {
+    if (this.lockCounter === 0 && this.batched) {
       this.flushBatchingQueue()
     }
   }
@@ -18,17 +18,17 @@ export default function BatchingQueue() {
     if (!this.lockCounter) {
       node._emitQueued()
     } else {
-      if (this.batchingQueue) {
-        this.batchingQueue.push(node);
+      if (this.batched) {
+        this.batched.push(node)
       } else {
-        this.batchingQueue = [node];
+        this.batched = [node]
       }
     }
   }
 
   this.flushBatchingQueue = function() {
     let batchedNode
-    while ((batchedNode = this.batchingQueue.shift())) {
+    while ((batchedNode = this.batched.shift())) {
       batchedNode._emitQueued()
     }
   }

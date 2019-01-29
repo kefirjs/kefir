@@ -5,8 +5,8 @@ import {findByPred} from './utils/collections'
 import BatchingQueue from './batching-queue'
 
 function Observable(batchingQueue) {
-  this.batchingQueue = batchingQueue || new BatchingQueue()
-  this._dispatcher = new Dispatcher(this.batchingQueue)
+  this._batchingQueue = batchingQueue || new BatchingQueue()
+  this._dispatcher = new Dispatcher(this._batchingQueue)
   this._active = false
   this._alive = true
   this._activating = false
