@@ -127,7 +127,7 @@ describe('Kefir.stream', () => {
 
   it('emitter should return a boolean representing if anyone intrested in future events', () => {
     let emitter = null
-    let a = Kefir.stream(em => emitter = em)
+    let a = Kefir.stream(em => (emitter = em))
     activate(a)
     expect(emitter.value(1)).to.equal(true)
     deactivate(a)

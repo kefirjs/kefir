@@ -70,7 +70,8 @@ inherit(Combine, Stream, {
   },
 
   _onDeactivation() {
-    let length = this._sources.length, i
+    let length = this._sources.length,
+      i
     for (i = 0; i < length; i++) {
       this._sources[i].offAny(this._$handlers[i])
     }
@@ -166,7 +167,9 @@ function combineAsObject(active, passive = {}, combinator) {
     throw new Error('Combine can only combine active and passive collections of the same type.')
   }
 
-  let keys = [], activeObservables = [], passiveObservables = []
+  let keys = [],
+    activeObservables = [],
+    passiveObservables = []
 
   collect(active, keys, activeObservables)
   collect(passive, keys, passiveObservables)

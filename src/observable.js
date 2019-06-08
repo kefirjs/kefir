@@ -119,9 +119,10 @@ extend(Observable.prototype, {
     const _this = this
     let closed = false
 
-    const observer = !observerOrOnValue || typeof observerOrOnValue === 'function'
-      ? {value: observerOrOnValue, error: onError, end: onEnd}
-      : observerOrOnValue
+    const observer =
+      !observerOrOnValue || typeof observerOrOnValue === 'function'
+        ? {value: observerOrOnValue, error: onError, end: onEnd}
+        : observerOrOnValue
 
     const handler = function(event) {
       if (event.type === END) {

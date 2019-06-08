@@ -1,1 +1,1 @@
-export default (Date.now ? () => Date.now() : () => new Date().getTime())
+export default Date.now ? () => Date.now() : () => new Date().getTime()

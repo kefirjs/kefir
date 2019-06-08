@@ -42,7 +42,7 @@ describe('toProperty', () => {
     it('should reset value by getting new from the callback on each activation', () => {
       const getCurrent = p => {
         let result = null
-        const getter = x => result = x
+        const getter = x => (result = x)
         p.onValue(getter)
         p.offValue(getter)
         return result

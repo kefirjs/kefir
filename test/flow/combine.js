@@ -124,13 +124,13 @@ function test_combine_object_withCombinator() {
 }
 
 function test_combine_object_withCombinatorAndPassive() {
-  const xs = Kefir.combine({numbers, strings}, {functions}, (args: {
-    numbers: number,
-    strings: string,
-    functions: (n: number) => string,
-  }) => {
-    return args.functions(args.numbers) + args.strings
-  })
+  const xs = Kefir.combine(
+    {numbers, strings},
+    {functions},
+    (args: {numbers: number, strings: string, functions: (n: number) => string}) => {
+      return args.functions(args.numbers) + args.strings
+    }
+  )
 
   xs.onValue((x: string) => {})
 

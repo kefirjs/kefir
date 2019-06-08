@@ -44,7 +44,7 @@
     "flow-bin": "^0.100.0",
     "inquirer": "^6.3.1",
     "mocha": "^6.1.4",
-    "prettier": "1.0.2",
+    "prettier": "^1.18.2",
     "pug": "^2.0.3",
     "rollup": "^0.41.6",
     "rollup-plugin-babel": "^2.7.1",

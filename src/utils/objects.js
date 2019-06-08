@@ -5,7 +5,9 @@ function createObj(proto) {
 }
 
 function extend(target /*, mixin1, mixin2...*/) {
-  let length = arguments.length, i, prop
+  let length = arguments.length,
+    i,
+    prop
   for (i = 1; i < length; i++) {
     for (prop in arguments[i]) {
       target[prop] = arguments[i][prop]
@@ -15,7 +17,8 @@ function extend(target /*, mixin1, mixin2...*/) {
 }
 
 function inherit(Child, Parent /*, mixin1, mixin2...*/) {
-  let length = arguments.length, i
+  let length = arguments.length,
+    i
   Child.prototype = createObj(Parent.prototype)
   Child.prototype.constructor = Child
   for (i = 2; i < length; i++) {
