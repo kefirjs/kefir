@@ -55,11 +55,9 @@
     "semver": "^6.1.1",
     "sinon": "^1.17.1",
     "sinon-chai": "^2.14.0",
+    "symbol-observable": "^1.2.0",
     "transducers-js": "^0.4.174",
     "transducers.js": "^0.3.2",
     "zen-observable": "^0.8.14"
-  },
-  "dependencies": {
-    "symbol-observable": "1.2.0"
   }
 }
