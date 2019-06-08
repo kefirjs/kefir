@@ -1,5 +1,5 @@
 const Observable = require('zen-observable')
-const Rx = require('@reactivex/rxjs')
+const {of: observableOf} = require('rxjs')
 const {activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('fromESObservable', () => {
@@ -26,7 +26,7 @@ describe('fromESObservable', () => {
   })
 
   it('turns an RxJS observable into a Kefir stream', done => {
-    const stream = Kefir.fromESObservable(Rx.Observable.of('hello world'))
+    const stream = Kefir.fromESObservable(observableOf('hello world'))
     const values = []
     stream.onValue(value => values.push(value))
     return stream.onEnd(() => {
