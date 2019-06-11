@@ -37,7 +37,10 @@ describe('repeat', () => {
     const sum = (a, b) => a + b
     const genConstant = () => Kefir.constant(1)
 
-    const a = Kefir.repeat(genConstant).take(3000).scan(sum, 0).last()
+    const a = Kefir.repeat(genConstant)
+      .take(3000)
+      .scan(sum, 0)
+      .last()
     expect(a).to.emit([value(3000, {current: true}), end({current: true})])
   })
 

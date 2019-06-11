@@ -31,7 +31,7 @@ var questions = [
   },
 ]
 
-inquirer.prompt(questions, function(answers) {
+inquirer.prompt(questions).then(function(answers) {
   var newVerison = answers.version
   var dryRun = answers.dryRun === 'Just see'
 

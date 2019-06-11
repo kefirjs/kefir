@@ -10,7 +10,7 @@ describe('Kefir.Observable', () => {
       obs = Kefir.stream(_em => {
         em = _em
       })
-      sub = obs.observe({value: () => count++, error: () => count--, end: () => count = 0})
+      sub = obs.observe({value: () => count++, error: () => count--, end: () => (count = 0)})
     })
 
     it('should return a Subscription', () => {

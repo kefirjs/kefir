@@ -24,12 +24,12 @@ describe('fromCallback', () => {
 
   it('should emit first result and end after that', () => {
     let cb = null
-    expect(Kefir.fromCallback(_cb => cb = _cb)).to.emit([value(1), end()], () => cb(1))
+    expect(Kefir.fromCallback(_cb => (cb = _cb))).to.emit([value(1), end()], () => cb(1))
   })
 
   it('should work after deactivation/activate cicle', () => {
     let cb = null
-    const s = Kefir.fromCallback(_cb => cb = _cb)
+    const s = Kefir.fromCallback(_cb => (cb = _cb))
     activate(s)
     deactivate(s)
     activate(s)

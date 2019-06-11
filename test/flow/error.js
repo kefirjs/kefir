@@ -3,7 +3,10 @@
 import Kefir from '../../kefir'
 
 // error type should be persisted through and unaffected by map call.
-const prop = Kefir.constantError(1).merge(Kefir.constant(2)).map(x => String(x)).mapErrors(err => ({a: err}))
+const prop = Kefir.constantError(1)
+  .merge(Kefir.constant(2))
+  .map(x => String(x))
+  .mapErrors(err => ({a: err}))
 
 prop
   .onValue(x => {

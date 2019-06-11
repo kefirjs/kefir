@@ -15,18 +15,24 @@ describe('spy', () => {
 
   describe('removing', () => {
     it('should return the stream', () => {
-      expect(stream().spy().offSpy()).to.be.observable.stream()
+      expect(
+        stream()
+          .spy()
+          .offSpy()
+      ).to.be.observable.stream()
     })
 
     it('should not activate the stream', () => {
-      const a = stream().spy().offSpy()
+      const a = stream()
+        .spy()
+        .offSpy()
       expect(a).not.to.be.active()
     })
   })
 
   describe('console', () => {
     let stub
-    beforeEach(() => stub = sinon.stub(console, 'log'))
+    beforeEach(() => (stub = sinon.stub(console, 'log')))
 
     afterEach(() => stub.restore())
 
