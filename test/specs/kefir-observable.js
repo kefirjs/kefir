@@ -35,7 +35,7 @@ describe('Kefir.Observable', () => {
       expect(sub.closed).to.equal(true)
     })
 
-    it('should unsubcribe early', () => {
+    it('should unsubscribe early', () => {
       expect(count).to.equal(0)
 
       em.emit(1)
@@ -54,6 +54,25 @@ describe('Kefir.Observable', () => {
       })
       sub = obs.observe(() => {})
       em.end()
+      expect(sub.closed).to.equal(true)
+    })
+
+    it('should pass subscription to onValue', () => {
+      obs = Kefir.constant(1)
+      sub = obs.observe((v, s) => {
+        s.unsubscribe()
+      })
+      expect(sub.closed).to.equal(true)
+    })
+
+    it('should pass subscription to onError', () => {
+      obs = Kefir.constant(1).flatMap(Kefir.constantError)
+      sub = obs.observe(
+        () => {},
+        (v, s) => {
+          s.unsubscribe()
+        }
+      )
       expect(sub.closed).to.equal(true)
     })
   })

@@ -116,30 +116,33 @@ extend(Observable.prototype, {
   },
 
   observe(observerOrOnValue, onError, onEnd) {
-    const _this = this
-    let closed = false
-
     const observer =
       !observerOrOnValue || typeof observerOrOnValue === 'function'
         ? {value: observerOrOnValue, error: onError, end: onEnd}
         : observerOrOnValue
+
+    return this.subscription(observer)
+  },
+
+  subscription(observer) {
+    const _this = this
+    let closed = false
+    let subscription
 
     const handler = function(event) {
       if (event.type === END) {
         closed = true
       }
       if (event.type === VALUE && observer.value) {
-        observer.value(event.value)
+        observer.value(event.value, subscription)
       } else if (event.type === ERROR && observer.error) {
-        observer.error(event.value)
+        observer.error(event.value, subscription)
       } else if (event.type === END && observer.end) {
         observer.end(event.value)
       }
     }
 
-    this.onAny(handler)
-
-    return {
+    subscription = {
       unsubscribe() {
         if (!closed) {
           _this.offAny(handler)
@@ -150,6 +153,9 @@ extend(Observable.prototype, {
         return closed
       },
     }
+
+    this.onAny(handler)
+    return subscription
   },
 
   // A and B must be subclasses of Stream and Property (order doesn't matter)
