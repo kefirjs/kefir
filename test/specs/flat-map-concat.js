@@ -108,6 +108,28 @@ describe('flatMapConcat', () => {
     ])
   })
 
+  it('should work when a spawned observable ends synchronously on activation', () => {
+    const a = Kefir.sequentially(1, [1, 2, 3, 4])
+    expect(
+      a.flatMapConcat(n => {
+        if (n === 2) {
+          return Kefir.later(5, n)
+        } else {
+          return Kefir.stream(emitter => {
+            emitter.value(n)
+            emitter.end()
+          })
+        }
+      })
+    ).to.emitInTime([
+      [1, value(1)],
+      [7, value(2)],
+      [7, value(3)],
+      [7, value(4)],
+      [7, end()],
+    ])
+  })
+
   describe('property', () => {
     it('should return stream', () => {
       expect(prop().flatMapConcat()).to.be.observable.stream()
