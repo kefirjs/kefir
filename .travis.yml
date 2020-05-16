@@ -3,7 +3,13 @@ sudo: false
 node_js:
   - 6
   - 8
+  - 10
+  - 12
   - stable
+before_install:
+  - npm i -g npm
+install:
+  - npm ci
 notifications:
   webhooks:
     urls:
