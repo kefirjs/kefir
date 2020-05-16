@@ -1,3 +1,8 @@
+## 3.8.7 (05/16/2020)
+
+- Update versions [#293](https://github.com/kefirjs/kefir/pull/293)
+- Fix flatMapConcat with spawned observable that ends sync [#303](https://github.com/kefirjs/kefir/pull/303)
+
 ## 3.8.6 (06/01/2019)
 
 - Added missing Flow type definition for `Pool.unplug` method [#289](https://github.com/kefirjs/kefir/pull/289) [@Macil](https://github.com/Macil)
