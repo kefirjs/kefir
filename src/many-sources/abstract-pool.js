@@ -97,6 +97,12 @@ inherit(AbstractPool, Stream, {
         if (this._active) {
           this._subToEnd(obs)
         }
+      } else {
+        if (this._queue.length !== 0) {
+          this._pullQueue()
+        } else if (this._curSources.length === 0) {
+          this._onEmpty()
+        }
       }
     } else {
       this._curSources = concat(this._curSources, [obs])
