@@ -53,8 +53,9 @@ const mixin = {
     } else {
       this._timeoutId = null
       if (!this._immediate) {
-        this._emitValue(this._laterValue)
+        const _laterValue = this._laterValue
         this._laterValue = null
+        this._emitValue(_laterValue)
       }
       if (this._endLater) {
         this._emitEnd()
