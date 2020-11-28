@@ -1,4 +1,4 @@
-const {stream, prop, send, value, end, expect} = require('../test-helpers')
+const {stream, prop, send, value, end, expect, pool} = require('../test-helpers')
 
 describe('debounce', () => {
   describe('stream', () => {
@@ -67,6 +67,16 @@ describe('debounce', () => {
           send(a, [value(8), end()])
         }
       )
+    })
+
+    it('should handle synchronous emits when flushing events', () => {
+      const a = pool()
+      const b = a.debounce(100)
+      a.plug(b.filter(v => v === 1).map(() => 2))
+
+      expect(b).to.emitInTime([[100, value(1)], [200, value(2)]], () => {
+        send(a, [value(1)])
+      })
     })
 
     it('should end immediately if no value to emit later (immediate)', () => {
