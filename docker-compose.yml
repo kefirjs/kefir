@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/code/
+      - node_modules:/code/node_modules
+
+volumes:
+  node_modules:
