@@ -75,3 +75,13 @@ npm run test-only   # runs only unit tests without other checks
 npm run test-debug  # runs tests with a chrome inspector connected to the node process
 npm run build-docs  # builds the documentation html file
 ```
+
+If you don't have Node.js installed on your system and you're using Docker, then you can run the commands above using docker-compose:
+
+```
+docker-compose build                # Build the docker image
+docker-compose run app npm install  # Install the npm libraries
+
+docker-compose run app npm run prettify
+docker-compose run app npm run ...
+```
