@@ -1,4 +1,4 @@
-import base from './rollup.dev.js'
+import base from './rollup.main.js'
 
 export default Object.assign({}, base, {
   format: 'es',

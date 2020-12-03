@@ -1,4 +1,4 @@
-import base from './rollup.dev.js'
+import base from './rollup.main.js'
 import uglify from 'rollup-plugin-uglify'
 
 export default Object.assign({}, base, {

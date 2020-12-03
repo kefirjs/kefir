@@ -7,7 +7,7 @@
   "scripts": {
     "prettify": "prettier --write '{src,configs,test}/**/*.js' '*.js'",
     "prettier-check": "prettier --list-different '{src,configs,test}/**/*.js' '*.js'",
-    "build-js": "rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.esm.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
+    "build-js": "rollup -c ./configs/rollup.main.js && rollup -c ./configs/rollup.dev.js && rollup -c ./configs/rollup.esm.js && rollup -c ./configs/rollup.prod.js && cp kefir.js.flow dist/",
     "build-docs": "node configs/docs.js",
     "deploy-docs": "git checkout gh-pages && git merge master && npm run build && git add . && git commit -m 'build all' && git push && git checkout master",
     "clean": "rm -r dist index.html || true",
@@ -51,6 +51,7 @@
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-uglify": "^1.0.1",
     "rxjs": "^6.5.2",
     "semver": "^6.1.1",
