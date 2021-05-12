@@ -155,8 +155,8 @@ pre(title='console output')
 +descr-method('off-any', 'offAny', 'obs.offAny(callback)').
   Unsubscribes an #[b onAny] subscriber.
 
-+descr-method('log', 'log', 'obs.log([name])').
-  Turns on logging of any event to the browser console.
++descr-method('log', 'log', 'obs.log([name, fn])').
+  Turns on logging of any event to the browser console (default) or using specified callback function.
   Accepts an optional #[b name] argument that will be shown in the log if provided.
 
 pre.javascript(title='example')
@@ -174,8 +174,8 @@ pre(title='console output')
   Turns off logging. If #[b .log] was called with a #[b name] argument,
   #[b offLog] must be called with the same #[b name] argument.
 
-+descr-method('spy', 'spy', 'obs.spy([name])').
-  Turns on spying of any event to the browser console. Similar to
++descr-method('spy', 'spy', 'obs.spy([name, fn])').
+  Turns on spying of any event to the browser console (default) or using specified callback function. Similar to
   #[b .log], however #[b .spy] will not cause the stream to activate by itself.
   Accepts an optional #[b name] argument that will be shown in the log if provided.
 

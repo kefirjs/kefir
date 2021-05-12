@@ -60,7 +60,7 @@
 | Use `unsub` function, or `Bacon.noMore` | `obs.offError(fn)` |  |
 | Use `unsub` function, or `Bacon.noMore` | `obs.offEnd(fn)` |  |
 | Use `unsub` function, or `Bacon.noMore` | `obs.offAny(fn)` |  |
-| `obs.log([name])` | `obs.log([name])` | The log format is different. Kefir returns `this` unlike Bacon, that returns `unusb` function |
+| `obs.log([name])` | `obs.log([name, fn])` | The log format is different. Kefir returns `this` unlike Bacon, that returns `unusb` function |
 | Use `unsub` function | `obs.offLog([name])` |  |
 | `obs.name(newName)` | `obs.setName(newName)` |  |
 | `observable.withDescription(param...)` | No alt.  |  |
