@@ -30,7 +30,7 @@ describe('log', () => {
     })
   })
 
-  describe('console', () => {
+  describe('default logger', () => {
     let stub
     beforeEach(() => (stub = sinon.stub(console, 'log')))
 
@@ -65,6 +65,20 @@ describe('log', () => {
       expect(a).to.emit([value(1), value(2), value(3)], () => {
         send(a, [value(1), value(2), value(3)])
         expect(console.log).not.to.have.been.called
+      })
+    })
+  })
+
+  describe('custom logger', () => {
+    it('should log using custom logger function', () => {
+      const a = stream()
+      const logger = sinon.fake()
+      a.log('logged', logger)
+      expect(a).to.emit([value(1), value(2), value(3)], () => {
+        send(a, [value(1), value(2), value(3)])
+        expect(logger).to.have.been.calledWith('logged', '<value>', 1)
+        expect(logger).to.have.been.calledWith('logged', '<value>', 2)
+        expect(logger).to.have.been.calledWith('logged', '<value>', 3)
       })
     })
   })

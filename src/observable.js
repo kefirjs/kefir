@@ -162,14 +162,14 @@ extend(Observable.prototype, {
     return this
   },
 
-  log(name = this.toString()) {
+  log(name = this.toString(), logger = console.log) {
     let isCurrent
     let handler = function(event) {
       let type = `<${event.type}${isCurrent ? ':current' : ''}>`
       if (event.type === END) {
-        console.log(name, type)
+        logger(name, type)
       } else {
-        console.log(name, type, event.value)
+        logger(name, type, event.value)
       }
     }
 
@@ -199,13 +199,13 @@ extend(Observable.prototype, {
     return this
   },
 
-  spy(name = this.toString()) {
+  spy(name = this.toString(), logger = console.log) {
     let handler = function(event) {
       let type = `<${event.type}>`
       if (event.type === END) {
-        console.log(name, type)
+        logger(name, type)
       } else {
-        console.log(name, type, event.value)
+        logger(name, type, event.value)
       }
     }
     if (this._alive) {
