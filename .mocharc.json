@@ -1,0 +1,5 @@
+{
+  "reporter": "spec",
+  "spec": "test/specs/*.js",
+  "ui": "bdd"
+}
