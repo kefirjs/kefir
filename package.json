@@ -52,6 +52,7 @@
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-uglify": "^1.0.1",
     "rxjs": "^6.5.2",
     "semver": "^6.1.1",
