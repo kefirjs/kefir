@@ -1,7 +1,4 @@
-let activeObservables = []
+let activeObservables
+activeObservables = []
 
-function clearActiveObservables() {
-  activeObservables = []
-}
-
-export {activeObservables, clearActiveObservables}
+export {activeObservables}

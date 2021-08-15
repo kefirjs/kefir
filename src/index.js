@@ -3,7 +3,7 @@ import Stream from './stream'
 import Property from './property'
 
 /* dev-code */
-import {activeObservables, clearActiveObservables} from './utils/dev'
+import {activeObservables} from './utils/dev'
 /* end-dev-code */
 
 // Create a stream
@@ -474,7 +474,6 @@ const Kefir = {
   staticLand,
   /* dev-code */
   activeObservables,
-  clearActiveObservables,
   /* end-dev-code */
 }
 
@@ -509,7 +508,6 @@ export {
   staticLand,
   /* dev-code */
   activeObservables,
-  clearActiveObservables,
   /* end-dev-code */
 }
 
