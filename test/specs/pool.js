@@ -51,26 +51,28 @@ describe('pool', () => {
     const b = send(prop(), [value(1)])
     const c = send(prop(), [value(2)])
 
-    let pool = Kefir.pool()
+    const poolA = Kefir.pool()
       .plug(a)
       .plug(b)
       .plug(c)
-    expect(pool).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
+    expect(poolA).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
 
-    pool = Kefir.pool()
+    const poolB = Kefir.pool()
       .plug(a)
       .plug(b)
       .plug(c)
-    activate(pool)
-    expect(pool).to.emit([])
+    activate(poolB)
+    expect(poolB).to.emit([])
 
-    pool = Kefir.pool()
+    const poolC = Kefir.pool()
       .plug(a)
       .plug(b)
       .plug(c)
-    activate(pool)
-    deactivate(pool)
-    expect(pool).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
+    activate(poolC)
+    deactivate(poolC)
+    expect(poolC).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
+
+    deactivate(poolB)
   })
 
   it('should not deliver events from removed sources', () => {

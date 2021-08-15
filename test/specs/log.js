@@ -4,12 +4,15 @@ const sinon = require('sinon')
 describe('log', () => {
   describe('adding', () => {
     it('should return the stream', () => {
-      expect(stream().log()).to.be.observable.stream()
+      const a = stream()
+      expect(a.log()).to.be.observable.stream()
+      a.offLog()
     })
 
     it('should activate the stream', () => {
       const a = stream().log()
       expect(a).to.be.active()
+      a.offLog()
     })
   })
 
@@ -45,6 +48,7 @@ describe('log', () => {
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 2)
         expect(console.log).to.have.been.calledWith('[stream]', '<value>', 3)
       })
+      a.offLog()
     })
 
     it('should use the name', () => {
@@ -56,6 +60,7 @@ describe('log', () => {
         expect(console.log).to.have.been.calledWith('logged', '<value>', 2)
         expect(console.log).to.have.been.calledWith('logged', '<value>', 3)
       })
+      a.offLog('logged')
     })
 
     it('should not log if the log has been removed', () => {
