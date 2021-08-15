@@ -81,28 +81,34 @@ describe('Property', () => {
   })
 
   describe('active state', () => {
+    const fn = () => {}
+
     it('should activate when first subscriber added (value)', () => {
       const s = prop()
-      s.onValue(() => {})
+      s.onValue(fn)
       expect(s).to.be.active()
+      s.offValue(fn)
     })
 
     it('should activate when first subscriber added (error)', () => {
       const s = prop()
-      s.onError(() => {})
+      s.onError(fn)
       expect(s).to.be.active()
+      s.offError(fn)
     })
 
     it('should activate when first subscriber added (end)', () => {
       const s = prop()
-      s.onEnd(() => {})
+      s.onEnd(fn)
       expect(s).to.be.active()
+      s.offEnd(fn)
     })
 
     it('should activate when first subscriber added (any)', () => {
       const s = prop()
-      s.onAny(() => {})
+      s.onAny(fn)
       expect(s).to.be.active()
+      s.offAny(fn)
     })
 
     it('should deactivate when all subscribers removed', () => {
@@ -137,50 +143,58 @@ describe('Property', () => {
     })
 
     it('onValue subscribers should be called with 1 argument', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = send(prop(), [value(0)])
       let count = null
-      s.onValue(function() {
-        return (count = arguments.length)
-      })
+      s.onValue(fn)
       expect(count).to.equal(1)
       send(s, [value(1)])
       expect(count).to.equal(1)
+      s.offValue(fn)
     })
 
     it('onError subscribers should be called with 1 argument', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = send(prop(), [error(0)])
       let count = null
-      s.onError(function() {
-        return (count = arguments.length)
-      })
+      s.onError(fn)
       expect(count).to.equal(1)
       send(s, [error(1)])
       expect(count).to.equal(1)
+      s.offError(fn)
     })
 
     it('onAny subscribers should be called with 1 arguments', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = send(prop(), [value(0)])
       let count = null
-      s.onAny(function() {
-        return (count = arguments.length)
-      })
+      s.onAny(fn)
       expect(count).to.equal(1)
       send(s, [value(1)])
       expect(count).to.equal(1)
+      s.offAny(fn)
     })
 
     it('onEnd subscribers should be called with 0 arguments', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = send(prop(), [value(0)])
       let count = null
-      s.onEnd(function() {
-        return (count = arguments.length)
-      })
+      s.onEnd(fn)
       send(s, [end()])
       expect(count).to.equal(0)
       s.onEnd(function() {
         return (count = arguments.length)
       })
       expect(count).to.equal(0)
+      s.offEnd(fn)
     })
 
     it("can't have current value and error at same time", () => {
@@ -193,27 +207,33 @@ describe('Property', () => {
     })
 
     it('should update catched current value before dispatching it', () => {
-      const p = send(prop(), [value(0)])
-      const spy = sinon.spy()
-      p.onValue(x => {
+      const fn = x => {
         if (x === 1) {
           return p.onValue(spy)
         }
-      })
+      }
+      const p = send(prop(), [value(0)])
+      const spy = sinon.spy()
+      p.onValue(fn)
       send(p, [value(1)])
       expect(spy.args).to.deep.equal([[1]])
+      p.offValue(fn)
+      p.offValue(spy)
     })
 
     it('should update catched current error before dispatching it', () => {
-      const p = send(prop(), [error(0)])
-      const spy = sinon.spy()
-      p.onError(x => {
+      const fn = x => {
         if (x === 1) {
           return p.onError(spy)
         }
-      })
+      }
+      const p = send(prop(), [error(0)])
+      const spy = sinon.spy()
+      p.onError(fn)
       send(p, [error(1)])
       expect(spy.args).to.deep.equal([[1]])
+      p.offError(fn)
+      p.offError(spy)
     })
   })
 })

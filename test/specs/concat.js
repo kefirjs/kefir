@@ -67,17 +67,19 @@ describe('concat', () => {
     const b = send(prop(), [value(1)])
     const c = stream()
 
-    let concat = Kefir.concat([a, b, c])
-    expect(concat).to.emit([value(0, {current: true})])
+    const concatA = Kefir.concat([a, b, c])
+    expect(concatA).to.emit([value(0, {current: true})])
 
-    concat = Kefir.concat([a, b, c])
-    activate(concat)
-    expect(concat).to.emit([])
+    const concatB = Kefir.concat([a, b, c])
+    activate(concatB)
+    expect(concatB).to.emit([])
 
-    concat = Kefir.concat([a, b, c])
-    activate(concat)
-    deactivate(concat)
-    expect(concat).to.emit([value(0, {current: true})])
+    const concatC = Kefir.concat([a, b, c])
+    activate(concatC)
+    deactivate(concatC)
+    expect(concatC).to.emit([value(0, {current: true})])
+
+    deactivate(concatB)
   })
 
   it('if made of ended properties, should emit all currents then end', () => {

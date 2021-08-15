@@ -102,6 +102,7 @@ describe('flatMapFirst', () => {
       expect(count).to.equal(1)
       send(a, [value(c)])
       expect(count).to.equal(2)
+      deactivate(result)
     })
   })
 

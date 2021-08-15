@@ -43,6 +43,7 @@ describe('skipDuplicates', () => {
       b.plug(a)
       b.plug(b.map(x => x).skipDuplicates())
       expect(b).to.emit([value(1), value(1)], () => send(a, [value(1)]))
+      b.unplug(a)
     })
   })
 

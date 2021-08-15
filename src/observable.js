@@ -3,6 +3,10 @@ import {VALUE, ERROR, ANY, END} from './constants'
 import {Dispatcher, callSubscriber} from './dispatcher'
 import {findByPred} from './utils/collections'
 
+/* dev-code */
+import {activeObservables} from './utils/dev'
+/* end-dev-code */
+
 function Observable() {
   this._dispatcher = new Dispatcher()
   this._active = false
@@ -15,8 +19,16 @@ function Observable() {
 extend(Observable.prototype, {
   _name: 'observable',
 
-  _onActivation() {},
-  _onDeactivation() {},
+  _onActivation() {
+    /* dev-code */
+    activeObservables.push(this)
+    /* end-dev-code */
+  },
+  _onDeactivation() {
+    /* dev-code */
+    activeObservables.splice(activeObservables.indexOf(this), 1)
+    /* end-dev-code */
+  },
 
   _setActive(active) {
     if (this._active !== active) {

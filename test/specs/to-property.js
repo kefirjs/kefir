@@ -37,6 +37,7 @@ describe('toProperty', () => {
       expect(count).to.equal(1)
       activate(p)
       expect(count).to.equal(2)
+      deactivate(p)
     })
 
     it('should reset value by getting new from the callback on each activation', () => {

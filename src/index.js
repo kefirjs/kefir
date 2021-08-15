@@ -2,6 +2,10 @@ import Observable from './observable'
 import Stream from './stream'
 import Property from './property'
 
+/* dev-code */
+import {activeObservables} from './utils/dev'
+/* end-dev-code */
+
 // Create a stream
 // -----------------------------------------------------------------------------
 
@@ -468,6 +472,9 @@ const Kefir = {
   pool,
   repeat,
   staticLand,
+  /* dev-code */
+  activeObservables,
+  /* end-dev-code */
 }
 
 Kefir.Kefir = Kefir
@@ -499,6 +506,9 @@ export {
   pool,
   repeat,
   staticLand,
+  /* dev-code */
+  activeObservables,
+  /* end-dev-code */
 }
 
 export default Kefir

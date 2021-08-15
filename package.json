@@ -14,7 +14,8 @@
     "build": "npm run clean && npm run build-js && npm run build-docs",
     "test": "npm run prettier-check && rollup -c ./configs/rollup.dev.js && mocha && flow check",
     "test-only": "rollup -c ./configs/rollup.dev.js && mocha",
-    "test-debug": "rollup -c ./configs/rollup.dev.js && mocha --inspect-brk"
+    "test-debug": "rollup -c ./configs/rollup.dev.js && mocha --inspect-brk",
+    "watch": "npm run prettier-check && rollup -c ./configs/rollup.dev.js && mocha --watch"
   },
   "keywords": [
     "frp",
@@ -44,13 +45,14 @@
     "chai-kefir": "^2.0.1",
     "flow-bin": "^0.100.0",
     "inquirer": "^6.3.1",
-    "mocha": "^6.1.4",
+    "mocha": "^9.0.3",
     "prettier": "^1.18.2",
     "pug": "^2.0.3",
     "rollup": "^0.41.6",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-uglify": "^1.0.1",
     "rxjs": "^6.5.2",
     "semver": "^6.1.1",
