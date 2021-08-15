@@ -1,16 +1,6 @@
-const {Kefir, stream, prop, send, value, end, expect} = require('../test-helpers')
+const {stream, prop, send, value, end, expect} = require('../test-helpers')
 
 describe('beforeEnd', () => {
-  beforeEach(() => {
-    Kefir.clearActiveObservables()
-  })
-
-  afterEach(() => {
-    if (Kefir.activeObservables.length !== 0) {
-      console.error(`There are ${activeObservables.length} observables that haven't been unsubscribed.`)
-    }
-  })
-
   describe('stream', () => {
     it('should return stream', () => {
       expect(stream().beforeEnd(() => {})).to.be.observable.stream()

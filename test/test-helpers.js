@@ -100,6 +100,14 @@ use(({Assertion}, utils) => {
   })
 })
 
+beforeEach(() => {
+  Kefir.activeObservables = []
+})
+
+afterEach(() => {
+  expect(Kefir.activeObservables.length).to.equal(0, 'Expected 0 active observables after test execution.')
+})
+
 Kefir.dissableDeprecationWarnings()
 
 exports.Kefir = Kefir
@@ -134,11 +142,3 @@ exports.shakyTimeTest = testCb => {
 }
 
 exports.expect = expect
-
-beforeEach(() => {
-  Kefir.clearActiveObservables()
-})
-
-afterEach(() => {
-  expect(Kefir.activeObservables.length).to.equal(0, 'Expected 0 active observables.')
-})
