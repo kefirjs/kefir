@@ -248,11 +248,8 @@ extend(Dispatcher.prototype, {
   }
 });
 
+exports.activeObservables = void 0;
 exports.activeObservables = [];
-
-function clearActiveObservables() {
-  exports.activeObservables = [];
-}
 
 /* dev-code */
 /* end-dev-code */
@@ -3661,8 +3658,7 @@ var Kefir = {
   repeat: repeat,
   staticLand: staticLand,
   /* dev-code */
-  activeObservables: exports.activeObservables,
-  clearActiveObservables: clearActiveObservables
+  activeObservables: exports.activeObservables
   /* end-dev-code */
 };
 
@@ -3695,7 +3691,6 @@ exports.Pool = Pool;
 exports.pool = pool;
 exports.repeat = repeat;
 exports.staticLand = staticLand;
-exports.clearActiveObservables = clearActiveObservables;
 exports['default'] = Kefir;
 
 Object.defineProperty(exports, '__esModule', { value: true });
