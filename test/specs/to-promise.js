@@ -50,8 +50,12 @@ describe('toPromise', () => {
 
   describe('stream', () => {
     it('should return a promise', () => {
-      expect(stream().toPromise().type).to.equal(2)
-      expect(stream().toPromise(Promise1).type).to.equal(1)
+      const a = stream()
+      const b = stream()
+      expect(a.toPromise().type).to.equal(2)
+      expect(b.toPromise(Promise1).type).to.equal(1)
+      a._clear()
+      b._clear()
     })
 
     it('should not fulfill/reject if obs ends without value', () => {
