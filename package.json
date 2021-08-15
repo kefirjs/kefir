@@ -14,7 +14,8 @@
     "build": "npm run clean && npm run build-js && npm run build-docs",
     "test": "npm run prettier-check && rollup -c ./configs/rollup.dev.js && mocha && flow check",
     "test-only": "rollup -c ./configs/rollup.dev.js && mocha",
-    "test-debug": "rollup -c ./configs/rollup.dev.js && mocha --inspect-brk"
+    "test-debug": "rollup -c ./configs/rollup.dev.js && mocha --inspect-brk",
+    "watch": "npm run prettier-check && rollup -c ./configs/rollup.dev.js && mocha --watch"
   },
   "keywords": [
     "frp",
