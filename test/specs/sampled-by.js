@@ -59,6 +59,7 @@ describe('sampledBy', () => {
     activate(s2)
     deactivate(s2)
     expect(s1).to.emit([value(0)], () => send(b, [value(1)]))
+    deactivate(s1)
   })
 
   // https://github.com/kefirjs/kefir/issues/98

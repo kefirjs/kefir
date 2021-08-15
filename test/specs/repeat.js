@@ -64,6 +64,7 @@ describe('repeat', () => {
     expect(callsCount).to.equal(1)
     send(a, [end()])
     expect(callsCount).to.equal(2)
+    deactivate(b)
   })
 
   it('should unsubscribe from source', () => {

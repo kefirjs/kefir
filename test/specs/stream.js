@@ -80,28 +80,34 @@ describe('Stream', () => {
   })
 
   describe('active state', () => {
+    const fn = () => {}
+
     it('should activate when first subscriber added (value)', () => {
       const s = stream()
-      s.onValue(() => {})
+      s.onValue(fn)
       expect(s).to.be.active()
+      s.offValue(fn)
     })
 
     it('should activate when first subscriber added (error)', () => {
       const s = stream()
-      s.onError(() => {})
+      s.onError(fn)
       expect(s).to.be.active()
+      s.offError(fn)
     })
 
     it('should activate when first subscriber added (end)', () => {
       const s = stream()
-      s.onEnd(() => {})
+      s.onEnd(fn)
       expect(s).to.be.active()
+      s.offEnd(fn)
     })
 
     it('should activate when first subscriber added (any)', () => {
       const s = stream()
-      s.onAny(() => {})
+      s.onAny(fn)
       expect(s).to.be.active()
+      s.offAny(fn)
     })
 
     it('should deactivate when all subscribers removed', () => {
@@ -174,47 +180,53 @@ describe('Stream', () => {
     })
 
     it('onValue subscribers should be called with 1 argument', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = stream()
       let count = null
-      s.onValue(function() {
-        return (count = arguments.length)
-      })
+      s.onValue(fn)
       send(s, [value(1)])
       expect(count).to.equal(1)
+      s.offValue(fn)
     })
 
     it('onError subscribers should be called with 1 argument', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = stream()
       let count = null
-      s.onError(function() {
-        return (count = arguments.length)
-      })
+      s.onError(fn)
       send(s, [error(1)])
       expect(count).to.equal(1)
+      s.offError(fn)
     })
 
     it('onAny subscribers should be called with 1 arguments', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = stream()
       let count = null
-      s.onAny(function() {
-        return (count = arguments.length)
-      })
+      s.onAny(fn)
       send(s, [value(1)])
       expect(count).to.equal(1)
+      s.offAny(fn)
     })
 
     it('onEnd subscribers should be called with 0 arguments', () => {
+      const fn = function() {
+        return (count = arguments.length)
+      }
       const s = stream()
       let count = null
-      s.onEnd(function() {
-        return (count = arguments.length)
-      })
+      s.onEnd(fn)
       send(s, [end()])
       expect(count).to.equal(0)
-      s.onEnd(function() {
-        return (count = arguments.length)
-      })
+      s.onEnd(fn)
       expect(count).to.equal(0)
+      s.offEnd(fn)
     })
 
     it('should not call subscriber after unsubscribing (from another subscriber)', () => {
@@ -229,6 +241,7 @@ describe('Stream', () => {
       s.onValue(a)
       send(s, [value(1)])
       expect(log).to.deep.equal(['unsub a'])
+      s.offValue(b)
     })
 
     it('should not call subscribers after end (fired from another subscriber)', () => {

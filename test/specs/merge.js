@@ -58,17 +58,19 @@ describe('merge', () => {
     const b = send(prop(), [value(1)])
     const c = send(prop(), [value(2)])
 
-    let merge = Kefir.merge([a, b, c])
-    expect(merge).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
+    const mergeA = Kefir.merge([a, b, c])
+    expect(mergeA).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
 
-    merge = Kefir.merge([a, b, c])
-    activate(merge)
-    expect(merge).to.emit([])
+    const mergeB = Kefir.merge([a, b, c])
+    activate(mergeB)
+    expect(mergeB).to.emit([])
 
-    merge = Kefir.merge([a, b, c])
-    activate(merge)
-    deactivate(merge)
-    expect(merge).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
+    const mergeC = Kefir.merge([a, b, c])
+    activate(mergeC)
+    deactivate(mergeC)
+    expect(mergeC).to.emit([value(0, {current: true}), value(1, {current: true}), value(2, {current: true})])
+
+    deactivate(mergeB)
   })
 
   it('errors should flow', () => {
