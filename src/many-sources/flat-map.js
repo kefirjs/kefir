@@ -2,7 +2,12 @@ import {VALUE, ERROR, END} from '../constants'
 import {inherit} from '../utils/objects'
 import AbstractPool from './abstract-pool'
 
-function FlatMap(source, fn, options) {
+function FlatMap(source, fn, options = {}) {
+  if (fn && typeof fn !== 'function') {
+    options = fn
+    fn = undefined
+  }
+
   AbstractPool.call(this, options)
   this._source = source
   this._fn = fn

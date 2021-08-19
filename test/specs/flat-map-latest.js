@@ -1,3 +1,4 @@
+const sinon = require('sinon')
 const {stream, prop, send, value, error, end, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMapLatest', () => {
@@ -81,6 +82,62 @@ describe('flatMapLatest', () => {
           }
         })
       ).to.emit([value(3), value(4), value(5)], () => send(a, [value(1), value(2), value(3), value(4), value(5)]))
+    })
+
+    describe('non-overlapping', () => {
+      it('should remove the previous stream before adding the next', () => {
+        onDeactivate = sinon.spy()
+        a = Kefir.stream(() => onDeactivate)
+        b = stream()
+        map = b.flatMapLatest()
+        activate(map)
+        send(b, [value(a)])
+        send(b, [value(a)])
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(2)
+      })
+    })
+
+    describe('overlapping', () => {
+      it('should add the next stream before removing the previous', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMapLatest({overlapping: true})
+        activate(map)
+        send(a, [value(b)])
+        send(a, [value(b)])
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
+
+      it('should accept optional map fn', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMapLatest(x => x.obs, {overlapping: true})
+        activate(map)
+        send(a, [value({obs: b})])
+        send(a, [value({obs: b})])
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
+
+      it('should work nicely with Kefir.constant and Kefir.never', () => {
+        const a = stream()
+        expect(
+          a.flatMapLatest(
+            x => {
+              if (x > 2) {
+                return Kefir.constant(x)
+              } else {
+                return Kefir.never()
+              }
+            },
+            {overlapping: true}
+          )
+        ).to.emit([value(3), value(4), value(5)], () => send(a, [value(1), value(2), value(3), value(4), value(5)]))
+      })
     })
   })
 
