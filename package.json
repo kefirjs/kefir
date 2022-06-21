@@ -46,7 +46,7 @@
     "inquirer": "^6.3.1",
     "mocha": "^10.0.0",
     "prettier": "^1.18.2",
-    "pug": "^2.0.4",
+    "pug": "^3.0.2",
     "rollup": "^0.41.6",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^8.4.1",
