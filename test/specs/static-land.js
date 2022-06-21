@@ -22,21 +22,29 @@ describe('Kefir.staticLand.Observable', () => {
   })
 
   it('bimap works', () => {
-    expect(Observable.bimap(x => x, x => x * 3, Observable.of(2))).to.emit([
-      value(6, {current: true}),
-      end({current: true}),
-    ])
-    expect(Observable.bimap(x => x * 3, x => x, Kefir.constantError(2))).to.emit([
-      error(6, {current: true}),
-      end({current: true}),
-    ])
+    expect(
+      Observable.bimap(
+        x => x,
+        x => x * 3,
+        Observable.of(2)
+      )
+    ).to.emit([value(6, {current: true}), end({current: true})])
+    expect(
+      Observable.bimap(
+        x => x * 3,
+        x => x,
+        Kefir.constantError(2)
+      )
+    ).to.emit([error(6, {current: true}), end({current: true})])
   })
 
   it('ap works', () => {
-    expect(Observable.ap(Observable.of(x => x * 3), Observable.of(2))).to.emit([
-      value(6, {current: true}),
-      end({current: true}),
-    ])
+    expect(
+      Observable.ap(
+        Observable.of(x => x * 3),
+        Observable.of(2)
+      )
+    ).to.emit([value(6, {current: true}), end({current: true})])
   })
 
   it('chain works', () => {

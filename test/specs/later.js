@@ -6,6 +6,9 @@ describe('later', () => {
   })
 
   it('should emmit value after interval then end', () => {
-    expect(Kefir.later(100, 1)).to.emitInTime([[100, value(1)], [100, end()]])
+    expect(Kefir.later(100, 1)).to.emitInTime([
+      [100, value(1)],
+      [100, end()],
+    ])
   })
 })

@@ -94,11 +94,13 @@ describe('zip', () => {
   })
 
   it('should work with arrays only', () => {
-    expect(Kefir.zip([[1, 2, 3], [4, 5], [6, 7, 8, 9]])).to.emit([
-      value([1, 4, 6], {current: true}),
-      value([2, 5, 7], {current: true}),
-      end({current: true}),
-    ])
+    expect(
+      Kefir.zip([
+        [1, 2, 3],
+        [4, 5],
+        [6, 7, 8, 9],
+      ])
+    ).to.emit([value([1, 4, 6], {current: true}), value([2, 5, 7], {current: true}), end({current: true})])
   })
 
   it('should accept optional combinator function', () => {

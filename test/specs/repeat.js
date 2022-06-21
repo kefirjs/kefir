@@ -18,7 +18,12 @@ describe('repeat', () => {
 
   it('should work correctly (with .later)', () => {
     const a = Kefir.repeat(i => Kefir.later(100, i))
-    expect(a.take(3)).to.emitInTime([[100, value(0)], [200, value(1)], [300, value(2)], [300, end()]])
+    expect(a.take(3)).to.emitInTime([
+      [100, value(0)],
+      [200, value(1)],
+      [300, value(2)],
+      [300, end()],
+    ])
   })
 
   it('should work correctly (with .sequentially)', () => {

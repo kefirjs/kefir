@@ -121,7 +121,13 @@ describe('flatMapConcat', () => {
           })
         }
       })
-    ).to.emitInTime([[1, value(1)], [7, value(2)], [7, value(3)], [7, value(4)], [7, end()]])
+    ).to.emitInTime([
+      [1, value(1)],
+      [7, value(2)],
+      [7, value(3)],
+      [7, value(4)],
+      [7, end()],
+    ])
   })
 
   describe('property', () => {

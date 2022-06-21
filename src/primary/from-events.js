@@ -1,6 +1,10 @@
 import fromSubUnsub from './from-sub-unsub'
 
-const pairs = [['addEventListener', 'removeEventListener'], ['addListener', 'removeListener'], ['on', 'off']]
+const pairs = [
+  ['addEventListener', 'removeEventListener'],
+  ['addListener', 'removeListener'],
+  ['on', 'off'],
+]
 
 export default function fromEvents(target, eventName, transformer) {
   let sub, unsub

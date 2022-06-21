@@ -17,13 +17,20 @@ describe('delay', () => {
 
     it('should handle events', () => {
       const a = stream()
-      expect(a.delay(100)).to.emitInTime([[100, value(1)], [150, value(2)], [250, end()]], tick => {
-        send(a, [value(1)])
-        tick(50)
-        send(a, [value(2)])
-        tick(100)
-        send(a, [end()])
-      })
+      expect(a.delay(100)).to.emitInTime(
+        [
+          [100, value(1)],
+          [150, value(2)],
+          [250, end()],
+        ],
+        tick => {
+          send(a, [value(1)])
+          tick(50)
+          send(a, [value(2)])
+          tick(100)
+          send(a, [end()])
+        }
+      )
     })
 
     it('errors should flow', () => {
@@ -35,12 +42,20 @@ describe('delay', () => {
     describe('works with undependable setTimeout', () => {
       shakyTimeTest(expectToEmitOverShakyTime => {
         const a = stream()
-        expectToEmitOverShakyTime(a.delay(10), [[10, value(1)], [15, value(4)], [15, end()]], tick => {
-          send(a, [value(1)])
-          tick(5)
-          send(a, [value(4)])
-          send(a, [end()])
-        })
+        expectToEmitOverShakyTime(
+          a.delay(10),
+          [
+            [10, value(1)],
+            [15, value(4)],
+            [15, end()],
+          ],
+          tick => {
+            send(a, [value(1)])
+            tick(5)
+            send(a, [value(4)])
+            send(a, [end()])
+          }
+        )
       })
     })
   })
@@ -62,7 +77,12 @@ describe('delay', () => {
     it('should handle events and current', () => {
       const a = send(prop(), [value(1)])
       expect(a.delay(100)).to.emitInTime(
-        [[0, value(1, {current: true})], [100, value(2)], [150, value(3)], [250, end()]],
+        [
+          [0, value(1, {current: true})],
+          [100, value(2)],
+          [150, value(3)],
+          [250, end()],
+        ],
         tick => {
           send(a, [value(2)])
           tick(50)

@@ -85,13 +85,19 @@ describe('fromPromise', () => {
 
   it('... with fulfilledAsync property', () => {
     const a = Kefir.fromPromise(fulfilledAsync)
-    expect(a).to.emitInTime([[1000, value(1)], [1000, end()]])
+    expect(a).to.emitInTime([
+      [1000, value(1)],
+      [1000, end()],
+    ])
     expect(a).to.emit([value(1, {current: true}), end({current: true})])
   })
 
   it('... with failedAsync property', () => {
     const a = Kefir.fromPromise(failedAsync)
-    expect(a).to.emitInTime([[1000, error(1)], [1000, end()]])
+    expect(a).to.emitInTime([
+      [1000, error(1)],
+      [1000, end()],
+    ])
     expect(a).to.emit([error(1, {current: true}), end({current: true})])
   })
 })

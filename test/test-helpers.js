@@ -55,19 +55,34 @@ use(({Assertion}, utils) => {
       }
     }
 
-    check('some activated at start', obss.map(obs => !obs._active))
+    check(
+      'some activated at start',
+      obss.map(obs => !obs._active)
+    )
 
     activate(actual)
-    check(`some ${notNotStr}activated`, obss.map(obs => obs._active))
+    check(
+      `some ${notNotStr}activated`,
+      obss.map(obs => obs._active)
+    )
 
     deactivate(actual)
-    check(`some ${notNotStr}deactivated`, obss.map(obs => !obs._active))
+    check(
+      `some ${notNotStr}deactivated`,
+      obss.map(obs => !obs._active)
+    )
 
     activate(actual)
-    check(`some ${notNotStr}activated at second try`, obss.map(obs => obs._active))
+    check(
+      `some ${notNotStr}activated at second try`,
+      obss.map(obs => obs._active)
+    )
 
     deactivate(actual)
-    check(`some ${notNotStr}deactivated at second try`, obss.map(obs => !obs._active))
+    check(
+      `some ${notNotStr}deactivated at second try`,
+      obss.map(obs => !obs._active)
+    )
 
     const message = (() => {
       const failedTest = (() => {

@@ -118,7 +118,10 @@ describe('Kefir.stream', () => {
     a.take(1).onValue(() => {})
     a.take(1).onValue(() => {})
 
-    expect(log).to.deep.equal([{sub: 1, unsub: 1}, {sub: 1, unsub: 1}])
+    expect(log).to.deep.equal([
+      {sub: 1, unsub: 1},
+      {sub: 1, unsub: 1},
+    ])
   })
 
   it('should not throw if not falsey but not a function returned', () => {

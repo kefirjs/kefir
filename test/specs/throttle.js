@@ -53,7 +53,13 @@ describe('throttle', () => {
     it('should handle events {trailing: false}', () => {
       const a = stream()
       expect(a.throttle(100, {trailing: false})).to.emitInTime(
-        [[0, value(1)], [120, value(5)], [320, value(6)], [520, value(7)], [610, end()]],
+        [
+          [0, value(1)],
+          [120, value(5)],
+          [320, value(6)],
+          [520, value(7)],
+          [610, end()],
+        ],
         tick => {
           send(a, [value(1)])
           tick(30)
@@ -81,7 +87,13 @@ describe('throttle', () => {
     it('should handle events {leading: false}', () => {
       const a = stream()
       expect(a.throttle(100, {leading: false})).to.emitInTime(
-        [[100, value(4)], [220, value(5)], [420, value(6)], [620, value(9)], [620, end()]],
+        [
+          [100, value(4)],
+          [220, value(5)],
+          [420, value(6)],
+          [620, value(9)],
+          [620, end()],
+        ],
         tick => {
           send(a, [value(1)])
           tick(30)
@@ -109,7 +121,12 @@ describe('throttle', () => {
     it('should handle events {leading: false, trailing: false}', () => {
       const a = stream()
       expect(a.throttle(100, {leading: false, trailing: false})).to.emitInTime(
-        [[120, value(5)], [320, value(6)], [520, value(7)], [610, end()]],
+        [
+          [120, value(5)],
+          [320, value(6)],
+          [520, value(7)],
+          [610, end()],
+        ],
         tick => {
           send(a, [value(1)])
           tick(30)
@@ -263,7 +280,13 @@ describe('throttle', () => {
     it('should handle events {leading: false, trailing: false}', () => {
       const a = send(prop(), [value(0)])
       expect(a.throttle(100, {leading: false, trailing: false})).to.emitInTime(
-        [[0, value(0, {current: true})], [120, value(5)], [320, value(6)], [520, value(7)], [610, end()]],
+        [
+          [0, value(0, {current: true})],
+          [120, value(5)],
+          [320, value(6)],
+          [520, value(7)],
+          [610, end()],
+        ],
         tick => {
           send(a, [value(1)])
           tick(30)

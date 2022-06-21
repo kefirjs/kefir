@@ -40,7 +40,11 @@ const testWithLib = (name, t) =>
       })
 
       it('`map.filter.take` should work', () => {
-        const tr = comp(t.map(x => x + 10), t.filter(x => x % 2 === 0), t.take(2))
+        const tr = comp(
+          t.map(x => x + 10),
+          t.filter(x => x % 2 === 0),
+          t.take(2)
+        )
         const a = stream()
         expect(a.transduce(tr)).to.emit([value(12), value(14), end()], () =>
           send(a, [value(1), value(2), value(3), value(4), value(5), value(6)])
@@ -104,7 +108,11 @@ const testWithLib = (name, t) =>
       })
 
       it('`map.filter.take` should work', () => {
-        const tr = comp(t.map(x => x + 10), t.filter(x => x % 2 === 0), t.take(2))
+        const tr = comp(
+          t.map(x => x + 10),
+          t.filter(x => x % 2 === 0),
+          t.take(2)
+        )
         let a = send(prop(), [value(1)])
         expect(a.transduce(tr)).to.emit([value(12), value(14), end()], () =>
           send(a, [value(2), value(3), value(4), value(5), value(6)])

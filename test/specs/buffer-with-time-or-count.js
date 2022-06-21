@@ -21,7 +21,13 @@ describe('bufferWithTimeOrCount', () => {
     it('should flush buffer when either interval or count is reached', () => {
       const a = stream()
       expect(a.bufferWithTimeOrCount(intv, cnt)).to.emitInTime(
-        [[300, value([1, 2, 3])], [500, value([4, 5, 6, 7])], [800, value([])], [900, value([8, 9])], [900, end()]],
+        [
+          [300, value([1, 2, 3])],
+          [500, value([4, 5, 6, 7])],
+          [800, value([])],
+          [900, value([8, 9])],
+          [900, end()],
+        ],
         tick => {
           tick(100)
           send(a, [value(1)])
@@ -48,7 +54,11 @@ describe('bufferWithTimeOrCount', () => {
     it('should not flush buffer on end if {flushOnEnd: false}', () => {
       const a = stream()
       expect(a.bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).to.emitInTime(
-        [[300, value([1, 2, 3])], [500, value([4, 5, 6, 7])], [700, end()]],
+        [
+          [300, value([1, 2, 3])],
+          [500, value([4, 5, 6, 7])],
+          [700, end()],
+        ],
         tick => {
           tick(100)
           send(a, [value(1)])
@@ -102,7 +112,13 @@ describe('bufferWithTimeOrCount', () => {
     it('should flush buffer when either interval or count is reached', () => {
       const a = send(prop(), [value(0)])
       expect(a.bufferWithTimeOrCount(intv, cnt)).to.emitInTime(
-        [[300, value([0, 1, 2])], [500, value([3, 4, 5, 6])], [800, value([])], [900, value([7, 8])], [900, end()]],
+        [
+          [300, value([0, 1, 2])],
+          [500, value([3, 4, 5, 6])],
+          [800, value([])],
+          [900, value([7, 8])],
+          [900, end()],
+        ],
         tick => {
           tick(100)
           send(a, [value(1)])
@@ -127,7 +143,11 @@ describe('bufferWithTimeOrCount', () => {
     it('should not flush buffer on end if {flushOnEnd: false}', () => {
       const a = send(prop(), [value(0)])
       expect(a.bufferWithTimeOrCount(intv, cnt, {flushOnEnd: false})).to.emitInTime(
-        [[300, value([0, 1, 2])], [500, value([3, 4, 5, 6])], [700, end()]],
+        [
+          [300, value([0, 1, 2])],
+          [500, value([3, 4, 5, 6])],
+          [700, end()],
+        ],
         tick => {
           tick(100)
           send(a, [value(1)])
