@@ -1,3 +1,4 @@
+const sinon = require('sinon')
 const {stream, prop, send, value, error, end, activate, deactivate, Kefir, expect} = require('../test-helpers')
 
 describe('flatMap', () => {
@@ -237,6 +238,92 @@ describe('flatMap', () => {
       deactivate(result)
       expect(result).to.flowErrors(b)
       expect(result).to.flowErrors(c)
+    })
+  })
+
+  describe('overlapping with a concurrency limit that has maxed out', () => {
+    describe('and with a queue limit', () => {
+      it('not maxed out, should add to the queue', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMap({concurLim: 1, drop: 'old', overlapping: true, queueLim: 1})
+        activate(map)
+        send(a, [value(b)]) // added to current
+        send(a, [value(b)]) // added to queue
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
+
+      it('maxed out, should add the next stream before removing the previous', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMap({concurLim: 1, drop: 'old', overlapping: true, queueLim: 1})
+        activate(map)
+        send(a, [value(b)]) // added to current
+        send(a, [value(b)]) // added to queue
+        send(a, [value(b)]) // added to queue (overflow)
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
+    })
+
+    describe('and without a queue limit', () => {
+      it('should add to the queue', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMap({concurLim: 1, drop: 'old', overlapping: true, queueLim: -1})
+        activate(map)
+        send(a, [value(b)]) // added to current
+        send(a, [value(b)]) // replaced current
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
+    })
+  })
+
+  describe('non-overlapping with a concurrency limit that has maxed out', () => {
+    describe('and with a queue limit', () => {
+      it('not maxed out, should add to the queue', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMap({concurLim: 1, drop: 'old', overlapping: false, queueLim: 1})
+        activate(map)
+        send(a, [value(b)]) // added to current
+        send(a, [value(b)]) // added to queue
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
+
+      it('maxed out, should remove the previous stream before adding the next', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMap({concurLim: 1, drop: 'old', overlapping: false, queueLim: 1})
+        activate(map)
+        send(a, [value(b)]) // added to current
+        send(a, [value(b)]) // added to queue
+        send(a, [value(b)]) // added to queue (overflow)
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(2)
+      })
+    })
+
+    describe('and without a queue limit', () => {
+      it('should add to the queue', () => {
+        onDeactivate = sinon.spy()
+        a = stream()
+        b = Kefir.stream(() => onDeactivate)
+        map = a.flatMap({concurLim: 1, drop: 'old', overlapping: false, queueLim: -1})
+        activate(map)
+        send(a, [value(b)]) // added to current
+        send(a, [value(b)]) // replaced current
+        deactivate(map)
+        expect(onDeactivate.callCount).to.equal(1)
+      })
     })
   })
 })

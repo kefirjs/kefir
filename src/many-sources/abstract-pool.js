@@ -5,12 +5,13 @@ import {concat, forEach, findByPred, find, remove, cloneArray} from '../utils/co
 
 const id = x => x
 
-function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
+function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new', overlapping = false} = {}) {
   Stream.call(this)
 
   this._queueLim = queueLim < 0 ? -1 : queueLim
   this._concurLim = concurLim < 0 ? -1 : concurLim
   this._drop = drop
+  this._overlapping = overlapping
   this._queue = []
   this._curSources = []
   this._$handleSubAny = event => this._handleSubAny(event)
@@ -25,16 +26,21 @@ function AbstractPool({queueLim = 0, concurLim = -1, drop = 'new'} = {}) {
 inherit(AbstractPool, Stream, {
   _name: 'abstractPool',
 
-  _add(obj, toObs /* Function | falsey */) {
+  _add(obj, toObs /* Function | falsey */, allowOverflow) {
     toObs = toObs || id
     if (this._concurLim === -1 || this._curSources.length < this._concurLim) {
       this._addToCur(toObs(obj))
     } else {
-      if (this._queueLim === -1 || this._queue.length < this._queueLim) {
+      if (this._queueLim === -1 || this._queue.length < this._queueLim || allowOverflow) {
         this._addToQueue(toObs(obj))
       } else if (this._drop === 'old') {
-        this._removeOldest()
-        this._add(obj, toObs)
+        if (this._overlapping) {
+          this._add(obj, toObs, true)
+          this._removeOldest(true)
+        } else {
+          this._removeOldest()
+          this._add(obj, toObs)
+        }
       }
     }
   },
@@ -148,8 +154,8 @@ inherit(AbstractPool, Stream, {
     return index
   },
 
-  _removeCur(obs) {
-    if (this._active) {
+  _removeCur(obs, after) {
+    if (!after && this._active) {
       this._unsubscribe(obs)
     }
     let index = find(this._curSources, obs)
@@ -161,11 +167,14 @@ inherit(AbstractPool, Stream, {
         this._onEmpty()
       }
     }
+    if (after && this._active) {
+      this._unsubscribe(obs)
+    }
     return index
   },
 
-  _removeOldest() {
-    this._removeCur(this._curSources[0])
+  _removeOldest(after) {
+    this._removeCur(this._curSources[0], after)
   },
 
   _pullQueue() {
